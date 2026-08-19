@@ -1,0 +1,177 @@
+/* Inter's opsz axis tunes letterforms to size — worth having on a site whose
+   type runs from 14px labels to 48px headlines. */
+@import '@fontsource-variable/inter/opsz.css';
+@import '@fontsource-variable/playfair-display';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+	scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+body {
+	margin: 0;
+	background: var(--c-bg);
+	color: var(--c-text-body);
+	font-family: var(--f-sans);
+	font-size: var(--t-body);
+	line-height: var(--lh-body);
+	/* Never let the browser fake a weight Inter already ships. */
+	font-synthesis-weight: none;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+ul,
+ol {
+	margin: 0;
+}
+
+ul,
+ol {
+	padding: 0;
+}
+
+img,
+video {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+
+a {
+	color: inherit;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+}
+
+:focus-visible {
+	outline: 2px solid var(--c-primary);
+	outline-offset: 3px;
+	border-radius: 2px;
+}
+
+::selection {
+	background: var(--c-primary);
+	color: var(--c-on-primary);
+}
+
+/* ---------- shared primitives ---------- */
+
+.page {
+	width: 100%;
+	max-width: calc(var(--w-page) + var(--s-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--s-gutter);
+}
+
+/* Body copy inside a case-study section.
+
+   Set ragged right, not justified. The draft justifies with hyphenation off,
+   which leaves the browser only word-spaces to stretch — that opens rivers and
+   gives every line a different rhythm to scan. A ragged edge also gives each
+   line a distinct shape, which is what the eye uses to find its way back on
+   the return sweep. Leading is 1.65 rather than the 1.5 used for UI, because
+   long measures need more vertical separation to track. */
+.prose {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25em;
+	max-width: var(--measure);
+	color: var(--c-text-body);
+	line-height: var(--lh-prose);
+	text-wrap: pretty;
+}
+
+.prose :is(ol, ul) {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35em;
+	padding-left: 1.6em;
+	margin: -0.5em 0 0;
+}
+
+.prose li::marker {
+	color: var(--c-text-body);
+}
+
+.prose strong {
+	font-weight: var(--fw-bold);
+	color: var(--c-text);
+}
+
+.prose a {
+	color: var(--c-text);
+	text-decoration-color: var(--c-support);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+}
+
+.prose a:hover {
+	text-decoration-color: var(--c-support-bright);
+}
+
+/* A term with a definition behind it, rendered by Term.astro. The amber
+   underline is the affordance; the popover itself belongs to the Glossary
+   island. Kept `display: inline` so a two-word term still breaks across lines
+   like the prose around it. */
+.term {
+	display: inline;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	font: inherit;
+	color: var(--c-support);
+	text-align: inherit;
+	text-decoration: underline;
+	text-decoration-color: var(--c-support);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+	cursor: help;
+	transition: color 0.15s var(--e-out);
+}
+
+.term:is(:hover, [aria-expanded='true']) {
+	color: var(--c-support-bright);
+	text-decoration-color: var(--c-support-bright);
+}
+
+.term:focus-visible {
+	outline: 2px solid var(--c-support-bright);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* The measure cap lives on .prose itself, so no width media query is needed. */

@@ -1,0 +1,152 @@
+---
+/**
+ * One beat of a case study: an eyebrow, a claim, the artefact, the reasoning.
+ *
+ * layout="split"   visual under the headline, copy alongside (the default)
+ * layout="stacked" copy alongside the headline, visual full width beneath
+ * layout="prose"   no visual column at all
+ */
+interface Props {
+	id: string;
+	/** which rail step this section belongs to */
+	group?: string;
+	eyebrow?: string;
+	title?: string;
+	layout?: 'split' | 'stacked' | 'prose';
+	class?: string;
+}
+
+const { id, group, eyebrow, title, layout = 'split', class: className } = Astro.props;
+const hasVisual = layout !== 'prose' && Astro.slots.has('visual');
+---
+
+<section
+	id={id}
+	data-section
+	data-group={group}
+	class:list={['section', `section--${layout}`, className]}
+>
+	{eyebrow && <p class="section__eyebrow">{eyebrow}</p>}
+	{title && <h2 class="section__title">{title}</h2>}
+
+	{
+		hasVisual && layout === 'split' && (
+			<div class="section__visual">
+				<slot name="visual" />
+			</div>
+		)
+	}
+
+	<div class="section__body prose">
+		<slot />
+	</div>
+
+	{
+		hasVisual && layout === 'stacked' && (
+			<div class="section__visual section__visual--wide">
+				<slot name="visual" />
+			</div>
+		)
+	}
+</section>
+
+<style>
+	.section {
+		display: grid;
+		column-gap: var(--s-col-gap);
+		row-gap: 0;
+		margin-block-start: var(--s-section);
+		scroll-margin-top: calc(var(--rail-h) + var(--s-7));
+	}
+
+	.section > * + * {
+		margin-block-start: var(--s-block);
+	}
+
+	.section__eyebrow + .section__title {
+		margin-block-start: var(--s-3);
+	}
+
+	.section__eyebrow {
+		font-family: var(--f-mono);
+		font-size: var(--t-small);
+		font-weight: var(--fw-bold);
+		letter-spacing: 0.09em;
+		text-transform: uppercase;
+		color: var(--c-support);
+		text-wrap: balance;
+	}
+
+	.section__title {
+		font-size: var(--t-title);
+		font-style: italic;
+		font-weight: var(--fw-bold);
+		line-height: var(--lh-tight);
+		letter-spacing: -0.015em;
+		color: var(--c-text);
+		text-wrap: pretty;
+	}
+
+	.section__visual {
+		display: flex;
+		flex-direction: column;
+		gap: var(--s-5);
+		min-width: 0;
+	}
+
+	@media (min-width: 900px) {
+		.section--split,
+		.section--stacked {
+			grid-template-columns: minmax(0, var(--w-col-visual)) minmax(0, 1fr);
+			grid-template-areas:
+				'eyebrow eyebrow'
+				'title body'
+				'visual body';
+			grid-template-rows: auto auto 1fr;
+			align-items: start;
+		}
+
+		/* On the two-column grid, spacing comes from the areas, not source order. */
+		.section--split > * + *,
+		.section--stacked > * + * {
+			margin-block-start: 0;
+		}
+
+		.section--stacked {
+			grid-template-areas:
+				'eyebrow eyebrow'
+				'title body'
+				'visual visual';
+		}
+
+		.section--split .section__eyebrow,
+		.section--stacked .section__eyebrow {
+			grid-area: eyebrow;
+			margin-block-end: var(--s-3);
+		}
+
+		.section--split .section__title,
+		.section--stacked .section__title {
+			grid-area: title;
+			margin-block-end: var(--s-block);
+		}
+
+		.section--split .section__body,
+		.section--stacked .section__body {
+			grid-area: body;
+		}
+
+		.section--split .section__visual,
+		.section--stacked .section__visual {
+			grid-area: visual;
+		}
+
+		.section--stacked .section__visual {
+			margin-block-start: var(--s-block);
+		}
+
+		.section--prose {
+			grid-template-columns: minmax(0, var(--w-col-visual)) minmax(0, 1fr);
+		}
+	}
+</style>

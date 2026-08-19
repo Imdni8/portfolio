@@ -1,0 +1,47 @@
+---
+interface Props {
+	title?: string;
+	id?: string;
+}
+
+const { title = 'Reflection', id = 'reflection' } = Astro.props;
+---
+
+<section class="reflection" id={id} data-section>
+	<div class="reflection__inner">
+		<h2 class="reflection__title">{title}</h2>
+		<div class="reflection__body prose"><slot /></div>
+	</div>
+</section>
+
+<style>
+	.reflection {
+		margin-block-start: var(--s-section);
+		padding-block-start: var(--s-fluid-3);
+		border-block-start: 1px solid var(--c-support-line);
+	}
+
+	/* Centre the closing block in the content column. The measure lives on the
+	   wrapper so the title shares the body's left edge — `ch` on the title
+	   itself would resolve against its much larger display font. */
+	.reflection__inner {
+		max-width: var(--measure);
+		margin-inline: auto;
+	}
+
+	.reflection__title {
+		font-family: var(--f-display);
+		font-size: var(--t-lead);
+		font-weight: var(--fw-semibold);
+		color: var(--c-support);
+		margin-block-end: var(--s-4);
+	}
+
+	.reflection__body {
+		text-align: left;
+	}
+
+	.reflection__body :global(ul) {
+		list-style: disc;
+	}
+</style>

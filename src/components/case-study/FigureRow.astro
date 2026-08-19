@@ -1,0 +1,24 @@
+---
+/** Two or more figures read as one comparison. */
+interface Props {
+	/** column weights, e.g. "1fr 1fr" or "1.2fr 1fr" */
+	columns?: string;
+	class?: string;
+}
+
+const { columns = 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', class: className } =
+	Astro.props;
+---
+
+<div class:list={['figure-row', className]} style={`--columns: ${columns}`}>
+	<slot />
+</div>
+
+<style>
+	.figure-row {
+		display: grid;
+		grid-template-columns: var(--columns);
+		gap: var(--s-4);
+		align-items: start;
+	}
+</style>

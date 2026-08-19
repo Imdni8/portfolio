@@ -1,0 +1,288 @@
+/* ============================================================================
+   Amber & Slate — design tokens
+
+   Three layers, in order: colour primitives, type primitives, then the
+   semantic layer that maps them. Components read semantic tokens only —
+   reaching past them to a primitive is how a design system rots.
+
+   Dark is the default theme. Light is defined twice on purpose: once behind
+   prefers-color-scheme for viewers who never touch a toggle, once behind
+   [data-theme] so an explicit choice wins in both directions.
+
+   Contrast: every semantic pairing that carries a WCAG requirement was
+   computed against both grounds. Body text clears 4.5:1, UI boundaries and
+   focus rings clear 3:1. No pairing relies on colour alone.
+   ============================================================================ */
+
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/playfair-display';
+@import '@fontsource/ibm-plex-mono/700.css';
+
+/* ---- 1 · Colour primitives -------------------------------------------------
+   Amber is Tailwind's ramp, unmodified. Grey is custom — a cool cast that
+   sits against the warm amber without going neutral-grey dead.
+
+   Deliberately 11 steps, not 13: there is no pure white and no pure black in
+   this system. gray-50 is the lightest value anything can be.
+   -------------------------------------------------------------------------- */
+:root {
+	--amber-50: #fffbeb;
+	--amber-100: #fef3c7;
+	--amber-200: #fde68a;
+	--amber-300: #fcd34d;
+	--amber-400: #fbbf24;
+	--amber-500: #f59e0b;
+	--amber-600: #d97706;
+	--amber-700: #b45309;
+	--amber-800: #92400e;
+	--amber-900: #78350f;
+	--amber-950: #451a03;
+
+	--gray-50: #f9fbfb;
+	--gray-100: #f1f3f3;
+	--gray-200: #e3e7e8;
+	--gray-300: #d0d6d8;
+	--gray-400: #9ca8ab;
+	--gray-500: #67787c;
+	--gray-600: #4b585b;
+	--gray-700: #394447;
+	--gray-800: #22292b;
+	--gray-900: #161b1d;
+	--gray-950: #090b0c;
+}
+
+/* ---- 2 · Type primitives ---------------------------------------------------
+   Playfair carries the voice — titles, reflections, chapter names.
+   Inter carries information — headings, copy, controls.
+   Plex Mono carries apparatus — eyebrows only, always uppercase, always amber.
+
+   The two text families meet at exactly one size (30/38) and do different
+   jobs there. That collision is the system; see --type-heading vs
+   --type-reflection below.
+   -------------------------------------------------------------------------- */
+:root {
+	--font-display: 'Playfair Display Variable', 'Playfair Display', Georgia, serif;
+	--font-sans: 'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+
+	/* Sizes. The top three rungs clamp; 20px and below are fixed, because
+	   below 20 the fluid range is narrower than the rounding error. */
+	--size-title: clamp(2rem, 5vw, 3rem); /* 32 → 48 */
+	--size-heading: clamp(1.5rem, 3.2vw, 1.875rem); /* 24 → 30 */
+	--size-subtitle: clamp(1.25rem, 2.4vw, 1.5rem); /* 20 → 24 */
+	--size-tab: 1.25rem; /* 20 */
+	--size-body: 1.125rem; /* 18 */
+	--size-ui: 1rem; /* 16 */
+	--size-fine: 0.875rem; /* 14 */
+
+	/* Leading, unitless so it survives the clamps. Ratios reproduce the
+	   Figma px pairs exactly at each design size. */
+	--lh-title: 1.25; /* 48/60 */
+	--lh-heading: 1.267; /* 30/38 */
+	--lh-subtitle: 1.333; /* 24/32 */
+	--lh-tab: 1.5; /* 20/30 */
+	--lh-body: 1.556; /* 18/28 */
+	--lh-ui: 1.5; /* 16/24 */
+	--lh-fine: 1.429; /* 14/20 */
+
+	--weight-regular: 400;
+	--weight-medium: 500;
+	--weight-semibold: 600;
+	--weight-bold: 700;
+
+	/* Tracking. Large display type tightens; uppercase mono opens up —
+	   without it the eyebrows set as a solid block. */
+	--track-title: -0.02em;
+	--track-heading: -0.015em;
+	--track-tight: -0.01em;
+	--track-normal: normal;
+	--track-overline: 0.09em;
+}
+
+/* ---- 3 · Semantic colour · dark (default) ---------------------------------- */
+:root {
+	--bg: var(--gray-900);
+	--bg-raised: var(--gray-800);
+	--bg-sunken: var(--gray-950);
+
+	--text: var(--gray-50);
+	--text-body: var(--gray-200);
+	--text-muted: var(--gray-400);
+	--text-disabled: var(--gray-500);
+
+	--border: var(--gray-700);
+	--border-strong: var(--gray-500);
+
+	--primary: var(--amber-500);
+	--primary-hover: var(--amber-400);
+	--primary-active: var(--amber-600);
+	--primary-subtle: var(--amber-950);
+	--text-on-primary: var(--gray-900);
+	--primary-text: var(--amber-500);
+	--focus-ring: var(--amber-400);
+}
+
+/* ---- 3a · Semantic colour · light -----------------------------------------
+   Not an inversion. The two themes use opposite ends of the amber ramp with
+   no overlap — amber-500 is 8.09:1 on the dark ground and 2.07:1 on the
+   light one, so light mode runs on 700/800/900 and pairs them with gray-50.
+
+   Surfaces sit one rung down from dark's mirror so gray-50 stays the
+   lightest value on the page; bg-raised is therefore lighter than bg.
+   -------------------------------------------------------------------------- */
+@media (prefers-color-scheme: light) {
+	:root:not([data-theme='dark']) {
+		--bg: var(--gray-100);
+		--bg-raised: var(--gray-50);
+		--bg-sunken: var(--gray-200);
+
+		--text: var(--gray-900);
+		--text-body: var(--gray-800);
+		--text-muted: var(--gray-600);
+		--text-disabled: var(--gray-400);
+
+		--border: var(--gray-300);
+		--border-strong: var(--gray-500);
+
+		--primary: var(--amber-700);
+		--primary-hover: var(--amber-800);
+		--primary-active: var(--amber-900);
+		--primary-subtle: var(--amber-50);
+		--text-on-primary: var(--gray-50);
+		--primary-text: var(--amber-800);
+		--focus-ring: var(--amber-700);
+	}
+}
+
+:root[data-theme='light'] {
+	--bg: var(--gray-100);
+	--bg-raised: var(--gray-50);
+	--bg-sunken: var(--gray-200);
+
+	--text: var(--gray-900);
+	--text-body: var(--gray-800);
+	--text-muted: var(--gray-600);
+	--text-disabled: var(--gray-400);
+
+	--border: var(--gray-300);
+	--border-strong: var(--gray-500);
+
+	--primary: var(--amber-700);
+	--primary-hover: var(--amber-800);
+	--primary-active: var(--amber-900);
+	--primary-subtle: var(--amber-50);
+	--text-on-primary: var(--gray-50);
+	--primary-text: var(--amber-800);
+	--focus-ring: var(--amber-700);
+}
+
+/* ---- 4 · Type styles -------------------------------------------------------
+   Ten styles. Each is a complete instruction — family, weight, size, leading
+   and tracking together — so a component never has to assemble one by hand
+   and drift from the spec.
+   -------------------------------------------------------------------------- */
+.type-title,
+.type-heading,
+.type-reflection,
+.type-subtitle,
+.type-tab,
+.type-tab-active,
+.type-body,
+.type-ui-label,
+.type-annotation,
+.type-overline {
+	margin: 0;
+}
+
+/* Page title. One per case study. */
+.type-title {
+	font-family: var(--font-display);
+	font-weight: var(--weight-bold);
+	font-size: var(--size-title);
+	line-height: var(--lh-title);
+	letter-spacing: var(--track-title);
+	text-wrap: balance;
+}
+
+/* Section headline — states a finding. The sans half of the 30/38 pair. */
+.type-heading {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-semibold);
+	font-size: var(--size-heading);
+	line-height: var(--lh-heading);
+	letter-spacing: var(--track-heading);
+	text-wrap: balance;
+}
+
+/* Editorial heading — you, stepping back to speak. The serif half. */
+.type-reflection {
+	font-family: var(--font-display);
+	font-weight: var(--weight-semibold);
+	font-size: var(--size-heading);
+	line-height: var(--lh-heading);
+	letter-spacing: var(--track-tight);
+	text-wrap: balance;
+}
+
+/* Dek beneath the title. */
+.type-subtitle {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-subtitle);
+	line-height: var(--lh-subtitle);
+	letter-spacing: var(--track-tight);
+}
+
+/* Chapter nav. 500 → 700 is a wide enough gap that the state reads before
+   the amber does — the tab is not distinguished by colour alone. */
+.type-tab {
+	font-family: var(--font-display);
+	font-weight: var(--weight-medium);
+	font-size: var(--size-tab);
+	line-height: var(--lh-tab);
+}
+
+.type-tab-active {
+	font-family: var(--font-display);
+	font-weight: var(--weight-bold);
+	font-size: var(--size-tab);
+	line-height: var(--lh-tab);
+}
+
+/* Running copy, and hero fact values. */
+.type-body {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-body);
+	line-height: var(--lh-body);
+}
+
+/* Buttons and control labels. */
+.type-ui-label {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-semibold);
+	font-size: var(--size-ui);
+	line-height: var(--lh-ui);
+}
+
+/* Secondary text bound to something else — a figure, a passage, a term.
+   Carries both photo captions and note/tooltip copy, which is why it is
+   named for the relationship rather than for either container. */
+.type-annotation {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-fine);
+	line-height: var(--lh-fine);
+}
+
+/* Eyebrows and note titles. Shares the 14px rung with annotation — no
+   collision, since family, weight and case all differ. */
+.type-overline {
+	font-family: var(--font-mono);
+	font-weight: var(--weight-bold);
+	font-size: var(--size-fine);
+	line-height: var(--lh-fine);
+	letter-spacing: var(--track-overline);
+	text-transform: uppercase;
+	color: var(--primary-text);
+}

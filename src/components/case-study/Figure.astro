@@ -1,0 +1,127 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	src: ImageMetadata;
+	alt: string;
+	caption?: string;
+	/**
+	 * Higher-resolution source used only when the figure is enlarged. Point this
+	 * at a dedicated Figma export when you have one; otherwise the display image
+	 * is reused.
+	 */
+	zoomSrc?: ImageMetadata;
+	/** disable click-to-enlarge for figures that carry no fine detail */
+	zoom?: boolean;
+	/** display width hint for srcset generation */
+	sizes?: string;
+	class?: string;
+}
+
+const {
+	src,
+	alt,
+	caption,
+	zoomSrc,
+	zoom = true,
+	sizes = '(min-width: 900px) 47vw, 92vw',
+	class: className,
+} = Astro.props;
+
+const source = zoomSrc ?? src;
+const zoomWidth = Math.min(source.width, 2400);
+const zoomHeight = Math.round((source.height / source.width) * zoomWidth);
+const full = zoom
+	? await getImage({ src: source, format: 'webp', quality: 90, width: zoomWidth })
+	: null;
+---
+
+<figure class:list={['figure', className]}>
+	{
+		full ? (
+			<button
+				type="button"
+				class="figure__frame figure__frame--zoom"
+				data-zoom
+				data-zoom-src={full.src}
+				data-zoom-width={zoomWidth}
+				data-zoom-height={zoomHeight}
+				data-zoom-alt={alt}
+				data-zoom-caption={caption}
+				aria-label={`Enlarge image: ${alt}`}
+			>
+				<Image src={src} alt={alt} sizes={sizes} widths={[480, 720, 960, 1280, src.width]} />
+				<span class="figure__hint" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="11" cy="11" r="7" />
+						<path d="m20 20-3.6-3.6M11 8.4v5.2M8.4 11h5.2" />
+					</svg>
+				</span>
+			</button>
+		) : (
+			<div class="figure__frame">
+				<Image src={src} alt={alt} sizes={sizes} widths={[480, 720, 960, 1280, src.width]} />
+			</div>
+		)
+	}
+	{caption && <figcaption class="figure__caption">{caption}</figcaption>}
+</figure>
+
+<style>
+	.figure {
+		min-width: 0;
+	}
+
+	.figure__frame {
+		display: block;
+		width: 100%;
+		padding: 0;
+		border: 0;
+		background: none;
+		position: relative;
+		border-radius: var(--radius);
+		overflow: hidden;
+		line-height: 0;
+	}
+
+	.figure__frame--zoom {
+		cursor: zoom-in;
+	}
+
+	.figure__frame :global(img) {
+		width: 100%;
+		height: auto;
+	}
+
+	.figure__hint {
+		position: absolute;
+		inset-block-end: var(--s-3);
+		inset-inline-end: var(--s-3);
+		display: grid;
+		place-items: center;
+		width: 1.875rem;
+		height: 1.875rem;
+		border-radius: 50%;
+		background: var(--c-scrim);
+		color: var(--c-text);
+		opacity: 0;
+		transform: translateY(4px);
+		transition:
+			opacity 0.18s var(--e-out),
+			transform 0.18s var(--e-out);
+		backdrop-filter: blur(4px);
+	}
+
+	.figure__frame--zoom:is(:hover, :focus-visible) .figure__hint {
+		opacity: 1;
+		transform: none;
+	}
+
+	.figure__caption {
+		margin-block-start: var(--s-3);
+		font-size: var(--t-small);
+		line-height: var(--lh-body);
+		color: var(--c-text-muted);
+	}
+</style>

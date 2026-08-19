@@ -1,0 +1,37 @@
+---
+/**
+ * A term with a definition behind it. Renders as static markup carrying its own
+ * copy — the `Glossary` island reads it off the DOM on click, so a page with ten
+ * terms ships no more JS than a page with one.
+ *
+ *   <Term id="ai-builder">AI builder</Term>
+ *
+ * The label is the slot, so the prose can inflect the word however it needs to
+ * while the definition stays keyed to the glossary.
+ */
+import { glossary, type TermId } from '../../content/glossary';
+
+interface Props {
+	id: TermId;
+}
+
+const { id } = Astro.props;
+const entry = glossary[id];
+
+if (!entry) {
+	throw new Error(
+		`<Term id="${id}"> has no definition. Add one to src/content/glossary.ts, or use a plain <span> if the word needs no gloss.`,
+	);
+}
+---
+
+<button
+	type="button"
+	class="term"
+	data-term={id}
+	data-term-title={entry.title}
+	data-term-body={JSON.stringify(entry.body)}
+	aria-expanded="false"
+>
+	<slot />
+</button>

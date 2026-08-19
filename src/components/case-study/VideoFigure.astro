@@ -1,0 +1,96 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	src: string;
+	poster: ImageMetadata;
+	alt: string;
+	caption?: string;
+	label?: string;
+}
+
+const { src, poster, alt, caption, label = 'Play walkthrough' } = Astro.props;
+---
+
+<figure class="video">
+	<div class="video__frame" data-video-figure data-src={src}>
+		<Image src={poster} alt={alt} sizes="(min-width: 900px) 1170px, 100vw" widths={[720, 1080, 1440, poster.width]} />
+		<button type="button" class="video__play" aria-label={label}>
+			<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+				<path d="M8 5.2v13.6L19.5 12z" />
+			</svg>
+		</button>
+	</div>
+	{caption && <figcaption class="video__caption">{caption}</figcaption>}
+</figure>
+
+<script>
+	// Swap the poster for a real player on first click — the file is several MB,
+	// so nothing is fetched until someone asks for it.
+	document.querySelectorAll<HTMLElement>('[data-video-figure]').forEach((frame) => {
+		const button = frame.querySelector('button');
+		button?.addEventListener('click', () => {
+			const src = frame.dataset.src;
+			if (!src) return;
+			const video = document.createElement('video');
+			video.src = src;
+			video.controls = true;
+			video.autoplay = true;
+			video.playsInline = true;
+			video.className = 'video__player';
+			frame.replaceChildren(video);
+			video.focus();
+		});
+	});
+</script>
+
+<style>
+	.video__frame {
+		position: relative;
+		border-radius: var(--radius);
+		overflow: hidden;
+		background: var(--c-bg-sunken);
+		line-height: 0;
+	}
+
+	.video__frame :global(img),
+	.video__frame :global(.video__player) {
+		width: 100%;
+		height: auto;
+		display: block;
+	}
+
+	.video__play {
+		position: absolute;
+		inset-block-start: 50%;
+		inset-inline-start: 50%;
+		translate: -50% -50%;
+		display: grid;
+		place-items: center;
+		width: 4.5rem;
+		height: 4.5rem;
+		padding: 0;
+		padding-inline-start: var(--s-1);
+		border: 0;
+		border-radius: 50%;
+		background: var(--c-support);
+		color: var(--c-on-primary);
+		cursor: pointer;
+		box-shadow: var(--shadow-md);
+		transition:
+			transform 0.2s var(--e-out),
+			background-color 0.2s var(--e-out);
+	}
+
+	.video__play:hover {
+		background: var(--c-support-bright);
+		transform: scale(1.06);
+	}
+
+	.video__caption {
+		margin-block-start: var(--s-3);
+		font-size: var(--t-small);
+		color: var(--c-text-muted);
+	}
+</style>

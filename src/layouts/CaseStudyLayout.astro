@@ -1,0 +1,139 @@
+---
+import { getImage } from 'astro:assets';
+import BaseLayout from './BaseLayout.astro';
+import CaseStudyHero from '../components/case-study/CaseStudyHero.astro';
+import SectionRail from '../components/case-study/SectionRail';
+import BeforeAfter from '../components/case-study/BeforeAfter';
+import Lightbox from '../components/case-study/Lightbox';
+import Glossary from '../components/case-study/Glossary';
+import type { CollectionEntry } from 'astro:content';
+import '../styles/islands.css';
+
+interface Props {
+	entry: CollectionEntry<'work'>;
+}
+
+const { entry } = Astro.props;
+const { title, dek, summary, meta, sections, actions, hero, heroLayout } = entry.data;
+
+const shotWidths = [720, 1080, 1440, 1920];
+const [before, after] = hero
+	? await Promise.all([
+			getImage({ src: hero.before, widths: shotWidths, format: 'webp', quality: 82 }),
+			getImage({ src: hero.after, widths: shotWidths, format: 'webp', quality: 82 }),
+		])
+	: [null, null];
+---
+
+<BaseLayout title={`${title} — Tousif Rahaman`} description={summary ?? dek}>
+	<a class="skip-link" href="#case-study-body">Skip to case study</a>
+
+	<CaseStudyHero title={title} dek={dek} meta={meta} actions={actions} layout={heroLayout}>
+		{
+			hero && before && after && (
+				<div class:list={['showcase', heroLayout === 'showcase-first' && 'showcase--lead']} slot="showcase">
+					<BeforeAfter
+						client:load
+						before={{
+							src: before.src,
+							srcSet: before.srcSet.attribute,
+							width: hero.before.width,
+							height: hero.before.height,
+							alt: hero.beforeAlt,
+						}}
+						after={{
+							src: after.src,
+							srcSet: after.srcSet.attribute,
+							width: hero.after.width,
+							height: hero.after.height,
+							alt: hero.afterAlt,
+						}}
+						beforeLabel={hero.beforeLabel}
+						afterLabel={hero.afterLabel}
+						beforeNotes={hero.beforeNotes}
+						afterNotes={hero.afterNotes}
+					/>
+				</div>
+			)
+		}
+	</CaseStudyHero>
+
+	{sections.length > 0 && <SectionRail client:load steps={sections} />}
+
+	<main class="page" id="case-study-body">
+		<slot />
+	</main>
+
+	<footer class="site-footer">
+		<div class="page site-footer__inner">
+			<a href="/" class="site-footer__back">← All work</a>
+			<p class="site-footer__name">Tousif Rahaman</p>
+		</div>
+	</footer>
+
+	<Lightbox client:idle />
+	<Glossary client:idle />
+</BaseLayout>
+
+<style>
+	.skip-link {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: 50%;
+		translate: -50% -120%;
+		z-index: 80;
+		padding: var(--s-3) var(--s-5);
+		background: var(--c-support);
+		color: var(--c-on-primary);
+		font-weight: var(--fw-bold);
+		text-decoration: none;
+		border-radius: 0 0 var(--radius) var(--radius);
+		transition: translate 0.18s var(--e-out);
+	}
+
+	.skip-link:focus-visible {
+		translate: -50% 0;
+	}
+
+	.showcase {
+		margin-block-start: var(--s-2);
+	}
+
+	/* Leading the page, it sits flush against the top edge instead. */
+	.showcase--lead {
+		margin-block-start: 0;
+	}
+
+	#case-study-body {
+		padding-block-end: var(--s-fluid-4);
+	}
+
+	.site-footer {
+		border-block-start: 1px solid var(--c-line);
+		padding-block: var(--s-6);
+	}
+
+	.site-footer__inner {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--s-4);
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.site-footer__back {
+		text-decoration: none;
+		color: var(--c-text-muted);
+		font-size: var(--t-meta);
+	}
+
+	.site-footer__back:hover {
+		color: var(--c-text);
+	}
+
+	.site-footer__name {
+		font-family: var(--f-display);
+		font-size: var(--t-meta);
+		color: var(--c-text-muted);
+	}
+</style>
