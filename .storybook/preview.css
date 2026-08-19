@@ -1,0 +1,9 @@
+/* Storybook chrome only — never imported by the site.
+
+   The ground is painted by the decorator wrapper, not here: Storybook's own
+   canvas background overrides anything set on `body`. All this does is stop
+   the default margin showing as a light seam around a dark story. */
+body {
+	margin: 0;
+	-webkit-font-smoothing: antialiased;
+}

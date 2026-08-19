@@ -5,7 +5,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "type": "module",
   "dependencies": {
@@ -20,9 +22,11 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@storybook/react-vite": "^10.5.9",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "playwright": "^1.62.1",
+    "storybook": "^10.5.9",
     "typescript": "^6.0.3"
   },
   "private": true

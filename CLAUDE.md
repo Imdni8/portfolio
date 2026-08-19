@@ -9,12 +9,17 @@ Deployed at `https://tousifrahaman.com` (set as `site` in `astro.config.mjs`).
 
 ## Current direction
 
-The project is being restarted around a design system built in **Storybook**.
-Storybook is not installed yet — that is the next piece of work.
+The project is being restarted around a design system, documented in
+**Storybook** (`.storybook/`, stories in `src/stories/`). Foundations are done;
+components are next.
 
-`src/styles/tokens.css` is the **source of truth** for the design system and is
-the one part of `src/` that is current. It holds the colour and type foundations,
-both settled with the user:
+`src/styles/tokens.css` is the **source of truth**, and is the one part of `src/`
+that is current. Stories read their values out of it at render time via
+`readToken()` rather than restating them — so a story cannot drift from the
+stylesheet, and swatches follow the theme toolbar for free. Keep that property
+when adding stories.
+
+The foundations, all settled with the user:
 
 - **Colour** — an unmodified Tailwind `amber` ramp plus a custom cool grey, 11
   steps each. No pure white, no pure black; `gray-50` is the lightest value in
@@ -25,6 +30,10 @@ both settled with the user:
   eyebrows. Ten styles, exposed as `.type-*` classes. The families meet at one
   size (30/38) and do different jobs there — `.type-heading` states a finding,
   `.type-reflection` is the author speaking.
+- **Space and radius** — Untitled UI's scales, unmodified. They share their first
+  five rungs and then diverge (`radius-lg` is 10px, `spacing-lg` is 12px), so
+  they are two scales and not interchangeable above `md`. Neither has a semantic
+  layer; use the primitives directly.
 
 Accessibility is a hard constraint, not a preference: every semantic pairing that
 carries a WCAG requirement was computed against both grounds and passes. If you
@@ -51,14 +60,22 @@ pattern to follow or extend.
 ## Commands
 
 ```bash
-npm run dev      # localhost:4321
-npm run build    # → dist/
-npm run preview  # serve the build
-npm run check    # astro check — type + template diagnostics
+npm run dev              # localhost:4321
+npm run build            # → dist/
+npm run preview          # serve the build
+npm run check            # astro check — type + template diagnostics
+npm run storybook        # localhost:6006 — the design system
+npm run build-storybook  # → storybook-static/ (gitignored)
 ```
 
 There is no test runner and no linter configured. `npm run check` is the only
 gate; run it before calling work done.
+
+**Beware browser dark-mode extensions when reviewing colour.** Dark Reader and
+similar rewrite every background with `!important`, including inline styles, so
+a story can look wrong while the tokens are correct. If a colour looks off,
+check the *computed* value of the custom property before assuming a bug — the
+extension leaves `--darkreader-*` properties on the element as a giveaway.
 
 ## Repo notes
 

@@ -22,4 +22,9 @@ audit/
 bolt/
 design_system/
 
+# documentation
 README.md
+CLAUDE.md
+
+# storybook build output
+storybook-static/

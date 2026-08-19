@@ -1,9 +1,13 @@
 /* ============================================================================
    Amber & Slate — design tokens
 
-   Three layers, in order: colour primitives, type primitives, then the
+   Two layers, in order: primitives (colour, type, space, radius), then the
    semantic layer that maps them. Components read semantic tokens only —
    reaching past them to a primitive is how a design system rots.
+
+   Space and radius are the exception: they have no semantic layer, because
+   there is no meaningful indirection between "8px" and "8px". Use the
+   primitives directly.
 
    Dark is the default theme. Light is defined twice on purpose: once behind
    prefers-color-scheme for viewers who never touch a toggle, once behind
@@ -99,7 +103,49 @@
 	--track-overline: 0.09em;
 }
 
-/* ---- 3 · Semantic colour · dark (default) ---------------------------------- */
+/* ---- 3 · Space and radius primitives ---------------------------------------
+   Untitled UI's scales, unmodified. Both are in rem against a 16px base, so
+   they respond to a user's browser font-size setting — the one place in this
+   system where that matters more than pixel fidelity.
+
+   The two scales share their first five rungs and then diverge: radius stops
+   growing in 2px steps at md and spacing switches to 4px steps. They are not
+   interchangeable above md — radius-lg is 10px, spacing-lg is 12px — which is
+   why they are two scales and not one.
+   -------------------------------------------------------------------------- */
+:root {
+	--radius-none: 0rem; /* 0px */
+	--radius-xxs: 0.125rem; /* 2px */
+	--radius-xs: 0.25rem; /* 4px */
+	--radius-sm: 0.375rem; /* 6px */
+	--radius-md: 0.5rem; /* 8px */
+	--radius-lg: 0.625rem; /* 10px */
+	--radius-xl: 0.75rem; /* 12px */
+	--radius-2xl: 1rem; /* 16px */
+	--radius-3xl: 1.25rem; /* 20px */
+	--radius-4xl: 1.5rem; /* 24px */
+	--radius-full: 9999px; /* pill / circle */
+
+	--spacing-none: 0rem; /* 0px */
+	--spacing-xxs: 0.125rem; /* 2px */
+	--spacing-xs: 0.25rem; /* 4px */
+	--spacing-sm: 0.375rem; /* 6px */
+	--spacing-md: 0.5rem; /* 8px */
+	--spacing-lg: 0.75rem; /* 12px */
+	--spacing-xl: 1rem; /* 16px */
+	--spacing-2xl: 1.25rem; /* 20px */
+	--spacing-3xl: 1.5rem; /* 24px */
+	--spacing-4xl: 2rem; /* 32px */
+	--spacing-5xl: 2.5rem; /* 40px */
+	--spacing-6xl: 3rem; /* 48px */
+	--spacing-7xl: 4rem; /* 64px */
+	--spacing-8xl: 5rem; /* 80px */
+	--spacing-9xl: 6rem; /* 96px */
+	--spacing-10xl: 8rem; /* 128px */
+	--spacing-11xl: 10rem; /* 160px */
+}
+
+/* ---- 4 · Semantic colour · dark (default) ---------------------------------- */
 :root {
 	--bg: var(--gray-900);
 	--bg-raised: var(--gray-800);
@@ -122,7 +168,7 @@
 	--focus-ring: var(--amber-400);
 }
 
-/* ---- 3a · Semantic colour · light -----------------------------------------
+/* ---- 4a · Semantic colour · light -----------------------------------------
    Not an inversion. The two themes use opposite ends of the amber ramp with
    no overlap — amber-500 is 8.09:1 on the dark ground and 2.07:1 on the
    light one, so light mode runs on 700/800/900 and pairs them with gray-50.
@@ -176,7 +222,7 @@
 	--focus-ring: var(--amber-700);
 }
 
-/* ---- 4 · Type styles -------------------------------------------------------
+/* ---- 5 · Type styles -------------------------------------------------------
    Ten styles. Each is a complete instruction — family, weight, size, leading
    and tracking together — so a component never has to assemble one by hand
    and drift from the spec.
