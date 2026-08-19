@@ -1,0 +1,326 @@
+/* ============================================================================
+   Components — Amber & Slate
+
+   Authored as plain classes, not as React styles, for one reason: the site is
+   Astro. A button that is a class ships zero JavaScript when used from a
+   .astro file. The React wrappers in src/components/ui exist so Storybook has
+   something to render and so islands can use the same markup — they add no
+   styling of their own.
+
+   Everything here reads semantic tokens. No hex, no raw px.
+   ============================================================================ */
+
+/* ---- Button ----------------------------------------------------------------
+   Three variants. Primary is the brand action; secondary is its equal-weight
+   neutral counterpart; ghost recedes.
+
+   Focus is the outline, not a border swap — swapping a border reflows the
+   text by a pixel, which reads as a jitter when tabbing through a row.
+   -------------------------------------------------------------------------- */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-md);
+
+	font-family: var(--font-sans);
+	font-weight: var(--weight-semibold);
+	font-size: var(--size-ui);
+	line-height: var(--lh-ui);
+
+	padding: var(--spacing-lg) var(--spacing-xl);
+	border: 1px solid transparent;
+	border-radius: var(--radius-md);
+
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+	transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.btn:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+
+/* Icons ride at the text's own size and inherit its colour, so a variant
+   never has to restate the icon colour. */
+.btn svg {
+	width: 1.125em;
+	height: 1.125em;
+	flex-shrink: 0;
+}
+
+.btn--primary {
+	background: var(--primary);
+	color: var(--text-on-primary);
+}
+.btn--primary:hover:not(:disabled) {
+	background: var(--primary-hover);
+}
+.btn--primary:active:not(:disabled) {
+	background: var(--primary-active);
+}
+
+/* White on both grounds. On the dark theme the fill alone delimits the button
+   (17.38:1); on the light theme it sits on gray-100 at 1.11:1, so the border
+   is the only edge — and at gray-200 that border is 1.12:1 against the page.
+   The label is therefore what identifies this control on light. Bumping
+   --secondary-border to --gray-500 would carry the edge at 4.14:1 if that is
+   ever wanted. */
+.btn--secondary {
+	background: var(--secondary);
+	color: var(--text-on-secondary);
+	border-color: var(--secondary-border);
+}
+.btn--secondary:hover:not(:disabled) {
+	background: var(--secondary-hover);
+}
+
+.btn--ghost {
+	background: transparent;
+	color: var(--primary-text);
+	border-color: var(--border-strong);
+}
+.btn--ghost:hover:not(:disabled) {
+	background: var(--primary-subtle);
+	border-color: var(--primary-text);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+	background: transparent;
+	color: var(--text-disabled);
+	border-color: var(--border);
+	cursor: not-allowed;
+}
+
+/* ---- Tabs ------------------------------------------------------------------
+   Chapter navigation. The state is carried by weight (500 → 700) as well as
+   colour and the underline, so it survives greyscale and does not depend on
+   colour vision — the reason the inactive weight was lifted off 400.
+
+   The rail is a border on the list; the active marker is a box-shadow inset
+   on the button, so the two never fight over the same pixel row.
+   -------------------------------------------------------------------------- */
+.tabs {
+	display: flex;
+	gap: var(--spacing-4xl);
+	border-bottom: 1px solid var(--border);
+	overflow-x: auto;
+}
+
+.tab {
+	appearance: none;
+	background: none;
+	border: 0;
+	cursor: pointer;
+
+	font-family: var(--font-display);
+	font-weight: var(--weight-medium);
+	font-size: var(--size-tab);
+	line-height: var(--lh-tab);
+	color: var(--text-muted);
+
+	padding: var(--spacing-md) var(--spacing-xs) var(--spacing-lg);
+	margin-bottom: -1px; /* sit the marker on the rail, not above it */
+	white-space: nowrap;
+	transition: color 120ms ease;
+}
+
+.tab:hover:not([aria-selected='true']) {
+	color: var(--text);
+}
+
+.tab:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: -2px;
+	border-radius: var(--radius-xs);
+}
+
+.tab[aria-selected='true'] {
+	font-weight: var(--weight-bold);
+	color: var(--primary-text);
+	box-shadow: inset 0 -2px 0 0 var(--primary);
+}
+
+/* ---- Note / Tooltip --------------------------------------------------------
+   One component, two uses: a Note sits in the flow, a Tooltip is dismissible.
+   Only the close button differs.
+
+   The fill is flat --primary-subtle rather than the amber gradient in the
+   Figma frame. A fill that runs from near-black to amber-500 has no single
+   text colour that survives both ends: light text is 14.42:1 at the top and
+   2.07:1 at the bottom. Flat keeps the amber signal and stays readable.
+   -------------------------------------------------------------------------- */
+.note {
+	display: grid;
+	gap: var(--spacing-md);
+	position: relative;
+
+	background: var(--primary-subtle);
+	border: 1px solid var(--primary-text);
+	border-radius: var(--radius-md);
+	padding: var(--spacing-lg) var(--spacing-xl);
+	max-width: 34rem;
+}
+
+.note__title {
+	font-family: var(--font-mono);
+	font-weight: var(--weight-bold);
+	font-size: var(--size-fine);
+	line-height: var(--lh-fine);
+	letter-spacing: var(--track-overline);
+	text-transform: uppercase;
+	color: var(--primary-text);
+
+	/* Leave room for the close button so a long title never runs under it. */
+	padding-right: var(--spacing-3xl);
+	margin: 0;
+}
+
+.note__body {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-fine);
+	line-height: var(--lh-fine);
+	color: var(--text-body);
+	margin: 0;
+}
+
+.note__close {
+	position: absolute;
+	top: var(--spacing-md);
+	right: var(--spacing-md);
+
+	display: grid;
+	place-items: center;
+	width: var(--spacing-3xl);
+	height: var(--spacing-3xl);
+
+	appearance: none;
+	background: none;
+	border: 0;
+	border-radius: var(--radius-xs);
+	color: var(--primary-text);
+	cursor: pointer;
+	transition: color 120ms ease, background-color 120ms ease;
+}
+
+.note__close:hover {
+	color: var(--text);
+	background: color-mix(in srgb, var(--primary-text) 18%, transparent);
+}
+
+.note__close:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 1px;
+}
+
+.note__close svg {
+	width: 0.875rem;
+	height: 0.875rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.btn,
+	.tab,
+	.note__close {
+		transition: none;
+	}
+}
+
+/* ---- Case-study islands ----------------------------------------------------
+   Styles for the four hydrated components. They live here rather than in the
+   .tsx files so the whole system stays inspectable in one stylesheet.
+   -------------------------------------------------------------------------- */
+
+/* Chapter rail. Sticks under the top of the viewport once the hero passes. */
+.rail {
+	position: sticky;
+	inset-block-start: 0;
+	z-index: 10;
+	background: color-mix(in srgb, var(--bg) 92%, transparent);
+	backdrop-filter: blur(8px);
+	border-block-end: 1px solid var(--border);
+}
+
+.rail__inner {
+	max-width: var(--measure-page);
+	margin: 0 auto;
+	padding-inline: var(--gutter);
+	border-block-end: 0;
+	gap: var(--spacing-4xl);
+	scrollbar-width: none;
+}
+.rail__inner::-webkit-scrollbar {
+	display: none;
+}
+
+/* Lightbox */
+.lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	display: grid;
+	place-items: center;
+	padding: var(--spacing-4xl);
+	background: color-mix(in srgb, var(--gray-950) 88%, transparent);
+	cursor: zoom-out;
+}
+
+.lightbox img {
+	max-width: 100%;
+	max-height: 90vh;
+	width: auto;
+	height: auto;
+	border-radius: var(--radius-sm);
+	cursor: default;
+}
+
+.lightbox__close {
+	position: absolute;
+	inset-block-start: var(--spacing-2xl);
+	inset-inline-end: var(--spacing-2xl);
+	width: var(--spacing-5xl);
+	height: var(--spacing-5xl);
+	display: grid;
+	place-items: center;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-full);
+	background: var(--bg);
+	color: var(--text);
+	cursor: pointer;
+}
+.lightbox__close:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+.lightbox__close svg {
+	width: 0.875rem;
+	height: 0.875rem;
+}
+
+/* Glossary popover. Anchored to the term above 40rem; a bottom sheet below,
+   where a popover pinned to a word would run off the side of the screen. */
+.glossary {
+	position: fixed;
+	inset-inline: var(--spacing-xl);
+	inset-block-end: var(--spacing-xl);
+	z-index: 90;
+	display: grid;
+	gap: var(--spacing-md);
+	background: var(--bg-raised);
+	border: 1px solid var(--primary-text);
+	border-radius: var(--radius-md);
+	padding: var(--spacing-xl);
+}
+
+@media (min-width: 40rem) {
+	.glossary {
+		inset: auto;
+		inset-block-start: var(--y);
+		inset-inline-start: var(--x);
+		transform: translateX(-50%);
+		width: min(24rem, calc(100vw - var(--spacing-6xl)));
+	}
+}

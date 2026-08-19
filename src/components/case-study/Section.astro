@@ -1,152 +1,109 @@
 ---
-/**
- * One beat of a case study: an eyebrow, a claim, the artefact, the reasoning.
- *
- * layout="split"   visual under the headline, copy alongside (the default)
- * layout="stacked" copy alongside the headline, visual full width beneath
- * layout="prose"   no visual column at all
- */
 interface Props {
-	id: string;
-	/** which rail step this section belongs to */
-	group?: string;
+	/** Mono eyebrow above the heading. */
 	eyebrow?: string;
-	title?: string;
-	layout?: 'split' | 'stacked' | 'prose';
-	class?: string;
+	heading: string;
+	/** Ties this section to a chapter id in the rail, for scroll-spy. */
+	chapter?: string;
+	/**
+	 * Italic heading. In the reference, the Problem chapter reports facts
+	 * upright and every later chapter states a position in italic — the
+	 * heading is an argument rather than a report.
+	 */
+	claim?: boolean;
+	/** `split` puts the visual under the heading with copy beside it (desktop);
+	 *  `prose` is copy only, full measure. */
+	layout?: 'split' | 'prose';
+	id?: string;
 }
 
-const { id, group, eyebrow, title, layout = 'split', class: className } = Astro.props;
-const hasVisual = layout !== 'prose' && Astro.slots.has('visual');
+const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro.props;
 ---
 
-<section
-	id={id}
-	data-section
-	data-group={group}
-	class:list={['section', `section--${layout}`, className]}
->
-	{eyebrow && <p class="section__eyebrow">{eyebrow}</p>}
-	{title && <h2 class="section__title">{title}</h2>}
-
-	{
-		hasVisual && layout === 'split' && (
-			<div class="section__visual">
-				<slot name="visual" />
-			</div>
-		)
-	}
-
-	<div class="section__body prose">
+<section class:list={['section', `section--${layout}`]} data-section={id ?? chapter} data-chapter={chapter} id={id}>
+	<div class="section__head">
+		{eyebrow && <p class="type-overline">{eyebrow}</p>}
+		<h2 class:list={['type-heading', claim && 'type-heading--claim']}>{heading}</h2>
+		<slot name="visual" />
+	</div>
+	<div class="section__body">
 		<slot />
 	</div>
-
-	{
-		hasVisual && layout === 'stacked' && (
-			<div class="section__visual section__visual--wide">
-				<slot name="visual" />
-			</div>
-		)
-	}
 </section>
 
 <style>
 	.section {
+		max-width: var(--measure-page);
+		margin: 0 auto;
+		padding: var(--spacing-8xl) var(--gutter);
 		display: grid;
-		column-gap: var(--s-col-gap);
-		row-gap: 0;
-		margin-block-start: var(--s-section);
-		scroll-margin-top: calc(var(--rail-h) + var(--s-7));
+		gap: var(--spacing-3xl);
 	}
 
-	.section > * + * {
-		margin-block-start: var(--s-block);
+	/* Two columns on desktop: the heading and its visual on the left, the copy
+	   on the right. On mobile the same order stacks — heading, visual, copy —
+	   which is why the visual is a slot inside the head rather than a sibling. */
+	@media (min-width: 60rem) {
+		.section--split {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+			gap: var(--spacing-7xl);
+			align-items: start;
+		}
 	}
 
-	.section__eyebrow + .section__title {
-		margin-block-start: var(--s-3);
+	.section--prose {
+		max-width: calc(var(--measure-page) * 0.62);
 	}
 
-	.section__eyebrow {
-		font-family: var(--f-mono);
-		font-size: var(--t-small);
-		font-weight: var(--fw-bold);
-		letter-spacing: 0.09em;
-		text-transform: uppercase;
-		color: var(--c-support);
-		text-wrap: balance;
-	}
-
-	.section__title {
-		font-size: var(--t-title);
-		font-style: italic;
-		font-weight: var(--fw-bold);
-		line-height: var(--lh-tight);
-		letter-spacing: -0.015em;
-		color: var(--c-text);
-		text-wrap: pretty;
-	}
-
-	.section__visual {
-		display: flex;
-		flex-direction: column;
-		gap: var(--s-5);
+	.section__head {
+		display: grid;
+		gap: var(--spacing-xl);
 		min-width: 0;
 	}
 
-	@media (min-width: 900px) {
-		.section--split,
-		.section--stacked {
-			grid-template-columns: minmax(0, var(--w-col-visual)) minmax(0, 1fr);
-			grid-template-areas:
-				'eyebrow eyebrow'
-				'title body'
-				'visual body';
-			grid-template-rows: auto auto 1fr;
-			align-items: start;
-		}
+	h2 {
+		color: var(--text);
+	}
 
-		/* On the two-column grid, spacing comes from the areas, not source order. */
-		.section--split > * + *,
-		.section--stacked > * + * {
-			margin-block-start: 0;
-		}
+	.section__body {
+		min-width: 0;
+		display: grid;
+		gap: var(--spacing-2xl);
+		align-content: start;
+	}
 
-		.section--stacked {
-			grid-template-areas:
-				'eyebrow eyebrow'
-				'title body'
-				'visual visual';
-		}
+	/* Copy inside a section is authored as MDX, so the elements arrive without
+	   classes — style them here rather than asking the author to annotate
+	   every paragraph. */
+	.section__body :global(p) {
+		font-family: var(--font-sans);
+		font-weight: var(--weight-regular);
+		font-size: var(--size-body);
+		line-height: var(--lh-body);
+		color: var(--text-body);
+		margin: 0;
+		max-width: 62ch;
+	}
 
-		.section--split .section__eyebrow,
-		.section--stacked .section__eyebrow {
-			grid-area: eyebrow;
-			margin-block-end: var(--s-3);
-		}
+	.section__body :global(ol),
+	.section__body :global(ul) {
+		font-family: var(--font-sans);
+		font-size: var(--size-body);
+		line-height: var(--lh-body);
+		color: var(--text-body);
+		margin: 0;
+		padding-inline-start: var(--spacing-3xl);
+		max-width: 62ch;
+		display: grid;
+		gap: var(--spacing-sm);
+	}
 
-		.section--split .section__title,
-		.section--stacked .section__title {
-			grid-area: title;
-			margin-block-end: var(--s-block);
-		}
+	.section__body :global(li::marker) {
+		color: var(--text-muted);
+	}
 
-		.section--split .section__body,
-		.section--stacked .section__body {
-			grid-area: body;
-		}
-
-		.section--split .section__visual,
-		.section--stacked .section__visual {
-			grid-area: visual;
-		}
-
-		.section--stacked .section__visual {
-			margin-block-start: var(--s-block);
-		}
-
-		.section--prose {
-			grid-template-columns: minmax(0, var(--w-col-visual)) minmax(0, 1fr);
-		}
+	.section__body :global(strong) {
+		color: var(--text);
+		font-weight: var(--weight-semibold);
 	}
 </style>

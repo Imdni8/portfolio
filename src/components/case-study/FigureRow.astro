@@ -1,24 +1,22 @@
 ---
-/** Two or more figures read as one comparison. */
 interface Props {
-	/** column weights, e.g. "1fr 1fr" or "1.2fr 1fr" */
-	columns?: string;
-	class?: string;
+	/** Labels sit above each figure — "Iteration 1", "Iteration 2". */
+	labels?: string[];
 }
-
-const { columns = 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', class: className } =
-	Astro.props;
+const { labels = [] } = Astro.props;
 ---
 
-<div class:list={['figure-row', className]} style={`--columns: ${columns}`}>
+<div class="row" data-labels={labels.join('|')}>
 	<slot />
 </div>
 
 <style>
-	.figure-row {
+	/* Two or more figures that read as one comparison. Equal columns so the
+	   images can be compared at the same scale — the whole point of a row. */
+	.row {
 		display: grid;
-		grid-template-columns: var(--columns);
-		gap: var(--s-4);
+		grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+		gap: var(--spacing-xl);
 		align-items: start;
 	}
 </style>

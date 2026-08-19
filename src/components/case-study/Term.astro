@@ -1,37 +1,48 @@
 ---
-/**
- * A term with a definition behind it. Renders as static markup carrying its own
- * copy — the `Glossary` island reads it off the DOM on click, so a page with ten
- * terms ships no more JS than a page with one.
- *
- *   <Term id="ai-builder">AI builder</Term>
- *
- * The label is the slot, so the prose can inflect the word however it needs to
- * while the definition stays keyed to the glossary.
- */
 import { glossary, type TermId } from '../../content/glossary';
 
 interface Props {
 	id: TermId;
 }
-
 const { id } = Astro.props;
-const entry = glossary[id];
 
+const entry = glossary[id];
 if (!entry) {
+	// Fail the build rather than shipping a term that opens nothing.
 	throw new Error(
-		`<Term id="${id}"> has no definition. Add one to src/content/glossary.ts, or use a plain <span> if the word needs no gloss.`,
+		`Term "${id}" has no glossary entry. Add it to src/content/glossary.ts or remove the <Term>.`
 	);
 }
 ---
 
-<button
-	type="button"
-	class="term"
-	data-term={id}
-	data-term-title={entry.title}
-	data-term-body={JSON.stringify(entry.body)}
-	aria-expanded="false"
->
+<button type="button" class="term" data-term={id} data-term-title={entry.title} data-term-body={entry.body}>
 	<slot />
 </button>
+
+<style>
+	/* Inline, so it must not disturb the line it sits in: no padding, inherit
+	   everything, and take the underline from the accent rather than the
+	   browser's default text-decoration colour. */
+	.term {
+		appearance: none;
+		background: none;
+		border: 0;
+		padding: 0;
+		font: inherit;
+		color: var(--primary-text);
+		cursor: help;
+		text-decoration: underline;
+		text-decoration-color: color-mix(in srgb, var(--primary-text) 45%, transparent);
+		text-underline-offset: 0.18em;
+	}
+
+	.term:hover {
+		text-decoration-color: var(--primary-text);
+	}
+
+	.term:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-xxs);
+	}
+</style>

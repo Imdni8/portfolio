@@ -1,47 +1,58 @@
 ---
 interface Props {
-	title?: string;
-	id?: string;
+	heading?: string;
 }
-
-const { title = 'Reflection', id = 'reflection' } = Astro.props;
+const { heading = 'Reflections' } = Astro.props;
 ---
 
-<section class="reflection" id={id} data-section>
-	<div class="reflection__inner">
-		<h2 class="reflection__title">{title}</h2>
-		<div class="reflection__body prose"><slot /></div>
+<section class="reflection">
+	<h2 class="type-reflection">{heading}</h2>
+	<div class="reflection__body">
+		<slot />
 	</div>
 </section>
 
 <style>
 	.reflection {
-		margin-block-start: var(--s-section);
-		padding-block-start: var(--s-fluid-3);
-		border-block-start: 1px solid var(--c-support-line);
+		max-width: var(--measure-page);
+		margin: 0 auto;
+		padding: var(--spacing-7xl) var(--gutter) var(--spacing-9xl);
+		border-block-start: 1px solid var(--border);
+		display: grid;
+		gap: var(--spacing-2xl);
 	}
 
-	/* Centre the closing block in the content column. The measure lives on the
-	   wrapper so the title shares the body's left edge — `ch` on the title
-	   itself would resolve against its much larger display font. */
-	.reflection__inner {
-		max-width: var(--measure);
-		margin-inline: auto;
-	}
-
-	.reflection__title {
-		font-family: var(--f-display);
-		font-size: var(--t-lead);
-		font-weight: var(--fw-semibold);
-		color: var(--c-support);
-		margin-block-end: var(--s-4);
+	h2 {
+		color: var(--primary-text);
 	}
 
 	.reflection__body {
-		text-align: left;
+		display: grid;
+		gap: var(--spacing-2xl);
+	}
+
+	.reflection__body :global(p) {
+		font-family: var(--font-sans);
+		font-size: var(--size-body);
+		line-height: var(--lh-body);
+		color: var(--text-body);
+		margin: 0;
+		max-width: 78ch;
 	}
 
 	.reflection__body :global(ul) {
-		list-style: disc;
+		font-family: var(--font-sans);
+		font-size: var(--size-body);
+		line-height: var(--lh-body);
+		color: var(--text-body);
+		margin: 0;
+		padding-inline-start: var(--spacing-3xl);
+		max-width: 78ch;
+		display: grid;
+		gap: var(--spacing-sm);
+	}
+
+	.reflection__body :global(li::marker) {
+		color: var(--text-muted);
 	}
 </style>

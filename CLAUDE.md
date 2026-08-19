@@ -40,6 +40,35 @@ carries a WCAG requirement was computed against both grounds and passes. If you
 change a semantic token, re-check it against `bg`, `bg-raised` and `bg-sunken` in
 both themes before shipping.
 
+## Components
+
+`src/styles/components.css` holds the styles; `src/components/ui/*.tsx` holds
+thin React wrappers that add no styling of their own.
+
+**Style components as CSS classes, not as React styles.** The site is Astro, so
+a component that is a class ships zero JavaScript when used from a `.astro`
+file; the React wrapper exists so Storybook has something to render and so
+islands can share the markup. Reach for a wrapper only where there is real
+state — `Tabs` and a dismissible `Note` need it, `Button` does not.
+
+Built so far: `Button` (primary / secondary / ghost), `Tabs`, `Note`.
+
+Two conventions worth keeping:
+
+- **Never let state rest on colour alone.** The active tab changes weight
+  (500 → 700) as well as hue, so it survives greyscale and colour blindness.
+- **Disabled drops to an outline**, not a dimmed fill — a greyed-out solid
+  reads as a loading state.
+
+`--secondary` is the one place `#ffffff` appears. The no-pure-white rule governs
+*content* colour; this is a control surface, so white is written as a literal in
+the semantic layer rather than added to the grey ramp, where it would invite use
+as a text or page colour. It is also deliberately not redefined per theme — the
+button is white on both grounds. On light that leaves the label doing the
+identifying: the fill is 1.11:1 against `bg` and the `gray-200` border 1.12:1.
+Raising `--secondary-border` to `--gray-500` would carry the edge at 4.14:1 if
+that is ever wanted.
+
 The rest of `src/` (the case-study component kit, the agent-versioning MDX) is
 **prior work to disregard** unless the user points at it. Don't treat it as the
 pattern to follow or extend.

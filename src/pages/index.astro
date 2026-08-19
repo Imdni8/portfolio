@@ -1,110 +1,52 @@
 ---
-// Placeholder home page — enough to reach the work, nothing more.
-import { getCollection } from 'astro:content';
-import BaseLayout from '../layouts/BaseLayout.astro';
-
-const studies = (
-	await getCollection('work', ({ data }) => !data.draft && !data.unlisted)
-).sort(
-	(a, b) => a.data.order - b.data.order,
-);
+import '../styles/tokens.css';
+import '../styles/components.css';
 ---
 
-<BaseLayout
-	title="Tousif Rahaman — Product designer"
-	description="Product design work by Tousif Rahaman."
->
-	<main class="page home">
-		<h1 class="home__name">Tousif Rahaman</h1>
-		<p class="home__role">Product designer. Currently at Medable, working on AI agents.</p>
-
-		<ul class="home__list">
-			{
-				studies.map((study) => (
-					<li>
-						<a href={`/work/${study.id}`} class="home__link">
-							<span class="home__link-title">{study.data.title}</span>
-							<span class="home__link-dek">{study.data.dek}</span>
-						</a>
-					</li>
-				))
-			}
-		</ul>
-
-		<p class="home__note">Placeholder home page — the real one comes later.</p>
-	</main>
-</BaseLayout>
+<!doctype html>
+<html lang="en" data-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Tousif Rahaman</title>
+		<meta name="description" content="Product designer. Portfolio in progress." />
+	</head>
+	<body>
+		<main>
+			<p class="type-overline">Portfolio</p>
+			<h1 class="type-title">Tousif Rahaman</h1>
+			<p class="type-subtitle">
+				Being rebuilt on a new design system. The foundations and components live in
+				Storybook.
+			</p>
+		</main>
+	</body>
+</html>
 
 <style>
-	.home {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-		padding-block: var(--s-fluid-4);
+	/* Deliberately minimal. This page exists so the site still builds while the
+	   pages are rewritten — it is a placeholder, not a layout to extend. */
+	body {
+		margin: 0;
+		background: var(--bg);
+		color: var(--text-body);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
 	}
 
-	.home__name {
-		font-family: var(--f-display);
-		font-size: var(--t-display);
-		font-weight: var(--fw-semibold);
-		color: var(--c-text);
+	main {
+		max-width: 42rem;
+		margin: 0 auto;
+		padding: var(--spacing-9xl) var(--spacing-4xl);
+		display: grid;
+		gap: var(--spacing-lg);
 	}
 
-	.home__role {
-		margin-block-start: var(--s-3);
-		font-size: var(--t-dek);
-		color: var(--c-text-muted);
-		max-width: 40ch;
+	h1 {
+		color: var(--text);
 	}
 
-	.home__list {
-		list-style: none;
-		margin-block-start: var(--s-fluid-3);
-		display: flex;
-		flex-direction: column;
-		border-block-start: 1px solid var(--c-line);
-	}
-
-	.home__link {
-		display: block;
-		padding-block: var(--s-5);
-		border-block-end: 1px solid var(--c-line);
-		text-decoration: none;
-		transition: padding-inline-start 0.2s var(--e-out);
-	}
-
-	.home__link:hover {
-		padding-inline-start: var(--s-3);
-	}
-
-	.home__link-title {
-		display: block;
-		font-size: var(--t-lead);
-		font-style: italic;
-		font-weight: var(--fw-bold);
-		color: var(--c-text);
-		text-wrap: pretty;
-	}
-
-	.home__link-dek {
-		display: block;
-		margin-block-start: var(--s-2);
-		font-size: var(--t-meta);
-		color: var(--c-text-muted);
-		max-width: 62ch;
-	}
-
-	.home__link:hover .home__link-dek {
-		color: var(--c-text-body);
-	}
-
-	.home__note {
-		margin-block-start: auto;
-		padding-block-start: var(--s-8);
-		font-family: var(--f-mono);
-		font-size: var(--t-small);
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--c-text-muted);
+	p {
+		margin: 0;
 	}
 </style>

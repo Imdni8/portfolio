@@ -19,6 +19,7 @@
    ============================================================================ */
 
 @import '@fontsource-variable/inter';
+@import '@fontsource-variable/inter/wght-italic.css';
 @import '@fontsource-variable/playfair-display';
 @import '@fontsource/ibm-plex-mono/700.css';
 
@@ -126,6 +127,12 @@
 	--radius-4xl: 1.5rem; /* 24px */
 	--radius-full: 9999px; /* pill / circle */
 
+	/* Page frame. The Figma canvas is 1470px wide; the measure caps there so a
+	   wide monitor does not stretch the two-column sections past the point
+	   where the eye can track from one to the other. */
+	--measure-page: 91.875rem; /* 1470px */
+	--gutter: clamp(1.25rem, 4vw, 4rem);
+
 	--spacing-none: 0rem; /* 0px */
 	--spacing-xxs: 0.125rem; /* 2px */
 	--spacing-xs: 0.25rem; /* 4px */
@@ -166,6 +173,19 @@
 	--text-on-primary: var(--gray-900);
 	--primary-text: var(--amber-500);
 	--focus-ring: var(--amber-400);
+
+	/* The neutral counterpart to primary: an equal-weight action that is not
+	   the brand one.
+
+	   Deliberately NOT redefined per theme — this control is white on both
+	   grounds. It is also the one place pure white appears: the no-pure-white
+	   rule governs content colour, and this is a control surface, so #ffffff
+	   is written here as a literal rather than added to the grey ramp where it
+	   would invite use as a text or page colour. */
+	--secondary: #ffffff;
+	--secondary-hover: var(--gray-100);
+	--secondary-border: var(--gray-200);
+	--text-on-secondary: var(--gray-900);
 }
 
 /* ---- 4a · Semantic colour · light -----------------------------------------
@@ -258,6 +278,15 @@
 	line-height: var(--lh-heading);
 	letter-spacing: var(--track-heading);
 	text-wrap: balance;
+}
+
+/* Same rung as .type-heading, italic. In the reference the Problem chapter
+   reports facts upright and every later chapter states a position in italic:
+   the heading is an argument, not a report. Needs the real italic face —
+   without it the browser synthesises a slant, which shears the letterforms
+   rather than substituting the drawn italic. */
+.type-heading--claim {
+	font-style: italic;
 }
 
 /* Editorial heading — you, stepping back to speak. The serif half. */

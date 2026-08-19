@@ -1,37 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
-
-interface Shot {
-	src: string;
-	width: number;
-	height: number;
-	alt: string;
-	caption?: string;
-}
+import { useEffect, useState } from 'react';
 
 /**
- * One overlay per page. Any element carrying `data-zoom` opens it, reading the
- * full-size source off the element's data attributes — so figures stay static
- * HTML and only this island ships JS.
+ * One overlay for the whole page. Any element carrying `data-zoom` opens it,
+ * so figures stay static HTML and only this island hydrates.
  */
-export default function Lightbox() {
-	const [shot, setShot] = useState<Shot | null>(null);
-	const openerRef = useRef<HTMLElement | null>(null);
-	const closeRef = useRef<HTMLButtonElement>(null);
+export const Lightbox = () => {
+	const [shot, setShot] = useState<{ src: string; alt: string } | null>(null);
 
 	useEffect(() => {
-		const onClick = (event: MouseEvent) => {
-			const target = event.target as HTMLElement | null;
-			const trigger = target?.closest<HTMLElement>('[data-zoom]');
+		const onClick = (e: MouseEvent) => {
+			const trigger = (e.target as HTMLElement).closest<HTMLElement>('[data-zoom]');
 			if (!trigger) return;
-			event.preventDefault();
-			openerRef.current = trigger;
-			setShot({
-				src: trigger.dataset.zoomSrc ?? '',
-				width: Number(trigger.dataset.zoomWidth ?? 0),
-				height: Number(trigger.dataset.zoomHeight ?? 0),
-				alt: trigger.dataset.zoomAlt ?? '',
-				caption: trigger.dataset.zoomCaption || undefined,
-			});
+			e.preventDefault();
+			setShot({ src: trigger.dataset.zoom!, alt: trigger.dataset.zoomAlt ?? '' });
 		};
 		document.addEventListener('click', onClick);
 		return () => document.removeEventListener('click', onClick);
@@ -39,54 +20,30 @@ export default function Lightbox() {
 
 	useEffect(() => {
 		if (!shot) return;
-
-		const onKey = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') setShot(null);
-		};
-		const { overflow } = document.body.style;
-		document.body.style.overflow = 'hidden';
+		const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setShot(null);
 		document.addEventListener('keydown', onKey);
-		closeRef.current?.focus();
-
+		// Stop the page scrolling behind the overlay.
+		const prev = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
 		return () => {
-			document.body.style.overflow = overflow;
 			document.removeEventListener('keydown', onKey);
-			openerRef.current?.focus();
+			document.body.style.overflow = prev;
 		};
 	}, [shot]);
 
-	if (!shot) return null;
+	// Astro only emits an <astro-island> around output that exists — a
+	// component that returns null on the server never ships its script at
+	// all. Render an inert root so there is always something to hydrate.
+	if (!shot) return <div hidden data-lightbox-root />;
 
 	return (
-		<div
-			className="lightbox"
-			role="dialog"
-			aria-modal="true"
-			aria-label={shot.alt || 'Enlarged image'}
-			onClick={(event) => {
-				if (event.target === event.currentTarget) setShot(null);
-			}}
-		>
-			<button
-				type="button"
-				className="lightbox__close"
-				onClick={() => setShot(null)}
-				ref={closeRef}
-				aria-label="Close enlarged image"
-			>
-				<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-					<path d="M6 6l12 12M18 6 6 18" />
+		<div className="lightbox" role="dialog" aria-modal="true" aria-label={shot.alt} onClick={() => setShot(null)}>
+			<button type="button" className="lightbox__close" aria-label="Close">
+				<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+					<path d="M1 1l12 12M13 1L1 13" />
 				</svg>
 			</button>
-			<figure className="lightbox__figure">
-				<img
-					src={shot.src}
-					width={shot.width || undefined}
-					height={shot.height || undefined}
-					alt={shot.alt}
-				/>
-				{shot.caption && <figcaption>{shot.caption}</figcaption>}
-			</figure>
+			<img src={shot.src} alt={shot.alt} onClick={(e) => e.stopPropagation()} />
 		</div>
 	);
-}
+};

@@ -1,55 +1,36 @@
 /**
- * Definitions behind the underlined terms in the case studies. `Term.astro`
- * looks an entry up at build time and bakes it into the markup, so adding a
- * definition here costs nothing at runtime.
- *
- * `body` is a list of paragraphs. Keep them short — the popover sits on top of
- * the paragraph the reader is in the middle of.
+ * Definitions, keyed by slug. Term.astro looks an entry up at build time and
+ * bakes the title and body into data attributes, so the glossary itself never
+ * reaches the browser — a page with ten terms costs no more JS than one with a
+ * single term. An id with no entry fails the build rather than rendering a
+ * term that does nothing.
  */
-export interface GlossaryEntry {
-	/** heading of the popover, set as a question in the draft */
-	title: string;
-	body: string[];
-}
+export type GlossaryEntry = { title: string; body: string };
 
 export const glossary = {
 	'ai-builder': {
-		title: 'Who are AI builders?',
-		body: [
-			'“Agent builder” is an assignable user role in the agent studio platform. They have the permission to create and share agents.',
-			'The agents they create can be used by other users in the workspace.',
-		],
+		title: 'AI builder',
+		body: 'The person assembling an agent in Agent Studio. Usually a domain expert rather than an engineer — someone who knows the clinical workflow and can describe it, but would not write the integration themselves.',
 	},
-
-	dependency: {
-		title: 'What is dependency?',
-		body: [
-			'An agent could comprise of one or more of the following from the library: prompts, skills, knowledge folders, the model, connectors, triggers, subagents from the library. Together, we call them agent dependencies.',
-			'Versioning is implemented at a dependency level too. So whenever it’s modified, a new version is created. And all versions are tracked.',
-			'To lay the foundation of agent versioning, we had first implemented dependency versioning in previous sprints.',
-		],
-	},
-
-	'mandatory-updates': {
-		title: 'What are mandatory updates?',
-		body: [
-			'Updates that are crucial for security, like connector or trigger updates, are mandatory.',
-		],
-	},
-
-	'study-studio': {
-		title: 'What is Study Studio?',
-		body: [
-			'Medable’s platform is divided into several parts (called “studios”), each facilitating a stage in the clinical trial process.',
-			'Study studio is the part where customers can create and launch studies.',
-		],
-	},
-
 	cra: {
-		title: 'Who is a CRA?',
-		body: [
-			'A Clinical Research Associate monitors a set of trial sites on behalf of the sponsor, checking that each one is running the protocol correctly and that the data coming off it holds up.',
-		],
+		title: 'Clinical Research Associate',
+		body: 'The person who monitors a set of clinical trials on behalf of a sponsor: checking sites are following protocol, data is being recorded correctly, and issues are escalated. A representative AI builder for this product.',
+	},
+	'study-studio': {
+		title: 'Study Studio',
+		body: 'Another product in the Medable platform, used to build and configure clinical studies. It already had a status-change mechanism, which made it the obvious first place to look for a versioning pattern.',
+	},
+	dependency: {
+		title: 'Dependency',
+		body: 'Anything an agent draws on that is owned and versioned elsewhere — a prompt, a knowledge folder, a skill, a connector, a subagent. When one of these is edited, every agent using it receives an update.',
+	},
+	'mandatory-update': {
+		title: 'Mandatory update',
+		body: 'An update a workspace admin marks as required, typically for security. A builder cannot publish their agent while any mandatory update is outstanding.',
+	},
+	'progressive-disclosure': {
+		title: 'Progressive disclosure',
+		body: 'Showing only what is needed at each step, and letting people reach the rest on demand. Here: surfacing that updates exist without forcing the builder through every one before they can publish.',
 	},
 } as const satisfies Record<string, GlossaryEntry>;
 
