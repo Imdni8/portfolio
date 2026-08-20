@@ -33,7 +33,7 @@ export const Variants: Story = {
 					<Button variant="primary" icon={<Icon name="play" />}>
 						View final solution
 					</Button>
-					<Button variant="secondary" icon={<Icon name="chevron-down" />}>
+					<Button variant="secondary" icon={<Icon name="arrow-down" />}>
 						Read case study
 					</Button>
 					<Button variant="ghost">Ghost</Button>

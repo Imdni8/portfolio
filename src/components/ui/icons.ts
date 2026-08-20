@@ -2,12 +2,12 @@
    "take the system as-is" rule the colour ramp follows. Add an icon by
    importing its raw SVG here; the outline set is at node_modules/lucide-static/icons. */
 import close from 'lucide-static/icons/x.svg?raw';
-import chevronDown from 'lucide-static/icons/chevron-down.svg?raw';
+import arrowDown from 'lucide-static/icons/arrow-down.svg?raw';
 import play from 'lucide-static/icons/play.svg?raw';
 
 export const icons = {
 	close,
-	'chevron-down': chevronDown,
+	'arrow-down': arrowDown,
 	play,
 } as const;
 
