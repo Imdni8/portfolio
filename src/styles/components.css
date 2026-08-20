@@ -304,6 +304,24 @@
 	}
 }
 
+/* ---- Water field -----------------------------------------------------------
+   Background, not content: it fills its nearest positioned ancestor, never
+   takes the pointer, and is hidden from the accessibility tree at the markup.
+
+   It carries a flat ground of its own so the frame before WebGL draws — and
+   every frame after, on a machine that has no WebGL to give — is the page
+   colour and not a transparent hole.
+   -------------------------------------------------------------------------- */
+.water-field {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	background: var(--bg-sunken);
+}
+
 /* ---- Case-study islands ----------------------------------------------------
    Styles for the four hydrated components. They live here rather than in the
    .tsx files so the whole system stays inspectable in one stylesheet.

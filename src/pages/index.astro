@@ -3,6 +3,7 @@ import '../styles/tokens.css';
 import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
+import WaterField from '../components/ui/WaterField.astro';
 ---
 
 <!doctype html>
@@ -16,14 +17,17 @@ import DevOutline from '../components/DevOutline.astro';
 		<meta name="description" content="Product designer. Portfolio in progress." />
 	</head>
 	<body>
-		<main>
-			<p class="type-overline">Portfolio</p>
-			<h1 class="type-title">Tousif Rahaman</h1>
-			<p class="type-subtitle">
-				Being rebuilt on a new design system. The foundations and components live in
-				Storybook.
-			</p>
-		</main>
+		<div class="hero">
+			<WaterField grid={72} />
+			<main>
+				<p class="type-overline">Portfolio</p>
+				<h1 class="type-title">Tousif Rahaman</h1>
+				<p class="type-subtitle">
+					Being rebuilt on a new design system. The foundations and components live in
+					Storybook.
+				</p>
+			</main>
+		</div>
 	</body>
 </html>
 
@@ -38,7 +42,19 @@ import DevOutline from '../components/DevOutline.astro';
 		-webkit-font-smoothing: antialiased;
 	}
 
+	/* The positioned ancestor the water field fills. `isolate` keeps the
+	   canvas's stacking context local, so nothing later on the page has to
+	   know it exists. */
+	.hero {
+		position: relative;
+		isolation: isolate;
+		min-height: 100svh;
+		display: grid;
+		align-content: center;
+	}
+
 	main {
+		position: relative;
 		max-width: 42rem;
 		margin: 0 auto;
 		padding: var(--spacing-9xl) var(--spacing-4xl);

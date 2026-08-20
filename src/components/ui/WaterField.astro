@@ -1,0 +1,36 @@
+---
+/**
+ * A pool, sitting behind whatever you put in front of it.
+ *
+ * Absolutely positioned and inert to the pointer, so it fills its nearest
+ * positioned ancestor and never intercepts a click. The engine listens on the
+ * window and maps the cursor into the canvas itself — see water-field.ts.
+ */
+interface Props {
+	/** Grid pitch in CSS pixels. 0 draws no grid. */
+	grid?: number;
+	/** Presence of the fluid, 0–1. Lower it behind dense copy. */
+	intensity?: number;
+	class?: string;
+}
+
+const { grid = 72, intensity = 1, class: className } = Astro.props;
+---
+
+<canvas
+	class:list={['water-field', className]}
+	data-water-field
+	data-grid={grid}
+	data-intensity={intensity}
+	aria-hidden="true"></canvas>
+
+<script>
+	import { createWaterField } from './water-field';
+
+	for (const canvas of document.querySelectorAll<HTMLCanvasElement>('canvas[data-water-field]')) {
+		createWaterField(canvas, {
+			grid: Number(canvas.dataset.grid ?? 72),
+			intensity: Number(canvas.dataset.intensity ?? 1),
+		});
+	}
+</script>
