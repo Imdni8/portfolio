@@ -77,6 +77,17 @@ Three conventions worth keeping:
   (500 → 700) as well as hue, so it survives greyscale and colour blindness.
 - **Disabled drops to an outline**, not a dimmed fill — a greyed-out solid
   reads as a loading state.
+- **Only cap prose measure (a `ch` max-width) where it actually narrows
+  something that would otherwise render wider.** `Section`'s `.section__body`
+  cap earns its place because the split layout's column is `minmax(0, 1fr)`
+  and would stretch to fill it without one. A single-column block that's
+  already bounded by `--measure-page` with nothing beside it — no facts rail,
+  no split column — has nothing left to narrow: capping it anyway leaves a
+  ragged, unexplained gap on the right. This is why the hero's `h1`/`.hero__dek`
+  carry no cap of their own (the column already bounds them), and why
+  `Reflection`'s body copy runs the section's full measure. Before adding a
+  measure cap, check what's actually beside the block — if the answer is
+  "nothing," the cap is the bug, not the missing constraint.
 
 `--secondary` is the one place `#ffffff` appears. The no-pure-white rule governs
 *content* colour; this is a control surface, so white is written as a literal in

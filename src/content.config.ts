@@ -11,6 +11,16 @@ import { glob } from 'astro/loaders';
  * describe structure would have to grow a field every time a case study
  * wanted a shape it hadn't seen before.
  */
+/** A numbered callout pinned to a hero shot. `x`/`y` are percentages of the
+ *  frame, not of the source image — the two differ whenever a shot's aspect
+ *  ratio does not match the frame and `object-fit: cover` crops it. Shared by
+ *  beforeNotes/afterNotes below so the two can't drift into different shapes. */
+const noteSchema = z.object({
+	x: z.number().min(0).max(100),
+	y: z.number().min(0).max(100),
+	text: z.string(),
+});
+
 const work = defineCollection({
 	loader: glob({ pattern: '**/*.mdx', base: './src/content/work' }),
 	schema: ({ image }) =>
@@ -38,18 +48,15 @@ const work = defineCollection({
 					beforeAlt: z.string(),
 					afterAlt: z.string(),
 
-					/**
-					 * Numbered callouts, revealed as the drag commits to a side.
-					 * `x`/`y` are percentages of the *frame*, not of the source
-					 * image — the two differ whenever a shot's aspect ratio does
-					 * not match the frame and `object-fit: cover` crops it.
-					 */
-					beforeNotes: z
-						.array(z.object({ x: z.number(), y: z.number(), text: z.string() }))
-						.default([]),
-					afterNotes: z
-						.array(z.object({ x: z.number(), y: z.number(), text: z.string() }))
-						.default([]),
+					/** Drag-handle labels. Default to "Before"/"After" — set these
+					 *  when the pair being compared wants its own vocabulary
+					 *  (e.g. "Draft"/"Published"). */
+					beforeLabel: z.string().optional(),
+					afterLabel: z.string().optional(),
+
+					/** Numbered callouts, revealed as the drag commits to a side. */
+					beforeNotes: z.array(noteSchema).default([]),
+					afterNotes: z.array(noteSchema).default([]),
 				})
 				.optional(),
 

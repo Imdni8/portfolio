@@ -12,6 +12,12 @@ export type Chapter = { id: string; label: string };
 export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 	const [active, setActive] = useState(chapters[0]?.id);
 	const railRef = useRef<HTMLDivElement>(null);
+	// Read once — it never changes for the session, and every scroll-spy
+	// transition below would otherwise construct a fresh MediaQueryList just
+	// to read this one boolean.
+	const reducedMotion = useRef(
+		typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)').matches : false
+	);
 
 	useEffect(() => {
 		const sections = chapters
@@ -70,7 +76,7 @@ export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 
 		rail.scrollTo({
 			left: rail.scrollLeft + delta,
-			behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+			behavior: reducedMotion.current ? 'auto' : 'smooth',
 		});
 	}, [active]);
 

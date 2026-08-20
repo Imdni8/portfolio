@@ -10,8 +10,8 @@ import DevOutline from '../components/DevOutline.astro';
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<ThemePreview />
-		<DevOutline />
+		{import.meta.env.DEV && <ThemePreview />}
+		{import.meta.env.DEV && <DevOutline />}
 		<title>Tousif Rahaman</title>
 		<meta name="description" content="Product designer. Portfolio in progress." />
 	</head>

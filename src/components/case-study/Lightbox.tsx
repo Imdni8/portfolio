@@ -46,6 +46,7 @@ export const Lightbox = () => {
 				className="lightbox__close"
 				icon={<Icon name="close" />}
 				label="Close"
+				onClick={() => setShot(null)}
 			/>
 			<img src={shot.src} alt={shot.alt} onClick={(e) => e.stopPropagation()} />
 		</div>

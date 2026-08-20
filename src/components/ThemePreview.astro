@@ -15,6 +15,11 @@
  *
  * The value is also written to sessionStorage so the mode survives a click
  * through to another page without having to retype the query string.
+ *
+ * DevOutline.astro reads its own query-param/sessionStorage pair the same
+ * way, for the same reason — but as a boolean per mode rather than this
+ * component's single stored string. If the override/fallback precedence here
+ * ever changes, check whether DevOutline's should too.
  */
 ---
 

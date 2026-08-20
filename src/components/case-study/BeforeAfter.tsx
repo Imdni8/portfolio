@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Icon } from '../ui/Icon';
 
 interface Shot {
 	src: string;
 	srcSet?: string;
+	/** Passed straight to the <img>; without it the browser assumes 100vw and
+	    over-fetches the srcSet's largest candidate even on frames narrower
+	    than the viewport. */
+	sizes?: string;
 	width: number;
 	height: number;
 	alt: string;
@@ -30,6 +35,12 @@ interface Props {
 
 const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 
+/** A linear ramp, clamped to [0,1], rising as `x` moves up through
+    [edge, edge + span]. */
+const rampUp = (x: number, edge: number, span: number) => clamp01((x - edge) / span);
+/** The same ramp falling instead of rising — 1 at `edge`, 0 by `edge - span`. */
+const rampDown = (x: number, edge: number, span: number) => clamp01((edge - x) / span);
+
 /** how long the handle sits still before it starts hinting that it can be dragged */
 const HINT_DELAY = 3000;
 /** how much of the drag the chip → story crossfade occupies, at each end */
@@ -39,6 +50,14 @@ const STORY_RAMP = 30;
 const STORY_END = 10;
 /** an arrow pointing into the end of the travel fades away over this much of it */
 const EDGE_FADE = 2;
+/** how much of `story`'s own [0,1] climb each pin's fade-in ramp occupies */
+const PIN_RAMP = 0.4;
+/** total budget the per-pin stagger can spend: past `1 - PIN_RAMP`, a pin's
+    ramp would still be climbing when story reaches 1 and it would never hit
+    full opacity. Divided across however many pins there are, so a denser set
+    of notes staggers more tightly instead of stalling the last few. */
+const PIN_STAGGER_BUDGET = 1 - PIN_RAMP;
+const pinStagger = (count: number) => (count > 1 ? Math.min(0.12, PIN_STAGGER_BUDGET / (count - 1)) : 0);
 
 /** Drag-to-compare shot pair. Keyboard: arrows nudge, shift+arrow jumps, home/end. */
 export default function BeforeAfter({
@@ -58,10 +77,12 @@ export default function BeforeAfter({
 	const handleRef = useRef<HTMLDivElement>(null);
 	/** distance between the cursor and the seam when a drag starts on the grip */
 	const grabOffset = useRef(0);
+	/** the frame's rect, read once per drag rather than on every pointermove —
+	    a drag gesture does not resize or scroll the page under itself */
+	const frameRectRef = useRef<DOMRect | null>(null);
 	/** percentage of the frame the seam is kept away from each edge, so the grip is
 	    always centred on the gutter rather than being pushed off it near the ends */
 	const [limit, setLimit] = useState(0);
-	const limitRef = useRef(0);
 
 	useEffect(() => {
 		const frame = frameRef.current;
@@ -72,7 +93,6 @@ export default function BeforeAfter({
 			const gripWidth = grip.getBoundingClientRect().width;
 			if (!frameWidth || !gripWidth) return;
 			const next = Math.min(45, (gripWidth / 2 / frameWidth) * 100);
-			limitRef.current = next;
 			setLimit(next);
 			setPos((p) => (p < next ? next : p > 100 - next ? 100 - next : p));
 		};
@@ -83,23 +103,26 @@ export default function BeforeAfter({
 	}, []);
 
 	const clamp = useCallback((n: number) => {
-		const low = limitRef.current;
+		const low = limit;
 		const high = 100 - low;
 		return n < low ? low : n > high ? high : n;
-	}, []);
+	}, [limit]);
 
 	// The nudge is a one-shot affordance: once the handle has been touched at all it never returns.
+	const hintTimer = useRef<number | undefined>(undefined);
 	useEffect(() => {
-		const timer = window.setTimeout(() => setHinting(true), HINT_DELAY);
-		return () => window.clearTimeout(timer);
+		hintTimer.current = window.setTimeout(() => setHinting(true), HINT_DELAY);
+		return () => window.clearTimeout(hintTimer.current);
 	}, []);
 
-	const stopHinting = useCallback(() => setHinting(false), []);
+	const stopHinting = useCallback(() => {
+		window.clearTimeout(hintTimer.current);
+		setHinting(false);
+	}, []);
 
 	const setFromClientX = useCallback((clientX: number) => {
-		const frame = frameRef.current;
-		if (!frame) return;
-		const rect = frame.getBoundingClientRect();
+		const rect = frameRectRef.current;
+		if (!rect) return;
 		setPos(clamp(((clientX + grabOffset.current - rect.left) / rect.width) * 100));
 	}, [clamp]);
 
@@ -108,12 +131,17 @@ export default function BeforeAfter({
 		if (event.button !== 0) return;
 		stopHinting();
 
+		// Read once per drag — every move and the initial placement below share
+		// this same rect rather than each forcing their own layout read.
+		const frame = frameRef.current;
+		if (!frame) return;
+		const rect = frame.getBoundingClientRect();
+		frameRectRef.current = rect;
+
 		// Grabbing the grip itself picks it up where it sits — near the ends it is held
 		// away from the seam to stay on canvas, so snapping it to the cursor would jump.
-		const frame = frameRef.current;
 		const onGrip = (event.target as HTMLElement).closest('.ba__handle');
-		if (frame && onGrip) {
-			const rect = frame.getBoundingClientRect();
+		if (onGrip) {
 			grabOffset.current = rect.left + (pos / 100) * rect.width - event.clientX;
 		} else {
 			grabOffset.current = 0;
@@ -164,20 +192,19 @@ export default function BeforeAfter({
 	// A side with no notes has nothing to hand over to, so its chip simply stays put.
 	// Measured against the travel actually available, so the panel still arrives fully
 	// at the end of the drag however much room the grip takes up at a given width.
-	const travelled = clamp01((pos - limit) / Math.max(1, 100 - 2 * limit)) * 100;
-	const beforeStory = beforeNotes.length
-		? clamp01((travelled - (100 - STORY_END - STORY_RAMP)) / STORY_RAMP)
-		: 0;
-	const afterStory = afterNotes.length
-		? clamp01((STORY_END + STORY_RAMP - travelled) / STORY_RAMP)
-		: 0;
-	const beforeChip = clamp01((pos - 25) / 10) * (1 - beforeStory);
-	const afterChip = clamp01((75 - pos) / 10) * (1 - afterStory);
+	const travelled = rampUp(pos, limit, Math.max(1, 100 - 2 * limit)) * 100;
+	const beforeStory = beforeNotes.length ? rampUp(travelled, 100 - STORY_END - STORY_RAMP, STORY_RAMP) : 0;
+	const afterStory = afterNotes.length ? rampDown(travelled, STORY_END + STORY_RAMP, STORY_RAMP) : 0;
+	// Keyed off `travelled`, the same limit-normalized basis the story ramps use
+	// above — not raw `pos`, whose [25,75] window the drag can never reach once
+	// `limit` (the grip's own half-width, as a frame percentage) is 25 or more.
+	const beforeChip = rampUp(travelled, 25, 10) * (1 - beforeStory);
+	const afterChip = rampDown(travelled, 75, 10) * (1 - afterStory);
 
 	// An arrow with nowhere left to go is just noise against the frame edge, so it
 	// ducks out — via opacity, since removing it would resize the grip it centres.
-	const prevArrow = clamp01(travelled / EDGE_FADE);
-	const nextArrow = clamp01((100 - travelled) / EDGE_FADE);
+	const prevArrow = rampUp(travelled, 0, EDGE_FADE);
+	const nextArrow = rampDown(travelled, 100, EDGE_FADE);
 
 	const classes = ['ba'];
 	if (dragging) classes.push('is-dragging');
@@ -197,13 +224,15 @@ export default function BeforeAfter({
 
 			{notes.map((note, i) => (
 				<span
-					key={note.text}
+					key={i}
 					className="ba__pin"
 					style={{
 						insetInlineStart: `${note.x}%`,
 						insetBlockStart: `${note.y}%`,
-						// Stagger so the pins land one after another rather than as a block.
-						opacity: clamp01((story - i * 0.12) / 0.4),
+						// Stagger so the pins land one after another rather than as a
+						// block — the increment shrinks as the count grows, so the
+						// last pin still reaches full opacity once story hits 1.
+						opacity: rampUp(story, i * pinStagger(notes.length), PIN_RAMP),
 					}}
 				>
 					{i + 1}
@@ -215,10 +244,10 @@ export default function BeforeAfter({
 					className="ba__story"
 					style={{ opacity: story, translate: `0 ${(1 - story) * 100}%` }}
 				>
-					<p className="ba__story-title">{label}</p>
-					<ol className="ba__story-list">
-						{notes.map((note) => (
-							<li key={note.text}>{note.text}</li>
+					<p className="ba__story-title type-overline">{label}</p>
+					<ol className="ba__story-list type-annotation">
+						{notes.map((note, i) => (
+							<li key={i}>{note.text}</li>
 						))}
 					</ol>
 				</div>
@@ -243,6 +272,7 @@ export default function BeforeAfter({
 					className="ba__shot"
 					src={before.src}
 					srcSet={before.srcSet}
+					sizes={before.sizes}
 					width={before.width}
 					height={before.height}
 					alt={before.alt}
@@ -256,6 +286,7 @@ export default function BeforeAfter({
 					className="ba__shot"
 					src={after.src}
 					srcSet={after.srcSet}
+					sizes={after.sizes}
 					width={after.width}
 					height={after.height}
 					alt={after.alt}
@@ -278,12 +309,12 @@ export default function BeforeAfter({
 				onKeyDown={onKeyDown}
 				onFocus={stopHinting}
 			>
-				<svg className="ba__chev ba__chev--prev" style={{ opacity: prevArrow }} viewBox="6 0 12 24" width="14" height="28" fill="none" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-					<path d="M15 5 8 12l7 7" />
-				</svg>
-				<svg className="ba__chev ba__chev--next" style={{ opacity: nextArrow }} viewBox="6 0 12 24" width="14" height="28" fill="none" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-					<path d="m9 5 7 7-7 7" />
-				</svg>
+				<span className="ba__chev ba__chev--prev" style={{ opacity: prevArrow }}>
+					<Icon name="chevron-left" />
+				</span>
+				<span className="ba__chev ba__chev--next" style={{ opacity: nextArrow }}>
+					<Icon name="chevron-right" />
+				</span>
 			</div>
 		</div>
 	);

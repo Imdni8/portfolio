@@ -4,11 +4,15 @@
 import close from 'lucide-static/icons/x.svg?raw';
 import arrowDown from 'lucide-static/icons/arrow-down.svg?raw';
 import play from 'lucide-static/icons/play.svg?raw';
+import chevronLeft from 'lucide-static/icons/chevron-left.svg?raw';
+import chevronRight from 'lucide-static/icons/chevron-right.svg?raw';
 
 export const icons = {
 	close,
 	'arrow-down': arrowDown,
 	play,
+	'chevron-left': chevronLeft,
+	'chevron-right': chevronRight,
 } as const;
 
 export type IconName = keyof typeof icons;

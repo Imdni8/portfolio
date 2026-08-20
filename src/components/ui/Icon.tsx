@@ -11,6 +11,11 @@ export const Icon = ({ name, className }: IconProps) => (
 	<span
 		className={['icon', className].filter(Boolean).join(' ')}
 		aria-hidden="true"
-		dangerouslySetInnerHTML={{ __html: icons[name] }}
+		// Falls back to an empty (but structurally valid) icon rather than
+		// literally rendering the word "undefined" — name is typed as
+		// IconName so this only bites if a value reaches here un-narrowed by
+		// tsc, e.g. an `as` cast or a string sourced from content that isn't
+		// validated against the registry.
+		dangerouslySetInnerHTML={{ __html: icons[name] ?? '' }}
 	/>
 );

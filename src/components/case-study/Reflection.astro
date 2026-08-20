@@ -31,6 +31,9 @@ const { heading = 'Reflections' } = Astro.props;
 		gap: var(--spacing-2xl);
 	}
 
+	/* No measure cap: .reflection is single-column, already bounded by
+	   --measure-page, with no rail or split column beside it to leave a
+	   ragged void against — the same reasoning the hero's h1/dek follow. */
 	.reflection__body :global(p) {
 		font-family: var(--font-sans);
 		font-size: var(--size-body);

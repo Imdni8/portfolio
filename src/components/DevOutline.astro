@@ -9,28 +9,29 @@
  * because outline is drawn outside the box and takes no space. A border would
  * add 2px to every element and shift the very edges you are trying to check.
  *
- * Numbers are stable — assigned once in document order — so "box 74 is off"
- * means the same box on both screens. Badges are drawn only for elements
- * currently on screen; several hundred at once is unreadable, and positioning
- * them all every frame is wasted work.
+ * Numbers are stable — assigned once, in the order an element is first seen —
+ * so "box 74 is off" means the same box on both screens. Badges are drawn
+ * only for elements currently on screen; several hundred at once is
+ * unreadable, and positioning them all every frame is wasted work.
  *
  * TWO RULES THIS FILE HAS TO OBEY, both learned the hard way:
  *
- * 1. Never write to the DOM. An earlier version stamped `data-dev-n` on every
- *    element at DOMContentLoaded — before React hydrated. React found
- *    attributes its virtual DOM did not have, reported hydration mismatches,
- *    and re-rendered those subtrees, which threw away the very nodes being
- *    observed. Numbers now live in a Map. A debug tool must not perturb what
- *    it is measuring.
- *
+ * 1. Never write to the DOM being measured. An earlier version stamped
+ *    `data-dev-n` on every element at DOMContentLoaded — before React
+ *    hydrated. React found attributes its virtual DOM did not have, reported
+ *    hydration mismatches, and re-rendered those subtrees, which threw away
+ *    the very nodes being observed. Numbers now live in a Map. The badge
+ *    layer is the one thing this tool does append, and it lives beside the
+ *    page's own tree, not inside it.
  * 2. Style the overlay inline. It is injected into a page whose stylesheet it
  *    does not control, and it must not depend on its own CSS surviving the
  *    build. Inline styles cannot be scoped away, overridden, or stripped.
  *
  * Both modes persist in sessionStorage, so they survive clicking between pages.
  *
- * Ships inert in production so it also works against `npm run preview` and any
- * deployed build. Wrap the import in `import.meta.env.DEV` to drop it.
+ * Ships inert in production so it also works against `npm run preview` and
+ * any deployed build — but only if its call site wraps it in
+ * `import.meta.env.DEV`. This component does not guard itself.
  */
 ---
 
@@ -48,44 +49,85 @@
 		}
 
 		// Block-level things only. Numbering every <span> and <code> buries the
-		// structure you are actually trying to line up.
-		const SELECTOR = [
-			'main', 'header', 'footer', 'section', 'article', 'aside', 'nav',
-			'div', 'figure', 'figcaption', 'h1', 'h2', 'h3', 'h4',
-			'p', 'ul', 'ol', 'dl', 'img', 'video', 'button', 'a',
-		].join(',');
-
-		const hueFor = (el) => {
-			const t = el.tagName.toLowerCase();
-			if (['main', 'header', 'footer', 'section', 'article', 'aside', 'nav'].includes(t)) return '#3498db';
-			if (t === 'div') return '#e74c3c';
-			if (['h1', 'h2', 'h3', 'h4'].includes(t)) return '#27ae60';
-			if (['ul', 'ol', 'dl'].includes(t)) return '#16a085';
-			if (['img', 'video', 'figure', 'figcaption'].includes(t)) return '#f39c12';
-			if (['button', 'a'].includes(t)) return '#e91e63';
-			return '#2ecc71';
-		};
+		// structure you are actually trying to line up — the CSS block below
+		// still outlines those inline elements, it just never numbers them.
+		//
+		// SELECTOR and hueFor() are both derived from GROUPS, so a tag's colour
+		// only has to change in one place. The CSS block further down is the one
+		// copy this can't reach (outline rules have to exist whether or not the
+		// script has run yet) — its per-tag colours must be kept in step with
+		// GROUPS by hand for every tag the two lists share.
+		const GROUPS = [
+			{ tags: ['main', 'header', 'footer', 'section', 'article', 'aside', 'nav'], hue: '#3498db' },
+			{ tags: ['div'], hue: '#e74c3c' },
+			{ tags: ['h1', 'h2', 'h3', 'h4'], hue: '#27ae60' },
+			{ tags: ['ul', 'ol', 'dl'], hue: '#16a085' },
+			{ tags: ['img', 'video', 'figure', 'figcaption'], hue: '#f39c12' },
+			{ tags: ['button', 'a'], hue: '#e91e63' },
+		];
+		const SELECTOR = GROUPS.flatMap((g) => g.tags).join(',');
+		const HUE_BY_TAG = new Map(GROUPS.flatMap((g) => g.tags.map((t) => [t, g.hue])));
+		const hueFor = (el) => HUE_BY_TAG.get(el.tagName.toLowerCase()) ?? '#2ecc71';
 
 		let layer = null;
-		let observer = null;
+		let observer = null; // IntersectionObserver: which numbered elements are on screen
+		let watcher = null; // MutationObserver: numbers elements added after the initial scan
 		const numbers = new Map(); // element -> stable index, never touches the DOM
+		const badges = new Map(); // element -> its persistent badge <span>, repositioned in place
 		const onScreen = new Set();
+		let n = 0;
 		let frame = 0;
+
+		// Shared by the initial scan and the MutationObserver below, so an
+		// element gets exactly one number however it was first seen.
+		const register = (el) => {
+			if (numbers.has(el) || el === layer || layer.contains(el)) return;
+			numbers.set(el, ++n);
+			observer.observe(el);
+		};
+
+		const badgeFor = (el) => {
+			let badge = badges.get(el);
+			if (!badge) {
+				badge = document.createElement('span');
+				badge.style.cssText =
+					'position:absolute;font:700 9px/1 ui-monospace,SFMono-Regular,monospace;color:#fff;' +
+					'padding:1px 3px;border-radius:0 0 3px 0;';
+				badge.style.background = hueFor(el);
+				badge.textContent = String(numbers.get(el));
+				layer.append(badge);
+				badges.set(el, badge);
+			}
+			return badge;
+		};
 
 		const draw = () => {
 			frame = 0;
 			if (!layer) return;
-			const parts = [];
+
+			for (const [el, badge] of badges) {
+				if (!onScreen.has(el)) badge.style.display = 'none';
+			}
+
+			// Elements scrolled above the viewport all clamp to the same top
+			// edge; stack them going down instead of letting their badges pile
+			// on the exact same pixel.
+			let stackedAtTop = 0;
 			for (const el of onScreen) {
 				const r = el.getBoundingClientRect();
-				if (r.width < 14 || r.height < 10) continue; // too small to label usefully
-				parts.push(
-					`<span style="position:absolute;left:${Math.max(0, r.left)}px;top:${Math.max(0, r.top)}px;` +
-						`font:700 9px/1 ui-monospace,SFMono-Regular,monospace;color:#fff;padding:1px 3px;` +
-						`border-radius:0 0 3px 0;background:${hueFor(el)}">${numbers.get(el)}</span>`
-				);
+				if (r.width < 14 || r.height < 10) {
+					// Too small to label usefully — and may have shrunk below this
+					// threshold since its badge was created, so hide any stale one.
+					badges.get(el)?.style.setProperty('display', 'none');
+					continue;
+				}
+				const top = r.top >= 0 ? r.top : stackedAtTop;
+				if (r.top < 0) stackedAtTop += 14;
+				const badge = badgeFor(el);
+				badge.style.display = '';
+				badge.style.left = `${Math.max(0, r.left)}px`;
+				badge.style.top = `${top}px`;
 			}
-			layer.innerHTML = parts.join('');
 		};
 		const schedule = () => {
 			if (!frame) frame = requestAnimationFrame(draw);
@@ -99,7 +141,8 @@
 			document.body.append(layer);
 
 			numbers.clear();
-			let n = 0;
+			badges.clear();
+			n = 0;
 			observer = new IntersectionObserver(
 				(entries) => {
 					for (const e of entries) {
@@ -110,11 +153,21 @@
 				},
 				{ threshold: 0 }
 			);
-			for (const el of document.querySelectorAll(SELECTOR)) {
-				if (el === layer || layer.contains(el)) continue;
-				numbers.set(el, ++n);
-				observer.observe(el);
-			}
+			for (const el of document.querySelectorAll(SELECTOR)) register(el);
+
+			// client:idle islands (Lightbox, Glossary, VideoPlayer) can render DOM
+			// after this scan runs — watch for it so an element added later still
+			// gets a number, not just the CSS outline.
+			watcher = new MutationObserver((mutations) => {
+				for (const m of mutations) {
+					for (const node of m.addedNodes) {
+						if (!(node instanceof Element) || node === layer || layer.contains(node)) continue;
+						if (node.matches(SELECTOR)) register(node);
+						for (const el of node.querySelectorAll(SELECTOR)) register(el);
+					}
+				}
+			});
+			watcher.observe(document.body, { childList: true, subtree: true });
 
 			addEventListener('scroll', schedule, { passive: true });
 			addEventListener('resize', schedule, { passive: true });
@@ -123,8 +176,11 @@
 		const disable = () => {
 			observer?.disconnect();
 			observer = null;
+			watcher?.disconnect();
+			watcher = null;
 			onScreen.clear();
 			numbers.clear();
+			badges.clear();
 			layer?.remove();
 			layer = null;
 			removeEventListener('scroll', schedule);
@@ -164,7 +220,12 @@
 <style is:global>
 	/* Hues are deliberately foreign to the palette — nothing here should be
 	   mistakable for a design decision. Structure blue, divs red, text green,
-	   headings darker green, lists teal, media orange, controls pink. */
+	   headings darker green, lists teal, media orange, controls pink.
+
+	   Colours below must match GROUPS' hues in the script above for every tag
+	   the two lists share. This block additionally outlines inline elements
+	   (span, li, dt, dd, code, svg, picture, input, label) that the script
+	   deliberately never numbers — see the SELECTOR comment above. */
 	[data-outline] body {
 		outline: 1px solid #2980b9 !important;
 	}

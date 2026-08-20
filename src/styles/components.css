@@ -17,6 +17,18 @@
    Focus is the outline, not a border swap — swapping a border reflows the
    text by a pixel, which reads as a jitter when tabbing through a row.
    -------------------------------------------------------------------------- */
+/* Shared with IconButton below: same interaction feedback for both controls,
+   stated once so the two cannot drift out of step with each other. */
+.btn,
+.icon-btn {
+	transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.btn:focus-visible,
+.icon-btn:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+
 .btn {
 	display: inline-flex;
 	align-items: center;
@@ -34,12 +46,6 @@
 	cursor: pointer;
 	text-decoration: none;
 	white-space: nowrap;
-	transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-
-.btn:focus-visible {
-	outline: 2px solid var(--focus-ring);
-	outline-offset: 2px;
 }
 
 /* Icons ride at the text's own size and inherit its colour, so a variant
@@ -109,7 +115,9 @@
 }
 
 .btn:disabled,
-.btn[aria-disabled='true'] {
+.btn[aria-disabled='true'],
+.icon-btn:disabled,
+.icon-btn[aria-disabled='true'] {
 	background: transparent;
 	color: var(--text-disabled);
 	border-color: var(--border);
@@ -148,12 +156,6 @@
 	border: 1px solid transparent;
 	border-radius: var(--radius-full);
 	cursor: pointer;
-	transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-
-.icon-btn:focus-visible {
-	outline: 2px solid var(--focus-ring);
-	outline-offset: 2px;
 }
 
 .icon-btn--ghost {
@@ -174,8 +176,11 @@
 	height: var(--spacing-5xl);
 }
 .icon-btn--md .icon {
-	width: 0.875rem;
-	height: 0.875rem;
+	/* Interpolated between sm (24px box / 14px icon) and lg (48px box / 26px
+	   icon) rather than left at sm's value — the box grows 67% from sm to md
+	   and the icon was not growing with it. */
+	width: 1.375rem;
+	height: 1.375rem;
 }
 
 .icon-btn--lg {
@@ -414,8 +419,12 @@
 	--scrim: color-mix(in srgb, var(--gray-900) 74%, transparent);
 
 	/* Half the gutter each side of the seam. It tapers to nothing at either end
-	   of the travel, where there is no second shot left to separate from. */
-	--gutter: min(4px, calc(var(--pos) * 1%), calc(100% - var(--pos) * 1%));
+	   of the travel, where there is no second shot left to separate from.
+	   Named --seam-gutter rather than --gutter: custom properties inherit, and
+	   the global --gutter (the page's responsive gutter, clamp(1.25rem, 4vw,
+	   4rem)) would otherwise be silently shadowed for anything nested in here
+	   that reaches for the page token by its usual name. */
+	--seam-gutter: min(4px, calc(var(--pos) * 1%), calc(100% - var(--pos) * 1%));
 
 	position: relative;
 	width: 100%;
@@ -450,10 +459,10 @@
    read as a pair of cards with a channel between them. Outer edges stay square
    to the frame. */
 .ba__base {
-	clip-path: inset(0 calc(100% - var(--pos) * 1% + var(--gutter)) 0 0 round 0 var(--radius-lg) var(--radius-lg) 0);
+	clip-path: inset(0 calc(100% - var(--pos) * 1% + var(--seam-gutter)) 0 0 round 0 var(--radius-lg) var(--radius-lg) 0);
 }
 .ba__reveal {
-	clip-path: inset(0 0 0 calc(var(--pos) * 1% + var(--gutter)) round var(--radius-lg) 0 0 var(--radius-lg));
+	clip-path: inset(0 0 0 calc(var(--pos) * 1% + var(--seam-gutter)) round var(--radius-lg) 0 0 var(--radius-lg));
 }
 
 /* Chrome belonging to one shot. The before side is painted under the reveal
@@ -528,31 +537,32 @@
    buys nothing — it left the after side's text hard against the seam. Same
    calculation as the clip-paths, so the two cannot disagree. */
 .ba__side--before .ba__story {
-	inset-inline-end: calc(100% - var(--pos) * 1% + var(--gutter));
+	inset-inline-end: calc(100% - var(--pos) * 1% + var(--seam-gutter));
 }
 .ba__side--after .ba__story {
-	inset-inline-start: calc(var(--pos) * 1% + var(--gutter));
+	inset-inline-start: calc(var(--pos) * 1% + var(--seam-gutter));
 }
 
+/* Family/weight/size/leading/tracking/case come from .type-overline, applied
+   in the markup — this is only what's genuinely the panel's own. */
 .ba__story-title {
 	margin: 0 0 var(--spacing-md);
-	font-family: var(--font-mono);
-	font-size: var(--size-fine);
-	font-weight: var(--weight-bold);
-	letter-spacing: var(--track-overline);
-	text-transform: uppercase;
+	/* .type-overline carries --primary-text; overridden back to the same
+	   on-image tone the label and pins use, since this sits on the photo
+	   scrim rather than the page ground. */
+	color: var(--gray-50);
 	text-wrap: balance;
 }
 
+/* Family/size/leading come from .type-annotation, applied in the markup — it
+   carries no colour of its own, so this inherits .ba__story's gray-50 like
+   the title above does explicitly. */
 .ba__story-list {
 	margin: 0;
-	padding-inline-start: 1.6em;
+	padding-inline-start: var(--spacing-3xl);
 	display: flex;
 	flex-direction: column;
-	gap: 0.35em;
-	font-family: var(--font-sans);
-	font-size: var(--size-fine);
-	line-height: var(--lh-fine);
+	gap: var(--spacing-sm);
 	text-wrap: pretty;
 }
 
@@ -578,6 +588,19 @@
 	outline: 2px solid var(--focus-ring);
 	outline-offset: 6px;
 	border-radius: var(--radius-xxs);
+}
+
+/* Sized here rather than on the <svg> itself — the icon comes from the shared
+   registry now (see icons.ts), so this wrapper carries the handle's own
+   footprint instead of a one-off viewBox/width/height on the icon markup. */
+.ba__chev {
+	display: inline-flex;
+	width: 0.875rem;
+	height: 1.75rem;
+}
+.ba__chev .icon {
+	width: 100%;
+	height: 100%;
 }
 
 /* Idle affordance: three seconds in, the forward chevron twitches rightward on
@@ -626,42 +649,36 @@
 
 /* ---- Before / after · callouts on small frames -----------------------------
    The frame keeps a fixed aspect ratio, so as the viewport narrows its height
-   falls away faster than the callout panel's does. Modelled across widths, the
-   five after-notes need 12% of the frame at 2537px and 164% at 375px — the
-   panel would be clipped to nothing and take its title with it.
+   falls away faster than the callout panel's does — modelled across widths for
+   this case study's callout counts (3 before, 4 after), the panel outgrows the
+   frame well before the frame gets phone-narrow.
 
-   So below 56rem the callouts leave the image and become a plain list under
-   it. The comparison stays a clean drag; the content is not lost, it moves to
-   where there is room to read it.
-   -------------------------------------------------------------------------- */
+   So below one breakpoint the callouts leave the image and become a plain list
+   under it; above it, the in-image pins and panel do the work and the list is
+   `.sr-only` — present for assistive tech only, since the pins/panel are
+   aria-hidden and at rest both sides' text is in the DOM at once, which would
+   otherwise read as duplicated. `.ba-notes` carries `.sr-only` unconditionally
+   in the markup; everything below this comment cancels it back to a visible,
+   in-flow list once the frame is too narrow for the in-image version. The
+   comparison stays a clean drag either way — the content is not lost, it moves
+   to where there is room to read it. One breakpoint, so the two states can't
+   disagree about where the frame stopped having room. */
 @media (max-width: 55.999rem) {
 	.ba__pin,
 	.ba__story {
 		display: none;
 	}
-}
 
-/* Above the breakpoint the in-image version is doing the work, so this is
-   present for assistive tech only — the pins and panel are aria-hidden, and at
-   rest both sides' text is in the DOM at once, which would read as duplicated. */
-@media (min-width: 56rem) {
 	.ba-notes {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-		border: 0;
-	}
-}
-
-@media (max-width: 55.999rem) {
-	/* .hero__compare is already capped and centred on the text column, so the
-	   list inherits its measure and only sets its own vertical rhythm. */
-	.ba-notes {
+		position: static;
+		width: auto;
+		height: auto;
+		margin: 0;
+		overflow: visible;
+		clip-path: none;
+		white-space: normal;
+		/* .hero__compare is already capped and centred on the text column, so
+		   the list inherits its measure and only sets its own vertical rhythm. */
 		padding-block: var(--spacing-4xl) var(--spacing-2xl);
 		display: grid;
 		gap: var(--spacing-3xl);

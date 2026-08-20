@@ -15,7 +15,16 @@ interface Props {
 	dek: string;
 	facts?: { label: string; value: string }[];
 	chapters?: { id: string; label: string }[];
-	hero?: { before: ImageMetadata; after: ImageMetadata; beforeAlt: string; afterAlt: string };
+	hero?: {
+		before: ImageMetadata;
+		after: ImageMetadata;
+		beforeAlt: string;
+		afterAlt: string;
+		beforeLabel?: string;
+		afterLabel?: string;
+		beforeNotes?: { x: number; y: number; text: string }[];
+		afterNotes?: { x: number; y: number; text: string }[];
+	};
 	actions?: {
 		primary?: { label: string; href: string };
 		secondary?: { label: string; href: string };
@@ -30,8 +39,8 @@ const { title, dek, facts = [], chapters = [], hero, actions = {} } = Astro.prop
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<ThemePreview />
-		<DevOutline />
+		{import.meta.env.DEV && <ThemePreview />}
+		{import.meta.env.DEV && <DevOutline />}
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
 		<title>{title} — Tousif Rahaman</title>
 		<meta name="description" content={dek} />

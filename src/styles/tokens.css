@@ -290,6 +290,15 @@
 	text-wrap: balance;
 }
 
+/* Same rung as .type-heading, italic. In the reference the Problem chapter
+   reports facts upright and every later chapter states a position in italic:
+   the heading is an argument, not a report. Needs the real italic face —
+   without it the browser synthesises a slant, which shears the letterforms
+   rather than substituting the drawn italic. */
+.type-heading--claim {
+	font-style: italic;
+}
+
 /* Editorial heading — you, stepping back to speak. The serif half. */
 .type-reflection {
 	font-family: var(--font-display);

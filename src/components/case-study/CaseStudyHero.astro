@@ -17,12 +17,18 @@ interface Props {
 		after: ImageMetadata;
 		beforeAlt: string;
 		afterAlt: string;
+		beforeLabel?: string;
+		afterLabel?: string;
 		beforeNotes?: { x: number; y: number; text: string }[];
 		afterNotes?: { x: number; y: number; text: string }[];
 	};
 }
 
 const { title, dek, facts = [], actions = {}, hero } = Astro.props;
+const beforeLabel = hero?.beforeLabel ?? 'Before';
+const afterLabel = hero?.afterLabel ?? 'After';
+const beforeNotes = hero?.beforeNotes ?? [];
+const afterNotes = hero?.afterNotes ?? [];
 
 // The island takes plain src/srcSet strings, so the responsive set has to be
 // resolved here — <Image> cannot do it inside a React component.
@@ -32,7 +38,13 @@ const [before, after] = hero
 			getImage({ src: hero.before, widths: shotWidths, format: 'webp', quality: 82 }),
 			getImage({ src: hero.after, widths: shotWidths, format: 'webp', quality: 82 }),
 		])
-	: [null, null];
+	: [];
+
+// Mirrors .hero__compare's own max-width formula below (min(measure, 100%) −
+// 2×gutter) in resolved units, since `sizes` cannot read custom properties —
+// it is evaluated before the stylesheet that defines them is available. Errs
+// slightly wide rather than narrow, so a mismatch costs a few kB, not blur.
+const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 ---
 
 <header class="hero">
@@ -83,6 +95,7 @@ const [before, after] = hero
 					before={{
 						src: before.src,
 						srcSet: before.srcSet.attribute,
+						sizes: compareSizes,
 						width: hero.before.width,
 						height: hero.before.height,
 						alt: hero.beforeAlt,
@@ -90,30 +103,35 @@ const [before, after] = hero
 					after={{
 						src: after.src,
 						srcSet: after.srcSet.attribute,
+						sizes: compareSizes,
 						width: hero.after.width,
 						height: hero.after.height,
 						alt: hero.afterAlt,
 					}}
-					beforeNotes={hero.beforeNotes ?? []}
-					afterNotes={hero.afterNotes ?? []}
+					beforeLabel={beforeLabel}
+					afterLabel={afterLabel}
+					beforeNotes={beforeNotes}
+					afterNotes={afterNotes}
 					ratio={hero.after.width / hero.after.height}
 				/>
 
 				{/* The pins and the panel they open are aria-hidden inside the
 				    island — they are a drag affordance, and at rest both sides'
 				    text is in the DOM at once, which would read as duplicated
-				    nonsense. This is the same content, once, in reading order. */}
-				<div class="ba-notes">
-					{(hero.beforeNotes ?? []).length > 0 && (
+				    nonsense. This is the same content, once, in reading order.
+				    Same labels as the island above, not restated literally, so
+				    the two representations cannot drift apart. */}
+				<div class="ba-notes sr-only">
+					{beforeNotes.length > 0 && (
 						<div class="ba-notes__group">
-							<h2 class="type-overline">Before</h2>
-							<ol>{(hero.beforeNotes ?? []).map((n) => <li>{n.text}</li>)}</ol>
+							<h2 class="type-overline">{beforeLabel}</h2>
+							<ol>{beforeNotes.map((n) => <li>{n.text}</li>)}</ol>
 						</div>
 					)}
-					{(hero.afterNotes ?? []).length > 0 && (
+					{afterNotes.length > 0 && (
 						<div class="ba-notes__group">
-							<h2 class="type-overline">After</h2>
-							<ol>{(hero.afterNotes ?? []).map((n) => <li>{n.text}</li>)}</ol>
+							<h2 class="type-overline">{afterLabel}</h2>
+							<ol>{afterNotes.map((n) => <li>{n.text}</li>)}</ol>
 						</div>
 					)}
 				</div>
@@ -230,10 +248,13 @@ const [before, after] = hero
 	}
 
 	/* ---- before / after ----
-	   Aligned to the text column: the frame starts and ends exactly where the
-	   copy above it does, so the hero reads as one block rather than a wide
-	   picture with a narrower page bolted on. The island sets its own aspect
-	   ratio, so this only has to give it the width.
+	   Aligned to .hero__inner, the same container the lede and facts sit
+	   inside — the frame's edges match the outer column, so the hero reads as
+	   one block rather than a wide picture with a narrower page bolted on.
+	   That is edge-for-edge with .hero__lede only when there is no facts
+	   rail; with one, the lede occupies just the minmax(0,1fr) track beside
+	   it and its own right edge sits short of the frame's. The island sets
+	   its own aspect ratio, so this only has to give it the width.
 
 	   The cap is measured off the column rather than restating a fixed number,
 	   so it holds below --measure-page too, where the column is the viewport

@@ -5,6 +5,12 @@ interface Props {
 	heading: string;
 	/** Ties this section to a chapter id in the rail, for scroll-spy. */
 	chapter?: string;
+	/**
+	 * Italic heading. In the reference, the Problem chapter reports facts
+	 * upright and every later chapter states a position in italic — the
+	 * heading is an argument rather than a report.
+	 */
+	claim?: boolean;
 	/** `split` puts the visual under the heading with copy beside it (desktop);
 	 *  `wide` keeps that pairing but runs the visual full width beneath it;
 	 *  `prose` is copy only, at a narrow measure. */
@@ -12,13 +18,13 @@ interface Props {
 	id?: string;
 }
 
-const { eyebrow, heading, chapter, layout = 'split', id } = Astro.props;
+const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro.props;
 ---
 
 <section class:list={['section', `section--${layout}`]} data-section={id ?? chapter} data-chapter={chapter} id={id}>
 	{eyebrow && <p class="type-overline section__eyebrow">{eyebrow}</p>}
 	<div class="section__head">
-		<h2 class="type-heading">{heading}</h2>
+		<h2 class:list={['type-heading', claim && 'type-heading--claim']}>{heading}</h2>
 		{layout !== 'wide' && <slot name="visual" />}
 	</div>
 	<div class="section__body">
@@ -81,9 +87,17 @@ const { eyebrow, heading, chapter, layout = 'split', id } = Astro.props;
 
 	   And it puts the heading and the body in the same grid row, so the first
 	   line of copy starts level with the heading instead of level with the
-	   eyebrow. */
+	   eyebrow.
+
+	   One line holds only for the eyebrows this case study actually has —
+	   nothing here caps how long a future one can be. overflow-wrap/hyphens
+	   is the fallback for whatever exceeds the row width: a wrap (or a
+	   hyphenated break inside a single long word) instead of the row running
+	   past the page edge. */
 	.section__eyebrow {
 		grid-column: 1 / -1;
+		overflow-wrap: break-word;
+		hyphens: auto;
 
 		/* The eyebrow is a label for the heading directly under it, so it sits
 		   4px away — much tighter than the step between the section's blocks.

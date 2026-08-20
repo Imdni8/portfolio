@@ -53,8 +53,8 @@ export const Usage: Story = {
 							className="note"
 							style={{ background: 'linear-gradient(180deg, var(--amber-950) 0%, var(--amber-500) 100%)' }}
 						>
-							<p className="note__title">Unreadable at the foot</p>
-							<p className="note__body" style={{ color: 'var(--gray-50)' }}>
+							<p className="note__title type-overline">Unreadable at the foot</p>
+							<p className="note__body type-annotation" style={{ color: 'var(--gray-50)' }}>
 								{BODY}
 							</p>
 						</aside>

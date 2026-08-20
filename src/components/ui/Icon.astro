@@ -9,4 +9,9 @@ interface Props {
 const { name, class: className } = Astro.props;
 ---
 
-<span class:list={['icon', className]} aria-hidden="true" set:html={icons[name]} />
+{/* Falls back to an empty (but structurally valid) icon rather than
+    rendering nothing useful to diagnose — name is typed as IconName so this
+    only bites if a value reaches here un-narrowed by tsc, e.g. an `as`
+    cast or a string sourced from content that isn't validated against the
+    registry. */}
+<span class:list={['icon', className]} aria-hidden="true" set:html={icons[name] ?? ''} />
