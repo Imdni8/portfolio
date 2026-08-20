@@ -28,3 +28,13 @@ CLAUDE.md
 
 # storybook build output
 storybook-static/
+
+# stray local-agent config picked up when a tool ran with an unexpanded `~`
+# (writes relative to cwd instead of the real home directory) — see cwd/HOME
+# handling in whatever ran `pi`.
+~/
+
+# Claude Code worktrees — each is its own git repo, nested under here.
+# Accidentally got committed as gitlinks once already (see the commit that
+# stops tracking them); ignoring the whole directory so it can't recur.
+.claude/worktrees/
