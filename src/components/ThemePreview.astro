@@ -1,0 +1,33 @@
+---
+/**
+ * Temporary preview switch: append ?mode=light or ?mode=dark to any page.
+ *
+ * Drop this component when a real theme control ships — it exists so the light
+ * theme can be reviewed before there is anywhere to toggle it from.
+ *
+ * Two things make it work on a static site:
+ *
+ * - `is:inline` keeps Astro from bundling it, so it stays a plain blocking
+ *   script rather than a module that defers.
+ * - It must sit in <head>, before any markup paints. A script that ran after
+ *   the body would show a flash of the default theme first, which is exactly
+ *   the artefact you would then waste time trying to explain.
+ *
+ * The value is also written to sessionStorage so the mode survives a click
+ * through to another page without having to retype the query string.
+ */
+---
+
+<script is:inline>
+	(() => {
+		const KEY = 'theme-preview';
+		const asked = new URLSearchParams(location.search).get('mode');
+		const stored = sessionStorage.getItem(KEY);
+		const mode = asked ?? stored;
+
+		if (mode !== 'light' && mode !== 'dark') return;
+
+		document.documentElement.dataset.theme = mode;
+		if (asked) sessionStorage.setItem(KEY, asked);
+	})();
+</script>

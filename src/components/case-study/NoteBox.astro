@@ -6,14 +6,23 @@ const { title } = Astro.props;
 ---
 
 <aside class="note">
-	<p class="note__title">{title}</p>
-	<p class="note__body"><slot /></p>
+	<p class="note__title type-overline">{title}</p>
+	<div class="note__body type-annotation"><slot /></div>
 </aside>
 
 <style>
-	/* Full width of its column here — the design-system default caps at 34rem,
+	/* Takes the glossary popover's surface rather than the design-system Note's
+	   amber fill, so the two notes a reader meets in a case study — this one in
+	   the flow, the one a term pops up — read as the same object. Same tokens as
+	   `.glossary`, so they move together. The border still carries the amber.
+	   Both pairings clear AA on the raised ground in both themes: the mono title
+	   is 6.89:1 dark / 6.83:1 light, the body 11.87:1 / 14.24:1.
+
+	   Full width of its column, too — the design-system default caps at 34rem,
 	   which is right for a tooltip but leaves an odd gap inside a section. */
 	.note {
+		background: var(--bg-raised);
+		padding: var(--spacing-xl);
 		max-width: none;
 	}
 </style>

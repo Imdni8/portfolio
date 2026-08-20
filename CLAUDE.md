@@ -51,10 +51,28 @@ file; the React wrapper exists so Storybook has something to render and so
 islands can share the markup. Reach for a wrapper only where there is real
 state — `Tabs` and a dismissible `Note` need it, `Button` does not.
 
-Built so far: `Button` (primary / secondary / ghost), `Tabs`, `Note`.
+Built so far: `Button` (primary / secondary / ghost), `Tabs`, `Note`, `Icon`,
+`IconButton` (icon-only counterpart to `Button` — same three variants, plus
+`sm`/`md`/`lg` sizing).
 
-Two conventions worth keeping:
+**Icons** come from `src/components/ui/icons.ts`, sourced unmodified from
+Lucide (`lucide-static`, one 24×24 grid, one 2px stroke weight) rather than
+hand-drawn per component. `Icon.astro` and `Icon.tsx` both read that same
+registry, so a `.astro` file and a React island render identical markup. Add
+an icon by importing its raw SVG (`?raw`) into `icons.ts` — never inline a new
+`<svg>` in a component.
 
+Three conventions worth keeping:
+
+- **Always use the design tokens — never a raw value, and never a hand-rolled
+  copy of one.** Colour, type, space and radius all have tokens; if a value is
+  needed that no token carries, that is a gap in the system to raise, not a
+  literal to inline. This extends to the type styles: reach for the `.type-*`
+  class rather than re-declaring family, weight, size, leading and tracking on
+  a component — the scale names its uses in its own comments (`.type-overline`
+  is "eyebrows and note titles", `.type-annotation` is "photo captions and
+  note/tooltip copy"). A component that assembles a style by hand has somewhere
+  to drift from; one that names the style cannot.
 - **Never let state rest on colour alone.** The active tab changes weight
   (500 → 700) as well as hue, so it survives greyscale and colour blindness.
 - **Disabled drops to an outline**, not a dimmed fill — a greyed-out solid

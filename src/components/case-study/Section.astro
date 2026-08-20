@@ -5,54 +5,92 @@ interface Props {
 	heading: string;
 	/** Ties this section to a chapter id in the rail, for scroll-spy. */
 	chapter?: string;
-	/**
-	 * Italic heading. In the reference, the Problem chapter reports facts
-	 * upright and every later chapter states a position in italic — the
-	 * heading is an argument rather than a report.
-	 */
-	claim?: boolean;
 	/** `split` puts the visual under the heading with copy beside it (desktop);
-	 *  `prose` is copy only, full measure. */
-	layout?: 'split' | 'prose';
+	 *  `wide` keeps that pairing but runs the visual full width beneath it;
+	 *  `prose` is copy only, at a narrow measure. */
+	layout?: 'split' | 'wide' | 'prose';
 	id?: string;
 }
 
-const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro.props;
+const { eyebrow, heading, chapter, layout = 'split', id } = Astro.props;
 ---
 
 <section class:list={['section', `section--${layout}`]} data-section={id ?? chapter} data-chapter={chapter} id={id}>
+	{eyebrow && <p class="type-overline section__eyebrow">{eyebrow}</p>}
 	<div class="section__head">
-		{eyebrow && <p class="type-overline">{eyebrow}</p>}
-		<h2 class:list={['type-heading', claim && 'type-heading--claim']}>{heading}</h2>
-		<slot name="visual" />
+		<h2 class="type-heading">{heading}</h2>
+		{layout !== 'wide' && <slot name="visual" />}
 	</div>
 	<div class="section__body">
 		<slot />
 	</div>
+	{layout === 'wide' && (
+		<div class="section__visual">
+			<slot name="visual" />
+		</div>
+	)}
 </section>
 
 <style>
 	.section {
+		/* Named, because the eyebrow below has to subtract it back out. */
+		--section-row-gap: var(--spacing-3xl);
+
 		max-width: var(--measure-page);
 		margin: 0 auto;
 		padding: var(--spacing-8xl) var(--gutter);
 		display: grid;
-		gap: var(--spacing-3xl);
+		row-gap: var(--section-row-gap);
+		column-gap: var(--spacing-3xl);
 	}
 
 	/* Two columns on desktop: the heading and its visual on the left, the copy
 	   on the right. On mobile the same order stacks — heading, visual, copy —
 	   which is why the visual is a slot inside the head rather than a sibling. */
 	@media (min-width: 60rem) {
-		.section--split {
+		.section--split,
+		.section--wide {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-			gap: var(--spacing-7xl);
+			column-gap: var(--spacing-7xl);
 			align-items: start;
 		}
 	}
 
+	/* `wide` is the split pairing with the visual pulled out from under the
+	   heading to run the full measure beneath both columns — for a shot that
+	   is the point of the section rather than support for the argument beside
+	   it. Stacked below the breakpoint it is the same order either way, which
+	   is why the visual only leaves the head on desktop. */
+	.section__visual {
+		grid-column: 1 / -1;
+	}
+
 	.section--prose {
 		max-width: calc(var(--measure-page) * 0.62);
+	}
+
+	/* The eyebrow labels the whole section, so it spans the columns rather than
+	   sitting inside the left one. Two things follow from that.
+
+	   It stops wrapping: in the left column it has ~410px at the 60rem
+	   breakpoint and the longest eyebrow needs 647px, so it broke over two
+	   lines and no amount of `nowrap` would have helped — the overflow was
+	   237px against a 64px column gap, straight into the body copy. Across the
+	   full measure it has 883px at that width, so every eyebrow sits on one
+	   line down to the breakpoint.
+
+	   And it puts the heading and the body in the same grid row, so the first
+	   line of copy starts level with the heading instead of level with the
+	   eyebrow. */
+	.section__eyebrow {
+		grid-column: 1 / -1;
+
+		/* The eyebrow is a label for the heading directly under it, so it sits
+		   4px away — much tighter than the step between the section's blocks.
+		   Grid gap is uniform down an axis, so that step is taken off the
+		   eyebrow rather than by splitting the row into two gap values, which
+		   keeps it 4px whether the section is in two columns or stacked. */
+		margin-block-end: calc(var(--spacing-xs) - var(--section-row-gap));
 	}
 
 	.section__head {
@@ -74,8 +112,13 @@ const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro
 
 	/* Copy inside a section is authored as MDX, so the elements arrive without
 	   classes — style them here rather than asking the author to annotate
-	   every paragraph. */
-	.section__body :global(p) {
+	   every paragraph.
+
+	   The child combinator holds the rule to exactly that: the paragraphs MDX
+	   emits at the top of the body. A component nested in here brings its own
+	   type style, and a descendant selector outranks a single class — which is
+	   how the note's 14px copy was being reset to 18px running copy. */
+	.section__body > :global(p) {
 		font-family: var(--font-sans);
 		font-weight: var(--weight-regular);
 		font-size: var(--size-body);

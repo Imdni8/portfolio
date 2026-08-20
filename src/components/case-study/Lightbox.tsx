@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Icon } from '../ui/Icon';
+import { IconButton } from '../ui/IconButton';
 
 /**
  * One overlay for the whole page. Any element carrying `data-zoom` opens it,
@@ -38,11 +40,13 @@ export const Lightbox = () => {
 
 	return (
 		<div className="lightbox" role="dialog" aria-modal="true" aria-label={shot.alt} onClick={() => setShot(null)}>
-			<button type="button" className="lightbox__close" aria-label="Close">
-				<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
-					<path d="M1 1l12 12M13 1L1 13" />
-				</svg>
-			</button>
+			<IconButton
+				variant="secondary"
+				size="md"
+				className="lightbox__close"
+				icon={<Icon name="close" />}
+				label="Close"
+			/>
 			<img src={shot.src} alt={shot.alt} onClick={(e) => e.stopPropagation()} />
 		</div>
 	);

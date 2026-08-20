@@ -44,20 +44,23 @@
 
 /* Icons ride at the text's own size and inherit its colour, so a variant
    never has to restate the icon colour. */
-.btn svg {
+.btn .icon {
 	width: 1.125em;
 	height: 1.125em;
 	flex-shrink: 0;
 }
 
-.btn--primary {
+.btn--primary,
+.icon-btn--primary {
 	background: var(--primary);
 	color: var(--text-on-primary);
 }
-.btn--primary:hover:not(:disabled) {
+.btn--primary:hover:not(:disabled),
+.icon-btn--primary:hover:not(:disabled) {
 	background: var(--primary-hover);
 }
-.btn--primary:active:not(:disabled) {
+.btn--primary:active:not(:disabled),
+.icon-btn--primary:active:not(:disabled) {
 	background: var(--primary-active);
 }
 
@@ -76,14 +79,33 @@
 	background: var(--secondary-hover);
 }
 
-.btn--ghost {
+/* icon-btn's secondary sits on a raised or floating surface (a lightbox),
+   never the page ground, so it reads against --bg rather than --secondary's
+   near-white fill. */
+.icon-btn--secondary {
+	background: var(--bg);
+	color: var(--text);
+	border-color: var(--border-strong);
+}
+.icon-btn--secondary:hover:not(:disabled) {
+	background: var(--bg-raised);
+}
+
+.btn--ghost,
+.icon-btn--ghost {
 	background: transparent;
 	color: var(--primary-text);
+}
+.btn--ghost {
 	border-color: var(--border-strong);
 }
 .btn--ghost:hover:not(:disabled) {
 	background: var(--primary-subtle);
 	border-color: var(--primary-text);
+}
+.icon-btn--ghost:hover:not(:disabled) {
+	color: var(--text);
+	background: color-mix(in srgb, var(--primary-text) 18%, transparent);
 }
 
 .btn:disabled,
@@ -92,6 +114,77 @@
 	color: var(--text-disabled);
 	border-color: var(--border);
 	cursor: not-allowed;
+}
+
+/* ---- Icon -------------------------------------------------------------
+   Sourced unmodified from Lucide: one stroke weight, one grid, no mixing
+   filled and outlined marks. Bare .icon rides at 1em so it tracks whatever
+   text sits beside it (see .btn above); IconButton below is the icon-only
+   control built on the same three variants as Button.
+   ------------------------------------------------------------------------- */
+.icon {
+	display: inline-flex;
+	width: 1em;
+	height: 1em;
+	flex-shrink: 0;
+}
+.icon svg {
+	width: 100%;
+	height: 100%;
+}
+
+/* ---- IconButton ---------------------------------------------------------
+   Icon-only, so shape is either a circle (a control that floats over
+   content — video play, a lightbox close) or ghost (sits inline in flow —
+   a note's dismiss). Same primary/secondary/ghost vocabulary as Button;
+   only shape and sizing are IconButton's own.
+   -------------------------------------------------------------------------- */
+.icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+
+	border: 1px solid transparent;
+	border-radius: var(--radius-full);
+	cursor: pointer;
+	transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.icon-btn:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
+
+.icon-btn--ghost {
+	border-radius: var(--radius-xs);
+}
+
+.icon-btn--sm {
+	width: var(--spacing-3xl);
+	height: var(--spacing-3xl);
+}
+.icon-btn--sm .icon {
+	width: 0.875rem;
+	height: 0.875rem;
+}
+
+.icon-btn--md {
+	width: var(--spacing-5xl);
+	height: var(--spacing-5xl);
+}
+.icon-btn--md .icon {
+	width: 0.875rem;
+	height: 0.875rem;
+}
+
+.icon-btn--lg {
+	width: var(--spacing-6xl);
+	height: var(--spacing-6xl);
+}
+.icon-btn--lg .icon {
+	width: 1.625rem;
+	height: 1.625rem;
 }
 
 /* ---- Tabs ------------------------------------------------------------------
@@ -154,7 +247,7 @@
    -------------------------------------------------------------------------- */
 .note {
 	display: grid;
-	gap: var(--spacing-md);
+	gap: var(--spacing-xs);
 	position: relative;
 
 	background: var(--primary-subtle);
@@ -164,67 +257,44 @@
 	max-width: 34rem;
 }
 
+/* Typography comes from .type-overline and .type-annotation, applied in the
+   markup. The scale names both of these uses by name — "eyebrows and note
+   titles", "photo captions and note/tooltip copy" — so assembling the same
+   ramp again here only gave it somewhere to drift from. What is left below is
+   what is genuinely the note's own. */
 .note__title {
-	font-family: var(--font-mono);
-	font-weight: var(--weight-bold);
-	font-size: var(--size-fine);
-	line-height: var(--lh-fine);
-	letter-spacing: var(--track-overline);
-	text-transform: uppercase;
-	color: var(--primary-text);
-
 	/* Leave room for the close button so a long title never runs under it. */
 	padding-right: var(--spacing-3xl);
-	margin: 0;
 }
 
+/* A div, not a p: MDX hands the note block-level content, so the copy arrives
+   as paragraphs inside the body. They inherit the type style from here — only
+   the UA margin needs clearing, and a gap in case there is more than one. */
 .note__body {
-	font-family: var(--font-sans);
-	font-weight: var(--weight-regular);
-	font-size: var(--size-fine);
-	line-height: var(--lh-fine);
+	display: grid;
+	gap: var(--spacing-md);
+
+	/* .type-annotation carries no colour, because its two uses want different
+	   ones: a caption under a figure is muted, note copy is meant to be read. */
 	color: var(--text-body);
+}
+
+.note__body p {
 	margin: 0;
 }
 
+/* Shape, colour and size come from .icon-btn--ghost.icon-btn--sm; this is
+   only the note-specific placement. */
 .note__close {
 	position: absolute;
 	top: var(--spacing-md);
 	right: var(--spacing-md);
-
-	display: grid;
-	place-items: center;
-	width: var(--spacing-3xl);
-	height: var(--spacing-3xl);
-
-	appearance: none;
-	background: none;
-	border: 0;
-	border-radius: var(--radius-xs);
-	color: var(--primary-text);
-	cursor: pointer;
-	transition: color 120ms ease, background-color 120ms ease;
-}
-
-.note__close:hover {
-	color: var(--text);
-	background: color-mix(in srgb, var(--primary-text) 18%, transparent);
-}
-
-.note__close:focus-visible {
-	outline: 2px solid var(--focus-ring);
-	outline-offset: 1px;
-}
-
-.note__close svg {
-	width: 0.875rem;
-	height: 0.875rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.btn,
 	.tab,
-	.note__close {
+	.icon-btn {
 		transition: none;
 	}
 }
@@ -251,6 +321,24 @@
 	border-block-end: 0;
 	gap: var(--spacing-4xl);
 	scrollbar-width: none;
+
+	/* Spread to the full content width, so the first and last chapters line up
+	   with the column edges below. When the row stops fitting, space-between
+	   has no free space to hand out and collapses to start alignment on its
+	   own — which is what a scrolling rail wants. */
+	justify-content: space-between;
+}
+
+/* Every tab carries inline padding so its focus ring has somewhere to sit.
+   That padding would push the first and last chapter's *letterforms* 4px
+   inside the content edge they are meant to align with, so the outer two are
+   pulled back out by exactly that much. Alignment reads off the type, not the
+   box around it. */
+.rail__inner .tab:first-child {
+	margin-inline-start: calc(var(--spacing-xs) * -1);
+}
+.rail__inner .tab:last-child {
+	margin-inline-end: calc(var(--spacing-xs) * -1);
 }
 .rail__inner::-webkit-scrollbar {
 	display: none;
@@ -277,27 +365,12 @@
 	cursor: default;
 }
 
+/* Shape, colour and size come from .icon-btn--secondary.icon-btn--md; this
+   is only the lightbox-specific placement. */
 .lightbox__close {
 	position: absolute;
 	inset-block-start: var(--spacing-2xl);
 	inset-inline-end: var(--spacing-2xl);
-	width: var(--spacing-5xl);
-	height: var(--spacing-5xl);
-	display: grid;
-	place-items: center;
-	border: 1px solid var(--border-strong);
-	border-radius: var(--radius-full);
-	background: var(--bg);
-	color: var(--text);
-	cursor: pointer;
-}
-.lightbox__close:focus-visible {
-	outline: 2px solid var(--focus-ring);
-	outline-offset: 2px;
-}
-.lightbox__close svg {
-	width: 0.875rem;
-	height: 0.875rem;
 }
 
 /* Glossary popover. Anchored to the term above 40rem; a bottom sheet below,
@@ -308,7 +381,7 @@
 	inset-block-end: var(--spacing-xl);
 	z-index: 90;
 	display: grid;
-	gap: var(--spacing-md);
+	gap: var(--spacing-xs);
 	background: var(--bg-raised);
 	border: 1px solid var(--primary-text);
 	border-radius: var(--radius-md);
@@ -322,5 +395,299 @@
 		inset-inline-start: var(--x);
 		transform: translateX(-50%);
 		width: min(24rem, calc(100vw - var(--spacing-6xl)));
+	}
+}
+
+/* ---- Before / after --------------------------------------------------------
+   Drag-to-compare shot pair, salvaged from the previous system and re-pointed
+   at the new tokens. Pointer, touch and keyboard: arrows nudge, shift+arrow
+   jumps, Home/End go to the ends.
+
+   Two colours here are deliberately fixed rather than semantic. The labels and
+   pins sit on top of product screenshots, which are light in both themes — so
+   they take gray-900/gray-50 directly. A token that flips with the theme would
+   put dark text on a light screenshot in one of the two.
+   -------------------------------------------------------------------------- */
+.ba {
+	--grip-gap: var(--spacing-md);
+	--grip-w: calc(1.75rem + var(--grip-gap)); /* two 14px chevrons plus the gap */
+	--scrim: color-mix(in srgb, var(--gray-900) 74%, transparent);
+
+	/* Half the gutter each side of the seam. It tapers to nothing at either end
+	   of the travel, where there is no second shot left to separate from. */
+	--gutter: min(4px, calc(var(--pos) * 1%), calc(100% - var(--pos) * 1%));
+
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	/* The same radius the halves carry on their seam-facing corners, so the
+	   pair is rounded consistently on all four. The halves stay square on the
+	   outside and are clipped to this instead — one radius to change, and it
+	   cannot drift from the one in the clip-paths below. */
+	border-radius: var(--radius-lg);
+	background: var(--bg-sunken);
+	touch-action: pan-y;
+	user-select: none;
+	cursor: ew-resize;
+}
+
+.ba__shot {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: left top;
+}
+
+.ba__base,
+.ba__reveal {
+	position: absolute;
+	inset: 0;
+}
+
+/* Each half is rounded only on the side facing the gutter, so the two shots
+   read as a pair of cards with a channel between them. Outer edges stay square
+   to the frame. */
+.ba__base {
+	clip-path: inset(0 calc(100% - var(--pos) * 1% + var(--gutter)) 0 0 round 0 var(--radius-lg) var(--radius-lg) 0);
+}
+.ba__reveal {
+	clip-path: inset(0 0 0 calc(var(--pos) * 1% + var(--gutter)) round var(--radius-lg) 0 0 var(--radius-lg));
+}
+
+/* Chrome belonging to one shot. The before side is painted under the reveal
+   and the after side inside it, so each is clipped to its own half by
+   definition rather than by a second calculation. */
+.ba__side {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.ba__label {
+	position: absolute;
+	inset-block-start: 50%;
+	padding: var(--spacing-md) var(--spacing-xl);
+	border-radius: var(--radius-xs);
+	background: var(--scrim);
+	backdrop-filter: blur(2px);
+	font-family: var(--font-display);
+	font-weight: var(--weight-bold);
+	font-size: var(--size-subtitle);
+	line-height: var(--lh-subtitle);
+	color: var(--gray-50);
+}
+.ba__side--before .ba__label {
+	inset-inline-start: 25%;
+	translate: -50% -50%;
+}
+.ba__side--after .ba__label {
+	inset-inline-end: 25%;
+	translate: 50% -50%;
+}
+
+/* ---- numbered callouts, revealed as a side takes over the frame ---- */
+
+/* Teardrop: the one square corner points back at whatever the pin sits beside. */
+.ba__pin {
+	position: absolute;
+	translate: -50% -50%;
+	display: grid;
+	place-items: center;
+	inline-size: clamp(1.5rem, 2vw, 2rem);
+	aspect-ratio: 1;
+	border-radius: 0 50% 50% 50%;
+	background: var(--scrim);
+	backdrop-filter: blur(2px);
+	font-family: var(--font-sans);
+	font-size: var(--size-fine);
+	font-weight: var(--weight-semibold);
+	line-height: 1;
+	color: var(--gray-50);
+}
+
+.ba__story {
+	position: absolute;
+	inset-inline: 0;
+	inset-block-end: 0;
+	padding: var(--spacing-xl) var(--spacing-3xl);
+	/* One column, sized to the list and centred in the panel. The title is left
+	   aligned to that column rather than centred over it, so the pair still
+	   reads as a heading and its list. */
+	display: grid;
+	grid-template-columns: minmax(0, max-content);
+	justify-content: center;
+	background: var(--scrim);
+	color: var(--gray-50);
+	will-change: translate, opacity;
+}
+
+/* Bounded by the seam rather than by the frame. Each panel is clipped to its own
+   half either way, but padding measured from an edge that has been clipped away
+   buys nothing — it left the after side's text hard against the seam. Same
+   calculation as the clip-paths, so the two cannot disagree. */
+.ba__side--before .ba__story {
+	inset-inline-end: calc(100% - var(--pos) * 1% + var(--gutter));
+}
+.ba__side--after .ba__story {
+	inset-inline-start: calc(var(--pos) * 1% + var(--gutter));
+}
+
+.ba__story-title {
+	margin: 0 0 var(--spacing-md);
+	font-family: var(--font-mono);
+	font-size: var(--size-fine);
+	font-weight: var(--weight-bold);
+	letter-spacing: var(--track-overline);
+	text-transform: uppercase;
+	text-wrap: balance;
+}
+
+.ba__story-list {
+	margin: 0;
+	padding-inline-start: 1.6em;
+	display: flex;
+	flex-direction: column;
+	gap: 0.35em;
+	font-family: var(--font-sans);
+	font-size: var(--size-fine);
+	line-height: var(--lh-fine);
+	text-wrap: pretty;
+}
+
+/* ---- grip ---- */
+
+/* No visible seam line — the chevrons alone mark the split. They stay centred
+   on the gutter at every position; the drag is bounded instead so the pair
+   always fits. */
+.ba__handle {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-start: calc(var(--pos) * 1% - var(--grip-w) / 2);
+	translate: 0 -50%;
+	display: flex;
+	align-items: center;
+	gap: var(--grip-gap);
+	color: var(--primary);
+	filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.45));
+	cursor: ew-resize;
+}
+
+.ba__handle:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 6px;
+	border-radius: var(--radius-xxs);
+}
+
+/* Idle affordance: three seconds in, the forward chevron twitches rightward on
+   a loop so the pair reads as draggable. Cleared on first interaction. */
+.ba.is-hinting .ba__chev--next {
+	animation: ba-nudge 4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes ba-nudge {
+	0%,
+	24%,
+	100% {
+		translate: 0 0;
+	}
+	6%,
+	18% {
+		translate: 10px 0;
+	}
+	12% {
+		translate: 0 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ba.is-hinting .ba__chev--next {
+		animation: none;
+	}
+	.ba__story {
+		transition: none;
+	}
+}
+
+/* Visually hidden, still announced. Used where a visual affordance carries
+   information that would otherwise be lost to assistive tech. */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* ---- Before / after · callouts on small frames -----------------------------
+   The frame keeps a fixed aspect ratio, so as the viewport narrows its height
+   falls away faster than the callout panel's does. Modelled across widths, the
+   five after-notes need 12% of the frame at 2537px and 164% at 375px — the
+   panel would be clipped to nothing and take its title with it.
+
+   So below 56rem the callouts leave the image and become a plain list under
+   it. The comparison stays a clean drag; the content is not lost, it moves to
+   where there is room to read it.
+   -------------------------------------------------------------------------- */
+@media (max-width: 55.999rem) {
+	.ba__pin,
+	.ba__story {
+		display: none;
+	}
+}
+
+/* Above the breakpoint the in-image version is doing the work, so this is
+   present for assistive tech only — the pins and panel are aria-hidden, and at
+   rest both sides' text is in the DOM at once, which would read as duplicated. */
+@media (min-width: 56rem) {
+	.ba-notes {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+}
+
+@media (max-width: 55.999rem) {
+	/* .hero__compare is already capped and centred on the text column, so the
+	   list inherits its measure and only sets its own vertical rhythm. */
+	.ba-notes {
+		padding-block: var(--spacing-4xl) var(--spacing-2xl);
+		display: grid;
+		gap: var(--spacing-3xl);
+	}
+
+	.ba-notes__group {
+		display: grid;
+		gap: var(--spacing-lg);
+	}
+
+	.ba-notes h2 {
+		margin: 0;
+	}
+
+	.ba-notes ol {
+		margin: 0;
+		padding-inline-start: var(--spacing-3xl);
+		display: grid;
+		gap: var(--spacing-md);
+		font-family: var(--font-sans);
+		font-size: var(--size-fine);
+		line-height: var(--lh-fine);
+		color: var(--text-body);
+	}
+
+	.ba-notes li::marker {
+		color: var(--text-muted);
 	}
 }

@@ -1,5 +1,6 @@
 ---
-import { Image } from 'astro:assets';
+import { getImage } from 'astro:assets';
+import BeforeAfter from './BeforeAfter';
 import type { ImageMetadata } from 'astro';
 
 interface Props {
@@ -10,10 +11,27 @@ interface Props {
 		primary?: { label: string; href: string };
 		secondary?: { label: string; href: string };
 	};
-	hero?: { before: ImageMetadata; after: ImageMetadata; beforeAlt: string; afterAlt: string };
+	hero?: {
+		before: ImageMetadata;
+		after: ImageMetadata;
+		beforeAlt: string;
+		afterAlt: string;
+		beforeNotes?: { x: number; y: number; text: string }[];
+		afterNotes?: { x: number; y: number; text: string }[];
+	};
 }
 
 const { title, dek, facts = [], actions = {}, hero } = Astro.props;
+
+// The island takes plain src/srcSet strings, so the responsive set has to be
+// resolved here — <Image> cannot do it inside a React component.
+const shotWidths = [720, 1080, 1440, 1920];
+const [before, after] = hero
+	? await Promise.all([
+			getImage({ src: hero.before, widths: shotWidths, format: 'webp', quality: 82 }),
+			getImage({ src: hero.after, widths: shotWidths, format: 'webp', quality: 82 }),
+		])
+	: [null, null];
 ---
 
 <header class="hero">
@@ -62,16 +80,47 @@ const { title, dek, facts = [], actions = {}, hero } = Astro.props;
 	</div>
 
 	{
-		hero && (
+		hero && before && after && (
 			<div class="hero__compare">
-				<figure class="compare__panel">
-					<Image src={hero.before} alt={hero.beforeAlt} widths={[640, 960, 1280]} sizes="(min-width: 900px) 50vw, 100vw" />
-					<figcaption class="compare__tag">Before</figcaption>
-				</figure>
-				<figure class="compare__panel">
-					<Image src={hero.after} alt={hero.afterAlt} widths={[640, 960, 1280]} sizes="(min-width: 900px) 50vw, 100vw" />
-					<figcaption class="compare__tag">After</figcaption>
-				</figure>
+				<BeforeAfter
+					client:load
+					before={{
+						src: before.src,
+						srcSet: before.srcSet.attribute,
+						width: hero.before.width,
+						height: hero.before.height,
+						alt: hero.beforeAlt,
+					}}
+					after={{
+						src: after.src,
+						srcSet: after.srcSet.attribute,
+						width: hero.after.width,
+						height: hero.after.height,
+						alt: hero.afterAlt,
+					}}
+					beforeNotes={hero.beforeNotes ?? []}
+					afterNotes={hero.afterNotes ?? []}
+					ratio={hero.after.width / hero.after.height}
+				/>
+
+				{/* The pins and the panel they open are aria-hidden inside the
+				    island — they are a drag affordance, and at rest both sides'
+				    text is in the DOM at once, which would read as duplicated
+				    nonsense. This is the same content, once, in reading order. */}
+				<div class="ba-notes">
+					{(hero.beforeNotes ?? []).length > 0 && (
+						<div class="ba-notes__group">
+							<h2 class="type-overline">Before</h2>
+							<ol>{(hero.beforeNotes ?? []).map((n) => <li>{n.text}</li>)}</ol>
+						</div>
+					)}
+					{(hero.afterNotes ?? []).length > 0 && (
+						<div class="ba-notes__group">
+							<h2 class="type-overline">After</h2>
+							<ol>{(hero.afterNotes ?? []).map((n) => <li>{n.text}</li>)}</ol>
+						</div>
+					)}
+				</div>
 			</div>
 		)
 	}
@@ -93,7 +142,9 @@ const { title, dek, facts = [], actions = {}, hero } = Astro.props;
 		.hero__inner {
 			grid-template-columns: minmax(0, 1fr) 20rem;
 			gap: var(--spacing-8xl);
-			align-items: start;
+			/* Deliberately not `align-items: start`. The rail has to stretch to
+			   the row height, or its entries cannot sit flush with the top and
+			   bottom of the column beside them. */
 		}
 	}
 
@@ -102,14 +153,15 @@ const { title, dek, facts = [], actions = {}, hero } = Astro.props;
 		gap: var(--spacing-2xl);
 	}
 
+	/* No measure cap: the column is already bounded by --measure-page and the
+	   facts rail beside it, and the reference sets both to the full width of
+	   that column. Capping them again left a ragged void on the right. */
 	h1 {
 		color: var(--text);
-		max-width: 18ch;
 	}
 
 	.hero__dek {
 		color: var(--text-body);
-		max-width: 46ch;
 	}
 
 	.hero__actions {
@@ -142,58 +194,63 @@ const { title, dek, facts = [], actions = {}, hero } = Astro.props;
 	}
 
 	@media (min-width: 60rem) {
+		/* Equal thirds down the full height, so the dividers land on exact
+		   thirds and the block reads as one measured column rather than a
+		   stack that happens to start at the top. */
 		.facts {
-			grid-template-columns: 1fr;
+			display: flex;
+			flex-direction: column;
 			border-block: 0;
 			text-align: right;
 		}
+
+		/* No padding on the item. With border-box, a flex-basis:0 item is still
+		   floored at its own padding, and the middle one pads on both sides
+		   where the outer two pad on one — which pulled the thirds to 91/108/92
+		   and put the dividers 6px off. With the padding gone all three floor
+		   at zero and grow equally; the breathing room around each entry comes
+		   from the third being taller than its content. */
 		.facts__item {
-			padding: var(--spacing-xl) 0;
+			flex: 1;
+			min-height: 0;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			padding: 0;
 			text-align: right;
 			border-inline-start: 0;
 			border-block-start: 1px solid var(--border);
 		}
+
+		/* First and last hug the edges so the rail is flush top and bottom with
+		   the lede column; the middle one centres in its own third. */
 		.facts__item:first-child {
-			padding-block-start: 0;
+			justify-content: flex-start;
 			border-block-start: 0;
+		}
+		.facts__item:last-child {
+			justify-content: flex-end;
 		}
 	}
 
-	/* ---- before / after ---- */
+	/* ---- before / after ----
+	   Aligned to the text column: the frame starts and ends exactly where the
+	   copy above it does, so the hero reads as one block rather than a wide
+	   picture with a narrower page bolted on. The island sets its own aspect
+	   ratio, so this only has to give it the width.
+
+	   The cap is measured off the column rather than restating a fixed number,
+	   so it holds below --measure-page too, where the column is the viewport
+	   less its gutters.
+
+	   No background here: the island carries its own, and a sunken band exactly
+	   the width of the frame would do nothing but show square corners behind
+	   the frame's rounded ones. */
 	.hero__compare {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: var(--spacing-md);
-		background: var(--bg-sunken);
-	}
-
-	.compare__panel {
-		position: relative;
-		margin: 0;
-		min-width: 0;
-		overflow: hidden;
-	}
-
-	.compare__panel :global(img) {
-		display: block;
-		width: 100%;
-		height: auto;
-	}
-
-	/* The label sits over the image, so it needs its own ground rather than
-	   relying on whatever pixels happen to be underneath. */
-	.compare__tag {
-		position: absolute;
-		inset-block-start: 50%;
-		inset-inline-start: 50%;
-		transform: translate(-50%, -50%);
-		font-family: var(--font-display);
-		font-weight: var(--weight-bold);
-		font-size: var(--size-subtitle);
-		line-height: var(--lh-subtitle);
-		color: var(--gray-50);
-		background: color-mix(in srgb, var(--gray-900) 72%, transparent);
-		padding: var(--spacing-md) var(--spacing-xl);
-		border-radius: var(--radius-xs);
+		max-width: calc(min(var(--measure-page), 100%) - 2 * var(--gutter));
+		margin-inline: auto;
+		/* The chapter rail follows immediately and is sticky, so it needs
+		   clearing rather than butting against the frame. */
+		margin-block-end: var(--spacing-4xl);
 	}
 </style>

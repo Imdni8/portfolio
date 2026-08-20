@@ -6,6 +6,8 @@ import { ChapterRail } from '../components/case-study/ChapterRail';
 import { Lightbox } from '../components/case-study/Lightbox';
 import { Glossary } from '../components/case-study/Glossary';
 import { VideoPlayer } from '../components/case-study/VideoPlayer';
+import ThemePreview from '../components/ThemePreview.astro';
+import DevOutline from '../components/DevOutline.astro';
 import type { ImageMetadata } from 'astro';
 
 interface Props {
@@ -28,6 +30,8 @@ const { title, dek, facts = [], chapters = [], hero, actions = {} } = Astro.prop
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<ThemePreview />
+		<DevOutline />
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
 		<title>{title} — Tousif Rahaman</title>
 		<meta name="description" content={dek} />

@@ -22,10 +22,38 @@ chapters:
   - id: outcome
     label: Outcome
 hero:
-  before: ../../assets/work/agent-versioning/hero-before.jpeg
-  after: ../../assets/work/agent-versioning/hero-after.jpeg
-  beforeAlt: The agent canvas before versioning — a single editable draft with no version history
-  afterAlt: The agent canvas after versioning — an unpublished-changes banner, state control and pending dependency updates
+  before: ../../assets/work/agent-versioning/00-hero-before.png
+  after: ../../assets/work/agent-versioning/00-hero-after.png
+  beforeAlt: The agent canvas before versioning — a single editable draft, with Save and Publish and no version history
+  afterAlt: The same canvas after versioning — an unpublished-changes banner, a draft state control, version history, and accent borders on the nodes carrying updates
+  # x/y are percentages of the frame, and mark the centre of the numbered pin.
+  # Both shots are 1440x840 and the frame takes its ratio from them, so nothing
+  # is cropped and these map straight onto the images. Read off the annotated
+  # reference exports: each pin's square corner points back at the control it
+  # explains, so the centre sits down and to the right of that control.
+  beforeNotes:
+    - x: 22.6
+      y: 14.8
+      text: To make changes, user had to manually change state to draft
+    - x: 69.6
+      y: 15.5
+      text: Any new changes overwrote the previous agent configuration
+    - x: 54.2
+      y: 15.5
+      text: Inconsistent navigation pattern for accessing agent's settings
+  afterNotes:
+    - x: 25.6
+      y: 21.0
+      text: State changes are triggered contextually based on relevant actions
+    - x: 35.4
+      y: 46.5
+      text: All changes are versioned and viewable in the versions modal
+    - x: 54.9
+      y: 12.7
+      text: User receives a visible state change signifier that they can dismiss
+    - x: 89.0
+      y: 16.7
+      text: Agent settings are accessible in a side panel like the rest of the nodes on canvas
 actions:
   primary:
     label: View final solution
@@ -43,18 +71,18 @@ import VideoFigure from '../../components/case-study/VideoFigure.astro';
 import Reflection from '../../components/case-study/Reflection.astro';
 import Term from '../../components/case-study/Term.astro';
 
-import problemCanvas from '../../assets/work/agent-versioning/problem-canvas.png';
-import studyStatusChange from '../../assets/work/agent-versioning/study-status-change.png';
-import lifecycleMap from '../../assets/work/agent-versioning/lifecycle-map.png';
-import stateIterations from '../../assets/work/agent-versioning/state-iterations.png';
-import dependencyCardIterations from '../../assets/work/agent-versioning/dependency-card-iterations.png';
-import mandatoryPublish from '../../assets/work/agent-versioning/mandatory-publish.png';
-import versionsModal from '../../assets/work/agent-versioning/versions-modal.png';
-import visualCues from '../../assets/work/agent-versioning/visual-cues.png';
-import scopeSidePanel from '../../assets/work/agent-versioning/scope-side-panel.png';
-import scopeModal from '../../assets/work/agent-versioning/scope-modal.png';
-import versionCardFix from '../../assets/work/agent-versioning/version-card-fix.png';
-import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
+import problemCanvas from '../../assets/work/agent-versioning/01-problem-canvas.png';
+import studyStatusChange from '../../assets/work/agent-versioning/02-problem-status-change.png';
+import lifecycleMap from '../../assets/work/agent-versioning/03-framing-lifecycle-map.png';
+import stateIterations from '../../assets/work/agent-versioning/04-ideation-state-iterations.png';
+import dependencyCardIterations from '../../assets/work/agent-versioning/05-ideation-dependency-card.png';
+import mandatoryPublish from '../../assets/work/agent-versioning/06-ideation-mandatory-publish.png';
+import versionsModal from '../../assets/work/agent-versioning/07-ideation-versions-modal.png';
+import visualCues from '../../assets/work/agent-versioning/08-ideation-visual-cues.png';
+import scopeSidePanel from '../../assets/work/agent-versioning/09-constraint-side-panel.png';
+import scopeModal from '../../assets/work/agent-versioning/10-constraint-modal.png';
+import versionCardFix from '../../assets/work/agent-versioning/11-refinement-version-card.png';
+import outcomeStill from '../../assets/work/agent-versioning/12-outcome-still.png';
 
 <Section chapter="problem" eyebrow="Sales blocked" heading="There was no way to validate the changes made to an agent and release it safely in the workspace">
   <Figure slot="visual" src={problemCanvas} alt="The Agent Studio canvas with a draft agent, a chat message trigger and a connected app" />
@@ -86,7 +114,7 @@ import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
      previous version stays published and available for use simultaneously.
 </Section>
 
-<Section chapter="framing" eyebrow="Builder's requirements" claim heading="Agent builders should be able to view updates, accept the ones they want (except the mandatory ones) and roll back to a previous version">
+<Section chapter="framing" eyebrow="Builder's requirements" heading="Agent builders should be able to view updates, accept the ones they want (except the mandatory ones) and roll back to a previous version">
   <Figure slot="visual" src={lifecycleMap} alt="A lifecycle map: draft to published v1 on first publish, then edit to draft and second publish to published v2" />
 
   I began by mapping how versioning will change the existing workflow for AI builders based on
@@ -102,7 +130,7 @@ import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
   4. They should be able to rollback to a previous agent version
 </Section>
 
-<Section chapter="ideation" eyebrow="Designing new agent lifecycle patterns" claim heading="Version number is irrelevant. To help user track agent's lifecycle, anchor their attention to state">
+<Section chapter="ideation" eyebrow="Designing new agent lifecycle patterns" heading="Version number is irrelevant. To help user track agent's lifecycle, anchor their attention to state">
   <Figure slot="visual" src={stateIterations} alt="Three iterations of the agent header comparing published and draft states, with the selected iteration at the bottom" />
 
   While ideating how to visualise agent's lifecycle, I realised the version number is not
@@ -116,7 +144,7 @@ import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
   3. understand they have to republish for changes to take effect
 </Section>
 
-<Section eyebrow="Designing the dependency card component to handle updates uniformly" claim heading="Users want to know what changed in the update and both the previous and the latest version number">
+<Section eyebrow="Designing the dependency card component to handle updates uniformly" heading="Users want to know what changed in the update and both the previous and the latest version number">
   <Figure slot="visual" src={dependencyCardIterations} alt="Three iterations of the dependency card, from a simple accept/dismiss affordance to the selected version-aware design" caption="Iterations 1 to 3. The third is the selected iteration." />
 
   The dependency card was already crucial for editing the configuration of a dependency. Now
@@ -143,7 +171,7 @@ import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
   </NoteBox>
 </Section>
 
-<Section eyebrow="Enforcing mandatory updates" claim heading="Bring it up at the moment of publish, otherwise it adds unnecessary cognitive load">
+<Section eyebrow="Enforcing mandatory updates" heading="Bring it up at the moment of publish, otherwise it adds unnecessary cognitive load">
   <Figure slot="visual" src={mandatoryPublish} alt="A dialog listing dependencies with mandatory updates, blocking publish until all are accepted" />
 
   <Term id="mandatory-update">Mandatory updates</Term> are crucial for security, and made by
@@ -161,7 +189,7 @@ import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
   through them if they want — <Term id="progressive-disclosure">progressive disclosure</Term>.
 </Section>
 
-<Section eyebrow="Showing versions and rollback" claim heading="Modal can handle large number of versions. Arranging the version configuration in tabs keeps it easy to find for the user">
+<Section eyebrow="Showing versions and rollback" heading="Modal can handle large number of versions. Arranging the version configuration in tabs keeps it easy to find for the user">
   <Figure slot="visual" src={versionsModal} alt="The versions modal: a dated list of versions on the left, the selected version's configuration in tabs on the right" />
 
   Regarding versions, I knew the list could grow long, that's why I opted to navigate user to a
@@ -180,7 +208,7 @@ import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
   2. to avoid long scroll
 </Section>
 
-<Section eyebrow="Designing visual cues for state change and updates" claim heading="Use colour and motion to direct user's attention to nodes with updates and state changes subtly">
+<Section eyebrow="Designing visual cues for state change and updates" heading="Use colour and motion to direct user's attention to nodes with updates and state changes subtly">
   <Figure slot="visual" src={visualCues} alt="An accent-bordered node, a floating updates-available tab, and a banner reading 'This canvas contains unpublished changes'" />
 
   I wanted to convey important information to the user about updates and state changes on the
@@ -193,7 +221,7 @@ import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
      change.
 </Section>
 
-<Section chapter="constraint" eyebrow="Meeting engineering constraints" claim heading="To meet the release date, I reduced scope by cutting the side panel because even though it was better UX, it wasn't crucial to versioning">
+<Section chapter="constraint" eyebrow="Meeting engineering constraints" heading="To meet the release date, I reduced scope by cutting the side panel because even though it was better UX, it wasn't crucial to versioning">
   <FigureRow slot="visual">
     <Figure src={scopeSidePanel} alt="The settings side panel, consistent with the dependency card design" caption="Side panel (consistent)" />
     <Figure src={scopeModal} alt="The edit-agent-details modal, inconsistent with the dependency card design" caption="Modal (inconsistent)" />
@@ -210,7 +238,7 @@ import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
   inconsistent modal design.
 </Section>
 
-<Section chapter="refinement" eyebrow="Post launch refinement" claim heading="Shipped a fix to a UI bug by designing it directly in code">
+<Section chapter="refinement" eyebrow="Post launch refinement" heading="Shipped a fix to a UI bug by designing it directly in code">
   <Figure slot="visual" src={versionCardFix} alt="A merged pull request redesigning and unifying the version timeline card, with the old and new designs side by side" />
 
   Post launch feedback revealed the version cards were breaking in production because
@@ -222,12 +250,13 @@ import outcomeStill from '../../assets/work/agent-versioning/outcome-still.png';
   hour.
 </Section>
 
-<Section chapter="outcome" id="outcome" eyebrow="Outcome" claim heading="Designed the versioning UX, including fixing UI bugs found in production, in a month to meet business goals" layout="prose">
+<Section chapter="outcome" id="outcome" eyebrow="Outcome" heading="Designed the versioning UX, including fixing UI bugs found in production, in a month to meet business goals" layout="wide">
   Shipped versioning in a month to meet the release deadline, fixing UI bugs found in
   productions and alleviating compliance concerns expressed by existing and potential customers
   alike.
 
   <VideoFigure
+    slot="visual"
     poster={outcomeStill}
     src="/media/agent-versioning-walkthrough.mp4"
     alt="Walkthrough of the shipped versioning experience on the agent canvas"

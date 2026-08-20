@@ -48,9 +48,30 @@ export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 	}, [chapters]);
 
 	// Keep the current chapter in view when the rail itself has to scroll.
+	//
+	// Deliberately not scrollIntoView. That walks every scrollable ancestor up to
+	// the document, and the document has `scroll-padding-block-start` set so
+	// anchored sections clear this rail. The rail is sticky, so its active button
+	// sits *inside* that padding — which reads as "not in view", and the page gets
+	// dragged up by the padding height. Moving the page re-fires the observer,
+	// which re-runs this effect, which moves the page again: the viewport judders
+	// and a long scroll cannot cross a chapter boundary. Scrolling the rail's own
+	// box by hand touches nothing but the rail.
 	useEffect(() => {
-		const el = railRef.current?.querySelector<HTMLElement>('[aria-current="true"]');
-		el?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+		const rail = railRef.current;
+		const el = rail?.querySelector<HTMLElement>('[aria-current="true"]');
+		if (!rail || !el) return;
+		if (rail.scrollWidth <= rail.clientWidth) return; // whole rail fits; nothing to do
+
+		const railBox = rail.getBoundingClientRect();
+		const elBox = el.getBoundingClientRect();
+		const delta = elBox.left + elBox.width / 2 - (railBox.left + railBox.width / 2);
+		if (Math.abs(delta) < 1) return;
+
+		rail.scrollTo({
+			left: rail.scrollLeft + delta,
+			behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+		});
 	}, [active]);
 
 	const go = (id: string) => {

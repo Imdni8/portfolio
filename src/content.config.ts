@@ -37,6 +37,19 @@ const work = defineCollection({
 					after: image(),
 					beforeAlt: z.string(),
 					afterAlt: z.string(),
+
+					/**
+					 * Numbered callouts, revealed as the drag commits to a side.
+					 * `x`/`y` are percentages of the *frame*, not of the source
+					 * image — the two differ whenever a shot's aspect ratio does
+					 * not match the frame and `object-fit: cover` crops it.
+					 */
+					beforeNotes: z
+						.array(z.object({ x: z.number(), y: z.number(), text: z.string() }))
+						.default([]),
+					afterNotes: z
+						.array(z.object({ x: z.number(), y: z.number(), text: z.string() }))
+						.default([]),
 				})
 				.optional(),
 

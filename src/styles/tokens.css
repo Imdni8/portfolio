@@ -158,6 +158,14 @@
 	--bg-raised: var(--gray-800);
 	--bg-sunken: var(--gray-950);
 
+	/* The mount a screenshot or video sits on. Neither raised nor sunken works
+	   for this in both themes: on light, bg-raised is all but white and a
+	   product screenshot dissolves into it; on dark, bg-sunken is so close to
+	   black that the mount stops reading as a surface. So this steps away from
+	   the page in whichever direction each theme has headroom — up on dark,
+	   down on light — and media always sits on something. */
+	--bg-media: var(--gray-800);
+
 	--text: var(--gray-50);
 	--text-body: var(--gray-200);
 	--text-muted: var(--gray-400);
@@ -201,6 +209,7 @@
 		--bg: var(--gray-100);
 		--bg-raised: var(--gray-50);
 		--bg-sunken: var(--gray-200);
+		--bg-media: var(--gray-200);
 
 		--text: var(--gray-900);
 		--text-body: var(--gray-800);
@@ -224,6 +233,7 @@
 	--bg: var(--gray-100);
 	--bg-raised: var(--gray-50);
 	--bg-sunken: var(--gray-200);
+	--bg-media: var(--gray-200);
 
 	--text: var(--gray-900);
 	--text-body: var(--gray-800);
@@ -278,15 +288,6 @@
 	line-height: var(--lh-heading);
 	letter-spacing: var(--track-heading);
 	text-wrap: balance;
-}
-
-/* Same rung as .type-heading, italic. In the reference the Problem chapter
-   reports facts upright and every later chapter states a position in italic:
-   the heading is an argument, not a report. Needs the real italic face —
-   without it the browser synthesises a slant, which shears the letterforms
-   rather than substituting the drawn italic. */
-.type-heading--claim {
-	font-style: italic;
 }
 
 /* Editorial heading — you, stepping back to speak. The serif half. */
