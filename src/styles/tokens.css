@@ -21,6 +21,7 @@
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/inter/wght-italic.css';
 @import '@fontsource-variable/playfair-display';
+@import '@fontsource-variable/playfair-display/wght-italic.css';
 @import '@fontsource/ibm-plex-mono/700.css';
 
 /* ---- 1 · Colour primitives -------------------------------------------------
@@ -72,6 +73,7 @@
 
 	/* Sizes. The top three rungs clamp; 20px and below are fixed, because
 	   below 20 the fluid range is narrower than the rounding error. */
+	--size-display: clamp(3.5rem, 9vw, 6.5rem); /* hero name, above the title rung */
 	--size-title: clamp(2rem, 5vw, 3rem); /* 32 → 48 */
 	--size-heading: clamp(1.5rem, 3.2vw, 1.875rem); /* 24 → 30 */
 	--size-subtitle: clamp(1.25rem, 2.4vw, 1.5rem); /* 20 → 24 */
@@ -82,6 +84,7 @@
 
 	/* Leading, unitless so it survives the clamps. Ratios reproduce the
 	   Figma px pairs exactly at each design size. */
+	--lh-display: 1.05;
 	--lh-title: 1.25; /* 48/60 */
 	--lh-heading: 1.267; /* 30/38 */
 	--lh-subtitle: 1.333; /* 24/32 */
@@ -131,6 +134,7 @@
 	   wide monitor does not stretch the two-column sections past the point
 	   where the eye can track from one to the other. */
 	--measure-page: 91.875rem; /* 1470px */
+	--measure-content: 77.5rem; /* 1240px — nav and selected-work grid cap */
 	--gutter: clamp(1.25rem, 4vw, 4rem);
 
 	--spacing-none: 0rem; /* 0px */
@@ -253,10 +257,11 @@
 }
 
 /* ---- 5 · Type styles -------------------------------------------------------
-   Ten styles. Each is a complete instruction — family, weight, size, leading
-   and tracking together — so a component never has to assemble one by hand
-   and drift from the spec.
+   Eleven styles. Each is a complete instruction — family, weight, size,
+   leading and tracking together — so a component never has to assemble one
+   by hand and drift from the spec.
    -------------------------------------------------------------------------- */
+.type-display,
 .type-title,
 .type-heading,
 .type-reflection,
@@ -370,4 +375,15 @@
 	letter-spacing: var(--track-overline);
 	text-transform: uppercase;
 	color: var(--primary-text);
+}
+
+/* A name, spoken rather than set — the one place the display face runs
+   italic. Needs the real italic face, same reasoning as .type-heading--claim. */
+.type-display {
+	font-family: var(--font-display);
+	font-style: italic;
+	font-weight: var(--weight-semibold);
+	font-size: var(--size-display);
+	line-height: var(--lh-display);
+	letter-spacing: var(--track-title);
 }

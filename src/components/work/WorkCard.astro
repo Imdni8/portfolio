@@ -1,0 +1,124 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	title: string;
+	tag: string;
+	image?: { src: ImageMetadata; alt: string };
+	href?: string;
+	status?: 'coming-soon';
+}
+
+const { title, tag, image, href, status } = Astro.props;
+// A link when there's somewhere to go, otherwise a plain container — no
+// dead affordance for a case study that isn't published yet.
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag class="card" href={href}>
+	{
+		status === 'coming-soon' && (
+			<span class="chip chip--coming-soon type-annotation">Coming soon</span>
+		)
+	}
+	<div class="card__media">
+		<div class="card__chrome">
+			<span class="card__chrome-dot"></span>
+		</div>
+		{image && <Image src={image.src} alt={image.alt} widths={[400, 620, 900]} sizes="(min-width: 60rem) 38vw, 92vw" />}
+	</div>
+	<div class="card__body">
+		<p class="card__title type-body">{title}</p>
+		<p class="card__tag type-overline">{tag}</p>
+	</div>
+</Tag>
+
+<style>
+	.card {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xl);
+		color: inherit;
+		text-decoration: none;
+	}
+
+	a.card {
+		transition: transform 0.15s ease;
+	}
+
+	a.card:hover {
+		transform: translateY(-2px);
+	}
+
+	a.card:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-lg);
+	}
+
+	.card__media {
+		display: flex;
+		flex-direction: column;
+		aspect-ratio: 16 / 10;
+		background: var(--bg-media);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		overflow: hidden;
+	}
+
+	.card__chrome {
+		flex: none;
+		display: flex;
+		align-items: center;
+		padding: var(--spacing-md) var(--spacing-lg);
+		background: var(--bg-raised);
+		border-block-end: 1px solid var(--border);
+	}
+
+	/* Three dots via one span and two shadows — the classic browser-toolbar
+	   mark, no extra markup or icon needed. */
+	.card__chrome-dot {
+		display: inline-block;
+		width: var(--spacing-xs);
+		height: var(--spacing-xs);
+		border-radius: var(--radius-full);
+		background: var(--border-strong);
+		box-shadow:
+			14px 0 0 var(--border-strong),
+			28px 0 0 var(--border-strong);
+	}
+
+	.card__media :global(img) {
+		flex: 1;
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.card__body {
+		display: grid;
+		gap: var(--spacing-sm);
+	}
+
+	.card__title {
+		font-weight: var(--weight-semibold);
+		color: var(--text);
+	}
+
+	/* Overlaps the card's top-left corner rather than sitting flush inside
+	   it, so it reads as a status flag on the card, not part of its content. */
+	.chip {
+		position: absolute;
+		inset-block-start: calc(-1 * var(--spacing-lg));
+		inset-inline-start: var(--spacing-xl);
+		z-index: 1;
+		padding: var(--spacing-xs) var(--spacing-lg);
+		border-radius: var(--radius-full);
+		border: 1px solid var(--border-strong);
+		background: var(--bg-sunken);
+		color: var(--text);
+	}
+</style>

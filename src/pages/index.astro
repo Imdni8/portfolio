@@ -4,6 +4,26 @@ import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
 import WaterField from '../components/ui/WaterField.astro';
+import SiteNav from '../components/nav/SiteNav.astro';
+import WorkCard from '../components/work/WorkCard.astro';
+import agentVersioningCover from '../assets/work/agent-versioning/00-hero-after.png';
+
+const cards = [
+	{
+		title: 'Agent versioning and lifecycle management',
+		tag: 'AI Agents',
+		href: '/work/agent-versioning',
+		image: {
+			src: agentVersioningCover,
+			alt: 'The agent canvas with version history and an unpublished-changes banner',
+		},
+	},
+	{
+		title: 'Making audit logs more human readable',
+		tag: 'Dev workflow',
+		status: 'coming-soon' as const,
+	},
+];
 ---
 
 <!doctype html>
@@ -14,26 +34,28 @@ import WaterField from '../components/ui/WaterField.astro';
 		{import.meta.env.DEV && <ThemePreview />}
 		{import.meta.env.DEV && <DevOutline />}
 		<title>Tousif Rahaman</title>
-		<meta name="description" content="Product designer. Portfolio in progress." />
+		<meta name="description" content="Tousif Rahaman — product designer and design engineer." />
 	</head>
 	<body>
+		<SiteNav />
 		<div class="hero">
 			<WaterField grid={72} />
 			<main>
-				<p class="type-overline">Portfolio</p>
-				<h1 class="type-title">Tousif Rahaman</h1>
-				<p class="type-subtitle">
-					Being rebuilt on a new design system. The foundations and components live in
-					Storybook.
-				</p>
+				<p class="hero__lede type-body">Hi I'm</p>
+				<h1 class="type-display">Tousif</h1>
+				<p class="type-subtitle">Product designer</p>
+				<p class="hero__role-muted type-subtitle">&amp; design engineer</p>
 			</main>
 		</div>
+		<section class="work">
+			<div class="work__inner">
+				{cards.map((card) => <WorkCard {...card} />)}
+			</div>
+		</section>
 	</body>
 </html>
 
 <style>
-	/* Deliberately minimal. This page exists so the site still builds while the
-	   pages are rewritten — it is a placeholder, not a layout to extend. */
 	body {
 		margin: 0;
 		background: var(--bg);
@@ -53,20 +75,52 @@ import WaterField from '../components/ui/WaterField.astro';
 		align-content: center;
 	}
 
+	/* No measure cap: a single centered column with nothing beside it has
+	   nothing left to narrow, same reasoning as the case-study hero's h1. */
 	main {
 		position: relative;
-		max-width: 42rem;
-		margin: 0 auto;
-		padding: var(--spacing-9xl) var(--spacing-4xl);
+		margin-inline: auto;
+		padding: var(--spacing-9xl) var(--gutter);
 		display: grid;
+		justify-items: center;
 		gap: var(--spacing-lg);
+		text-align: center;
+	}
+
+	.hero__lede {
+		color: var(--text-muted);
 	}
 
 	h1 {
 		color: var(--text);
 	}
 
+	.hero__role-muted {
+		color: var(--text-muted);
+	}
+
 	p {
 		margin: 0;
+	}
+
+	.work {
+		position: relative;
+		background: var(--bg);
+		padding-block: var(--spacing-11xl) var(--spacing-10xl);
+	}
+
+	.work__inner {
+		max-width: var(--measure-content);
+		margin-inline: auto;
+		padding-inline: var(--gutter);
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--spacing-6xl) var(--spacing-5xl);
+	}
+
+	@media (max-width: 40rem) {
+		.work__inner {
+			grid-template-columns: 1fr;
+		}
 	}
 </style>

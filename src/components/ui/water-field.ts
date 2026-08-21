@@ -73,6 +73,10 @@ const float DOME_R2  = 0.0110;
 /* Ceiling on displacement, in p-space units — roughly a twentieth of the
    viewport height. */
 const float WARP_MAX = 0.042;
+/* Fraction of the viewport width the grid fades out over on each side — an
+   edge-to-edge grid reads as a wireframe cut off by the frame instead of a
+   field that recedes into it, same reasoning as the vertical fade below. */
+const float GRID_EDGE_FADE = 0.10;
 /* Ceiling on how far the field may travel toward uRibbon. This constant, and
    the grid's below, are what keep body copy legible on top of a moving image.
 
@@ -231,7 +235,8 @@ void main() {
 
 		/* Strongest up top where the fluid is thin, gone by the lower third —
 		   a grid that runs edge to edge reads as a wireframe, not as depth. */
-		float fade = smoothstep(0.02, 0.55, uv.y) * (0.55 + 0.45 * bloom);
+		float edgeFade = smoothstep(0.0, GRID_EDGE_FADE, uv.x) * smoothstep(0.0, GRID_EDGE_FADE, 1.0 - uv.x);
+		float fade = smoothstep(0.02, 0.55, uv.y) * (0.55 + 0.45 * bloom) * edgeFade;
 		fade *= 1.0 + 1.8 * surf.w;        // and it lights up under the cursor
 
 		/* Held to the same budget as the ribbons, and for the same reason: a
