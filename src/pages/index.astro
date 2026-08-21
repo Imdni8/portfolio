@@ -7,6 +7,16 @@ import WaterField from '../components/ui/WaterField.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import WorkCard from '../components/work/WorkCard.astro';
 import agentVersioningCover from '../assets/work/agent-versioning/00-hero-after.png';
+import heroWordmark from '../assets/homepage/Hero_wordmark.svg?raw';
+import philipsLogo from '../assets/homepage/philips_logo.svg?raw';
+import jjLogo from '../assets/homepage/J&J_logo.svg?raw';
+import medableLogo from '../assets/homepage/medable_logo.svg?raw';
+
+const clients = [
+	{ name: 'Philips', svg: philipsLogo },
+	{ name: 'Johnson & Johnson', svg: jjLogo },
+	{ name: 'Medable', svg: medableLogo },
+];
 
 const cards = [
 	{
@@ -37,14 +47,27 @@ const cards = [
 		<meta name="description" content="Tousif Rahaman — product designer and design engineer." />
 	</head>
 	<body>
+		<div class="site-field">
+			<WaterField grid={72} />
+		</div>
 		<SiteNav />
 		<div class="hero">
-			<WaterField grid={72} />
-			<main>
-				<p class="hero__lede type-body">Hi I'm</p>
-				<h1 class="type-display">Tousif</h1>
-				<p class="type-subtitle">Product designer</p>
-				<p class="hero__role-muted type-subtitle">&amp; design engineer</p>
+			<main class="hero-intro">
+				<h1
+					class="hero-intro__wordmark"
+					aria-label="Tousif — Product Designer, Design Engineer"
+					set:html={heroWordmark}
+				/>
+				<div class="hero-intro__clients">
+					<p class="hero-intro__clients-label">Previously<br />worked at</p>
+					<div class="hero-intro__logos">
+						{
+							clients.map((client) => (
+								<span class="hero-intro__logo" role="img" aria-label={client.name} set:html={client.svg} />
+							))
+						}
+					</div>
+				</div>
 			</main>
 		</div>
 		<section class="work">
@@ -64,48 +87,113 @@ const cards = [
 		-webkit-font-smoothing: antialiased;
 	}
 
-	/* The positioned ancestor the water field fills. `isolate` keeps the
-	   canvas's stacking context local, so nothing later on the page has to
-	   know it exists. */
+	/* Fixed behind everything, sized to the viewport rather than to any
+	   scrolling ancestor, so the field holds still while the whole page
+	   scrolls over it — `.hero` and `.work` are both left without a
+	   background so the field shows through behind the intro text and the
+	   cards alike; only the card media boxes carry their own opaque surface.
+	   `.hero`/`.work` stay `position: relative` (no z-index) purely so they
+	   paint after this in DOM order, which is what keeps the field behind
+	   them instead of on top. `isolate` keeps the canvas's stacking context
+	   local. */
+	.site-field {
+		position: fixed;
+		inset: 0;
+		isolation: isolate;
+	}
+
+	/* Sized as a fraction of viewport height, not a fixed distance from the
+	   top, so the work section below starts at the same relative position at
+	   any screen height. 66.4% comes from the spec: (24px nav inset + 56px nav
+	   height + 600px clearance) / a 1024px-tall reference frame. `svh` rather
+	   than `dvh` so it doesn't resize as a mobile browser's toolbar
+	   shows/hides. */
 	.hero {
 		position: relative;
-		isolation: isolate;
-		min-height: 100svh;
-		display: grid;
-		align-content: center;
-	}
-
-	/* No measure cap: a single centered column with nothing beside it has
-	   nothing left to narrow, same reasoning as the case-study hero's h1. */
-	main {
-		position: relative;
-		margin-inline: auto;
-		padding: var(--spacing-9xl) var(--gutter);
-		display: grid;
-		justify-items: center;
-		gap: var(--spacing-lg);
-		text-align: center;
-	}
-
-	.hero__lede {
-		color: var(--text-muted);
-	}
-
-	h1 {
-		color: var(--text);
-	}
-
-	.hero__role-muted {
-		color: var(--text-muted);
+		min-height: 66.4svh;
 	}
 
 	p {
 		margin: 0;
 	}
 
+	/* Centred not in `.hero`'s own box but in the gap between the nav and the
+	   *cards* below. `inset-block-start` is the nav's own footprint (24px
+	   inset + its ~54px rendered height) — insets are relative to `.hero`'s
+	   border box, which padding wouldn't shift, so the clearance has to live
+	   in the inset itself rather than in `.hero`'s padding. `inset-block-end`
+	   reaches past `.hero`'s bottom edge by `.work`'s own
+	   `padding-block-start`, landing on where the cards actually start.
+	   `height: fit-content` + `margin-block: auto` then centres the intro's
+	   real content height inside that span — same auto-margin trick as
+	   horizontal centering, just on the block axis; `margin-block: auto`
+	   alone doesn't do it, since `height: auto` resolves by stretching to
+	   fill the span rather than shrinking to content first. Sits directly on
+	   the water field — no panel of its own. */
+	.hero-intro {
+		position: absolute;
+		inset-block: 4.875rem calc(-1 * var(--spacing-11xl));
+		inset-inline: var(--gutter);
+		height: fit-content;
+		margin-block: auto;
+		display: grid;
+		justify-items: center;
+		text-align: center;
+	}
+
+	.hero-intro__wordmark {
+		margin: 0;
+		width: min(20rem, 100%);
+		height: auto;
+	}
+
+	.hero-intro__wordmark :global(svg) {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	.hero-intro__clients {
+		/* The one gap called out explicitly: 32px between the wordmark and
+		   this section, independent of the lede-to-wordmark spacing above. */
+		margin-block-start: var(--spacing-4xl);
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-3xl);
+	}
+
+	.hero-intro__clients-label {
+		margin: 0;
+		font-family: var(--font-sans);
+		font-weight: var(--weight-regular);
+		font-size: var(--size-micro);
+		line-height: var(--lh-micro);
+		color: var(--text-muted);
+		text-align: end;
+	}
+
+	.hero-intro__logos {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-4xl);
+	}
+
+	.hero-intro__logo {
+		display: block;
+		height: 1.25rem;
+	}
+
+	.hero-intro__logo :global(svg) {
+		display: block;
+		height: 100%;
+		width: auto;
+	}
+
+	/* No background: stays `position: relative` only to paint after
+	   `.site-field` in DOM order (see the comment there), so the field shows
+	   through behind the cards the same way it does behind the hero text. */
 	.work {
 		position: relative;
-		background: var(--bg);
 		padding-block: var(--spacing-11xl) var(--spacing-10xl);
 	}
 

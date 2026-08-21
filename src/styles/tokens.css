@@ -81,6 +81,7 @@
 	--size-body: 1.125rem; /* 18 */
 	--size-ui: 1rem; /* 16 */
 	--size-fine: 0.875rem; /* 14 */
+	--size-micro: 0.75rem; /* 12 — homepage client-logo caption */
 
 	/* Leading, unitless so it survives the clamps. Ratios reproduce the
 	   Figma px pairs exactly at each design size. */
@@ -92,6 +93,7 @@
 	--lh-body: 1.556; /* 18/28 */
 	--lh-ui: 1.5; /* 16/24 */
 	--lh-fine: 1.429; /* 14/20 */
+	--lh-micro: 1.333; /* 16/12 */
 
 	--weight-regular: 400;
 	--weight-medium: 500;
