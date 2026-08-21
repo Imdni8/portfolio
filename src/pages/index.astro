@@ -33,6 +33,21 @@ const cards = [
 		tag: 'Dev workflow',
 		status: 'coming-soon' as const,
 	},
+	{
+		title: 'Redesigning the onboarding flow',
+		tag: 'Onboarding',
+		status: 'coming-soon' as const,
+	},
+	{
+		title: 'A design system for clinical trials',
+		tag: 'Design systems',
+		status: 'coming-soon' as const,
+	},
+	{
+		title: 'Rebuilding the notifications center',
+		tag: 'Notifications',
+		status: 'coming-soon' as const,
+	},
 ];
 ---
 
@@ -52,31 +67,97 @@ const cards = [
 		</div>
 		<SiteNav />
 		<div class="hero">
-			<main class="hero-intro">
-				<h1
-					class="hero-intro__wordmark"
-					aria-label="Tousif — Product Designer, Design Engineer"
-					set:html={heroWordmark}
-				/>
-				<div class="hero-intro__clients">
-					<p class="hero-intro__clients-label">Previously<br />worked at</p>
-					<div class="hero-intro__logos">
-						{
-							clients.map((client) => (
-								<span class="hero-intro__logo" role="img" aria-label={client.name} set:html={client.svg} />
-							))
-						}
+			<div class="hero-pin">
+				<main class="hero-intro">
+					<h1
+						class="hero-intro__wordmark"
+						aria-label="Tousif — Product Designer, Design Engineer"
+						set:html={heroWordmark}
+					/>
+					<div class="hero-intro__clients">
+						<p class="hero-intro__clients-label">Previously<br />worked at</p>
+						<div class="hero-intro__logos">
+							{
+								clients.map((client) => (
+									<span class="hero-intro__logo" role="img" aria-label={client.name} set:html={client.svg} />
+								))
+							}
+						</div>
 					</div>
-				</div>
-			</main>
+				</main>
+			</div>
 		</div>
 		<section class="work">
+			<p class="type-overline work__eyebrow">Selected works</p>
 			<div class="work__inner">
 				{cards.map((card) => <WorkCard {...card} />)}
 			</div>
 		</section>
 	</body>
 </html>
+
+<script>
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+	/* Scrubbed 1:1 to scroll position via a custom property, not a
+	   scroll-triggered CSS transition — the intro should track the scroll
+	   gesture itself (and reverse cleanly on scroll-up), not play an
+	   animation that's merely timed to when scrolling started. Skipped
+	   entirely under reduced motion and without JS, so the intro just falls
+	   fully opaque, its unmodified pre-existing behaviour (`.hero-pin` is
+	   still sticky either way, but with no fade that only reads as the intro
+	   holding still a beat longer before the cards cover it).
+
+	   The ramp spans exactly the pinned phase, and nothing else: `--fade` is
+	   0 while `.hero-pin` still sits at its flow position, and reaches 1 at
+	   the instant the pin runs out of runway and starts travelling with the
+	   page. So the intro only ever fades while it is holding still, and is
+	   already gone by the time it moves — the two never overlap, which is
+	   what stops it reading as the intro being dragged up by the cards. It
+	   also puts the end of the fade where the eyebrow arrives: `.work` rises
+	   by the full runway over that same stretch (see `.hero`), so opacity
+	   hits 0 exactly as `SELECTED WORKS` settles a grid cell below the nav.
+	   The two pass through each other on the way — by the halfway mark the
+	   cards are already crossing the intro — which is why the fade is the
+	   only thing that needs to be timed and the stacking order (see `.work`)
+	   is what makes the crossing legible.
+
+	   Measured as the pin's offset *inside* `.hero` rather than from
+	   `scrollY`, which needs no page-position arithmetic and is already
+	   clamped at both ends by sticky itself: the offset is 0 at rest (and
+	   stays 0 through an overscroll bounce, where the pin sits at its flow
+	   position), grows 1:1 with scroll while stuck, and freezes at the
+	   runway's full length once released. */
+	const hero = document.querySelector<HTMLElement>('.hero');
+	const heroPin = document.querySelector<HTMLElement>('.hero-pin');
+	const intro = document.querySelector<HTMLElement>('.hero-intro');
+
+	if (hero && heroPin && intro && !reduceMotion.matches) {
+		intro.classList.add('js-fade');
+
+		let ticking = false;
+
+		const update = () => {
+			ticking = false;
+			const heroBox = hero.getBoundingClientRect();
+			const pinBox = heroPin.getBoundingClientRect();
+			const runway = heroBox.height - pinBox.height;
+			const travel = pinBox.top - heroBox.top;
+			const progress = runway > 0 ? Math.min(Math.max(travel / runway, 0), 1) : 0;
+			intro.style.setProperty('--fade', String(progress));
+		};
+
+		const onScroll = () => {
+			if (ticking) return;
+			ticking = true;
+			requestAnimationFrame(update);
+		};
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onScroll, { passive: true });
+		update();
+	}
+</script>
 
 <style>
 	body {
@@ -85,60 +166,138 @@ const cards = [
 		color: var(--text-body);
 		font-family: var(--font-sans);
 		-webkit-font-smoothing: antialiased;
+
+		/* The four numbers that place the intro against the cards. They live
+		   here rather than on `.hero` because `.hero`, `.hero-pin`,
+		   `.hero-intro` and `.work` are siblings or cousins that all have to
+		   agree on them, and custom properties only travel downwards. */
+
+		/* The pinned intro's height. 66.4% comes from the spec: (24px nav
+		   inset + 56px nav height + 600px clearance) / a 1024px-tall reference
+		   frame. `svh` rather than `dvh` so it doesn't resize as a mobile
+		   browser's toolbar shows and hides. */
+		--pin-height: 66.4svh;
+
+		/* What the nav occupies at the top of the viewport: its 24px inset
+		   plus its ~54px rendered height. */
+		--nav-footprint: 4.875rem;
+
+		/* The eyebrow's clearance below the pin when the page is at rest.
+		   Unchanged from when it was `.work`'s own `padding-block-start`. */
+		--rest-gap: calc(var(--spacing-11xl) + var(--spacing-6xl));
+
+		/* Where the eyebrow has got to by the time the intro has finished
+		   fading — one cell of the water field's grid below the nav, which is
+		   the 72px pitch passed to `<WaterField>` rounded to the nearest rung
+		   of the space scale. */
+		--fade-end: calc(var(--nav-footprint) + var(--spacing-8xl));
+
+		/* How far `.work` climbs past the pin's bottom edge to get there, and
+		   so also how far it has to be pulled back up over the hero to start
+		   from the same place at rest. Everything else falls out of these. */
+		--overlap: calc(var(--pin-height) - var(--fade-end));
 	}
 
 	/* Fixed behind everything, sized to the viewport rather than to any
 	   scrolling ancestor, so the field holds still while the whole page
-	   scrolls over it — `.hero` and `.work` are both left without a
+	   scrolls over it — `.hero-pin` and `.work` are both left without a
 	   background so the field shows through behind the intro text and the
 	   cards alike; only the card media boxes carry their own opaque surface.
-	   `.hero`/`.work` stay `position: relative` (no z-index) purely so they
-	   paint after this in DOM order, which is what keeps the field behind
-	   them instead of on top. `isolate` keeps the canvas's stacking context
-	   local. */
+	   Both stay at z-index:auto or above (never negative), which is what
+	   keeps the field painting behind them instead of on top. `isolate`
+	   keeps the canvas's stacking context local. */
 	.site-field {
 		position: fixed;
 		inset: 0;
 		isolation: isolate;
 	}
 
-	/* Sized as a fraction of viewport height, not a fixed distance from the
-	   top, so the work section below starts at the same relative position at
-	   any screen height. 66.4% comes from the spec: (24px nav inset + 56px nav
-	   height + 600px clearance) / a 1024px-tall reference frame. `svh` rather
-	   than `dvh` so it doesn't resize as a mobile browser's toolbar
-	   shows/hides. */
+	/* The scroll runway for the pinned intro below: the pin's own height plus
+	   everything the intro has to outlast. Sticky releases when its own
+	   containing block runs out, so this height — and nothing else, not
+	   padding underneath, not a margin on the next section — is what buys the
+	   intro time to hold still. Two rungs make up the surplus. `--rest-gap`
+	   is the clearance the eyebrow already has at rest. `--overlap` is the
+	   part that keeps going afterwards: without it the eyebrow could never
+	   rise past the pin's own bottom edge while the pin was still stuck,
+	   because it sits in flow directly beneath the hero and so is measured
+	   against the hero's bottom, which puts a floor on the fade far lower
+	   down the viewport than it wants to end. `.work`'s negative
+	   `margin-block-start` is the other half of that: it cancels `--overlap`
+	   out of the resting layout, so this element can be twice the height it
+	   looks without moving anything or lengthening the page. Plain,
+	   unpositioned spacer otherwise: no background, no content of its own,
+	   just height. */
 	.hero {
 		position: relative;
-		min-height: 66.4svh;
+		height: calc(var(--pin-height) + var(--overlap) + var(--rest-gap));
+	}
+
+	/* The box that actually holds still. Sticky rather than fixed so it stays
+	   in normal flow — no separate spacer to keep in sync with its size, and
+	   it releases on its own once `.hero` (its containing block) runs out of
+	   runway, instead of needing a scroll-position threshold in JS to know
+	   when to stop being fixed. */
+	.hero-pin {
+		position: sticky;
+		top: 0;
+		min-height: var(--pin-height);
 	}
 
 	p {
 		margin: 0;
 	}
 
-	/* Centred not in `.hero`'s own box but in the gap between the nav and the
-	   *cards* below. `inset-block-start` is the nav's own footprint (24px
-	   inset + its ~54px rendered height) — insets are relative to `.hero`'s
-	   border box, which padding wouldn't shift, so the clearance has to live
-	   in the inset itself rather than in `.hero`'s padding. `inset-block-end`
-	   reaches past `.hero`'s bottom edge by `.work`'s own
-	   `padding-block-start`, landing on where the cards actually start.
-	   `height: fit-content` + `margin-block: auto` then centres the intro's
-	   real content height inside that span — same auto-margin trick as
-	   horizontal centering, just on the block axis; `margin-block: auto`
-	   alone doesn't do it, since `height: auto` resolves by stretching to
-	   fill the span rather than shrinking to content first. Sits directly on
-	   the water field — no panel of its own. */
+	/* Centred not in `.hero-pin`'s own box but in the gap between the nav and
+	   the *cards* below, as they sit at rest. `inset-block-start` is the
+	   nav's own footprint — insets are relative to
+	   `.hero-pin`'s border box, which padding wouldn't shift, so the
+	   clearance has to live in the inset itself rather than in `.hero-pin`'s
+	   padding. `inset-block-end` reaches past `.hero-pin`'s bottom edge by
+	   `--spacing-11xl` — the larger of the two rungs that make up the gap
+	   below the pin (see `.hero`) — landing near where the cards start at
+	   rest — harmless even while `.hero-pin` is stuck, since
+	   `.work` paints above it (see `.work`'s own comment) and the overlapping
+	   part of this box is empty space, not content. The box then fills that
+	   whole span (both insets set, height left to resolve on its own) and
+	   centres its content with flex — not
+	   `height: fit-content` + `margin-block: auto`, which asks the engine to
+	   shrink an absolutely-positioned box to its content *before* solving
+	   the auto margins against two fixed insets. That ordering is
+	   underspecified enough that it silently failed in Safari (the box
+	   never got a height, so nothing in it painted); flex centring reaches
+	   the same result without depending on that resolution order. Sits
+	   directly on the water field — no panel of its own. */
 	.hero-intro {
 		position: absolute;
-		inset-block: 4.875rem calc(-1 * var(--spacing-11xl));
+		inset-block: var(--nav-footprint) calc(-1 * var(--spacing-11xl));
 		inset-inline: var(--gutter);
-		height: fit-content;
-		margin-block: auto;
-		display: grid;
-		justify-items: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 		text-align: center;
+		/* Nothing inside is interactive (the wordmark and client logos are
+		   both inert svg) — inert to the pointer always, not just once faded,
+		   so this box never shadows a click meant for the work section it
+		   overlaps at its lower inset. */
+		pointer-events: none;
+	}
+
+	/* `--fade` is written every scroll frame by the page script below (0 at
+	   the top of the page, 1 at the moment `.hero-pin` releases). No
+	   transition: the value already comes in one step per frame, so animating
+	   it too would add lag between the scrollbar and what's on screen.
+	   Opacity only — no accompanying `translateY`. A lift would be movement,
+	   and movement is the one thing the intro must not have here: the point
+	   of pinning it is that it holds its position while the cards come up to
+	   meet it, so nudging it a rem in the same direction as the scroll reads
+	   as the section being tugged along rather than staying put. Without JS
+	   (or under reduced motion) this class is never added and the intro stays
+	   at its default full opacity — it still leaves the viewport, just by
+	   scrolling past the edge as before. */
+	.hero-intro.js-fade {
+		opacity: calc(1 - var(--fade, 0));
 	}
 
 	.hero-intro__wordmark {
@@ -169,7 +328,7 @@ const cards = [
 		font-size: var(--size-micro);
 		line-height: var(--lh-micro);
 		color: var(--text-muted);
-		text-align: end;
+		text-align: start;
 	}
 
 	.hero-intro__logos {
@@ -189,12 +348,39 @@ const cards = [
 		width: auto;
 	}
 
-	/* No background: stays `position: relative` only to paint after
-	   `.site-field` in DOM order (see the comment there), so the field shows
-	   through behind the cards the same way it does behind the hero text. */
+	/* No background: `position: relative` (so the field shows through behind
+	   the cards, same as behind the hero text — see `.site-field`'s comment)
+	   plus an explicit `z-index` so the cards reliably paint over `.hero-pin`
+	   while it's stuck and fading, rather than relying on DOM order against a
+	   sibling that's sticky — sticky positioning always opens its own
+	   stacking context, which stacking-by-DOM-order can't be assumed to
+	   cross. That `z-index` is load-bearing now rather than precautionary:
+	   the two sections genuinely overlap for the second half of the fade,
+	   and this is what decides that the cards pass in front of the intro
+	   rather than behind it. */
 	.work {
 		position: relative;
-		padding-block: var(--spacing-11xl) var(--spacing-10xl);
+		z-index: 1;
+		/* Pulled back up over the hero by exactly the surplus height `.hero`
+		   carries for the overlap, so the eyebrow starts at rest where it
+		   always did — `--rest-gap` below the pin — and the extra height buys
+		   hold time instead of pushing the cards down the page. No
+		   `padding-block-start` to go with it: the clearance above the
+		   eyebrow is `.hero`'s height now, where it doubles as scroll runway
+		   (see `.hero`). Same pixels either way; sticky cares which box owns
+		   them. */
+		margin-block-start: calc(-1 * var(--overlap));
+		padding-block: 0 var(--spacing-10xl);
+	}
+
+	/* Shares `.work__inner`'s max-width/gutter so it lines up with the card
+	   grid's left edge, then adds the 8px clearance above the cards. */
+	.work__eyebrow {
+		max-width: var(--measure-content);
+		margin-inline: auto;
+		margin-block-end: var(--spacing-xl);
+		padding-inline: var(--gutter);
+		text-align: center;
 	}
 
 	.work__inner {

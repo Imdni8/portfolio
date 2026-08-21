@@ -2,50 +2,128 @@
 import Icon from '../ui/Icon.astro';
 ---
 
-<header class="nav">
-	<a class="nav__brand" href="/" aria-label="Tousif Rahaman — home">
-		<svg width="21" height="40" viewBox="0 0 21 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<header class="nav-shell">
+	<div class="nav">
+		<a class="nav__brand" href="/" aria-label="Tousif Rahaman — home">
+			<svg width="21" height="40" viewBox="0 0 21 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path
+					d="M2.09494 27.9217L2.09135 27.9327C-0.987036 39.1414 4.65474 40.3816 8.28926 39.1414C14.864 36.8981 19.2941 17.3495 19.8281 10.4076C20.2806 4.52502 20.416 0.957926 17.7114 0.0678851C15.0068 -0.822156 8.21541 7.17745 5.23237 15.9775C8.464 7.42604 15.325 -0.57845 17.7114 0.763919C20.0978 2.10629 18.4859 9.58937 18.0181 13.1226C16.6477 21.6624 13.3006 28.9838 11.4104 32.0091C9.76924 34.5077 7.72161 35.8065 5.23237 34.8427C3.20454 34.0186 3.10782 31.1787 3.89244 28.5031L3.89525 28.4942C5.68927 20.6889 9.22578 17.2859 10.8007 16.574C11.0493 16.4617 11.6956 15.9075 10.2538 16.1266C8.21388 16.4367 3.28015 18.0009 0.0502259 21.5944C-0.0232912 21.6762 -0.0143885 21.8025 0.0683472 21.875C0.634719 22.371 0.927832 22.6513 1.49036 23.1443C1.57759 23.2207 1.71112 23.2068 1.78152 23.1147C3.00813 21.5085 5.92118 18.3601 8.7825 17.3495C5.49376 20.0414 3.42594 23.9795 2.09494 27.9217Z"
+					fill="#EF942B"></path>
+			</svg>
+		</a>
+
+		<nav class="nav__links" aria-label="Primary">
+			<a class="nav__link type-tab" href="/" aria-current="page">Work</a>
+			<a class="nav__link type-tab" href="/about">About</a>
+		</nav>
+
+		<!-- Mirrors the brand mark so the link group centres against two equal
+		     bookends instead of skewing toward the visible logo on the left —
+		     same trick as the Paper file's own hidden spacer. -->
+		<svg
+			class="nav__spacer"
+			aria-hidden="true"
+			width="21"
+			height="40"
+			viewBox="0 0 21 40"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+		>
 			<path
 				d="M2.09494 27.9217L2.09135 27.9327C-0.987036 39.1414 4.65474 40.3816 8.28926 39.1414C14.864 36.8981 19.2941 17.3495 19.8281 10.4076C20.2806 4.52502 20.416 0.957926 17.7114 0.0678851C15.0068 -0.822156 8.21541 7.17745 5.23237 15.9775C8.464 7.42604 15.325 -0.57845 17.7114 0.763919C20.0978 2.10629 18.4859 9.58937 18.0181 13.1226C16.6477 21.6624 13.3006 28.9838 11.4104 32.0091C9.76924 34.5077 7.72161 35.8065 5.23237 34.8427C3.20454 34.0186 3.10782 31.1787 3.89244 28.5031L3.89525 28.4942C5.68927 20.6889 9.22578 17.2859 10.8007 16.574C11.0493 16.4617 11.6956 15.9075 10.2538 16.1266C8.21388 16.4367 3.28015 18.0009 0.0502259 21.5944C-0.0232912 21.6762 -0.0143885 21.8025 0.0683472 21.875C0.634719 22.371 0.927832 22.6513 1.49036 23.1443C1.57759 23.2207 1.71112 23.2068 1.78152 23.1147C3.00813 21.5085 5.92118 18.3601 8.7825 17.3495C5.49376 20.0414 3.42594 23.9795 2.09494 27.9217Z"
 				fill="#EF942B"></path>
 		</svg>
-	</a>
+	</div>
 
-	<nav class="nav__links" aria-label="Primary">
-		<a class="nav__link type-ui-label" href="/" aria-current="page">Work</a>
-		<a class="nav__link type-ui-label" href="/about">About</a>
-	</nav>
-
-	<details class="nav__dropdown">
-		<summary class="nav__dropdown-trigger type-ui-label">
+	<details class="nav-dropdown">
+		<summary class="nav-dropdown__trigger type-ui-label">
 			Side projects
-			<Icon name="chevron-down" class="nav__dropdown-chevron" />
+			<Icon name="chevron-down" class="nav-dropdown__chevron" />
 		</summary>
-		<div class="nav__dropdown-panel">
+		<div class="nav-dropdown__panel">
 			<p class="type-annotation">More soon</p>
 		</div>
 	</details>
+
+	<!-- Bends the water field behind both pills rather than just blurring it —
+	     shared by .nav and .nav-dropdown below. Inert: zero size, aria-hidden. -->
+	<svg class="nav__glass-defs" aria-hidden="true" focusable="false">
+		<filter id="nav-glass-refraction" x="-20%" y="-20%" width="140%" height="140%">
+			<feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="noise" />
+			<feGaussianBlur in="noise" stdDeviation="3" result="softNoise" />
+			<feDisplacementMap
+				in="SourceGraphic"
+				in2="softNoise"
+				scale="18"
+				xChannelSelector="R"
+				yChannelSelector="G"
+			/>
+		</filter>
+	</svg>
 </header>
 
 <style>
 	/* Floats over both the water-field hero and the plain-background cards
-	   section below, so it's fixed rather than scoped to either. */
-	.nav {
+	   section below, so it's fixed rather than scoped to either. Two separate
+	   panes now — the primary links and the side-project trigger — laid out
+	   as siblings in one row instead of one bar with a divider. */
+	.nav-shell {
 		position: fixed;
 		inset-block-start: var(--spacing-3xl);
 		inset-inline: var(--gutter);
 		z-index: 20;
 		max-width: var(--measure-content);
 		margin-inline: auto;
-		padding: var(--spacing-lg) var(--spacing-2xl);
+		display: flex;
+		align-items: stretch;
+		gap: var(--spacing-3xl);
+	}
+
+	/* Shared glass treatment — identical background, blur and edge on both
+	   panes so they read as one material split into two pieces. */
+	.nav,
+	.nav-dropdown {
+		border-radius: var(--radius-md);
+		border: 1px solid color-mix(in srgb, var(--secondary) 14%, var(--border));
+		background: color-mix(in srgb, var(--gray-700) 5%, transparent);
+		backdrop-filter: blur(8px) saturate(140%);
+		-webkit-backdrop-filter: blur(8px) saturate(140%);
+		/* Light 0°/35% → top inset highlight; Depth 100 → deep ambient shadow;
+		   bottom inset shadow gives the pane a rim instead of a flat edge. */
+		box-shadow:
+			inset 0 1px 0 color-mix(in srgb, var(--secondary) 35%, transparent),
+			inset 0 -1px 0 rgb(0 0 0 / 25%),
+			0 16px 40px -16px rgb(0 0 0 / 55%);
+	}
+
+	/* Refraction 50, Dispersion 0, Splay 0 → a single bend pass, no chromatic
+	   split. The extra `(background: paint(x))` clause is a Chromium-only
+	   tell, not part of the real feature test: Safari reports the first half
+	   of this query as supported even though it cannot actually paint an
+	   SVG-filter reference inside backdrop-filter, so without the second
+	   clause this rule would win the cascade there and replace the plain
+	   blur above with a declaration that paints nothing — the exact "fully
+	   see-through" bug. Pairing the two keeps this branch Chromium-only
+	   without weakening the real support test anywhere else. */
+	@supports (backdrop-filter: blur(1px) url(#nav-glass-refraction)) and (background: paint(x)) {
+		.nav,
+		.nav-dropdown {
+			backdrop-filter: blur(4px) url(#nav-glass-refraction) saturate(140%);
+		}
+	}
+
+	.nav__glass-defs {
+		position: absolute;
+		width: 0;
+		height: 0;
+		overflow: hidden;
+	}
+
+	.nav {
+		flex: 1;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		gap: var(--spacing-4xl);
-		border-radius: var(--radius-2xl);
-		border: 1px solid var(--border);
-		background: color-mix(in srgb, var(--bg) 80%, transparent);
-		backdrop-filter: blur(8px);
+		padding-inline: var(--spacing-xl);
 	}
 
 	.nav__brand {
@@ -60,15 +138,25 @@ import Icon from '../ui/Icon.astro';
 		width: auto;
 	}
 
+	/* flex: 1 + centering (not justify-content: space-between across the whole
+	   bar) is what actually centres the link pair between the brand and the
+	   spacer — space-between across three unequal-width groups only balances
+	   the two gaps, not the group itself. */
 	.nav__links {
+		flex: 1;
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		gap: var(--spacing-3xl);
 	}
 
 	.nav__link {
+		padding-block: var(--spacing-md);
+		padding-inline: var(--spacing-xs);
 		color: var(--text-muted);
 		text-decoration: none;
+		/* Reserved even when inactive so the active state doesn't shift layout. */
+		border-block-end: 1px solid transparent;
 	}
 
 	.nav__link:hover {
@@ -80,40 +168,51 @@ import Icon from '../ui/Icon.astro';
 	.nav__link[aria-current='page'] {
 		color: var(--primary-text);
 		font-weight: var(--weight-bold);
-		text-decoration: underline;
-		text-underline-offset: var(--spacing-xs);
+		border-block-end-color: var(--primary-text);
 	}
 
-	.nav__dropdown {
+	.nav__spacer {
+		display: block;
+		height: 1.75rem;
+		width: auto;
+		visibility: hidden;
+	}
+
+	.nav-dropdown {
 		position: relative;
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
 	}
 
-	.nav__dropdown-trigger {
+	.nav-dropdown__trigger {
 		display: inline-flex;
 		align-items: center;
 		gap: var(--spacing-xs);
+		padding-block: var(--spacing-md);
+		padding-inline: var(--spacing-lg);
 		color: var(--text-muted);
 		cursor: pointer;
 		list-style: none;
 	}
 
-	.nav__dropdown-trigger::-webkit-details-marker {
+	.nav-dropdown__trigger::-webkit-details-marker {
 		display: none;
 	}
 
-	.nav__dropdown-trigger:hover {
+	.nav-dropdown__trigger:hover {
 		color: var(--text);
 	}
 
-	.nav__dropdown-chevron {
+	.nav-dropdown__chevron {
 		transition: transform 0.15s ease;
 	}
 
-	.nav__dropdown[open] .nav__dropdown-chevron {
+	.nav-dropdown[open] .nav-dropdown__chevron {
 		transform: rotate(180deg);
 	}
 
-	.nav__dropdown-panel {
+	.nav-dropdown__panel {
 		position: absolute;
 		inset-block-start: calc(100% + var(--spacing-md));
 		inset-inline-end: 0;
@@ -124,13 +223,13 @@ import Icon from '../ui/Icon.astro';
 		background: var(--bg-raised);
 	}
 
-	.nav__dropdown-panel p {
+	.nav-dropdown__panel p {
 		color: var(--text-muted);
 	}
 
 	.nav__brand:focus-visible,
 	.nav__link:focus-visible,
-	.nav__dropdown-trigger:focus-visible {
+	.nav-dropdown__trigger:focus-visible {
 		outline: 2px solid var(--focus-ring);
 		outline-offset: 2px;
 		border-radius: var(--radius-xs);
