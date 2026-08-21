@@ -1,0 +1,32 @@
+---
+/**
+ * A slow ring of smoke, sitting behind whatever you put in front of it.
+ *
+ * Absolutely positioned and inert to the pointer, so it fills its nearest
+ * positioned ancestor and never intercepts a click. Paper's ShaderMount
+ * prepends its own canvas into this div — see smoke-ring.ts.
+ */
+interface Props {
+	/** Playback rate. 0 holds a single frame. */
+	speed?: number;
+	class?: string;
+}
+
+const { speed, class: className } = Astro.props;
+---
+
+<div
+	class:list={['smoke-ring', className]}
+	data-smoke-ring
+	data-speed={speed}
+	aria-hidden="true">
+</div>
+
+<script>
+	import { createSmokeRing } from './smoke-ring';
+
+	for (const host of document.querySelectorAll<HTMLElement>('[data-smoke-ring]')) {
+		const speed = host.dataset.speed;
+		createSmokeRing(host, speed === undefined ? {} : { speed: Number(speed) });
+	}
+</script>

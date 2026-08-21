@@ -322,6 +322,62 @@
 	background: var(--bg-sunken);
 }
 
+/* ---- Smoke ring ------------------------------------------------------------
+   Not currently on the page. `<SmokeRing>` is built and kept (see
+   smoke-ring.ts) but nothing mounts it; the homepage ships the water field
+   alone. Everything below describes what it does when it is put back, and the
+   contrast note at the end is the condition of putting it back.
+
+   The layer above the water field, and the only thing on the page that blends.
+   No background of its own — the shader draws on transparency (`colorBack` is
+   #00000000) so the field shows through the gaps in the smoke.
+
+   `position` has to be restated because Paper's ShaderMount injects
+   `:where([data-paper-shader]) { position: relative }` into an `@layer`, which
+   would otherwise leave the host in flow at zero height; unlayered CSS beats
+   any layer, so this wins without an `!important`. That same injected rule
+   gives the canvas inside `inset: 0`, which is why there is nothing to size
+   here beyond the host.
+
+   `screen` at 25%, not the `plus-lighter` at 30% the Paper export carries.
+   Both lighten and neither darkens, so either way the ring can only add to the
+   ground — but this ring is bright enough that how much it adds is a contrast
+   question, not a taste one, and the water field's ceilings were measured on
+   the assumption that nothing else would be laid over them.
+
+   Sampling every pixel of the ground beneath the intro, over a sweep of the
+   ring's drift, puts the four combinations here:
+
+                        wordmark (--text)   "Previously worked at"
+     plus-lighter 0.30       2.82:1              1.66:1
+     plus-lighter 0.25       3.47:1              1.94:1
+     screen       0.30       —                   2.05:1
+     screen       0.25       5.44:1              2.31:1
+
+   The wordmark is large display type, so it needs 3:1 and the export's own
+   value is the one setting that fails it. `screen` at 25% clears it with room
+   to spare.
+
+   The label is the other half, and it is not solvable from here: it is the
+   smallest type on the page and it sits on the ring's bright inner edge, so no
+   opacity that leaves a visible effect recovers it — at 10% it is still only
+   2.79:1 against 4.5:1. Mounting the ring again means dealing with
+   `.hero-intro__clients-label` in index.astro at the same time, either by
+   moving it up a step to `--text-body` (4.54:1 on that ground) or by giving it
+   a ground of its own. It reads `--text-muted` today, which is correct with no
+   ring over it and wrong the moment there is one.
+
+   The blend reaches the water field and stops there: `.site-field` isolates,
+   so nothing below the background can be blended into.
+   -------------------------------------------------------------------------- */
+.smoke-ring {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0.25;
+	mix-blend-mode: screen;
+}
+
 /* ---- Case-study islands ----------------------------------------------------
    Styles for the four hydrated components. They live here rather than in the
    .tsx files so the whole system stays inspectable in one stylesheet.
