@@ -16,11 +16,8 @@ node_modules/
 .vscode/
 .idea/
 
-# raw mateial
-agent versioning/
-audit/
-bolt/
-design_system/
+# temp files
+scratch/
 
 # documentation
 README.md

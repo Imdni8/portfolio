@@ -265,7 +265,7 @@
 }
 
 /* ---- 5 · Type styles -------------------------------------------------------
-   Eleven styles. Each is a complete instruction — family, weight, size,
+   Thirteen styles. Each is a complete instruction — family, weight, size,
    leading and tracking together — so a component never has to assemble one
    by hand and drift from the spec.
    -------------------------------------------------------------------------- */
@@ -274,6 +274,7 @@
 .type-heading,
 .type-reflection,
 .type-subtitle,
+.type-card-title,
 .type-tab,
 .type-tab-active,
 .type-body,
@@ -328,6 +329,17 @@
 	font-family: var(--font-sans);
 	font-weight: var(--weight-regular);
 	font-size: var(--size-subtitle);
+	line-height: var(--lh-subtitle);
+	letter-spacing: var(--track-tight);
+}
+
+/* A work card's own title. Sits on the tab rung for size but borrows
+   subtitle's leading and tracking — a title set at body scale, not a
+   fourth heading rung. */
+.type-card-title {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-medium);
+	font-size: var(--size-tab);
 	line-height: var(--lh-subtitle);
 	letter-spacing: var(--track-tight);
 }
