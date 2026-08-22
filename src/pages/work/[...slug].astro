@@ -3,9 +3,12 @@ import { getCollection, render } from 'astro:content';
 import CaseStudyLayout from '../../layouts/CaseStudyLayout.astro';
 
 export async function getStaticPaths() {
-	// `coming-soon` entries have no body to render — they only exist for the
-	// homepage card, not a page of their own.
-	const studies = await getCollection('work', ({ data }) => data.status !== 'coming-soon');
+	// `coming-soon` and `external` entries have no body to render — they only
+	// exist for the homepage card, not a page of their own.
+	const studies = await getCollection(
+		'work',
+		({ data }) => data.status !== 'coming-soon' && data.status !== 'external',
+	);
 	return studies.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 

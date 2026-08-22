@@ -22,9 +22,17 @@ const clients = [
 // The grid is the collection, not a hand-maintained list — a new case study
 // (including a `coming-soon` stub) shows up here purely by existing, ordered
 // by its own `order` field. See "Case studies" in CLAUDE.md.
-const studies = (await getCollection('work', ({ data }) => data.status !== 'unlisted')).sort(
-	(a, b) => a.data.order - b.data.order,
-);
+//
+// `coming-soon` entries sort after everything else, regardless of their own
+// `order` — there's nothing to look at yet, so they shouldn't crowd real work
+// out of the grid's early slots. `order` still decides their place within
+// that trailing group, and everyone else's place among themselves.
+const studies = (await getCollection('work', ({ data }) => data.status !== 'unlisted')).sort((a, b) => {
+	const aComingSoon = a.data.status === 'coming-soon';
+	const bComingSoon = b.data.status === 'coming-soon';
+	if (aComingSoon !== bComingSoon) return aComingSoon ? 1 : -1;
+	return a.data.order - b.data.order;
+});
 ---
 
 <!doctype html>
@@ -78,8 +86,14 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 							year={entry.data.year}
 							roles={entry.data.roles}
 							thumbnail={entry.data.thumbnail}
-							href={entry.data.status === 'coming-soon' ? undefined : `/work/${entry.id}`}
-							status={entry.data.status === 'coming-soon' ? 'coming-soon' : undefined}
+							href={
+								entry.data.status === 'coming-soon'
+									? undefined
+									: entry.data.status === 'external'
+										? entry.data.externalUrl
+										: `/work/${entry.id}`
+							}
+							status={entry.data.status === 'coming-soon' || entry.data.status === 'external' ? entry.data.status : undefined}
 						/>
 					))
 				}

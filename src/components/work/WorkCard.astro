@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
+import Icon from '../ui/Icon.astro';
 import Tag from '../ui/Tag.astro';
 import type { IconName } from '../ui/icons';
 
@@ -22,7 +23,7 @@ interface Props {
 	roles?: readonly WorkRole[];
 	thumbnail: { src: ImageMetadata; alt: string };
 	href?: string;
-	status?: 'coming-soon';
+	status?: 'coming-soon' | 'external';
 }
 
 const { title, industry, year, technology, roles = [], thumbnail, href, status } = Astro.props;
@@ -31,13 +32,21 @@ const { title, industry, year, technology, roles = [], thumbnail, href, status }
 // dead affordance for a case study that isn't published yet.
 const Wrapper = href ? 'a' : 'div';
 
+const isExternal = status === 'external';
+
 // Unpublished work shows one thing: that it is unpublished. Role tags would
 // be describing work nobody can look at yet — the cover carries that message
-// itself now, as a scrim over the media rather than a tag beside it.
+// itself now, as a scrim over the media rather than a tag beside it. External
+// work is real and viewable (just hosted elsewhere), so its roles stay.
 const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 ---
 
-<Wrapper class="card glass" href={href}>
+<Wrapper
+	class:list={['card', 'glass', { 'card--external': isExternal }]}
+	href={href}
+	target={isExternal ? '_blank' : undefined}
+	rel={isExternal ? 'noopener noreferrer' : undefined}
+>
 	{/* `sizes`: two columns capped at --measure-content, so above 85.5rem the
 	    card stops growing and is a flat 600px; between there and the
 	    single-column breakpoint it holds ~44vw. */}
@@ -56,6 +65,13 @@ const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 			)
 		}
 		{
+			isExternal && (
+				<span class="card__external-badge">
+					<Icon name="external-link" />
+				</span>
+			)
+		}
+		{
 			shownRoles.length > 0 && (
 				<ul class="card__roles">
 					{shownRoles.map((name) => (
@@ -68,7 +84,10 @@ const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 		}
 	</div>
 	<div class="card__body">
-		<p class="card__title type-card-title">{title}</p>
+		<p class="card__title type-card-title">
+			{title}
+			{isExternal && <span class="sr-only"> (opens in new tab)</span>}
+		</p>
 		<p class="card__meta type-meta">
 			{industry} · {technology} · {year}
 		</p>
@@ -95,6 +114,14 @@ const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 
 	a.card:hover {
 		transform: translateY(-2px);
+	}
+
+	/* `alias` rather than the browser's default pointer — the nearest native
+	   cursor semantic to "this is a shortcut to somewhere else," which is what
+	   distinguishes this card from every other one on the grid: it doesn't
+	   navigate within the site, it leaves it. */
+	a.card--external {
+		cursor: alias;
 	}
 
 	a.card:focus-visible {
@@ -144,6 +171,31 @@ const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 		line-height: 1.25;
 		color: var(--secondary);
 		margin: 0;
+	}
+
+	/* Sits in the cover's corner rather than replacing it like the coming-soon
+	   scrim does — the work is real and viewable, so nothing should hide the
+	   thumbnail. Same theme-invariant scrim colour as .card__overlay, since it
+	   rides on the cover image rather than the page ground. */
+	.card__external-badge {
+		position: absolute;
+		inset-block-start: var(--spacing-xl);
+		inset-inline-end: var(--spacing-xl);
+		display: grid;
+		place-items: center;
+		width: var(--spacing-6xl);
+		height: var(--spacing-6xl);
+		border-radius: var(--radius-full);
+		background: var(--overlay);
+	}
+
+	/* Matches .icon-btn--lg's box-to-icon ratio (48px box / 26px icon) rather
+	   than a bare fraction of the box, so it reads at the same visual weight
+	   as every other circular icon surface in the system. */
+	.card__external-badge .icon {
+		color: var(--secondary);
+		width: 1.625rem;
+		height: 1.625rem;
 	}
 
 	/* Straddles the seam between the cover and the body, centred on it by its

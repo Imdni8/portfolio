@@ -57,8 +57,17 @@ const work = defineCollection({
 				/** `published` builds the page and lists it on the homepage.
 				 *  `coming-soon` lists the card (unclickable) with no page built —
 				 *  everything below `order` is unused and can be omitted.
-				 *  `unlisted` builds the page but keeps it off the homepage. */
-				status: z.enum(['published', 'coming-soon', 'unlisted']).default('published'),
+				 *  `unlisted` builds the page but keeps it off the homepage.
+				 *  `external` lists the card linking straight to `externalUrl`
+				 *  instead of a local page — no page is built, same as
+				 *  `coming-soon`, but the card is clickable and (unlike
+				 *  `coming-soon`) still shows its role tags, since this is real,
+				 *  viewable work rather than something nobody can look at yet. */
+				status: z.enum(['published', 'coming-soon', 'unlisted', 'external']).default('published'),
+
+				/** Where an `external` card sends the visitor. Required only for
+				 *  that status — every other status ignores it. */
+				externalUrl: z.url().optional(),
 
 				/** The standfirst under the title. One sentence, states the
 				 *  outcome. Required once a page actually builds (`published` or
@@ -105,9 +114,13 @@ const work = defineCollection({
 					})
 					.default({}),
 			})
-			.refine((data) => data.status === 'coming-soon' || Boolean(data.subtitle), {
+			.refine((data) => data.status === 'coming-soon' || data.status === 'external' || Boolean(data.subtitle), {
 				message: 'subtitle is required once a page is built (status is "published" or "unlisted")',
 				path: ['subtitle'],
+			})
+			.refine((data) => data.status !== 'external' || Boolean(data.externalUrl), {
+				message: 'externalUrl is required when status is "external"',
+				path: ['externalUrl'],
 			}),
 });
 
