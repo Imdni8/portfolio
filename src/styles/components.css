@@ -572,7 +572,7 @@
    -------------------------------------------------------------------------- */
 .ba {
 	--grip-gap: var(--spacing-md);
-	--grip-w: calc(1.75rem + var(--grip-gap)); /* two 14px chevrons plus the gap */
+	--grip-w: calc(4rem + var(--grip-gap)); /* two 32px chevrons plus the gap */
 	--scrim: color-mix(in srgb, var(--gray-900) 74%, transparent);
 
 	/* Half the gutter each side of the seam. It tapers to nothing at either end
@@ -752,8 +752,8 @@
    footprint instead of a one-off viewBox/width/height on the icon markup. */
 .ba__chev {
 	display: inline-flex;
-	width: 0.875rem;
-	height: 1.75rem;
+	width: 2rem;
+	height: 2rem;
 }
 .ba__chev .icon {
 	width: 100%;

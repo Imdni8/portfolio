@@ -126,7 +126,7 @@ for agents because…
    agent (unlike the study, which becomes unavailable). For agents, changing state to draft is
    expected to create an identical version of the agent which user can modify, while the
    previous version stays published and available for use simultaneously.
-    </Section>
+</Section>
 
 <Section chapter="framing" eyebrow="Builder's requirements" claim heading="Agent builders should be able to view updates, accept the ones they want (except the mandatory ones) and roll back to a previous version">
   <Figure slot="visual" src={lifecycleMap} alt="A lifecycle map: draft to published v1 on first publish, then edit to draft and second publish to published v2" />
@@ -142,7 +142,7 @@ using it receives an update. I arrived at the following requirements for them.
 3. In case the update is mandatory, they shouldn't be able to update the agent without
    accepting it
 4. They should be able to rollback to a previous agent version
-    </Section>
+</Section>
 
 <Section chapter="ideation" eyebrow="Designing new agent lifecycle patterns" claim heading="Version number is irrelevant. To help user track agent's lifecycle, anchor their attention to state">
   <Figure slot="visual" src={stateIterations} alt="Three iterations of the agent header comparing published and draft states, with the selected iteration at the bottom" />
@@ -156,7 +156,7 @@ Therefore, the experience of versioning boils down to helping the user:
 1. identify which state they are in currently, and as a result what they can do
 2. clearly show when the state has changed
 3. understand they have to republish for changes to take effect
-    </Section>
+</Section>
 
 <Section eyebrow="Designing the dependency card component to handle updates uniformly" claim heading="Users want to know what changed in the update and both the previous and the latest version number">
   <Figure slot="visual" src={dependencyCardIterations} alt="Three iterations of the dependency card, from a simple accept/dismiss affordance to the selected version-aware design" caption="Iterations 1 to 3. The third is the selected iteration." />
@@ -221,7 +221,7 @@ The content of each version was arranged in tabs for the following reasons:
 
 1. make it easy for users (likely auditor or builder) to find what they are looking for
 2. to avoid long scroll
-    </Section>
+</Section>
 
 <Section eyebrow="Designing visual cues for state change and updates" claim heading="Use colour and motion to direct user's attention to nodes with updates and state changes subtly">
   <Figure slot="visual" src={visualCues} alt="An accent-bordered node, a floating updates-available tab, and a banner reading 'This canvas contains unpublished changes'" />
@@ -234,7 +234,7 @@ canvas in a subtle way without demanding too much cognition from them. I achieve
 2. a floating tab to convey total updates and accept all updates in one go.
 3. a banner moving at the top when canvas changes to draft, clearly giving feedback of state
    change.
-    </Section>
+</Section>
 
 <Section chapter="constraint" eyebrow="Meeting engineering constraints" claim heading="To meet the release date, I reduced scope by cutting the side panel because even though it was better UX, it wasn't crucial to versioning">
   <FigureRow slot="visual">
