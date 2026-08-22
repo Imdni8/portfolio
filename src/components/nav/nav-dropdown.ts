@@ -13,6 +13,13 @@ import { gsap } from 'gsap';
    pixels. An immediate mouseleave would close the dropdown mid-transit. */
 const CLOSE_DELAY_MS = 150;
 
+/* Kept small on purpose — this is meant to read as a subtle settle, not a
+   swoop. The panel travels its own few pixels, not the row-height distances
+   the per-item hoverline/arrow use below. */
+const PANEL_TRAVEL_PX = 6;
+const PANEL_OPEN_DURATION = 0.22;
+const PANEL_CLOSE_DURATION = 0.16;
+
 /* True on devices with a mouse-like pointer. Used to tell an actual mouse
    click on the summary apart from a touch tap, since both fire the same
    `click` event — touch has no hover state to conflict with, so its native
@@ -20,18 +27,60 @@ const CLOSE_DELAY_MS = 150;
 const hasMouse = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 export function initNavDropdownHoverToggle(details: HTMLDetailsElement) {
+	const panel = details.querySelector<HTMLElement>('.nav-dropdown__panel');
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+	/* Set once up front rather than via `fromTo` on every open: the panel is
+	   `display: none` (native `<details>` behaviour) until `open` is set, so
+	   there's nothing to flash, and starting from a fixed rest state lets
+	   later tweens run from wherever the panel actually is — including
+	   mid-close, if the pointer re-enters before the fade-out finishes. */
+	if (panel) gsap.set(panel, { opacity: 0, y: -PANEL_TRAVEL_PX });
+
 	let closeTimeout: ReturnType<typeof setTimeout> | undefined;
+
+	const openPanel = () => {
+		details.open = true;
+		if (!panel) return;
+		gsap.killTweensOf(panel);
+		if (reducedMotion.matches) {
+			gsap.set(panel, { opacity: 1, y: 0 });
+			return;
+		}
+		gsap.to(panel, { opacity: 1, y: 0, duration: PANEL_OPEN_DURATION, ease: 'power2.out' });
+	};
+
+	const closePanel = () => {
+		if (!panel) {
+			details.open = false;
+			return;
+		}
+		gsap.killTweensOf(panel);
+		if (reducedMotion.matches) {
+			gsap.set(panel, { opacity: 0, y: -PANEL_TRAVEL_PX });
+			details.open = false;
+			return;
+		}
+		/* `open` is only cleared once the fade/rise finishes — flipping it
+		   immediately would hide the panel (`display: none`) mid-tween. */
+		gsap.to(panel, {
+			opacity: 0,
+			y: -PANEL_TRAVEL_PX,
+			duration: PANEL_CLOSE_DURATION,
+			ease: 'power2.in',
+			onComplete: () => {
+				details.open = false;
+			},
+		});
+	};
 
 	details.addEventListener('mouseenter', () => {
 		clearTimeout(closeTimeout);
-		details.open = true;
+		openPanel();
 	});
 
 	details.addEventListener('mouseleave', () => {
 		clearTimeout(closeTimeout);
-		closeTimeout = setTimeout(() => {
-			details.open = false;
-		}, CLOSE_DELAY_MS);
+		closeTimeout = setTimeout(closePanel, CLOSE_DELAY_MS);
 	});
 
 	/* Without this, a mouse click on the summary (mid-hover, when the panel

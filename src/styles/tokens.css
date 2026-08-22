@@ -265,7 +265,7 @@
 }
 
 /* ---- 5 · Type styles -------------------------------------------------------
-   Thirteen styles. Each is a complete instruction — family, weight, size,
+   Fourteen styles. Each is a complete instruction — family, weight, size,
    leading and tracking together — so a component never has to assemble one
    by hand and drift from the spec.
    -------------------------------------------------------------------------- */
@@ -277,6 +277,7 @@
 .type-card-title,
 .type-tab,
 .type-tab-active,
+.type-nav-link,
 .type-body,
 .type-ui-label,
 .type-annotation,
@@ -360,6 +361,18 @@
 	line-height: var(--lh-tab);
 }
 
+/* Primary site nav (Work / About). Sans, and on the ui rung rather than
+   .type-tab's — that rung belongs to the chapter nav inside a case study,
+   a different scale for a different context. Weight starts at medium so the
+   active link's own bump to bold is what signals state, same 500 → 700 gap
+   as .type-tab / .type-tab-active. */
+.type-nav-link {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-medium);
+	font-size: var(--size-ui);
+	line-height: var(--lh-ui);
+}
+
 /* Running copy, and hero fact values. */
 .type-body {
 	font-family: var(--font-sans);
@@ -419,4 +432,37 @@
 	font-size: var(--size-display);
 	line-height: var(--lh-display);
 	letter-spacing: var(--track-title);
+}
+
+/* ---- 6 · Surface — glass ----------------------------------------------------
+   The backdrop-filter material `.glass` (components.css) is built from — one
+   set of values, so the nav, the work cards and the "Side projects" panel
+   can't drift into slightly different glass.
+
+   --glass-tint-rest is the resting mix: 5% of a mid grey, enough to sit on
+   the page ground without going opaque. --glass-tint-scroll is the much
+   heavier mix nav-tint.ts swaps in on the specific panes marked
+   `data-nav-tint-pane` as a pale case-study cover scrolls underneath them
+   (see `.glass--tinted`) — a second token rather than a variant of the first
+   because it's opt-in per pane, not per surface: a work card and the
+   dropdown panel are `.glass` too, and neither should darken on scroll.
+
+   Mixed toward --bg-sunken rather than stated as a literal, so it inverts
+   with the theme: the pane always moves toward the most recessed ground the
+   theme has, the one text colours were already checked against. 82% is
+   where the worst case lands — a pure-white cover behind, no help from the
+   blur — putting the resulting surface at #353738, which carries
+   --text-muted at 4.9:1, --primary-text at 5.6:1 and --text at 11.5:1. Any
+   heavier and the pane stops reading as glass at rest.
+   -------------------------------------------------------------------------- */
+:root {
+	--glass-blur: 8px;
+	--glass-blur-refraction: 4px; /* the SVG filter already thickens the edge */
+	--glass-saturate: 140%;
+	--glass-border: color-mix(in srgb, var(--secondary) 14%, var(--border));
+	--glass-highlight: color-mix(in srgb, var(--secondary) 35%, transparent);
+	--glass-shadow-rim: rgb(0 0 0 / 25%);
+	--glass-shadow-ambient: rgb(0 0 0 / 55%);
+	--glass-tint-rest: color-mix(in srgb, var(--gray-700) 5%, transparent);
+	--glass-tint-scroll: color-mix(in srgb, var(--bg-sunken) 82%, transparent);
 }

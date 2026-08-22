@@ -40,9 +40,10 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		{import.meta.env.DEV && <ThemePreview />}
 		{import.meta.env.DEV && <DevOutline />}
-		<title>Tousif Rahaman</title>
+		<title>Tousif's portfolio</title>
 		<meta name="description" content="Tousif Rahaman — product designer and design engineer." />
 	</head>
 	<body>
@@ -76,7 +77,10 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		</div>
 		<section class="work">
 			<p class="type-overline work__eyebrow">Selected works</p>
-			<div class="work__inner">
+			{/* The nav darkens its glass as this grid comes up to meet it — the
+			    cover images are predominantly white, and the resting tint is not
+			    enough to keep the links legible against one. See nav-tint.ts. */}
+			<div class="work__inner" data-nav-tint-trigger>
 				{
 					studies.map((entry) => (
 						<WorkCard
@@ -306,10 +310,37 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		opacity: calc(1 - var(--fade, 0));
 	}
 
+	/* Load-in only — distinct from `.hero-intro.js-fade`'s scroll-driven
+	   opacity above, which takes over once this has finished. The wordmark
+	   drops into its resting position; `.hero-intro__clients` just fades,
+	   on a stagger timed off the wordmark's own delay below. */
+	@keyframes hero-wordmark-in {
+		from {
+			opacity: 0;
+			translate: 0 calc(-1 * var(--spacing-lg));
+		}
+		to {
+			opacity: 1;
+			translate: 0 0;
+		}
+	}
+
+	@keyframes hero-intro-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
 	.hero-intro__wordmark {
 		margin: 0;
 		width: min(20rem, 100%);
 		height: auto;
+		/* The 1.5s delay is the number to tune — how long the page holds
+		   before the wordmark drops in. */
+		animation: hero-wordmark-in 700ms ease-out 0.6s both;
 	}
 
 	.hero-intro__wordmark :global(svg) {
@@ -325,6 +356,16 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-3xl);
+		/* Follows the wordmark in on a short stagger: wordmark's own 1.5s
+		   delay plus 250ms. */
+		animation: hero-intro-in 700ms ease-out 1.4s both;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hero-intro__wordmark,
+		.hero-intro__clients {
+			animation: none;
+		}
 	}
 
 	.hero-intro__clients-label {
