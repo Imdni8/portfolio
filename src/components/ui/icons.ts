@@ -10,6 +10,7 @@ import chevronDown from 'lucide-static/icons/chevron-down.svg?raw';
 import codeXml from 'lucide-static/icons/code-xml.svg?raw';
 import hourglass from 'lucide-static/icons/hourglass.svg?raw';
 import externalLink from 'lucide-static/icons/external-link.svg?raw';
+import arrowUpRight from 'lucide-static/icons/arrow-up-right.svg?raw';
 /* The one icon not imported from the package: Lucide retired its brand set, so
    the Figma mark is vendored in src/assets/icons, in the same grid and stroke
    weight as everything above. */
@@ -25,6 +26,7 @@ export const icons = {
 	'code-xml': codeXml,
 	hourglass,
 	'external-link': externalLink,
+	'arrow-up-right': arrowUpRight,
 	figma,
 } as const;
 
