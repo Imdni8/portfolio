@@ -3,15 +3,20 @@ import { getCollection, render } from 'astro:content';
 import CaseStudyLayout from '../../layouts/CaseStudyLayout.astro';
 
 export async function getStaticPaths() {
-	const studies = await getCollection('work');
+	// `coming-soon` entries have no body to render — they only exist for the
+	// homepage card, not a page of their own.
+	const studies = await getCollection('work', ({ data }) => data.status !== 'coming-soon');
 	return studies.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { title, dek, facts, chapters, hero, actions } = entry.data;
+const { title, facts, chapters, hero, actions } = entry.data;
+// The schema's refine guarantees `subtitle` whenever status isn't
+// `coming-soon` — which getStaticPaths above has already filtered to.
+const subtitle = entry.data.subtitle!;
 ---
 
-<CaseStudyLayout title={title} dek={dek} facts={facts} chapters={chapters} hero={hero} actions={actions}>
+<CaseStudyLayout title={title} subtitle={subtitle} facts={facts} chapters={chapters} hero={hero} actions={actions}>
 	<Content />
 </CaseStudyLayout>

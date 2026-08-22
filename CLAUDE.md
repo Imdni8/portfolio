@@ -53,7 +53,15 @@ state — `Tabs` and a dismissible `Note` need it, `Button` does not.
 
 Built so far: `Button` (primary / secondary / ghost), `Tabs`, `Note`, `Icon`,
 `IconButton` (icon-only counterpart to `Button` — same three variants, plus
-`sm`/`md`/`lg` sizing).
+`sm`/`md`/`lg` sizing), `Tag` (a non-interactive label — `default` variant
+reads the semantic layer, `coming-soon` is bound to the amber ramp instead
+since it rides on a cover image, not the page ground).
+
+**Glass** (`.glass` in `components.css`) is a material, not a component — the
+backdrop-filter pane the nav and work cards are both cut from, so they read as
+one surface split across the page. Anything wearing it needs `<GlassDefs />`
+rendered once on the page (it defines the SVG refraction filter `.glass`
+references) and something painted behind it to bend.
 
 **Icons** come from `src/components/ui/icons.ts`, sourced unmodified from
 Lucide (`lucide-static`, one 24×24 grid, one 2px stroke weight) rather than
@@ -83,8 +91,9 @@ Three conventions worth keeping:
   and would stretch to fill it without one. A single-column block that's
   already bounded by `--measure-page` with nothing beside it — no facts rail,
   no split column — has nothing left to narrow: capping it anyway leaves a
-  ragged, unexplained gap on the right. This is why the hero's `h1`/`.hero__dek`
-  carry no cap of their own (the column already bounds them), and why
+  ragged, unexplained gap on the right. This is why the hero's
+  `h1`/`.hero__subtitle` carry no cap of their own (the column already bounds
+  them), and why
   `Reflection`'s body copy runs the section's full measure. Before adding a
   measure cap, check what's actually beside the block — if the answer is
   "nothing," the cap is the bug, not the missing constraint.
@@ -98,9 +107,62 @@ identifying: the fill is 1.11:1 against `bg` and the `gray-200` border 1.12:1.
 Raising `--secondary-border` to `--gray-500` would carry the edge at 4.14:1 if
 that is ever wanted.
 
-The rest of `src/` (the case-study component kit, the agent-versioning MDX) is
-**prior work to disregard** unless the user points at it. Don't treat it as the
-pattern to follow or extend.
+## Case studies
+
+A case study is **one MDX file** in `src/content/work/` plus an assets folder
+at `src/assets/work/<slug>/` — that's the whole source of truth. The homepage
+grid (`src/pages/index.astro`) is derived entirely from the `work` collection
+(`getCollection('work')`, sorted by `order`); it is never hand-edited. Run
+`/new-case-study` to scaffold one, or add the file directly using the
+reference below — `src/content/work/agent-versioning.mdx` is a worked example
+of a fully published entry.
+
+**Schema** (`src/content.config.ts`) splits into two groups:
+
+- **Card metadata — required on every entry, whatever its `status`:** `title`,
+  `industry`, `technology` (one primary tool/stack label), `year` — these
+  three render together, in that order, as the card's meta line, e.g.
+  "Clinical trials · Figma · 2026". `thumbnail` (`{ src, alt }`, the card's
+  cover image), `order` (sort key — leave gaps of 10, e.g. 10/20/30, so a new
+  card can be inserted without renumbering the rest). `roles` is metadata too
+  but optional (`redesign` and/or `contributed-code`, max 2) — what kind of
+  work it was, rendered as icon `Tag` chips overlapping the cover. Always
+  hidden on a `coming-soon` card regardless of what's set — claiming a role in
+  work nobody can see yet doesn't make sense.
+- **Page content — only needed once a page actually builds:** `subtitle` (the
+  standfirst; required unless `status` is `coming-soon`), `facts` (max 4, the
+  hero's right rail), `chapters` (chapter nav — each `id` must match a
+  `Section`'s `chapter` prop), `hero` (the full-bleed before/after opener —
+  genuinely optional; omit it to skip the compare), `actions` (hero CTAs).
+
+**`status`** decides what gets built and where it shows up. There is no
+separate "hide from homepage" flag — this one field is the whole state
+machine:
+
+| `status`              | Page at `/work/<slug>` | Homepage card |
+| ---------------------- | :---------------------: | :-----------: |
+| `published` (default) | yes                      | yes, linked   |
+| `coming-soon`          | no                       | yes, unclickable, cover scrimmed with "Coming soon" |
+| `unlisted`             | yes                      | no            |
+
+A `coming-soon` entry is genuinely minimal: just `title`/`industry`/
+`technology`/`year`/`thumbnail`/`order`/`status`, no body (`roles` is dropped
+either way — see above). When the case study is written,
+flip `status` to `published` (or delete the line — it's the default), add
+`subtitle` and the rest of the page-content fields, and write the MDX body.
+
+**Assets** live in `src/assets/work/<slug>/`, numbered by where they appear in
+the story (`00-` for the hero/thumbnail shots, then reading order) — follow
+`src/assets/work/agent-versioning/`. Reference them from frontmatter with a
+relative path (`../../assets/work/<slug>/…`). `thumbnail` and
+`hero.before`/`hero.after` are independent images, not the same field reused —
+a `coming-soon` entry has only a thumbnail, no hero pair.
+
+**Body** is free-form MDX assembled from `src/components/case-study/*`
+(`Section`, `Figure`, `FigureRow`, `NoteBox`, `VideoFigure`, `Reflection`,
+`Term`). This kit — along with `CaseStudyLayout`/`CaseStudyHero` and
+`agent-versioning.mdx` — is current and documented here, not prior work to
+disregard; treat it as the pattern to follow when writing a new case study.
 
 ## Stack
 

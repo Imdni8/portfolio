@@ -1,12 +1,13 @@
 ---
+import { getCollection } from 'astro:content';
 import '../styles/tokens.css';
 import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
 import WaterField from '../components/ui/WaterField.astro';
+import GlassDefs from '../components/ui/GlassDefs.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import WorkCard from '../components/work/WorkCard.astro';
-import agentVersioningCover from '../assets/work/agent-versioning/00-hero-after.png';
 import heroWordmark from '../assets/homepage/Hero_wordmark.svg?raw';
 import philipsLogo from '../assets/homepage/philips_logo.svg?raw';
 import jjLogo from '../assets/homepage/J&J_logo.svg?raw';
@@ -18,37 +19,12 @@ const clients = [
 	{ name: 'Medable', svg: medableLogo },
 ];
 
-const cards = [
-	{
-		title: 'Agent versioning and lifecycle management',
-		tag: 'AI Agents',
-		href: '/work/agent-versioning',
-		image: {
-			src: agentVersioningCover,
-			alt: 'The agent canvas with version history and an unpublished-changes banner',
-		},
-	},
-	{
-		title: 'Making audit logs more human readable',
-		tag: 'Dev workflow',
-		status: 'coming-soon' as const,
-	},
-	{
-		title: 'Redesigning the onboarding flow',
-		tag: 'Onboarding',
-		status: 'coming-soon' as const,
-	},
-	{
-		title: 'A design system for clinical trials',
-		tag: 'Design systems',
-		status: 'coming-soon' as const,
-	},
-	{
-		title: 'Rebuilding the notifications center',
-		tag: 'Notifications',
-		status: 'coming-soon' as const,
-	},
-];
+// The grid is the collection, not a hand-maintained list — a new case study
+// (including a `coming-soon` stub) shows up here purely by existing, ordered
+// by its own `order` field. See "Case studies" in CLAUDE.md.
+const studies = (await getCollection('work', ({ data }) => data.status !== 'unlisted')).sort(
+	(a, b) => a.data.order - b.data.order,
+);
 ---
 
 <!doctype html>
@@ -62,6 +38,9 @@ const cards = [
 		<meta name="description" content="Tousif Rahaman — product designer and design engineer." />
 	</head>
 	<body>
+		{/* Both the nav and the work cards wear `.glass`; the filter it bends
+		    the field with is defined once, here. */}
+		<GlassDefs />
 		<div class="site-field">
 			<WaterField grid={72} />
 		</div>
@@ -90,7 +69,20 @@ const cards = [
 		<section class="work">
 			<p class="type-overline work__eyebrow">Selected works</p>
 			<div class="work__inner">
-				{cards.map((card) => <WorkCard {...card} />)}
+				{
+					studies.map((entry) => (
+						<WorkCard
+							title={entry.data.title}
+							industry={entry.data.industry}
+							technology={entry.data.technology}
+							year={entry.data.year}
+							roles={entry.data.roles}
+							thumbnail={entry.data.thumbnail}
+							href={entry.data.status === 'coming-soon' ? undefined : `/work/${entry.id}`}
+							status={entry.data.status === 'coming-soon' ? 'coming-soon' : undefined}
+						/>
+					))
+				}
 			</div>
 		</section>
 	</body>

@@ -3,7 +3,7 @@ import Icon from '../ui/Icon.astro';
 ---
 
 <header class="nav-shell">
-	<div class="nav">
+	<div class="nav glass">
 		<a class="nav__brand" href="/" aria-label="Tousif Rahaman — home">
 			<svg width="21" height="40" viewBox="0 0 21 40" fill="none" xmlns="http://www.w3.org/2000/svg">
 				<path
@@ -35,7 +35,7 @@ import Icon from '../ui/Icon.astro';
 		</svg>
 	</div>
 
-	<details class="nav-dropdown">
+	<details class="nav-dropdown glass">
 		<summary class="nav-dropdown__trigger type-ui-label">
 			Side projects
 			<Icon name="chevron-down" class="nav-dropdown__chevron" />
@@ -44,22 +44,6 @@ import Icon from '../ui/Icon.astro';
 			<p class="type-annotation">More soon</p>
 		</div>
 	</details>
-
-	<!-- Bends the water field behind both pills rather than just blurring it —
-	     shared by .nav and .nav-dropdown below. Inert: zero size, aria-hidden. -->
-	<svg class="nav__glass-defs" aria-hidden="true" focusable="false">
-		<filter id="nav-glass-refraction" x="-20%" y="-20%" width="140%" height="140%">
-			<feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="noise" />
-			<feGaussianBlur in="noise" stdDeviation="3" result="softNoise" />
-			<feDisplacementMap
-				in="SourceGraphic"
-				in2="softNoise"
-				scale="18"
-				xChannelSelector="R"
-				yChannelSelector="G"
-			/>
-		</filter>
-	</svg>
 </header>
 
 <style>
@@ -79,45 +63,10 @@ import Icon from '../ui/Icon.astro';
 		gap: var(--spacing-3xl);
 	}
 
-	/* Shared glass treatment — identical background, blur and edge on both
-	   panes so they read as one material split into two pieces. */
-	.nav,
-	.nav-dropdown {
-		border-radius: var(--radius-md);
-		border: 1px solid color-mix(in srgb, var(--secondary) 14%, var(--border));
-		background: color-mix(in srgb, var(--gray-700) 5%, transparent);
-		backdrop-filter: blur(8px) saturate(140%);
-		-webkit-backdrop-filter: blur(8px) saturate(140%);
-		/* Light 0°/35% → top inset highlight; Depth 100 → deep ambient shadow;
-		   bottom inset shadow gives the pane a rim instead of a flat edge. */
-		box-shadow:
-			inset 0 1px 0 color-mix(in srgb, var(--secondary) 35%, transparent),
-			inset 0 -1px 0 rgb(0 0 0 / 25%),
-			0 16px 40px -16px rgb(0 0 0 / 55%);
-	}
-
-	/* Refraction 50, Dispersion 0, Splay 0 → a single bend pass, no chromatic
-	   split. The extra `(background: paint(x))` clause is a Chromium-only
-	   tell, not part of the real feature test: Safari reports the first half
-	   of this query as supported even though it cannot actually paint an
-	   SVG-filter reference inside backdrop-filter, so without the second
-	   clause this rule would win the cascade there and replace the plain
-	   blur above with a declaration that paints nothing — the exact "fully
-	   see-through" bug. Pairing the two keeps this branch Chromium-only
-	   without weakening the real support test anywhere else. */
-	@supports (backdrop-filter: blur(1px) url(#nav-glass-refraction)) and (background: paint(x)) {
-		.nav,
-		.nav-dropdown {
-			backdrop-filter: blur(4px) url(#nav-glass-refraction) saturate(140%);
-		}
-	}
-
-	.nav__glass-defs {
-		position: absolute;
-		width: 0;
-		height: 0;
-		overflow: hidden;
-	}
+	/* Both panes wear `.glass` in the markup — identical material, so they read
+	   as one surface split into two pieces. The rule lives in components.css
+	   now that the work cards are cut from it too; the filter it references
+	   comes from <GlassDefs />, rendered once by the page. */
 
 	.nav {
 		flex: 1;

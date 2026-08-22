@@ -10,6 +10,47 @@
    Everything here reads semantic tokens. No hex, no raw px.
    ============================================================================ */
 
+/* ---- Glass -----------------------------------------------------------------
+   A material, not a component: the pane the nav and the work cards are both
+   cut from, so they read as one surface treatment split across the page.
+   Whatever wears it needs something painted behind it to bend — on the
+   homepage that is the fixed water field.
+
+   It brings its own border and radius, since the edge is part of the material:
+   a rim, not a line drawn round a fill.
+
+   The refraction branch below needs <GlassDefs /> rendered once on the page.
+   -------------------------------------------------------------------------- */
+.glass {
+	border-radius: var(--radius-md);
+	border: 1px solid color-mix(in srgb, var(--secondary) 14%, var(--border));
+	background: color-mix(in srgb, var(--gray-700) 5%, transparent);
+	backdrop-filter: blur(8px) saturate(140%);
+	-webkit-backdrop-filter: blur(8px) saturate(140%);
+	/* Light 0°/35% → top inset highlight; Depth 100 → deep ambient shadow;
+	   bottom inset shadow gives the pane a rim instead of a flat edge. */
+	box-shadow:
+		inset 0 1px 0 color-mix(in srgb, var(--secondary) 35%, transparent),
+		inset 0 -1px 0 rgb(0 0 0 / 25%),
+		0 16px 40px -16px rgb(0 0 0 / 55%);
+}
+
+/* Refraction 50, Dispersion 0, Splay 0 → a single bend pass, no chromatic
+   split. The extra `(background: paint(x))` clause is a Chromium-only tell,
+   not part of the real feature test: Safari reports the first half of this
+   query as supported even though it cannot actually paint an SVG-filter
+   reference inside backdrop-filter, so without the second clause this rule
+   would win the cascade there and replace the plain blur above with a
+   declaration that paints nothing — the exact "fully see-through" bug.
+   Pairing the two keeps this branch Chromium-only without weakening the real
+   support test anywhere else. The same bug appears in Chromium if the filter
+   id goes missing, which is why <GlassDefs /> is not optional. */
+@supports (backdrop-filter: blur(1px) url(#glass-refraction)) and (background: paint(x)) {
+	.glass {
+		backdrop-filter: blur(4px) url(#glass-refraction) saturate(140%);
+	}
+}
+
 /* ---- Button ----------------------------------------------------------------
    Three variants. Primary is the brand action; secondary is its equal-weight
    neutral counterpart; ghost recedes.
@@ -294,6 +335,48 @@
 	position: absolute;
 	top: var(--spacing-md);
 	right: var(--spacing-md);
+}
+
+/* ---- Tag -------------------------------------------------------------------
+   A label, not a control: nothing here is clickable, focusable or stateful.
+   It rides on top of a cover image rather than on the page ground, which is
+   what decides most of the rest — it needs an opaque fill and its own border
+   to stay legible over whatever is behind it.
+
+   Declares its own type off the tokens, the same way .btn does, rather than
+   naming a .type-* class. The 12px rung has no class, and this is a component
+   label, not prose.
+   -------------------------------------------------------------------------- */
+.tag {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-xs);
+
+	font-family: var(--font-sans);
+	font-weight: var(--weight-medium);
+	font-size: var(--size-micro);
+	line-height: var(--lh-micro);
+
+	padding: var(--spacing-xs);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	background: var(--bg);
+	color: var(--text);
+	white-space: nowrap;
+}
+
+/* Bound to the amber ramp rather than to the semantic layer, and so identical
+   in both themes. The semantic tokens would flip this chip with the page, but
+   it sits on a cover image either way — the image is its ground, not the page.
+   gray-900 on amber-50 is 15.86:1.
+
+   The state is never colour alone: this is the only tag that carries an
+   hourglass, and it is the only tag on a card that has one, so it survives
+   greyscale on shape and position as well as hue. */
+.tag--coming-soon {
+	background: var(--amber-50);
+	border-color: var(--amber-200);
+	color: var(--text-on-primary);
 }
 
 @media (prefers-reduced-motion: reduce) {

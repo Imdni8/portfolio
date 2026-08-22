@@ -6,7 +6,7 @@ import type { ImageMetadata } from 'astro';
 
 interface Props {
 	title: string;
-	dek: string;
+	subtitle: string;
 	facts?: { label: string; value: string }[];
 	actions?: {
 		primary?: { label: string; href: string };
@@ -24,7 +24,7 @@ interface Props {
 	};
 }
 
-const { title, dek, facts = [], actions = {}, hero } = Astro.props;
+const { title, subtitle, facts = [], actions = {}, hero } = Astro.props;
 const beforeLabel = hero?.beforeLabel ?? 'Before';
 const afterLabel = hero?.afterLabel ?? 'After';
 const beforeNotes = hero?.beforeNotes ?? [];
@@ -51,7 +51,7 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 	<div class="hero__inner">
 		<div class="hero__lede">
 			<h1 class="type-title">{title}</h1>
-			<p class="type-subtitle hero__dek">{dek}</p>
+			<p class="type-subtitle hero__subtitle">{subtitle}</p>
 
 			{
 				(actions.primary || actions.secondary) && (
@@ -149,9 +149,9 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 		gap: var(--spacing-6xl);
 	}
 
-	/* Desktop puts the facts in a right rail; mobile drops them under the dek
-	   as a divided strip, which is why they are a separate grid child rather
-	   than living inside .hero__lede. */
+	/* Desktop puts the facts in a right rail; mobile drops them under the
+	   subtitle as a divided strip, which is why they are a separate grid
+	   child rather than living inside .hero__lede. */
 	@media (min-width: 60rem) {
 		.hero__inner {
 			grid-template-columns: minmax(0, 1fr) 20rem;
@@ -174,7 +174,7 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 		color: var(--text);
 	}
 
-	.hero__dek {
+	.hero__subtitle {
 		color: var(--text-body);
 	}
 

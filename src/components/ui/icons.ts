@@ -7,6 +7,12 @@ import play from 'lucide-static/icons/play.svg?raw';
 import chevronLeft from 'lucide-static/icons/chevron-left.svg?raw';
 import chevronRight from 'lucide-static/icons/chevron-right.svg?raw';
 import chevronDown from 'lucide-static/icons/chevron-down.svg?raw';
+import codeXml from 'lucide-static/icons/code-xml.svg?raw';
+import hourglass from 'lucide-static/icons/hourglass.svg?raw';
+/* The one icon not imported from the package: Lucide retired its brand set, so
+   the Figma mark is vendored in src/assets/icons, in the same grid and stroke
+   weight as everything above. */
+import figma from '../../assets/icons/figma.svg?raw';
 
 export const icons = {
 	close,
@@ -15,6 +21,9 @@ export const icons = {
 	'chevron-left': chevronLeft,
 	'chevron-right': chevronRight,
 	'chevron-down': chevronDown,
+	'code-xml': codeXml,
+	hourglass,
+	figma,
 } as const;
 
 export type IconName = keyof typeof icons;

@@ -1,0 +1,22 @@
+---
+import Icon from './Icon.astro';
+import type { IconName } from './icons';
+
+export type TagVariant = 'default' | 'coming-soon';
+
+interface Props {
+	/** Decorative — the label beside it carries the meaning, as everywhere else. */
+	icon?: IconName;
+	variant?: TagVariant;
+	class?: string;
+}
+
+const { icon, variant = 'default', class: className } = Astro.props;
+---
+
+{/* A span, not a button or a link: a tag labels its container, it is never
+    the thing you act on. Styling is entirely .tag in components.css. */}
+<span class:list={['tag', variant !== 'default' && `tag--${variant}`, className]}>
+	{icon && <Icon name={icon} />}
+	<slot />
+</span>

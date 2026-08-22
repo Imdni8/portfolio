@@ -14,6 +14,7 @@ const STYLES: Spec[] = [
 	{ token: 'type-body', role: 'Running copy and hero facts', sample: "Agent Studio's canvas is where an AI builder assembles an agentic workflow, connects it to their organisation's data sources, and puts it to work without involving engineering." },
 	{ token: 'type-ui-label', role: 'Button and control labels', sample: 'View final design' },
 	{ token: 'type-annotation', role: 'Figure captions, note and tooltip copy', sample: 'Because conducting user tests with end users can take significantly longer to set up, I validated these concepts with 5 internal users who use the product daily.' },
+	{ token: 'type-meta', role: 'Work card meta — industry, technology and year', sample: 'Clinical trials · Figma · 2026' },
 	{ token: 'type-overline', role: 'Eyebrow and note title — always uppercase', sample: 'Who are AI builders?' },
 ];
 

@@ -12,7 +12,7 @@ import type { ImageMetadata } from 'astro';
 
 interface Props {
 	title: string;
-	dek: string;
+	subtitle: string;
 	facts?: { label: string; value: string }[];
 	chapters?: { id: string; label: string }[];
 	hero?: {
@@ -31,7 +31,7 @@ interface Props {
 	};
 }
 
-const { title, dek, facts = [], chapters = [], hero, actions = {} } = Astro.props;
+const { title, subtitle, facts = [], chapters = [], hero, actions = {} } = Astro.props;
 ---
 
 <!doctype html>
@@ -43,13 +43,13 @@ const { title, dek, facts = [], chapters = [], hero, actions = {} } = Astro.prop
 		{import.meta.env.DEV && <DevOutline />}
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
 		<title>{title} — Tousif Rahaman</title>
-		<meta name="description" content={dek} />
+		<meta name="description" content={subtitle} />
 		<meta property="og:title" content={title} />
-		<meta property="og:description" content={dek} />
+		<meta property="og:description" content={subtitle} />
 		<meta property="og:type" content="article" />
 	</head>
 	<body>
-		<CaseStudyHero title={title} dek={dek} facts={facts} actions={actions} hero={hero} />
+		<CaseStudyHero title={title} subtitle={subtitle} facts={facts} actions={actions} hero={hero} />
 
 		{chapters.length > 0 && <ChapterRail chapters={chapters} client:load />}
 

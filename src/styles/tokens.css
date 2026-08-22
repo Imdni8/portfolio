@@ -200,6 +200,12 @@
 	--secondary-hover: var(--gray-100);
 	--secondary-border: var(--gray-200);
 	--text-on-secondary: var(--gray-900);
+
+	/* The scrim a "coming soon" cover sits under. Also a literal rather than a
+	   ramp step — it sits on a photo, not the page, so it stays the same wash
+	   in both themes for the same reason --secondary does: a value tied to the
+	   ground beneath it would fight the image instead of reading over it. */
+	--overlay: #0e0e0ebf;
 }
 
 /* ---- 4a · Semantic colour · light -----------------------------------------
@@ -273,7 +279,8 @@
 .type-body,
 .type-ui-label,
 .type-annotation,
-.type-overline {
+.type-overline,
+.type-meta {
 	margin: 0;
 }
 
@@ -377,6 +384,18 @@
 	letter-spacing: var(--track-overline);
 	text-transform: uppercase;
 	color: var(--primary-text);
+}
+
+/* Card meta — the category, separator and year under a work card's title.
+   Third style on the 14px rung and the second in mono, but it parts from
+   overline on weight, case, tracking and colour at once, which is the same
+   margin that already keeps overline and annotation apart. Carries no colour
+   of its own: it sits on a card, not on the page ground. */
+.type-meta {
+	font-family: var(--font-mono);
+	font-weight: var(--weight-medium);
+	font-size: var(--size-fine);
+	line-height: var(--lh-fine);
 }
 
 /* A name, spoken rather than set — the one place the display face runs
