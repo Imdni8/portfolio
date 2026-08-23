@@ -5,14 +5,18 @@ import Icon from '../ui/Icon.astro';
 import Tag from '../ui/Tag.astro';
 import type { IconName } from '../ui/icons';
 
-/** Label and icon travel together so a card can name a role without restating
- *  either, and neither can drift from the other. */
-const ROLE_TAGS = {
-	redesign: { label: 'Redesign', icon: 'figma' },
-	'contributed-code': { label: 'Contributed code', icon: 'code-xml' },
-} as const satisfies Record<string, { label: string; icon: IconName }>;
+/** `kind` is the closed set that picks the icon; `label` is free text
+ *  supplied per entry in frontmatter, so a new design-type value never
+ *  touches this file. */
+const ROLE_ICONS = {
+	'design-type': 'figma',
+	code: 'code-xml',
+} as const satisfies Record<string, IconName>;
 
-export type WorkRole = keyof typeof ROLE_TAGS;
+export interface WorkRole {
+	kind: keyof typeof ROLE_ICONS;
+	label: string;
+}
 
 interface Props {
 	title: string;
@@ -33,12 +37,6 @@ const { title, industry, year, technology, roles = [], thumbnail, href, status }
 const Wrapper = href ? 'a' : 'div';
 
 const isExternal = status === 'external';
-
-// Unpublished work shows one thing: that it is unpublished. Role tags would
-// be describing work nobody can look at yet — the cover carries that message
-// itself now, as a scrim over the media rather than a tag beside it. External
-// work is real and viewable (just hosted elsewhere), so its roles stay.
-const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 ---
 
 <Wrapper
@@ -72,11 +70,11 @@ const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 			)
 		}
 		{
-			shownRoles.length > 0 && (
+			roles.length > 0 && (
 				<ul class="card__roles">
-					{shownRoles.map((name) => (
+					{roles.map((role) => (
 						<li>
-							<Tag icon={ROLE_TAGS[name].icon}>{ROLE_TAGS[name].label}</Tag>
+							<Tag icon={ROLE_ICONS[role.kind]}>{role.label}</Tag>
 						</li>
 					))}
 				</ul>
@@ -89,7 +87,20 @@ const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 			{isExternal && <span class="sr-only"> (opens in new tab)</span>}
 		</p>
 		<p class="card__meta type-meta">
-			{industry} · {technology} · {year}
+			<span class="card__meta-item">
+				<Icon name="building-2" />
+				{industry}
+			</span>
+			<span aria-hidden="true">·</span>
+			<span class="card__meta-item">
+				<Icon name="wrench" />
+				{technology}
+			</span>
+			<span aria-hidden="true">·</span>
+			<span class="card__meta-item">
+				<Icon name="calendar" />
+				{year}
+			</span>
 		</p>
 	</div>
 </Wrapper>
@@ -149,11 +160,12 @@ const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 		object-fit: cover;
 	}
 
-	/* Unpublished work's whole cover, not a corner of it — the scrim replaces
-	   the role tags rather than joining them, so it fills the media rather
-	   than straddling its seam. Confined to `.card__media` on purpose: the
-	   seam and the body stay legible, only the cover itself reads as
-	   not-yet-real. */
+	/* Unpublished work's whole cover, not a corner of it, so it fills the
+	   media rather than straddling its seam. Confined to `.card__media` on
+	   purpose: the seam and the body stay legible, only the cover itself
+	   reads as not-yet-real. Painted before `.card__roles` in DOM order, so
+	   any role tags on a `coming-soon` card sit on top of the scrim rather
+	   than under it. */
 	.card__overlay {
 		position: absolute;
 		inset: 0;
@@ -226,7 +238,18 @@ const shownRoles: readonly WorkRole[] = status === 'coming-soon' ? [] : roles;
 	}
 
 	.card__meta {
-		color: var(--text);
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		color: var(--text-muted);
+	}
+
+	/* Icon and label as one unit, so the pair wraps and truncates together
+	   rather than the icon ever separating from the data point it precedes. */
+	.card__meta-item {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-xs);
 	}
 
 	/* The global guard in components.css covers .btn, .tab and .icon-btn; the

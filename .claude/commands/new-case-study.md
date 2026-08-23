@@ -31,9 +31,13 @@ Both are optional — ask for them conversationally if omitted.
    - `order`: read the other files in `src/content/work/` to find the current
      highest value and continue the sequence in steps of 10 (or slot a value
      between two existing entries if the user wants a specific position)
-   - `roles` (optional, max 2, `redesign` and/or `contributed-code`): what
-     kind of work this was, not what it's about — only ask for this on a
-     full case study, since it's always hidden on a `coming-soon` card
+   - `roles` (max 2, each `{ kind: 'design-type' | 'code', label }`): what
+     kind of work this was, not what it's about. Ask for the `design-type`
+     label — it's mandatory on every entry regardless of status (e.g.
+     "Redesign", "Design concepts", "New feature" — free text, not a fixed
+     list). Then ask if a `code` role applies too (optional; e.g.
+     "Contributed code"). Shown as icon chips overlapping the cover on every
+     status, including `coming-soon`.
 
 3. **Thumbnail.** Ask if a real cover image already exists for this case
    study. Create `src/assets/work/<slug>/` either way. If no real image
@@ -44,9 +48,10 @@ Both are optional — ask for them conversationally if omitted.
    rather than a broken image. Reference whichever file exists as `thumbnail`
    in the frontmatter, with a real `alt`.
 
-4. **If `coming-soon`:** write only `title`, `industry`, `technology`, `year`,
-   `thumbnail`, `order`, `status: coming-soon`. No body, no other fields —
-   that's the whole file. Stop here.
+4. **If `coming-soon`:** write `title`, `industry`, `technology`, `year`,
+   `thumbnail`, `order`, `roles` (the mandatory `design-type` entry from step
+   2), `status: coming-soon`. No body, no other fields — that's the whole
+   file. Stop here.
 
 5. **If publishing now**, additionally gather:
    - `subtitle` — one sentence, states the outcome

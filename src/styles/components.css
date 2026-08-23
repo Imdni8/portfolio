@@ -387,6 +387,7 @@
 	line-height: var(--lh-micro);
 
 	padding: var(--spacing-xs);
+	padding-inline-end: var(--spacing-sm);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-sm);
 	background: var(--bg);

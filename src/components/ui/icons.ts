@@ -13,6 +13,9 @@ import externalLink from 'lucide-static/icons/external-link.svg?raw';
 import arrowUpRight from 'lucide-static/icons/arrow-up-right.svg?raw';
 import users from 'lucide-static/icons/users.svg?raw';
 import database from 'lucide-static/icons/database.svg?raw';
+import building2 from 'lucide-static/icons/building-2.svg?raw';
+import wrench from 'lucide-static/icons/wrench.svg?raw';
+import calendar from 'lucide-static/icons/calendar.svg?raw';
 /* The one icon not imported from the package: Lucide retired its brand set, so
    the Figma mark is vendored in src/assets/icons, in the same grid and stroke
    weight as everything above. */
@@ -31,6 +34,9 @@ export const icons = {
 	'arrow-up-right': arrowUpRight,
 	users,
 	database,
+	'building-2': building2,
+	wrench,
+	calendar,
 	figma,
 } as const;
 

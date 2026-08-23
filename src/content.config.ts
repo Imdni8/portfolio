@@ -43,11 +43,22 @@ const work = defineCollection({
 				thumbnail: z.object({ src: image(), alt: z.string() }),
 
 				/** What kind of work this was — shown as icon chips overlapping the
-				 *  card's cover. Optional and empty by default; always hidden on a
-				 *  `coming-soon` card, since claiming a role in work nobody can see
-				 *  yet doesn't make sense — the cover's own "Coming soon" scrim
-				 *  carries that message instead. */
-				roles: z.array(z.enum(['redesign', 'contributed-code'])).max(2).default([]),
+				 *  card's cover, on every status including `coming-soon` (over its
+				 *  "Coming soon" scrim). `kind` picks the icon (`design-type` → the
+				 *  Figma mark, `code` → the angle-bracket icon); `label` is free
+				 *  text, so a new design-type value (e.g. "Design concepts") is a
+				 *  content-only edit — nothing in the schema or WorkCard.astro has
+				 *  to change for it. A `design-type` entry is mandatory (enforced
+				 *  below); `code` is optional. */
+				roles: z
+					.array(
+						z.object({
+							kind: z.enum(['design-type', 'code']),
+							label: z.string(),
+						}),
+					)
+					.max(2)
+					.default([]),
 
 				/** Explicit sort key for the homepage grid. Convention: leave gaps
 				 *  of 10 (10, 20, 30…) so a new card can be inserted between two
@@ -56,12 +67,12 @@ const work = defineCollection({
 
 				/** `published` builds the page and lists it on the homepage.
 				 *  `coming-soon` lists the card (unclickable) with no page built —
-				 *  everything below `order` is unused and can be omitted.
+				 *  everything below `order` is unused and can be omitted, `roles`
+				 *  excepted (still required — see above).
 				 *  `unlisted` builds the page but keeps it off the homepage.
 				 *  `external` lists the card linking straight to `externalUrl`
 				 *  instead of a local page — no page is built, same as
-				 *  `coming-soon`, but the card is clickable and (unlike
-				 *  `coming-soon`) still shows its role tags, since this is real,
+				 *  `coming-soon`, but the card is clickable, since this is real,
 				 *  viewable work rather than something nobody can look at yet. */
 				status: z.enum(['published', 'coming-soon', 'unlisted', 'external']).default('published'),
 
@@ -121,6 +132,10 @@ const work = defineCollection({
 			.refine((data) => data.status !== 'external' || Boolean(data.externalUrl), {
 				message: 'externalUrl is required when status is "external"',
 				path: ['externalUrl'],
+			})
+			.refine((data) => data.roles.some((role) => role.kind === 'design-type'), {
+				message: 'roles must include a "design-type" entry',
+				path: ['roles'],
 			}),
 });
 

@@ -125,10 +125,13 @@ of a fully published entry.
   "Clinical trials · Figma · 2026". `thumbnail` (`{ src, alt }`, the card's
   cover image), `order` (sort key — leave gaps of 10, e.g. 10/20/30, so a new
   card can be inserted without renumbering the rest). `roles` is metadata too
-  but optional (`redesign` and/or `contributed-code`, max 2) — what kind of
-  work it was, rendered as icon `Tag` chips overlapping the cover. Always
-  hidden on a `coming-soon` card regardless of what's set — claiming a role in
-  work nobody can see yet doesn't make sense.
+  — max 2 entries, each `{ kind: 'design-type' | 'code', label }` — what kind
+  of work it was, rendered as icon `Tag` chips overlapping the cover, on every
+  status including `coming-soon` (over its "Coming soon" scrim). `kind` picks
+  the icon (`design-type` → Figma mark, `code` → angle brackets); `label` is
+  free text, so a new design-type value (e.g. "Design concepts") is a
+  content-only edit. Every entry needs a `design-type` role (enforced by the
+  schema, on every status); `code` is optional.
 - **Page content — only needed once a page actually builds:** `subtitle` (the
   standfirst; required unless `status` is `coming-soon`), `facts` (max 4, the
   hero's right rail), `chapters` (chapter nav — each `id` must match a
@@ -145,11 +148,12 @@ machine:
 | `coming-soon`          | no                       | yes, unclickable, cover scrimmed with "Coming soon" |
 | `unlisted`             | yes                      | no            |
 
-A `coming-soon` entry is genuinely minimal: just `title`/`industry`/
-`technology`/`year`/`thumbnail`/`order`/`status`, no body (`roles` is dropped
-either way — see above). When the case study is written,
-flip `status` to `published` (or delete the line — it's the default), add
-`subtitle` and the rest of the page-content fields, and write the MDX body.
+A `coming-soon` entry is otherwise minimal: `title`/`industry`/`technology`/
+`year`/`thumbnail`/`order`/`status` plus a `roles` entry (a `design-type` role
+is mandatory on every status — see above), no body. When the case study is
+written, flip `status` to `published` (or delete the line — it's the
+default), add `subtitle` and the rest of the page-content fields, and write
+the MDX body.
 
 **Assets** live in `src/assets/work/<slug>/`, numbered by where they appear in
 the story (`00-` for the hero/thumbnail shots, then reading order) — follow
