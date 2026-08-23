@@ -22,6 +22,8 @@
 @import '@fontsource-variable/inter/wght-italic.css';
 @import '@fontsource-variable/playfair-display';
 @import '@fontsource-variable/playfair-display/wght-italic.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/500-italic.css';
 @import '@fontsource/ibm-plex-mono/700.css';
 
 /* ---- 1 · Colour primitives -------------------------------------------------
@@ -89,7 +91,6 @@
 	--lh-title: 1.25; /* 48/60 */
 	--lh-heading: 1.267; /* 30/38 */
 	--lh-subtitle: 1.333; /* 24/32 */
-	--lh-tab: 1.5; /* 20/30 */
 	--lh-body: 1.556; /* 18/28 */
 	--lh-ui: 1.5; /* 16/24 */
 	--lh-fine: 1.429; /* 14/20 */
@@ -201,6 +202,17 @@
 	--secondary-border: var(--gray-200);
 	--text-on-secondary: var(--gray-900);
 
+	/* The brand mark's own orange — the swoosh, in the nav logo and in the
+	   footer mascot. A literal, and deliberately not a rung on the amber
+	   ramp: it is artwork colour, not interface colour, so it is fixed the
+	   way a logo's colour is fixed and does not move with the theme (the
+	   mascot SVGs bake the same value into their paths for the same reason).
+	   Named here rather than left inline in the nav's markup so the mark and
+	   the mascot cannot drift apart, and so the one place to change it is
+	   findable. Do not reach for this as a text or surface colour — that is
+	   --primary-text's job, and it is 2.4:1 against --bg. */
+	--brand-mark: #ef942b;
+
 	/* The scrim a "coming soon" cover sits under. Also a literal rather than a
 	   ramp step — it sits on a photo, not the page, so it stays the same wash
 	   in both themes for the same reason --secondary does: a value tied to the
@@ -275,8 +287,6 @@
 .type-reflection,
 .type-subtitle,
 .type-card-title,
-.type-tab,
-.type-tab-active,
 .type-nav-link,
 .type-body,
 .type-ui-label,
@@ -345,27 +355,17 @@
 	letter-spacing: var(--track-tight);
 }
 
-/* Chapter nav. 500 → 700 is a wide enough gap that the state reads before
-   the amber does — the tab is not distinguished by colour alone. */
-.type-tab {
-	font-family: var(--font-display);
-	font-weight: var(--weight-medium);
-	font-size: var(--size-tab);
-	line-height: var(--lh-tab);
-}
-
-.type-tab-active {
-	font-family: var(--font-display);
-	font-weight: var(--weight-bold);
-	font-size: var(--size-tab);
-	line-height: var(--lh-tab);
-}
-
-/* Primary site nav (Work / About). Sans, and on the ui rung rather than
-   .type-tab's — that rung belongs to the chapter nav inside a case study,
-   a different scale for a different context. Weight starts at medium so the
-   active link's own bump to bold is what signals state, same 500 → 700 gap
-   as .type-tab / .type-tab-active. */
+/* One tab style for every tab list on the site — the primary site nav
+   (Work / About), the case-study chapter rail, and the generic Tabs
+   component all wear it (paired with `.tab` in components.css, which adds
+   only layout/interaction). A chapter tab and a nav link are the same kind
+   of control, so they no longer have separate rungs — this used to split
+   into `.type-tab`/`.type-tab-active` (Playfair, the tab rung) for the
+   chapter rail and `.type-nav-link` (Inter, the ui rung) for the site nav;
+   the rail now reads Inter at the ui rung too. Weight starts at medium so
+   the active tab's own bump to bold (applied via `[aria-current]`/
+   `[aria-selected]` in components.css, not a modifier class here) is what
+   signals state — never colour alone. */
 .type-nav-link {
 	font-family: var(--font-sans);
 	font-weight: var(--weight-medium);

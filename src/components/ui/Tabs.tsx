@@ -48,7 +48,7 @@ export const Tabs = ({ tabs, defaultTabId, onChange }: TabsProps) => {
 						id={`${base}-${t.id}`}
 						type="button"
 						role="tab"
-						className="tab"
+						className="tab type-nav-link"
 						aria-selected={selected}
 						tabIndex={selected ? 0 : -1}
 						onClick={() => select(t.id)}

@@ -82,7 +82,7 @@
 
 /* ---- Button ----------------------------------------------------------------
    Three variants. Primary is the brand action; secondary is its equal-weight
-   neutral counterpart; ghost recedes.
+   neutral counterpart; tertiary recedes.
 
    Focus is the outline, not a border swap — swapping a border reflows the
    text by a pixel, which reads as a jitter when tabbing through a row.
@@ -167,19 +167,19 @@
 	background: var(--bg-raised);
 }
 
-.btn--ghost,
-.icon-btn--ghost {
+.btn--tertiary,
+.icon-btn--tertiary {
 	background: transparent;
 	color: var(--primary-text);
 }
-.btn--ghost {
+.btn--tertiary {
 	border-color: var(--border-strong);
 }
-.btn--ghost:hover:not(:disabled) {
+.btn--tertiary:hover:not(:disabled) {
 	background: var(--primary-subtle);
 	border-color: var(--primary-text);
 }
-.icon-btn--ghost:hover:not(:disabled) {
+.icon-btn--tertiary:hover:not(:disabled) {
 	color: var(--text);
 	background: color-mix(in srgb, var(--primary-text) 18%, transparent);
 }
@@ -213,9 +213,9 @@
 
 /* ---- IconButton ---------------------------------------------------------
    Icon-only, so shape is either a circle (a control that floats over
-   content — video play, a lightbox close) or ghost (sits inline in flow —
-   a note's dismiss). Same primary/secondary/ghost vocabulary as Button;
-   only shape and sizing are IconButton's own.
+   content — video play, a lightbox close) or tertiary (sits inline in flow —
+   a note's dismiss, a breadcrumb's home link). Same primary/secondary/
+   tertiary vocabulary as Button; only shape and sizing are IconButton's own.
    -------------------------------------------------------------------------- */
 .icon-btn {
 	display: inline-flex;
@@ -226,9 +226,13 @@
 	border: 1px solid transparent;
 	border-radius: var(--radius-full);
 	cursor: pointer;
+	/* Same reset .btn carries, and for the same reason: either can be worn
+	   by an anchor, and the UA paints its underline straight across an
+	   inline-flex box — under the glyph, in the variant's own colour. */
+	text-decoration: none;
 }
 
-.icon-btn--ghost {
+.icon-btn--tertiary {
 	border-radius: var(--radius-xs);
 }
 
@@ -263,9 +267,17 @@
 }
 
 /* ---- Tabs ------------------------------------------------------------------
-   Chapter navigation. The state is carried by weight (500 → 700) as well as
-   colour and the underline, so it survives greyscale and does not depend on
-   colour vision — the reason the inactive weight was lifted off 400.
+   Chapter navigation, and the generic design-system Tabs component — both a
+   tab list, so both wear `.type-nav-link` for typography (applied alongside
+   `.tab` in the markup) rather than this class hand-rolling its own font
+   rules. That is the same style the site nav's Work/About switcher uses,
+   which is deliberate: a chapter tab and a nav link are the same kind of
+   control. `.tab` itself only supplies layout and interaction.
+
+   The state is carried by weight (500 → 700, `.type-nav-link`'s own medium
+   bumped to bold below) as well as colour and the underline, so it survives
+   greyscale and does not depend on colour vision — the reason the inactive
+   weight was lifted off 400.
 
    The rail is a border on the list; the active marker is a box-shadow inset
    on the button, so the two never fight over the same pixel row.
@@ -282,11 +294,6 @@
 	background: none;
 	border: 0;
 	cursor: pointer;
-
-	font-family: var(--font-display);
-	font-weight: var(--weight-medium);
-	font-size: var(--size-tab);
-	line-height: var(--lh-tab);
 	color: var(--text-muted);
 
 	padding: var(--spacing-md) var(--spacing-xs) var(--spacing-lg);
@@ -358,7 +365,7 @@
 	margin: 0;
 }
 
-/* Shape, colour and size come from .icon-btn--ghost.icon-btn--sm; this is
+/* Shape, colour and size come from .icon-btn--tertiary.icon-btn--sm; this is
    only the note-specific placement. */
 .note__close {
 	position: absolute;
@@ -504,9 +511,28 @@
 	background: color-mix(in srgb, var(--bg) 92%, transparent);
 	backdrop-filter: blur(8px);
 	border-block-end: 1px solid var(--border);
+	transition:
+		transform 250ms ease,
+		opacity 250ms ease;
+}
+
+/* Set once the footer comes into view (ChapterRail's IntersectionObserver) —
+   there are no more chapters below to jump to, so the rail retracts instead
+   of staying pinned over the footer for the rest of the scroll. */
+.rail--hidden {
+	transform: translateY(-100%);
+	opacity: 0;
+	pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.rail {
+		transition-duration: 0.01ms;
+	}
 }
 
 .rail__inner {
+	position: relative; /* anchor for .rail__indicator, below */
 	max-width: var(--measure-page);
 	margin: 0 auto;
 	padding-inline: var(--gutter);
@@ -521,15 +547,54 @@
 	justify-content: space-between;
 }
 
+/* One shared bar that glides between chapters instead of each tab carrying
+   its own static underline — the same mechanism as `.nav__indicator`, so the
+   rail reads as the same system as the site nav rather than a different
+   tab style. Left/width are written in ChapterRail's effect; it lives inside
+   the scrolling `.rail__inner` (not `.rail`) so it scrolls with the tab it
+   points to instead of staying pinned while the row scrolls under it. */
+.rail__indicator {
+	position: absolute;
+	inset-block-end: 0;
+	height: 2px;
+	border-start-start-radius: var(--radius-xxs);
+	border-start-end-radius: var(--radius-xxs);
+	background: var(--primary-text);
+	pointer-events: none;
+	transition:
+		left 300ms cubic-bezier(0, 0, 0.2, 1),
+		width 300ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.rail__indicator {
+		transition-duration: 0.01ms;
+	}
+}
+
+/* The rail's active state is carried by `.rail__indicator` now, not the
+   shared `.tab[aria-selected='true']` box-shadow — scoped here rather than
+   changed on `.tab` itself, since that class is also the design system's
+   general-purpose Tabs component (src/components/ui/Tabs.tsx), which keeps
+   its own static underline. */
+.rail__inner .tab[aria-selected='true'] {
+	box-shadow: none;
+}
+
 /* Every tab carries inline padding so its focus ring has somewhere to sit.
    That padding would push the first and last chapter's *letterforms* 4px
    inside the content edge they are meant to align with, so the outer two are
    pulled back out by exactly that much. Alignment reads off the type, not the
-   box around it. */
-.rail__inner .tab:first-child {
+   box around it.
+
+   `:first-of-type`/`:last-of-type`, not `:first-child`/`:last-child` — the
+   indicator span (above) is now the last actual child of `.rail__inner`, so
+   `:last-child` would stop matching the last button entirely. `-of-type`
+   matches by tag (`<button>`), which the `<span>` indicator doesn't share. */
+.rail__inner .tab:first-of-type {
 	margin-inline-start: calc(var(--spacing-xs) * -1);
 }
-.rail__inner .tab:last-child {
+.rail__inner .tab:last-of-type {
 	margin-inline-end: calc(var(--spacing-xs) * -1);
 }
 .rail__inner::-webkit-scrollbar {

@@ -1,0 +1,9 @@
+<!-- Slash divider — the breadcrumb separator between crumbs. Not a Lucide
+     icon; kept in the same house format as the rest of the registry
+     (currentColor, round caps) but on its own 20×20 grid since it's a single
+     diagonal rule, not a glyph drawn to Lucide's padding conventions.
+     Originally a hardcoded #E3E7E8 (gray-200), edited so it can be styled
+     per theme. -->
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M5.83325 18.3333L14.1666 1.66666" stroke="currentColor" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

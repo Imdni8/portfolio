@@ -8,6 +8,7 @@ import { Glossary } from '../components/case-study/Glossary';
 import { VideoPlayer } from '../components/case-study/VideoPlayer';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
+import Footer from '../components/footer/Footer.astro';
 import type { ImageMetadata } from 'astro';
 
 interface Props {
@@ -57,6 +58,8 @@ const { title, subtitle, facts = [], chapters = [], hero, actions = {} } = Astro
 		<main id="story">
 			<slot />
 		</main>
+
+		<Footer measure="page" />
 
 		{/* One overlay each per page, idle-loaded — nothing here is needed for
 		    the first paint, and two of the three may never be opened at all. */}

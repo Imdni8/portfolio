@@ -50,6 +50,22 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 <header class="hero">
 	<div class="hero__inner">
 		<div class="hero__lede">
+			{/* CaseStudyLayout renders no SiteNav — this is the only way back to
+			    the homepage on a case-study page, so the crumb carries the
+			    same word the nav uses for `/` ("Work", not "Home") rather
+			    than leaving the whole trail resting on an unlabelled glyph.
+			    "Project" is a static crumb naming the page kind, not this
+			    case study's title; the title right below it already carries
+			    that. */}
+			<nav class="hero__breadcrumb" aria-label="Breadcrumb">
+				<a class="type-body breadcrumb__home" href="/">
+					<Icon name="home" />
+					Work
+				</a>
+				<Icon name="slash-divider" class="breadcrumb__divider" />
+				<span class="type-body breadcrumb__current" aria-current="page">Project</span>
+			</nav>
+
 			<h1 class="type-title">{title}</h1>
 			<p class="type-subtitle hero__subtitle">{subtitle}</p>
 
@@ -160,6 +176,74 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 			   the row height, or its entries cannot sit flush with the top and
 			   bottom of the column beside them. */
 		}
+	}
+
+	/* ---- breadcrumb ----
+	   .hero__lede's own first child, not a separate grid row — the 4px gap to
+	   the title below is that grid's own --spacing-2xl (20px) row gap, clawed
+	   back by the margin below rather than a second, untracked gap value.
+	   Colours are lifted straight off the Paper node: the divider's gray-200
+	   is --text-body's own dark value, and the home icon's amber-500 is
+	   --primary-text (not --primary, a filled-control token) since it sits
+	   directly on the page ground. */
+	.hero__breadcrumb {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		margin-block-end: calc(var(--spacing-xs) - var(--spacing-2xl));
+	}
+
+	/* A plain link, not an icon-btn: the crumb has a visible label now, so
+	   there is no icon-only control left to wear that component — and with
+	   it goes the negative margin that used to claw back the button's own
+	   padding so the glyph sat flush in the row. Underline on hover rather
+	   than a colour change, since amber at rest is the crumb's identity. */
+	.breadcrumb__home {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		color: var(--primary-text);
+		text-decoration: none;
+	}
+
+	/* :global() for the same reason as the divider below — the span is
+	   Icon.astro's, not this template's. 1.125em, not a fixed size, is the
+	   ratio `.btn .icon` already uses: the glyph tracks the label. */
+	.breadcrumb__home :global(.icon) {
+		width: 1.125em;
+		height: 1.125em;
+	}
+
+	.breadcrumb__home:hover {
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+
+	.breadcrumb__home:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-xs);
+	}
+
+	/* :global() because the divider span is rendered by Icon.astro, not this
+	   component — Astro scopes a style block to the elements its own template
+	   renders, so an unqualified `.breadcrumb__divider` never matches, even
+	   with the class passed down as a prop. Same workaround SiteNav.astro
+	   makes for `.nav-dropdown__chevron`. Without it these three declarations
+	   are silently dropped and the divider only looks right by coincidence:
+	   `.icon`'s 1em happens to equal 1rem, and the inherited body colour
+	   happens to be --text-body. */
+	:global(.breadcrumb__divider) {
+		width: 1rem;
+		height: 1rem;
+		color: var(--text-body);
+	}
+
+	/* --text-disabled rather than --text: the token itself signals "inert"
+	   the way a disabled control would, which is right for a crumb that
+	   isn't clickable. */
+	.breadcrumb__current {
+		color: var(--text-disabled);
 	}
 
 	.hero__lede {

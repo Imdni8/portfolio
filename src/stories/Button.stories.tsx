@@ -8,7 +8,7 @@ const meta = {
 	component: Button,
 	args: { children: 'View final solution', variant: 'primary' },
 	argTypes: {
-		variant: { control: 'inline-radio', options: ['primary', 'secondary', 'ghost'] },
+		variant: { control: 'inline-radio', options: ['primary', 'secondary', 'tertiary'] },
 		icon: { table: { disable: true } },
 	},
 } satisfies Meta<typeof Button>;
@@ -23,7 +23,7 @@ export const Variants: Story = {
 	render: () => (
 		<Page
 			title="Button"
-			lede="Three variants, one size. Primary is the brand action; secondary is its equal-weight neutral counterpart; ghost recedes."
+			lede="Three variants, one size. Primary is the brand action; secondary is its equal-weight neutral counterpart; tertiary recedes."
 		>
 			<Group
 				label="Variants"
@@ -36,7 +36,7 @@ export const Variants: Story = {
 					<Button variant="secondary" icon={<Icon name="arrow-down" />}>
 						Read case study
 					</Button>
-					<Button variant="ghost">Ghost</Button>
+					<Button variant="tertiary">Tertiary</Button>
 				</div>
 			</Group>
 
@@ -62,7 +62,7 @@ export const Variants: Story = {
 				<div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-lg)', alignItems: 'center' }}>
 					<Button variant="primary">Primary</Button>
 					<Button variant="secondary">Secondary</Button>
-					<Button variant="ghost">Ghost</Button>
+					<Button variant="tertiary">Tertiary</Button>
 				</div>
 			</Group>
 		</Page>

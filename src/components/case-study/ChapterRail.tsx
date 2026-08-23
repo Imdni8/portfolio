@@ -11,7 +11,11 @@ export type Chapter = { id: string; label: string };
  */
 export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 	const [active, setActive] = useState(chapters[0]?.id);
+	// True once the footer has come into view — there's nothing left in the
+	// case study for the rail to navigate to at that point, so it retracts.
+	const [pastEnd, setPastEnd] = useState(false);
 	const railRef = useRef<HTMLDivElement>(null);
+	const indicatorRef = useRef<HTMLSpanElement>(null);
 	// Read once — it never changes for the session, and every scroll-spy
 	// transition below would otherwise construct a fresh MediaQueryList just
 	// to read this one boolean.
@@ -53,6 +57,28 @@ export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 		return () => io.disconnect();
 	}, [chapters]);
 
+	// The footer sits immediately after `<main>` (see CaseStudyLayout), so its
+	// arrival in the viewport is the signal that every chapter has been
+	// scrolled past.
+	useEffect(() => {
+		const footer = document.querySelector('.site-footer');
+		if (!footer) return;
+		const io = new IntersectionObserver(([entry]) => setPastEnd(entry.isIntersecting), { threshold: 0 });
+		io.observe(footer);
+		return () => io.disconnect();
+	}, []);
+
+	// Slide the shared bar under the active tab — same mechanism as the site
+	// nav's `.nav__indicator` (an offset/width pair written on the active
+	// element each time it changes), so the two read as one system.
+	useEffect(() => {
+		const indicator = indicatorRef.current;
+		const activeTab = railRef.current?.querySelector<HTMLElement>('[aria-current="true"]');
+		if (!indicator || !activeTab) return;
+		indicator.style.left = `${activeTab.offsetLeft}px`;
+		indicator.style.width = `${activeTab.offsetWidth}px`;
+	}, [active]);
+
 	// Keep the current chapter in view when the rail itself has to scroll.
 	//
 	// Deliberately not scrollIntoView. That walks every scrollable ancestor up to
@@ -87,13 +113,17 @@ export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 	};
 
 	return (
-		<nav className="rail" aria-label="Chapters">
+		<nav
+			className={`rail${pastEnd ? ' rail--hidden' : ''}`}
+			aria-label="Chapters"
+			inert={pastEnd || undefined}
+		>
 			<div className="rail__inner tabs" ref={railRef}>
 				{chapters.map((c) => (
 					<button
 						key={c.id}
 						type="button"
-						className="tab"
+						className="tab type-nav-link"
 						aria-current={c.id === active}
 						aria-selected={c.id === active}
 						onClick={() => go(c.id)}
@@ -101,6 +131,7 @@ export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 						{c.label}
 					</button>
 				))}
+				<span className="rail__indicator" aria-hidden="true" ref={indicatorRef} />
 			</div>
 		</nav>
 	);
