@@ -203,6 +203,17 @@
 	--secondary-border: var(--gray-200);
 	--text-on-secondary: var(--gray-900);
 
+	/* The brand mark's own orange — the swoosh, in the nav logo and in the
+	   footer mascot. A literal, and deliberately not a rung on the amber
+	   ramp: it is artwork colour, not interface colour, so it is fixed the
+	   way a logo's colour is fixed and does not move with the theme (the
+	   mascot SVGs bake the same value into their paths for the same reason).
+	   Named here rather than left inline in the nav's markup so the mark and
+	   the mascot cannot drift apart, and so the one place to change it is
+	   findable. Do not reach for this as a text or surface colour — that is
+	   --primary-text's job, and it is 2.4:1 against --bg. */
+	--brand-mark: #ef942b;
+
 	/* The scrim a "coming soon" cover sits under. Also a literal rather than a
 	   ramp step — it sits on a photo, not the page, so it stays the same wash
 	   in both themes for the same reason --secondary does: a value tied to the

@@ -59,7 +59,7 @@ const { title, subtitle, facts = [], chapters = [], hero, actions = {} } = Astro
 			<slot />
 		</main>
 
-		<Footer />
+		<Footer measure="page" />
 
 		{/* One overlay each per page, idle-loaded — nothing here is needed for
 		    the first paint, and two of the three may never be opened at all. */}

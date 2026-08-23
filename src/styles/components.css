@@ -226,6 +226,10 @@
 	border: 1px solid transparent;
 	border-radius: var(--radius-full);
 	cursor: pointer;
+	/* Same reset .btn carries, and for the same reason: either can be worn
+	   by an anchor, and the UA paints its underline straight across an
+	   inline-flex box — under the glyph, in the variant's own colour. */
+	text-decoration: none;
 }
 
 .icon-btn--tertiary {
@@ -233,12 +237,12 @@
 }
 
 .icon-btn--sm {
-	width: var(--spacing-4xl);
-	height: var(--spacing-4xl);
+	width: var(--spacing-3xl);
+	height: var(--spacing-3xl);
 }
 .icon-btn--sm .icon {
-	width: 1.25rem;
-	height: 1.25rem;
+	width: 0.875rem;
+	height: 0.875rem;
 }
 
 .icon-btn--md {
@@ -246,9 +250,9 @@
 	height: var(--spacing-5xl);
 }
 .icon-btn--md .icon {
-	/* Interpolated between sm (32px box / 20px icon) and lg (48px box / 26px
-	   icon) rather than left at sm's value — the box grows from sm to md and
-	   the icon was not growing with it. */
+	/* Interpolated between sm (24px box / 14px icon) and lg (48px box / 26px
+	   icon) rather than left at sm's value — the box grows 67% from sm to md
+	   and the icon was not growing with it. */
 	width: 1.375rem;
 	height: 1.375rem;
 }

@@ -124,11 +124,27 @@ Lucide UI glyphs plus one vendored exception, not one-off brand marks).
 `Instagram.svg`/`Github.svg`/`Linkedin.svg` were edited to `stroke="currentColor"`
 (originally a hardcoded `#1E1E1E`, invisible against the dark ground) so they
 can be styled — muted (`--text-muted`) at rest, full (`--text`) on hover/focus,
-same resting→hover contrast as `.nav__link`. `India-circle.svg` and the mascot
-mark are deliberately multi-colour and stay untouched.
+same resting→hover contrast as `.nav__link`. The mascot mark is deliberately
+multi-colour and stays untouched.
+
+The brand mark beside the name is the one asset the footer does *not* own — it
+imports `src/assets/nav/logo.svg`, the same file `SiteNav.astro` renders, so
+the mark at the bottom of the page cannot drift from the one at the top. Its
+`fill` is `currentColor`, coloured with `--brand-mark` in both places (not
+`--primary-text` — it is the logo). It is sized by height with `width: auto`,
+since the glyph is 21×40 and not square. It replaced an India flag, whose
+`India-circle.svg` is deleted.
+
+It is an `<a href="/">`, not a span — the mark goes home from both ends of
+the page, matching `.nav__brand`. That makes it interactive, so it takes an
+`aria-label` (never `aria-hidden`, which would strip the accessible name off
+a focusable element) and a `:focus-visible` ring. Its hover is `opacity`, not
+a colour swap: `.site-footer__social` can go muted → full because it starts
+on the semantic layer, but this one starts on the amber ramp and has nowhere
+to move without leaving it.
 
 Structure, top to bottom: the mascot mark, a full-width rule, then a row —
-India flag + name (left) · tagline (centre) · social links (right).
+brand mark + name (left) · tagline (centre) · social links (right).
 
 - **`position: relative` on `.site-footer` is load-bearing, not decorative.**
   On `index.astro`/`about.astro` the fixed `.site-field` water-field

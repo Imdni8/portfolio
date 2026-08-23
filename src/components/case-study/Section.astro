@@ -142,8 +142,12 @@ const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro
 		max-width: 62ch;
 	}
 
-	.section__body :global(ol),
-	.section__body :global(ul) {
+	/* `>` for the same reason as the paragraph rule above, not just symmetry:
+	   without it a list authored inside a nested component — a <NoteBox> in a
+	   <Section>, which the MDX kit allows — is reset to 18px running copy and
+	   stops matching the note's own 14px paragraphs directly above it. */
+	.section__body > :global(ol),
+	.section__body > :global(ul) {
 		font-family: var(--font-sans);
 		font-size: var(--size-body);
 		line-height: var(--lh-body);

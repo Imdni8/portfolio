@@ -1,19 +1,32 @@
 ---
 import mascotMark from '../../assets/footer/Tousif&clawd.svg?raw';
 import mascotHoverMark from '../../assets/footer/Tousif&clawd-hover.svg?raw';
-import indiaFlag from '../../assets/footer/India-circle.svg?raw';
+import logoMark from '../../assets/nav/logo.svg?raw';
 import instagramIcon from '../../assets/footer/Instagram.svg?raw';
 import githubIcon from '../../assets/footer/Github.svg?raw';
 import linkedinIcon from '../../assets/footer/Linkedin.svg?raw';
 
+import { links } from '../../data/links';
+
+interface Props {
+	/* Which page cap to line up with. The footer is chrome shared by hosts
+	   that do not agree on one: index and about cap their content at
+	   --measure-content (the same cap the nav uses), case studies at
+	   --measure-page. Matching the host is the whole point of the rule — one
+	   that overhangs the grid above it reads as a different page. */
+	measure?: 'content' | 'page';
+}
+
+const { measure = 'content' } = Astro.props;
+
 const socials = [
-	{ name: 'Instagram', href: 'https://www.instagram.com/oxytousif/', svg: instagramIcon },
-	{ name: 'GitHub', href: 'https://github.com/Imdni8', svg: githubIcon },
-	{ name: 'LinkedIn', href: 'https://www.linkedin.com/in/tousif-rahaman/', svg: linkedinIcon },
+	{ name: 'Instagram', href: links.instagram, svg: instagramIcon },
+	{ name: 'GitHub', href: links.github, svg: githubIcon },
+	{ name: 'LinkedIn', href: links.linkedin, svg: linkedinIcon },
 ];
 ---
 
-<footer class="site-footer">
+<footer class="site-footer" data-measure={measure}>
 	<div class="site-footer__inner">
 		<span class="site-footer__brand" role="img" aria-label="Tousif & Clawd">
 			<span class="site-footer__brand-mark site-footer__brand-mark--rest" set:html={mascotMark} />
@@ -24,7 +37,7 @@ const socials = [
 
 		<div class="site-footer__meta">
 			<div class="site-footer__identity">
-				<span class="site-footer__flag" role="img" aria-label="India" set:html={indiaFlag} />
+				<a class="site-footer__mark" href="/" aria-label="Home" set:html={logoMark} />
 				<span class="type-meta site-footer__name">Tousif Rahaman</span>
 			</div>
 
@@ -62,17 +75,45 @@ const socials = [
 		   DOM order. Without this the footer lays out correctly but is
 		   invisible, hidden under that fixed layer. */
 		position: relative;
+		/* 75px is a literal, not a token — the spacing scale's nearest rungs
+		   (--spacing-7xl 64px, --spacing-8xl 80px) don't land on the
+		   requested value, so this is deliberate, same as --secondary being
+		   a literal in tokens.css.
+
+		   It is a top-up on the trailing space each host reserves, not the
+		   whole gap, so it only reads the same on every page while those
+		   agree: about's --spacing-9xl and a case study's reflection padding
+		   are both 96px. index was carrying 152px (128px of its own plus the
+		   cards' 24px) and sat 56px lower than the other two as a result —
+		   see the note on `.work`'s padding-block-end in index.astro. */
 		margin-block-start: 75px;
 	}
 
+	/* Both the cap and the box-sizing are stated outright, because neither
+	   can be left to the host: index ships no box-sizing reset while about
+	   and CaseStudyLayout do, so an unpinned `max-width` + `padding-inline`
+	   pair resolved up to 128px wider on the homepage than elsewhere. And
+	   the hosts disagree about the gutter too — index and about put it
+	   *outside* --measure-content (about's frame carries no padding of its
+	   own; the gutter is on its parent), while a case study's Section puts
+	   it *inside* --measure-page. Adding the gutter to the cap here is what
+	   reproduces the first case under a pinned border-box; --measure-page
+	   is used bare because that convention already counts it in. Measured:
+	   the rule lands on the content edge to the pixel on all three pages,
+	   at 1280, 1470 and 1600. */
 	.site-footer__inner {
-		max-width: var(--measure-page);
+		box-sizing: border-box;
+		max-width: calc(var(--measure-content) + 2 * var(--gutter));
 		margin-inline: auto;
 		padding-inline: var(--gutter);
 		padding-block-end: var(--spacing-6xl);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+	}
+
+	.site-footer[data-measure='page'] .site-footer__inner {
+		max-width: var(--measure-page);
 	}
 
 	.site-footer__brand {
@@ -154,15 +195,47 @@ const socials = [
 		gap: var(--spacing-md);
 	}
 
-	.site-footer__flag {
+	.site-footer__mark {
 		flex-shrink: 0;
 		display: inline-flex;
+		/* The mark's fill is currentColor, so the colour is named here rather
+		   than baked into the path — same token the nav brand uses, since it
+		   is the same mark doing the same job at the other end of the page.
+		   Not --primary/--primary-text: this is the logo. */
+		color: var(--brand-mark);
+		text-decoration: none;
+		transition: opacity 0.15s ease;
 	}
 
-	.site-footer__flag :global(svg) {
+	/* The mark is the one link in the footer that carries brand colour, so it
+	   cannot signal hover the way `.site-footer__social` does (muted → full)
+	   without leaving the ramp. Opacity keeps the hue and still reads as an
+	   affordance in greyscale. */
+	.site-footer__mark:hover {
+		opacity: 0.7;
+	}
+
+	.site-footer__mark:focus-visible {
+		opacity: 1;
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-xs);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.site-footer__mark {
+			transition-duration: 0.01ms;
+		}
+	}
+
+	/* :global(): the <svg> arrives via set:html, so it carries no scope
+	   attribute for an unqualified `svg` to match. Height-driven with
+	   `width: auto` — the mark is 21x40, so pinning both axes to the square
+	   the flag used to occupy would squash it. */
+	.site-footer__mark :global(svg) {
 		display: block;
-		width: 1.5rem;
 		height: 1.5rem;
+		width: auto;
 	}
 
 	.site-footer__name {
@@ -220,6 +293,16 @@ const socials = [
 		.site-footer__meta {
 			flex-direction: column;
 			gap: var(--spacing-xl);
+		}
+
+		/* The X shift exists to park the mark over one word of a three-part
+		   row; the row is a stacked column here, so there is nothing to park
+		   it over. Left in place it pushed the mark hard against the right
+		   edge — and off the page below ~346px, where a transform still
+		   counts toward scrollable overflow. The Y nudge stays: the mark
+		   still stands on the rule. */
+		.site-footer__brand {
+			transform: translate(0, 12px);
 		}
 	}
 </style>

@@ -426,7 +426,13 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		   (see `.hero`). Same pixels either way; sticky cares which box owns
 		   them. */
 		margin-block-start: calc(-1 * var(--overlap));
-		padding-block: 0 var(--spacing-10xl);
+		/* 64px, not the 128px this used to carry. What has to match across
+		   pages is the trailing space above the footer, and the cards bring
+		   24px of their own bottom padding to it — so this rung, not the one
+		   about and a case study use directly (96px, --spacing-9xl there and
+		   the reflection's own padding here). 88px total, 8px under them:
+		   72px would be exact and is not a rung on the scale. */
+		padding-block: 0 var(--spacing-7xl);
 	}
 
 	/* Shares `.work__inner`'s max-width/gutter so it lines up with the card

@@ -12,6 +12,7 @@ import Tag from '../components/ui/Tag.astro';
 import Icon from '../components/ui/Icon.astro';
 import Footer from '../components/footer/Footer.astro';
 import portrait from '../assets/about/BLR_portrait_B_Tousif Rahaman.jpg';
+import { links } from '../data/links';
 
 /* What the page claims, and what it can point at. Both lists are short and
    read in order, so they are declared here rather than threaded through a
@@ -32,8 +33,8 @@ const impact = [
 	{ value: '3', label: 'iF design awards' },
 ];
 
-const resumeHref = 'https://drive.google.com/file/d/15AhrPiZ9VO-Q4cH8hQqKA49DYBKDYPa5/view?usp=sharing';
-const linkedInHref = 'https://www.linkedin.com/in/tousif-rahaman/';
+const resumeHref = links.resume;
+const linkedInHref = links.linkedin;
 ---
 
 <!doctype html>

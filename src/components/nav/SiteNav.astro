@@ -1,5 +1,10 @@
 ---
 import Icon from '../ui/Icon.astro';
+/* One source for the mark, rendered twice below — visible brand and hidden
+   spacer. Imported ?raw and injected with set:html, the same pattern the
+   footer uses for its brand marks, rather than through ui/icons.ts (that
+   registry is Lucide UI glyphs, not one-off brand artwork). */
+import logoMark from '../../assets/nav/logo.svg?raw';
 
 const sideProjects = [
 	{ label: 'Goalaris', href: 'https://goalaris-beta.vercel.app/' },
@@ -21,13 +26,7 @@ const onAbout = path.startsWith('/about');
 
 <header class="nav-shell" transition:persist>
 	<div class="nav glass" data-nav-tint-pane>
-		<a class="nav__brand" href="/" aria-label="Tousif Rahaman — home">
-			<svg width="21" height="40" viewBox="0 0 21 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-				<path
-					d="M2.09494 27.9217L2.09135 27.9327C-0.987036 39.1414 4.65474 40.3816 8.28926 39.1414C14.864 36.8981 19.2941 17.3495 19.8281 10.4076C20.2806 4.52502 20.416 0.957926 17.7114 0.0678851C15.0068 -0.822156 8.21541 7.17745 5.23237 15.9775C8.464 7.42604 15.325 -0.57845 17.7114 0.763919C20.0978 2.10629 18.4859 9.58937 18.0181 13.1226C16.6477 21.6624 13.3006 28.9838 11.4104 32.0091C9.76924 34.5077 7.72161 35.8065 5.23237 34.8427C3.20454 34.0186 3.10782 31.1787 3.89244 28.5031L3.89525 28.4942C5.68927 20.6889 9.22578 17.2859 10.8007 16.574C11.0493 16.4617 11.6956 15.9075 10.2538 16.1266C8.21388 16.4367 3.28015 18.0009 0.0502259 21.5944C-0.0232912 21.6762 -0.0143885 21.8025 0.0683472 21.875C0.634719 22.371 0.927832 22.6513 1.49036 23.1443C1.57759 23.2207 1.71112 23.2068 1.78152 23.1147C3.00813 21.5085 5.92118 18.3601 8.7825 17.3495C5.49376 20.0414 3.42594 23.9795 2.09494 27.9217Z"
-					fill="#EF942B"></path>
-			</svg>
-		</a>
+		<a class="nav__brand" href="/" aria-label="Tousif Rahaman — home" set:html={logoMark} />
 
 		<!-- Hidden mirror of the side-projects pill (+ the gap in front of it),
 		     so the brand/spacer bookend centres Work/About against the midpoint
@@ -61,19 +60,7 @@ const onAbout = path.startsWith('/about');
 		<!-- Mirrors the brand mark so the link group centres against two equal
 		     bookends instead of skewing toward the visible logo on the left —
 		     same trick as the Paper file's own hidden spacer. -->
-		<svg
-			class="nav__spacer"
-			aria-hidden="true"
-			width="21"
-			height="40"
-			viewBox="0 0 21 40"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<path
-				d="M2.09494 27.9217L2.09135 27.9327C-0.987036 39.1414 4.65474 40.3816 8.28926 39.1414C14.864 36.8981 19.2941 17.3495 19.8281 10.4076C20.2806 4.52502 20.416 0.957926 17.7114 0.0678851C15.0068 -0.822156 8.21541 7.17745 5.23237 15.9775C8.464 7.42604 15.325 -0.57845 17.7114 0.763919C20.0978 2.10629 18.4859 9.58937 18.0181 13.1226C16.6477 21.6624 13.3006 28.9838 11.4104 32.0091C9.76924 34.5077 7.72161 35.8065 5.23237 34.8427C3.20454 34.0186 3.10782 31.1787 3.89244 28.5031L3.89525 28.4942C5.68927 20.6889 9.22578 17.2859 10.8007 16.574C11.0493 16.4617 11.6956 15.9075 10.2538 16.1266C8.21388 16.4367 3.28015 18.0009 0.0502259 21.5944C-0.0232912 21.6762 -0.0143885 21.8025 0.0683472 21.875C0.634719 22.371 0.927832 22.6513 1.49036 23.1443C1.57759 23.2207 1.71112 23.2068 1.78152 23.1147C3.00813 21.5085 5.92118 18.3601 8.7825 17.3495C5.49376 20.0414 3.42594 23.9795 2.09494 27.9217Z"
-				fill="#EF942B"></path>
-		</svg>
+		<span class="nav__spacer" aria-hidden="true" set:html={logoMark} />
 	</div>
 
 	<details class="nav-dropdown">
@@ -144,10 +131,16 @@ const onAbout = path.startsWith('/about');
 	.nav__brand {
 		display: inline-flex;
 		align-items: center;
-		color: inherit;
+		/* The mark's fill is currentColor, so the colour is named in the
+		   semantic layer now rather than baked into the path. --brand-mark,
+		   not --primary-text: this is the logo, and it holds the same orange
+		   as the footer mascot's swoosh on both themes. */
+		color: var(--brand-mark);
 	}
 
-	.nav__brand svg {
+	/* :global() on both of these: the <svg> arrives via set:html, so it has
+	   no scope attribute for an unqualified `svg` to match. */
+	.nav__brand :global(svg) {
 		display: block;
 		height: 1.75rem;
 		width: auto;
@@ -226,9 +219,13 @@ const onAbout = path.startsWith('/about');
 
 	.nav__spacer {
 		display: block;
+		visibility: hidden;
+	}
+
+	.nav__spacer :global(svg) {
+		display: block;
 		height: 1.75rem;
 		width: auto;
-		visibility: hidden;
 	}
 
 	.nav-dropdown-mirror {
