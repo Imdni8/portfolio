@@ -1,0 +1,339 @@
+---
+import { Image } from 'astro:assets';
+import '../styles/tokens.css';
+import '../styles/components.css';
+import ThemePreview from '../components/ThemePreview.astro';
+import DevOutline from '../components/DevOutline.astro';
+import WaterField from '../components/ui/WaterField.astro';
+import GlassDefs from '../components/ui/GlassDefs.astro';
+import SiteNav from '../components/nav/SiteNav.astro';
+import Tag from '../components/ui/Tag.astro';
+import portrait from '../assets/about/BLR_portrait_B_Tousif Rahaman.jpg';
+
+/* What the page claims, and what it can point at. Both lists are short and
+   read in order, so they are declared here rather than threaded through a
+   content collection — there is one about page, not a collection of them. */
+const skills = [
+	{ icon: 'figma', label: 'Interaction design' },
+	{ icon: 'figma', label: 'User research' },
+	{ icon: 'users', label: 'Stakeholder management' },
+	{ icon: 'database', label: 'Amplitude' },
+	{ icon: 'code-xml', label: 'Code prototypes' },
+	{ icon: 'code-xml', label: 'Design systems' },
+] as const;
+
+const impact = [
+	{ value: '64%', label: 'increase in measurements for My Virtual Care app' },
+	{ value: '70+', label: 'average SUS (system usability score) for designs' },
+	{ value: '60x', label: 'lower AI token cost after implementing Figma Code Connect' },
+	{ value: '3', label: 'iF design awards' },
+];
+
+// TODO: point at the real resume once the URL exists.
+const resumeHref = '#';
+// TODO: swap in the real LinkedIn profile.
+const linkedInHref = '#';
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		{import.meta.env.DEV && <ThemePreview />}
+		{import.meta.env.DEV && <DevOutline />}
+		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+		<title>About — Tousif's portfolio</title>
+		<meta
+			name="description"
+			content="Tousif Rahaman — product designer and design engineer, turning messy workflows and data into usable interfaces."
+		/>
+		<meta property="og:title" content="About — Tousif Rahaman" />
+		<meta
+			property="og:description"
+			content="Product designer and design engineer, turning messy workflows and data into usable interfaces."
+		/>
+		<meta property="og:type" content="profile" />
+	</head>
+	<body>
+		{/* The stats panel wears `.glass`; the filter it bends its backdrop with
+		    is defined once, here. */}
+		<GlassDefs />
+		{/* Something for the panel to refract against — same fixed field as the
+		    homepage. */}
+		<div class="site-field">
+			<WaterField grid={72} />
+		</div>
+		<SiteNav />
+
+		<main class="about">
+			<div class="about__frame">
+				<div class="about__row">
+					<div class="about__content">
+						<div class="about__top">
+							<div class="about__intro">
+								<h1 class="type-reflection about__title">
+									Product designer and design engineer, balancing intuition data and research to
+									turn messy workflows and data into usable interfaces end users can act on
+								</h1>
+								<div class="about__tags">
+									{skills.map(({ icon, label }) => <Tag icon={icon}>{label}</Tag>)}
+								</div>
+							</div>
+
+							<div class="about__actions">
+								<a class="btn btn--primary about__cta" href={resumeHref}>Download my resume</a>
+								<a
+									class="btn btn--secondary about__cta"
+									href={linkedInHref}
+									target="_blank"
+									rel="noopener noreferrer">Visit my Linkedin</a
+								>
+							</div>
+						</div>
+
+						<div class="about__copy">
+							<p class="type-body">
+								Hi I'm Tousif. And at the cost of sounding cliched — I love design. Knowing my work
+								improves someone's life gives me immense energy. I'm grateful my job let's me do
+								that.
+							</p>
+							<p class="type-body">
+								In my 5+ years designing, I've worked on projects of all scale, from making ppts 💀
+								to leading design for a product 🤩. What's remained common across is to always start
+								by understanding who I'm designing for. Overtime, as I "wised up", I also began to
+								see the business goal behind it. Once that connection became visible, I finally
+								understood how design creates value.
+							</p>
+							<p class="type-body">
+								Overtime, I've picked up skills to double down on creating (and measuring) value
+								through design. I'm obsessed with financial impact. Why should MBAs have all the
+								fun?
+							</p>
+							<p class="type-body">
+								But it's not all metrics, I also fixate over interactions, UI and (lately) motion. I
+								enjoy design crits and testing design concepts. And now with AI, I'm even more
+								engrossed in design sytems, UI bug fixes and shipping design end-to-end. Working in
+								CSS honestly feels similar to sanding a rough edge of a styrofoam prototype until it
+								feels just right. And that's craft to me — caring about details.
+							</p>
+						</div>
+					</div>
+
+					<div class="about__card">
+						<figure class="about__portrait">
+							<Image
+								src={portrait}
+								alt="Tousif Rahaman, smiling and wearing glasses"
+								widths={[355, 710, 1065]}
+								sizes="(min-width: 60rem) 22.1875rem, 92vw"
+							/>
+						</figure>
+
+						<h2 class="sr-only" id="impact-heading">Impact</h2>
+						<ul class="about__stats glass" aria-labelledby="impact-heading">
+							{
+								impact.map(({ value, label }) => (
+									<li class="about__stat">
+										<p class="type-heading about__stat-value">{value}</p>
+										<p class="type-body about__stat-label">{label}</p>
+									</li>
+								))
+							}
+						</ul>
+					</div>
+				</div>
+			</div>
+		</main>
+	</body>
+</html>
+
+<style is:global>
+	/* `.about__frame` shares its max-width with the nav, so both need to agree
+	   on whether padding/border count toward that width. `index.astro` carries
+	   no reset of its own; scoping this one to the page keeps it from changing
+	   anything already shipped. */
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+</style>
+
+<style>
+	body {
+		margin: 0;
+		background: var(--bg);
+		color: var(--text-body);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+	}
+
+	/* Fixed behind everything and sized to the viewport, so the field holds
+	   still while the page scrolls over it. Nothing else paints a background,
+	   which is what lets the field show through behind the stats panel. */
+	.site-field {
+		position: fixed;
+		inset: 0;
+		isolation: isolate;
+	}
+
+	.about {
+		/* `.site-field` is fixed and unpositioned content paints behind any
+		   positioned sibling regardless of DOM order — same reasoning as
+		   `index.astro`'s `.hero`. Without this, the headline, tags and prose
+		   render invisibly underneath the water field; only `.about__card`
+		   would show, because its `.glass` backdrop-filter happens to create a
+		   stacking context of its own. Load-bearing, not precautionary. */
+		position: relative;
+
+		/* What the nav occupies at the top of the viewport: its 24px inset plus
+		   its ~54px rendered height. Same value as the homepage. */
+		--nav-footprint: 4.875rem;
+		/* 355px, from the 1512×982 reference frame. No matching token — a
+		   bespoke composition measurement, shared between the row's grid track
+		   below and the card's own width. */
+		--about-card-width: 22.1875rem;
+
+		padding-block-start: calc(var(--nav-footprint) + var(--spacing-xl));
+		padding-block-end: var(--spacing-9xl);
+		padding-inline: var(--gutter);
+	}
+
+	.about__frame {
+		max-width: var(--measure-content);
+		margin-inline: auto;
+	}
+
+	.about__row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) var(--about-card-width);
+		align-items: end;
+		column-gap: var(--spacing-6xl);
+	}
+
+	.about__content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-5xl);
+	}
+
+	.about__top {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-3xl);
+	}
+
+	.about__intro {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+
+	.about__title {
+		color: var(--text);
+	}
+
+	.about__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-md);
+	}
+
+	.about__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xl);
+	}
+
+	/* No measure cap: the column is already bounded by the grid's
+	   minmax(0, 1fr) track, and there is nothing beside it left to narrow
+	   against. */
+	.about__copy {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-3xl);
+	}
+
+	/* One bordered pane, not two: the portrait and the stats sit flush inside
+	   it with no gap, so the border and radius read as a single card rather
+	   than two surfaces stacked apart. */
+	.about__card {
+		display: flex;
+		flex-direction: column;
+		overflow: clip;
+		border-radius: var(--radius-2xl);
+		border: 1px solid var(--glass-highlight);
+	}
+
+	.about__portrait {
+		margin: 0;
+		/* 301px, from the 1512×982 reference frame — the other half of the
+		   card's bespoke geometry, alongside --about-card-width above. */
+		height: 18.8125rem;
+	}
+
+	.about__portrait :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: 50% 30%;
+	}
+
+	/* `.glass` draws its own border and an inset top highlight line; both
+	   would show as a seam exactly where this panel meets the portrait above
+	   it, now that `.about__card`'s own border is the card's only perimeter. */
+	.about__stats {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-radius: var(--radius-none);
+		border: none;
+		box-shadow: none;
+	}
+
+	.about__stat {
+		padding: var(--spacing-xl);
+		border-block-end: 1px solid var(--glass-highlight);
+	}
+
+	.about__stat:last-child {
+		border-block-end: 0;
+	}
+
+	/* `--primary-text`, not `--primary`: this is a number being read, not a
+	   surface being filled, so it has to carry the contrast on both grounds. */
+	.about__stat-value {
+		color: var(--primary-text);
+	}
+
+	.about__stat-label {
+		color: var(--text);
+	}
+
+	/* Below the site's content breakpoint the row collapses to one column —
+	   content first, card second, in both DOM and visual order. That is a
+	   deliberate departure from a photo-led mobile order: nothing here is
+	   scroll-driven any more, so there is no reason to lead with the image. */
+	@media (max-width: 59.999rem) {
+		.about__row {
+			grid-template-columns: minmax(0, 1fr);
+			row-gap: var(--spacing-6xl);
+		}
+
+		.about__portrait {
+			height: auto;
+			aspect-ratio: 355 / 301;
+		}
+
+		.about__actions {
+			flex-direction: column;
+		}
+
+		.about__cta {
+			justify-content: center;
+		}
+	}
+</style>

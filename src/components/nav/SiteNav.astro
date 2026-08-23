@@ -8,6 +8,15 @@ const sideProjects = [
 		href: 'https://www.figma.com/community/plugin/1512420394545664823',
 	},
 ];
+
+/* Which link wears the current-page state, read off the URL rather than
+   hardcoded — the nav is rendered by every page that has one, so a literal
+   here marks the wrong link the moment there is more than one such page.
+   `startsWith` on /about so a future /about/… subpage keeps the mark; the
+   work index is an exact match, since /work/<slug> pages render no nav. */
+const path = Astro.url.pathname;
+const onWork = path === '/' || path === '';
+const onAbout = path.startsWith('/about');
 ---
 
 <header class="nav-shell">
@@ -39,8 +48,8 @@ const sideProjects = [
 		</div>
 
 		<nav class="nav__links" aria-label="Primary">
-			<a class="nav__link type-nav-link" href="/" aria-current="page">Work</a>
-			<a class="nav__link type-nav-link" href="/about">About</a>
+			<a class="nav__link type-nav-link" href="/" aria-current={onWork ? 'page' : undefined}>Work</a>
+			<a class="nav__link type-nav-link" href="/about" aria-current={onAbout ? 'page' : undefined}>About</a>
 		</nav>
 
 		<!-- Mirrors the brand mark so the link group centres against two equal
