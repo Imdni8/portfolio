@@ -9,6 +9,7 @@ import WaterField from '../components/ui/WaterField.astro';
 import GlassDefs from '../components/ui/GlassDefs.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import WorkCard from '../components/work/WorkCard.astro';
+import Footer from '../components/footer/Footer.astro';
 import heroWordmark from '../assets/homepage/Hero_wordmark.svg?raw';
 import philipsLogo from '../assets/homepage/philips_logo.svg?raw';
 import jjLogo from '../assets/homepage/J&J_logo.svg?raw';
@@ -110,6 +111,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 				}
 			</div>
 		</section>
+		<Footer />
 	</body>
 </html>
 

@@ -6,9 +6,9 @@ import { Page, Group } from './_shared';
 const meta = {
 	title: 'Components/IconButton',
 	component: IconButton,
-	args: { icon: <Icon name="close" />, label: 'Close', variant: 'ghost', size: 'md' },
+	args: { icon: <Icon name="close" />, label: 'Close', variant: 'tertiary', size: 'md' },
 	argTypes: {
-		variant: { control: 'inline-radio', options: ['primary', 'secondary', 'ghost'] },
+		variant: { control: 'inline-radio', options: ['primary', 'secondary', 'tertiary'] },
 		size: { control: 'inline-radio', options: ['sm', 'md', 'lg'] },
 		icon: { table: { disable: true } },
 	},
@@ -24,11 +24,11 @@ export const Variants: Story = {
 	render: () => (
 		<Page
 			title="IconButton"
-			lede="The icon-only counterpart to Button — no visible label, so label becomes aria-label. Same primary/secondary/ghost vocabulary; shape and size are its own."
+			lede="The icon-only counterpart to Button — no visible label, so label becomes aria-label. Same primary/secondary/tertiary vocabulary; shape and size are its own."
 		>
-			<Group label="Variant × size" note="Ghost is square (it sits inline in flowing content); primary and secondary are circles (they float over media).">
+			<Group label="Variant × size" note="Tertiary is square (it sits inline in flowing content); primary and secondary are circles (they float over media).">
 				<div style={{ display: 'grid', gap: 'var(--spacing-xl)' }}>
-					{(['primary', 'secondary', 'ghost'] as const).map((variant) => (
+					{(['primary', 'secondary', 'tertiary'] as const).map((variant) => (
 						<div key={variant} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xl)' }}>
 							{(['sm', 'md', 'lg'] as const).map((size) => (
 								<IconButton key={size} variant={variant} size={size} icon={<Icon name="close" />} label={`${variant} ${size}`} />
@@ -42,9 +42,9 @@ export const Variants: Story = {
 				<div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-4xl)', alignItems: 'center' }}>
 					<div style={{ display: 'grid', justifyItems: 'center', gap: 'var(--spacing-md)' }}>
 						<div style={{ position: 'relative', background: 'var(--primary-subtle)', border: '1px solid var(--primary-text)', borderRadius: 'var(--radius-md)', width: '10rem', height: '4rem' }}>
-							<IconButton variant="ghost" size="sm" icon={<Icon name="close" />} label="Dismiss" style={{ position: 'absolute', top: 'var(--spacing-md)', right: 'var(--spacing-md)' }} />
+							<IconButton variant="tertiary" size="sm" icon={<Icon name="close" />} label="Dismiss" style={{ position: 'absolute', top: 'var(--spacing-md)', right: 'var(--spacing-md)' }} />
 						</div>
-						<span className="type-annotation" style={{ color: 'var(--text-muted)' }}>ghost · sm — Note</span>
+						<span className="type-annotation" style={{ color: 'var(--text-muted)' }}>tertiary · sm — Note</span>
 					</div>
 					<div style={{ display: 'grid', justifyItems: 'center', gap: 'var(--spacing-md)' }}>
 						<div style={{ position: 'relative', background: 'var(--gray-950)', borderRadius: 'var(--radius-md)', width: '10rem', height: '4rem' }}>

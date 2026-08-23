@@ -51,7 +51,7 @@ file; the React wrapper exists so Storybook has something to render and so
 islands can share the markup. Reach for a wrapper only where there is real
 state — `Tabs` and a dismissible `Note` need it, `Button` does not.
 
-Built so far: `Button` (primary / secondary / ghost), `Tabs`, `Note`, `Icon`,
+Built so far: `Button` (primary / secondary / tertiary), `Tabs`, `Note`, `Icon`,
 `IconButton` (icon-only counterpart to `Button` — same three variants, plus
 `sm`/`md`/`lg` sizing), `Tag` (a non-interactive label — `default` variant
 reads the semantic layer, `coming-soon` is bound to the amber ramp instead
@@ -106,6 +106,70 @@ button is white on both grounds. On light that leaves the label doing the
 identifying: the fill is 1.11:1 against `bg` and the `gray-200` border 1.12:1.
 Raising `--secondary-border` to `--gray-500` would carry the edge at 4.14:1 if
 that is ever wanted.
+
+## Footer
+
+`src/components/footer/Footer.astro` is global chrome, not a `ui/` design-system
+component — zero-JS `.astro`, styled in its own scoped `<style>` block, same
+pattern as `SiteNav.astro`. There is no shared root layout (`index.astro`,
+`about.astro` and `CaseStudyLayout.astro` each own their own `<!doctype html>`
+shell — see Stack), so it's imported and rendered just before `</body>` in all
+three places independently; adding a fourth top-level page means wiring it in
+there too.
+
+Assets live in `src/assets/footer/`, imported via Vite's `?raw` suffix and
+rendered with `set:html` — the same pattern the homepage uses for its client
+logos, not through `src/components/ui/icons.ts` (that registry is scoped to
+Lucide UI glyphs plus one vendored exception, not one-off brand marks).
+`Instagram.svg`/`Github.svg`/`Linkedin.svg` were edited to `stroke="currentColor"`
+(originally a hardcoded `#1E1E1E`, invisible against the dark ground) so they
+can be styled — muted (`--text-muted`) at rest, full (`--text`) on hover/focus,
+same resting→hover contrast as `.nav__link`. `India-circle.svg` and the mascot
+mark are deliberately multi-colour and stay untouched.
+
+Structure, top to bottom: the mascot mark, a full-width rule, then a row —
+India flag + name (left) · tagline (centre) · social links (right).
+
+- **`position: relative` on `.site-footer` is load-bearing, not decorative.**
+  On `index.astro`/`about.astro` the fixed `.site-field` water-field
+  background (`position: fixed`, `z-index: auto`) paints *after* static
+  in-flow content per the CSS stacking spec, regardless of DOM order — so
+  without this the footer lays out correctly but is invisible, hidden under
+  that layer. Same fix `.hero-intro`/`.work` already use for the same reason.
+- **`margin-block-start: 75px` is a literal, not a token** — deliberate, per
+  spec; it doesn't land on `--spacing-7xl` (64px) or `--spacing-8xl` (80px).
+- **The mascot mark** is sized with `aspect-ratio: 123 / 96` (the source
+  viewBox) rather than a fixed width, so the rest and hover poses can share
+  one box at identical scale. `transform: translate(132px, 12px)` on
+  `.site-footer__brand` does two independent things — worth knowing if either
+  needs retuning:
+  - **Y (12px)** drops the torso rectangle's own bottom edge (y=78 of the
+    96-tall viewBox) onto the rule, so the mark reads as standing on it with
+    its legs dangling past the line — not the whole viewBox's empty bottom
+    margin floating above it.
+  - **X (132px)** shifts the mark right so it sits above the word "together"
+    in the tagline below, instead of centred on the row. It's a fixed pixel
+    value tuned against the tagline's measured position at the design's
+    reference desktop width (`--measure-page`, 1470px); it will drift
+    slightly at narrower-than-full-bleed desktop widths, before the row
+    collapses to a stacked column at the 40rem breakpoint, where the
+    alignment intent no longer applies anyway.
+- **Hover animation**: `Tousif&clawd-hover.svg` (arms and legs raised) sits
+  absolutely-positioned directly on top of the resting `Tousif&clawd.svg`,
+  both sharing the same 123×96 viewBox so they line up without any extra
+  maths. `:hover` on the `.site-footer__brand` wrapper cross-fades between
+  them via `opacity` + `transition: 250ms ease-in-out` — pure CSS, so both
+  mouseenter and mouseleave animate for free with no JS. Guarded by
+  `prefers-reduced-motion`, same as `.site-footer__social`'s hover transition.
+- **The tagline** ("Designed *solo* · Developed *together*") reuses
+  `.type-meta` with a local `color: var(--primary-text)` override — the
+  shared style itself carries no colour, since its other use (`WorkCard`
+  meta) sits on a card, not the page ground. The italic on "solo"/"together"
+  needs the real IBM Plex Mono italic face, which is why `tokens.css` now
+  also imports `500.css` and `500-italic.css` for that family (previously
+  only `700.css` was loaded) — this incidentally also fixed `.type-meta`'s
+  pre-existing sitewide use, which was silently falling back to the system
+  monospace font before.
 
 ## Case studies
 

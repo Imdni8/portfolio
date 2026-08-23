@@ -1,0 +1,225 @@
+---
+import mascotMark from '../../assets/footer/Tousif&clawd.svg?raw';
+import mascotHoverMark from '../../assets/footer/Tousif&clawd-hover.svg?raw';
+import indiaFlag from '../../assets/footer/India-circle.svg?raw';
+import instagramIcon from '../../assets/footer/Instagram.svg?raw';
+import githubIcon from '../../assets/footer/Github.svg?raw';
+import linkedinIcon from '../../assets/footer/Linkedin.svg?raw';
+
+const socials = [
+	{ name: 'Instagram', href: 'https://www.instagram.com/oxytousif/', svg: instagramIcon },
+	{ name: 'GitHub', href: 'https://github.com/Imdni8', svg: githubIcon },
+	{ name: 'LinkedIn', href: 'https://www.linkedin.com/in/tousif-rahaman/', svg: linkedinIcon },
+];
+---
+
+<footer class="site-footer">
+	<div class="site-footer__inner">
+		<span class="site-footer__brand" role="img" aria-label="Tousif & Clawd">
+			<span class="site-footer__brand-mark site-footer__brand-mark--rest" set:html={mascotMark} />
+			<span class="site-footer__brand-mark site-footer__brand-mark--hover" set:html={mascotHoverMark} />
+		</span>
+
+		<hr class="site-footer__rule" />
+
+		<div class="site-footer__meta">
+			<div class="site-footer__identity">
+				<span class="site-footer__flag" role="img" aria-label="India" set:html={indiaFlag} />
+				<span class="type-meta site-footer__name">Tousif Rahaman</span>
+			</div>
+
+			<p class="type-meta site-footer__tagline">Designed <em>solo</em> · Developed <em>together</em></p>
+
+			<div class="site-footer__socials">
+				{
+					socials.map(({ name, href, svg }) => (
+						<a
+							class="site-footer__social"
+							href={href}
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label={name}
+							set:html={svg}
+						/>
+					))
+				}
+			</div>
+		</div>
+	</div>
+</footer>
+
+<style>
+	/* 75px is a literal, not a token — the spacing scale's nearest rungs
+	   (--spacing-7xl 64px, --spacing-8xl 80px) don't land on the requested
+	   value, so this is deliberate, same as --secondary being a literal in
+	   tokens.css. */
+	.site-footer {
+		/* `position: relative` (not the default static) promotes this into
+		   the same paint step as `.hero-intro`/`.work` on the homepage — the
+		   homepage and about page both have a `position: fixed` water-field
+		   background with z-index:auto, which paints *after* (on top of)
+		   static in-flow content per the CSS stacking spec, regardless of
+		   DOM order. Without this the footer lays out correctly but is
+		   invisible, hidden under that fixed layer. */
+		position: relative;
+		margin-block-start: 75px;
+	}
+
+	.site-footer__inner {
+		max-width: var(--measure-page);
+		margin-inline: auto;
+		padding-inline: var(--gutter);
+		padding-block-end: var(--spacing-6xl);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.site-footer__brand {
+		position: relative;
+		display: block;
+		height: 4rem;
+		/* Both poses share the same 123×96 viewBox, so one aspect-ratio box
+		   sizes them identically and the rest/hover marks can overlap
+		   exactly inside it. */
+		aspect-ratio: 123 / 96;
+		/* Y: the torso rectangle (the sunglasses block), not the leg stubs
+		   below it, is what should read as standing on the rule — the legs
+		   dangle past it into the space below. In the source viewBox
+		   (0 0 123 96) the torso's own bottom edge is at y=78, 18 units above
+		   the viewBox's bottom edge; at this render height that's 12px, so
+		   the whole mark is nudged down by that much rather than trimming
+		   the source file (which would clip the swoosh tail — it dips close
+		   to the same bottom edge).
+		   X: shifted right so the mark sits above "together" in the tagline
+		   below, rather than centered on the row — tuned against the
+		   tagline's measured position at the design's reference desktop
+		   width, same as the Y nudge above. */
+		transform: translate(132px, 12px);
+	}
+
+	.site-footer__brand-mark {
+		position: absolute;
+		inset: 0;
+		transition: opacity 250ms ease-in-out;
+	}
+
+	.site-footer__brand-mark :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.site-footer__brand-mark--hover {
+		opacity: 0;
+	}
+
+	.site-footer__brand:hover .site-footer__brand-mark--rest {
+		opacity: 0;
+	}
+
+	.site-footer__brand:hover .site-footer__brand-mark--hover {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.site-footer__brand-mark {
+			transition-duration: 0.01ms;
+		}
+	}
+
+	.site-footer__rule {
+		width: 100%;
+		height: 0;
+		/* No top margin: the mascot's own artwork already runs close to its
+		   viewBox's bottom edge, so butting the rule straight up against it
+		   reads as the mascot standing on the line, not floating above it. */
+		margin: 0 0 var(--spacing-3xl);
+		border: none;
+		border-block-start: 1px solid var(--border);
+	}
+
+	.site-footer__meta {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-3xl);
+	}
+
+	.site-footer__identity {
+		flex-shrink: 0;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-md);
+	}
+
+	.site-footer__flag {
+		flex-shrink: 0;
+		display: inline-flex;
+	}
+
+	.site-footer__flag :global(svg) {
+		display: block;
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	.site-footer__name {
+		color: var(--text-muted);
+		white-space: nowrap;
+	}
+
+	.site-footer__tagline {
+		color: var(--primary-text);
+		text-align: center;
+	}
+
+	.site-footer__tagline em {
+		font-style: italic;
+	}
+
+	.site-footer__socials {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xl);
+	}
+
+	.site-footer__social {
+		display: inline-flex;
+		color: var(--text-muted);
+		text-decoration: none;
+		transition: color 0.15s ease;
+	}
+
+	.site-footer__social:hover {
+		color: var(--text);
+	}
+
+	.site-footer__social:focus-visible {
+		color: var(--text);
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-xs);
+	}
+
+	.site-footer__social :global(svg) {
+		display: block;
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.site-footer__social {
+			transition-duration: 0.01ms;
+		}
+	}
+
+	@media (max-width: 40rem) {
+		.site-footer__meta {
+			flex-direction: column;
+			gap: var(--spacing-xl);
+		}
+	}
+</style>

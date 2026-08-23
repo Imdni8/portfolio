@@ -20,7 +20,7 @@ export const Note = ({ title, children, dismissible = false }: NoteProps) => {
 			<div className="note__body type-annotation">{children}</div>
 			{dismissible && (
 				<IconButton
-					variant="ghost"
+					variant="tertiary"
 					size="sm"
 					className="note__close"
 					icon={<Icon name="close" />}

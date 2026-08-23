@@ -82,7 +82,7 @@
 
 /* ---- Button ----------------------------------------------------------------
    Three variants. Primary is the brand action; secondary is its equal-weight
-   neutral counterpart; ghost recedes.
+   neutral counterpart; tertiary recedes.
 
    Focus is the outline, not a border swap — swapping a border reflows the
    text by a pixel, which reads as a jitter when tabbing through a row.
@@ -167,19 +167,19 @@
 	background: var(--bg-raised);
 }
 
-.btn--ghost,
-.icon-btn--ghost {
+.btn--tertiary,
+.icon-btn--tertiary {
 	background: transparent;
 	color: var(--primary-text);
 }
-.btn--ghost {
+.btn--tertiary {
 	border-color: var(--border-strong);
 }
-.btn--ghost:hover:not(:disabled) {
+.btn--tertiary:hover:not(:disabled) {
 	background: var(--primary-subtle);
 	border-color: var(--primary-text);
 }
-.icon-btn--ghost:hover:not(:disabled) {
+.icon-btn--tertiary:hover:not(:disabled) {
 	color: var(--text);
 	background: color-mix(in srgb, var(--primary-text) 18%, transparent);
 }
@@ -213,9 +213,9 @@
 
 /* ---- IconButton ---------------------------------------------------------
    Icon-only, so shape is either a circle (a control that floats over
-   content — video play, a lightbox close) or ghost (sits inline in flow —
-   a note's dismiss). Same primary/secondary/ghost vocabulary as Button;
-   only shape and sizing are IconButton's own.
+   content — video play, a lightbox close) or tertiary (sits inline in flow —
+   a note's dismiss, a breadcrumb's home link). Same primary/secondary/
+   tertiary vocabulary as Button; only shape and sizing are IconButton's own.
    -------------------------------------------------------------------------- */
 .icon-btn {
 	display: inline-flex;
@@ -228,17 +228,17 @@
 	cursor: pointer;
 }
 
-.icon-btn--ghost {
+.icon-btn--tertiary {
 	border-radius: var(--radius-xs);
 }
 
 .icon-btn--sm {
-	width: var(--spacing-3xl);
-	height: var(--spacing-3xl);
+	width: var(--spacing-4xl);
+	height: var(--spacing-4xl);
 }
 .icon-btn--sm .icon {
-	width: 0.875rem;
-	height: 0.875rem;
+	width: 1.25rem;
+	height: 1.25rem;
 }
 
 .icon-btn--md {
@@ -246,9 +246,9 @@
 	height: var(--spacing-5xl);
 }
 .icon-btn--md .icon {
-	/* Interpolated between sm (24px box / 14px icon) and lg (48px box / 26px
-	   icon) rather than left at sm's value — the box grows 67% from sm to md
-	   and the icon was not growing with it. */
+	/* Interpolated between sm (32px box / 20px icon) and lg (48px box / 26px
+	   icon) rather than left at sm's value — the box grows from sm to md and
+	   the icon was not growing with it. */
 	width: 1.375rem;
 	height: 1.375rem;
 }
@@ -358,7 +358,7 @@
 	margin: 0;
 }
 
-/* Shape, colour and size come from .icon-btn--ghost.icon-btn--sm; this is
+/* Shape, colour and size come from .icon-btn--tertiary.icon-btn--sm; this is
    only the note-specific placement. */
 .note__close {
 	position: absolute;
