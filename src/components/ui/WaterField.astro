@@ -25,12 +25,34 @@ const { grid = 72, intensity = 1, class: className } = Astro.props;
 	aria-hidden="true"></canvas>
 
 <script>
-	import { createWaterField } from './water-field';
+	import { createWaterField, type WaterField } from './water-field';
 
-	for (const canvas of document.querySelectorAll<HTMLCanvasElement>('canvas[data-water-field]')) {
-		createWaterField(canvas, {
-			grid: Number(canvas.dataset.grid ?? 72),
-			intensity: Number(canvas.dataset.intensity ?? 1),
-		});
-	}
+	/* A bundled module script only ever executes once, but this canvas isn't
+	   persisted — Work<->About swaps in a fresh one on every navigation, so
+	   without this the field would only ever animate on whichever page
+	   happened to load first. `astro:page-load` fires both on that first load
+	   and after every subsequent swap, so it's the one hook that covers both.
+
+	   The instances from the outgoing page are torn down first — `destroy()`
+	   cancels its rAF loop and releases its WebGL context — because the
+	   canvas being detached from the DOM doesn't stop either on its own.
+	   Recreating on every navigation without this would leak a WebGL context
+	   (and a full set of window listeners) per visit, and contexts are a
+	   resource the browser caps: a few dozen Work<->About trips would start
+	   silently losing older ones. */
+	let fields: WaterField[] = [];
+
+	document.addEventListener('astro:page-load', () => {
+		for (const field of fields) field.destroy();
+		fields = [];
+
+		for (const canvas of document.querySelectorAll<HTMLCanvasElement>('canvas[data-water-field]')) {
+			fields.push(
+				createWaterField(canvas, {
+					grid: Number(canvas.dataset.grid ?? 72),
+					intensity: Number(canvas.dataset.intensity ?? 1),
+				}),
+			);
+		}
+	});
 </script>

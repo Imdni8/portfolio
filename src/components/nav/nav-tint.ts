@@ -30,14 +30,21 @@
    and it is what the homepage's own hero fade already does. */
 export function initNavTint(shell: HTMLElement) {
 	const panes = shell.querySelectorAll<HTMLElement>('[data-nav-tint-pane]');
-	const trigger = document.querySelector<HTMLElement>('[data-nav-tint-trigger]');
-	if (!trigger || panes.length === 0) return;
+	if (panes.length === 0) return;
 
 	let tinted: boolean | undefined;
 	let ticking = false;
 
 	const update = () => {
 		ticking = false;
+
+		/* Looked up fresh on every call rather than once at setup: the nav is
+		   `transition:persist`ed across Work<->About, so this same closure
+		   has to keep working after the trigger element itself has been
+		   swapped out (or has disappeared entirely, on the page with no
+		   grid to approach) — a trigger captured once at init would go
+		   stale the moment that happens. */
+		const trigger = document.querySelector<HTMLElement>('[data-nav-tint-trigger]');
 
 		/* The switch line is the pane's bottom edge plus its own top inset:
 		   the tint arrives one inset-height before contact rather than at the
@@ -50,7 +57,7 @@ export function initNavTint(shell: HTMLElement) {
 		   to be invalidated when the viewport or the pane's own height
 		   changes. */
 		const pane = shell.getBoundingClientRect();
-		const next = trigger.getBoundingClientRect().top <= pane.bottom + pane.top;
+		const next = trigger ? trigger.getBoundingClientRect().top <= pane.bottom + pane.top : false;
 
 		if (next === tinted) return;
 		tinted = next;
@@ -65,5 +72,10 @@ export function initNavTint(shell: HTMLElement) {
 
 	window.addEventListener('scroll', onScroll, { passive: true });
 	window.addEventListener('resize', onScroll, { passive: true });
+	/* A navigation doesn't itself fire scroll/resize, so without this the
+	   tint would keep whatever state the previous page left it in until the
+	   user's next scroll — most visibly, staying tinted after leaving a
+	   scrolled-down homepage for a page with no grid to be tinted against. */
+	document.addEventListener('astro:after-swap', update);
 	update();
 }

@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import { ClientRouter } from 'astro:transitions';
 import '../styles/tokens.css';
 import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
@@ -8,6 +9,7 @@ import WaterField from '../components/ui/WaterField.astro';
 import GlassDefs from '../components/ui/GlassDefs.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import Tag from '../components/ui/Tag.astro';
+import Icon from '../components/ui/Icon.astro';
 import portrait from '../assets/about/BLR_portrait_B_Tousif Rahaman.jpg';
 
 /* What the page claims, and what it can point at. Both lists are short and
@@ -29,18 +31,22 @@ const impact = [
 	{ value: '3', label: 'iF design awards' },
 ];
 
-// TODO: point at the real resume once the URL exists.
-const resumeHref = '#';
-// TODO: swap in the real LinkedIn profile.
-const linkedInHref = '#';
+const resumeHref = 'https://drive.google.com/file/d/15AhrPiZ9VO-Q4cH8hQqKA49DYBKDYPa5/view?usp=sharing';
+const linkedInHref = 'https://www.linkedin.com/in/tousif-rahaman/';
 ---
 
 <!doctype html>
-<html lang="en" data-theme="dark">
+{/* Off: Work<->About is the only soft navigation on the site, and the only
+    thing that should animate across it is the nav's active-tab indicator
+    (SiteNav.astro, transition:persist). Everything else should cut instantly,
+    same as a hard navigation, rather than picking up the router's default
+    crossfade. */}
+<html lang="en" data-theme="dark" transition:animate="none">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<ClientRouter />
 		{import.meta.env.DEV && <ThemePreview />}
 		{import.meta.env.DEV && <DevOutline />}
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
@@ -83,13 +89,24 @@ const linkedInHref = '#';
 							</div>
 
 							<div class="about__actions">
-								<a class="btn btn--primary about__cta" href={resumeHref}>Download my resume</a>
+								<a
+									class="btn btn--primary about__cta"
+									href={resumeHref}
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<span>Download my resume</span>
+									<Icon name="external-link" />
+								</a>
 								<a
 									class="btn btn--secondary about__cta"
 									href={linkedInHref}
 									target="_blank"
-									rel="noopener noreferrer">Visit my Linkedin</a
+									rel="noopener noreferrer"
 								>
+									<span>Visit my Linkedin</span>
+									<Icon name="external-link" />
+								</a>
 							</div>
 						</div>
 
@@ -208,12 +225,28 @@ const linkedInHref = '#';
 
 	.about__row {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) var(--about-card-width);
+		grid-template-columns: var(--about-card-width) minmax(0, 1fr);
+		/* End: the card is shorter than the content column (a fixed-height
+		   portrait plus four short stats vs. the full intro copy), so
+		   bottom-aligning is what makes the two read as one composition —
+		   both grounded on the same line, with the card's top trailing
+		   the headline's rather than sitting flush with it. */
 		align-items: end;
 		column-gap: var(--spacing-6xl);
 	}
 
+	/* Explicitly placed into the second (flexible) column rather than
+	   reordered in the DOM: the portrait is supplementary, so keyboard and
+	   screen-reader order should still reach the headline, tags and CTAs
+	   first, even though sighted desktop users now see the card to its
+	   left. `grid-row: 1` is load-bearing, not decorative: auto-placement
+	   doesn't backfill, so without it the card (DOM-second, but column 1 —
+	   "earlier" than this element's column 2) gets pushed to a row of its
+	   own instead of sharing this one. Both reset to `auto` on mobile
+	   below, where there is only one track to place either into. */
 	.about__content {
+		grid-column: 2;
+		grid-row: 1;
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-5xl);
@@ -259,7 +292,11 @@ const linkedInHref = '#';
 	/* One bordered pane, not two: the portrait and the stats sit flush inside
 	   it with no gap, so the border and radius read as a single card rather
 	   than two surfaces stacked apart. */
+	/* Placed into the first (fixed-width) column — see `.about__content`
+	   above for why this is a grid placement, not a DOM reorder. */
 	.about__card {
+		grid-column: 1;
+		grid-row: 1;
 		display: flex;
 		flex-direction: column;
 		overflow: clip;
@@ -314,13 +351,22 @@ const linkedInHref = '#';
 	}
 
 	/* Below the site's content breakpoint the row collapses to one column —
-	   content first, card second, in both DOM and visual order. That is a
+	   content first, card second, in both DOM and visual order (the explicit
+	   `grid-column`/`grid-row` placement above is reset to `auto` so DOM
+	   order drives placement again — both would otherwise still land pinned
+	   to row 1, overlapping in the single remaining track). That is a
 	   deliberate departure from a photo-led mobile order: nothing here is
 	   scroll-driven any more, so there is no reason to lead with the image. */
 	@media (max-width: 59.999rem) {
 		.about__row {
 			grid-template-columns: minmax(0, 1fr);
 			row-gap: var(--spacing-6xl);
+		}
+
+		.about__content,
+		.about__card {
+			grid-column: auto;
+			grid-row: auto;
 		}
 
 		.about__portrait {

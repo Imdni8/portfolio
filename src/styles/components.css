@@ -31,15 +31,21 @@
 	--glass-tint: var(--glass-tint-rest);
 
 	border-radius: var(--radius-md);
-	border: 1px solid var(--glass-border);
 	background: var(--glass-tint);
 	backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 	-webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-	/* Light 0°/35% → top inset highlight; Depth 100 → deep ambient shadow;
+	/* The edge is an inset shadow, not a `border` — a real border is stroked
+	   along the outer rounded-rect of the box, which Chromium computes as a
+	   very slightly different curve from the one it clips backdrop-filter's
+	   blur to. The mismatch leaves a hairline of un-blurred page visible
+	   between the two, right where the ring meets the fill. An inset shadow
+	   paints inside that same clip, so it can't drift from it.
+	   Light 0°/35% → top inset highlight; Depth 100 → deep ambient shadow;
 	   bottom inset shadow gives the pane a rim instead of a flat edge. */
 	box-shadow:
 		inset 0 1px 0 var(--glass-highlight),
 		inset 0 -1px 0 var(--glass-shadow-rim),
+		inset 0 0 0 1px var(--glass-border),
 		0 16px 40px -16px var(--glass-shadow-ambient);
 	/* Slow, and eased at both ends: the tint change is triggered by a scroll
 	   threshold, so a quick crossfade reads as the pane flinching at one

@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { ClientRouter } from 'astro:transitions';
 import '../styles/tokens.css';
 import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
@@ -36,11 +37,17 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 ---
 
 <!doctype html>
-<html lang="en" data-theme="dark">
+{/* Off: Work<->About is the only soft navigation on the site, and the only
+    thing that should animate across it is the nav's active-tab indicator
+    (SiteNav.astro, transition:persist). Everything else should cut instantly,
+    same as a hard navigation, rather than picking up the router's default
+    crossfade. */}
+<html lang="en" data-theme="dark" transition:animate="none">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<ClientRouter />
 		{import.meta.env.DEV && <ThemePreview />}
 		{import.meta.env.DEV && <DevOutline />}
 		<title>Tousif's portfolio</title>

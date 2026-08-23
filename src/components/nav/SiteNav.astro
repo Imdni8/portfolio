@@ -19,7 +19,7 @@ const onWork = path === '/' || path === '';
 const onAbout = path.startsWith('/about');
 ---
 
-<header class="nav-shell">
+<header class="nav-shell" transition:persist>
 	<div class="nav glass" data-nav-tint-pane>
 		<a class="nav__brand" href="/" aria-label="Tousif Rahaman — home">
 			<svg width="21" height="40" viewBox="0 0 21 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -50,6 +50,12 @@ const onAbout = path.startsWith('/about');
 		<nav class="nav__links" aria-label="Primary">
 			<a class="nav__link type-nav-link" href="/" aria-current={onWork ? 'page' : undefined}>Work</a>
 			<a class="nav__link type-nav-link" href="/about" aria-current={onAbout ? 'page' : undefined}>About</a>
+			{/* One shared bar rather than a border per link, so switching pages
+			    glides it from one link to the other instead of snapping one
+			    off and the other on. Positioned in JS (syncIndicator, below) —
+			    the nav persists across navigation, so this is what keeps it
+			    honest about which link is actually current. */}
+			<span class="nav__indicator" aria-hidden="true"></span>
 		</nav>
 
 		<!-- Mirrors the brand mark so the link group centres against two equal
@@ -151,8 +157,19 @@ const onAbout = path.startsWith('/about');
 	   bar) is what actually centres the link pair between the brand and the
 	   spacer — space-between across three unequal-width groups only balances
 	   the two gaps, not the group itself. */
+	/* Relative: the anchor `.nav__indicator` positions itself against. */
 	.nav__links {
+		position: relative;
 		flex: 1;
+		/* Stretch (not the row's own align-items: center) so this element's
+		   own box always spans the full height of `.nav` — otherwise it's
+		   sized to its tallest child (a link) and centred within the row,
+		   which only matches the row's height by coincidence. The hidden
+		   `.nav-dropdown-mirror` trigger next door wears `.glass` too, and
+		   its border makes it 2px taller than a link, so without stretch
+		   here `.nav__links` (and the indicator glued to its bottom) sits a
+		   pixel short of the pane's actual border. */
+		align-self: stretch;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -164,20 +181,47 @@ const onAbout = path.startsWith('/about');
 		padding-inline: var(--spacing-xs);
 		color: var(--text-muted);
 		text-decoration: none;
-		/* Reserved even when inactive so the active state doesn't shift layout. */
-		border-block-end: 1px solid transparent;
 	}
 
 	.nav__link:hover {
 		color: var(--text);
 	}
 
-	/* Active state carries weight, colour and an underline together — never
-	   colour alone. */
+	/* Active state carries weight and colour together — never colour alone.
+	   The underline itself is `.nav__indicator`, not a border here: one bar
+	   shared between both links is what lets it glide between them instead
+	   of one snapping off as the other snaps on. */
 	.nav__link[aria-current='page'] {
 		color: var(--primary-text);
 		font-weight: var(--weight-bold);
-		border-block-end-color: var(--primary-text);
+	}
+
+	.nav__indicator {
+		position: absolute;
+		/* 0: `.nav__links` is stretched (see above) to the full height of
+		   `.nav`, so its bottom edge coincides exactly with the pane's own
+		   bottom edge. The pane's border is an inset box-shadow now (see
+		   `.glass`), painted just inside that same edge rather than added
+		   outside it — so landing the bar flush here draws it on top of
+		   the border's bottom-most pixel instead of stopping short of it. */
+		inset-block-end: 0;
+		height: 2px;
+		/* Top corners only — the bottom edge sits flush against the pane's
+		   own border-bottom, so rounding it too would just cut a notch out
+		   of a straight line. */
+		border-start-start-radius: var(--radius-xxs);
+		border-start-end-radius: var(--radius-xxs);
+		background: var(--primary-text);
+		pointer-events: none;
+		transition:
+			left 300ms cubic-bezier(0, 0, 0.2, 1),
+			width 300ms cubic-bezier(0, 0, 0.2, 1);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.nav__indicator {
+			transition-duration: 0.01ms;
+		}
 	}
 
 	.nav__spacer {
@@ -256,6 +300,13 @@ const onAbout = path.startsWith('/about');
 		position: absolute;
 		inset-block-start: calc(100% + var(--spacing-md));
 		inset-inline-end: 0;
+		/* Pinned explicitly: `min-width` is a content-box measurement, and
+		   about.astro (unlike this component's other host, index.astro)
+		   applies a page-scoped `box-sizing: border-box` reset. Without this,
+		   the same 14rem min-width nets 32px less room on the about page
+		   (padding-inline counted inward instead of added on) and wraps
+		   "Amplitude taxonomy exporter" onto a third line. */
+		box-sizing: content-box;
 		min-width: 14rem;
 		padding-inline: var(--spacing-xl);
 		display: flex;
@@ -351,4 +402,42 @@ const onAbout = path.startsWith('/about');
 
 	const shell = document.querySelector<HTMLElement>('.nav-shell');
 	if (shell) initNavTint(shell);
+
+	/* Keeps the active-tab indicator (and `aria-current`) honest about the
+	   URL. The nav is `transition:persist`ed across the Work<->About
+	   navigation, so this script body only ever runs once, on the very first
+	   load — everything below has to be event-driven rather than re-run per
+	   navigation, which is exactly what `astro:after-swap` is for. Reading
+	   the link's own `getBoundingClientRect()` (not a hardcoded width) is
+	   what lets the bar resize between "Work" and "About" instead of just
+	   sliding at a fixed width. */
+	const navLinks = document.querySelectorAll<HTMLAnchorElement>('.nav__link');
+	const indicator = document.querySelector<HTMLElement>('.nav__indicator');
+	const navLinksRow = document.querySelector<HTMLElement>('.nav__links');
+
+	const syncIndicator = () => {
+		if (!indicator || !navLinksRow) return;
+		const onWorkNow = location.pathname === '/' || location.pathname === '';
+		const onAboutNow = location.pathname.startsWith('/about');
+
+		let active: HTMLAnchorElement | undefined;
+		for (const link of navLinks) {
+			const current = link.getAttribute('href') === '/' ? onWorkNow : onAboutNow;
+			if (current) {
+				link.setAttribute('aria-current', 'page');
+				active = link;
+			} else {
+				link.removeAttribute('aria-current');
+			}
+		}
+		if (!active) return;
+
+		const linkBox = active.getBoundingClientRect();
+		const rowBox = navLinksRow.getBoundingClientRect();
+		indicator.style.left = `${linkBox.left - rowBox.left}px`;
+		indicator.style.width = `${linkBox.width}px`;
+	};
+
+	syncIndicator();
+	document.addEventListener('astro:after-swap', syncIndicator);
 </script>
