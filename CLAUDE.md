@@ -168,6 +168,16 @@ a `coming-soon` entry has only a thumbnail, no hero pair.
 `agent-versioning.mdx` — is current and documented here, not prior work to
 disregard; treat it as the pattern to follow when writing a new case study.
 
+**A closing tag (`</Section>` etc.) must be flush left — never indented.**
+If a `<Section>`'s content ends with a numbered/bulleted list, an indented
+closing tag (even by a few spaces) reads to CommonMark as a continuation of
+the last list item rather than JSX, so the element never closes. The MDX→JS
+compiler then cascades into invalid output, and the failure that surfaces —
+a `RolldownError` with a garbled destructure line concatenating attribute
+names and values into one giant identifier — points nowhere near the real
+line. If a case study throws `RolldownError` after an edit, check for
+indented closing tags right after a list before looking anywhere else.
+
 ## Stack
 
 - **Astro 7** — static output, no adapter, no server.
@@ -194,6 +204,17 @@ npm run build-storybook  # → storybook-static/ (gitignored)
 
 There is no test runner and no linter configured. `npm run check` is the only
 gate; run it before calling work done.
+
+**Never run `npm run build` (or a bare `astro build`/`astro check`) while
+`npm run dev` is also running against this working tree.** A build
+re-optimizes Vite's on-disk dependency cache (`node_modules/.vite`), which
+desyncs from the running dev server's in-memory module graph. Symptom: every
+React island throws `TypeError: _jsxDEV is not a function` on hydration —
+the page still server-renders fine, so it looks like content silently
+vanished (before/after compare, chapter rail, lightbox, etc. all disappear)
+rather than like a build error. Fix: stop the dev server, `rm -rf
+node_modules/.vite`, restart `npm run dev`. If a build is genuinely needed
+mid-session, stop the dev server first and restart it after.
 
 **Beware browser dark-mode extensions when reviewing colour.** Dark Reader and
 similar rewrite every background with `!important`, including inline styles, so
