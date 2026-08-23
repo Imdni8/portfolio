@@ -11,6 +11,7 @@ import SiteNav from '../components/nav/SiteNav.astro';
 import Tag from '../components/ui/Tag.astro';
 import Icon from '../components/ui/Icon.astro';
 import Footer from '../components/footer/Footer.astro';
+import Analytics from '../components/analytics/Analytics.astro';
 import portrait from '../assets/about/BLR_portrait_B_Tousif Rahaman.jpg';
 import { links } from '../data/links';
 
@@ -49,6 +50,7 @@ const linkedInHref = links.linkedin;
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<ClientRouter />
+		<Analytics />
 		{import.meta.env.DEV && <ThemePreview />}
 		{import.meta.env.DEV && <DevOutline />}
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
@@ -94,6 +96,7 @@ const linkedInHref = links.linkedin;
 								<a
 									class="btn btn--primary about__cta"
 									href={resumeHref}
+									data-analytics="resume"
 									target="_blank"
 									rel="noopener noreferrer"
 								>

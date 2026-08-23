@@ -10,6 +10,7 @@ node_modules/
 
 # environment
 .env
+.env.local
 .env.production
 
 # editors
@@ -35,3 +36,9 @@ storybook-static/
 # Accidentally got committed as gitlinks once already (see the commit that
 # stops tracking them); ignoring the whole directory so it can't recur.
 .claude/worktrees/
+.vercel
+
+# Added by `vercel link`, narrowed: the blanket `.env*` also matched
+# `.env.example`, which is meant to be committed as the key's documentation.
+.env*
+!.env.example

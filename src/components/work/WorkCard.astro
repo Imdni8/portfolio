@@ -28,9 +28,13 @@ interface Props {
 	thumbnail: { src: ImageMetadata; alt: string };
 	href?: string;
 	status?: 'coming-soon' | 'external';
+	/** The collection entry's id, surfaced as `data-slug` purely so the click
+	 *  can be attributed. The href alone would not do it: an `external` entry
+	 *  points at someone else's domain, so there is no slug to parse out. */
+	slug?: string;
 }
 
-const { title, industry, year, technology, roles = [], thumbnail, href, status } = Astro.props;
+const { title, industry, year, technology, roles = [], thumbnail, href, status, slug } = Astro.props;
 
 // A link when there's somewhere to go, otherwise a plain container — no
 // dead affordance for a case study that isn't published yet.
@@ -42,6 +46,7 @@ const isExternal = status === 'external';
 <Wrapper
 	class:list={['card', 'glass', { 'card--external': isExternal }]}
 	href={href}
+	data-slug={slug}
 	target={isExternal ? '_blank' : undefined}
 	rel={isExternal ? 'noopener noreferrer' : undefined}
 >

@@ -9,6 +9,7 @@ import { VideoPlayer } from '../components/case-study/VideoPlayer';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
 import Footer from '../components/footer/Footer.astro';
+import Analytics from '../components/analytics/Analytics.astro';
 import type { ImageMetadata } from 'astro';
 
 interface Props {
@@ -41,6 +42,7 @@ const { title, subtitle, facts = [], chapters = [], hero, actions = {} } = Astro
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<Analytics />
 		{import.meta.env.DEV && <ThemePreview />}
 		{import.meta.env.DEV && <DevOutline />}
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
@@ -55,7 +57,10 @@ const { title, subtitle, facts = [], chapters = [], hero, actions = {} } = Astro
 
 		{chapters.length > 0 && <ChapterRail chapters={chapters} client:load />}
 
-		<main id="story">
+		{/* `data-case-study` is read by trackCaseStudyViewed(): a bundled Astro
+		    `<script>` is static and cannot see frontmatter, so the title has to
+		    reach the client through the DOM. */}
+		<main id="story" data-case-study={title}>
 			<slot />
 		</main>
 
@@ -68,6 +73,15 @@ const { title, subtitle, facts = [], chapters = [], hero, actions = {} } = Astro
 		<VideoPlayer client:idle />
 	</body>
 </html>
+
+{/* Every /work/<slug> page renders through this layout, and none of them carry
+    `<ClientRouter />` — so this is a hard navigation and the script runs once
+    per case study opened, which is exactly the moment the event names. */}
+<script>
+	import { trackCaseStudyViewed } from '../components/analytics/analytics';
+
+	trackCaseStudyViewed();
+</script>
 
 <style is:global>
 	*,
