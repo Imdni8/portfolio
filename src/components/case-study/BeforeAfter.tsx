@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui/Icon';
+import { trackCompareDragged } from '../analytics/analytics';
 
 interface Shot {
 	src: string;
@@ -120,6 +121,19 @@ export default function BeforeAfter({
 		setHinting(false);
 	}, []);
 
+	/* Where the current gesture started, so a click that lands on the frame
+	   without moving the seam is not reported as a drag. */
+	const dragStartPos = useRef(start);
+	/* Arrow keys arrive one event per press; reporting each would turn a single
+	   adjustment into a dozen events, so a burst settles into one. Read through
+	   a ref because the timer outlives the render that scheduled it. */
+	const keyTimer = useRef<number | undefined>(undefined);
+	const posRef = useRef(pos);
+	useEffect(() => {
+		posRef.current = pos;
+	}, [pos]);
+	useEffect(() => () => window.clearTimeout(keyTimer.current), []);
+
 	const setFromClientX = useCallback((clientX: number) => {
 		const rect = frameRectRef.current;
 		if (!rect) return;
@@ -149,6 +163,7 @@ export default function BeforeAfter({
 		}
 
 		(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+		dragStartPos.current = pos;
 		setDragging(true);
 	};
 
@@ -163,10 +178,18 @@ export default function BeforeAfter({
 		grabOffset.current = 0;
 		const el = event.currentTarget as HTMLElement;
 		if (el.hasPointerCapture(event.pointerId)) el.releasePointerCapture(event.pointerId);
+
+		// Reported at the end of the gesture, not on every move — one event per
+		// drag, carrying where it was actually left.
+		if (Math.round(pos) !== Math.round(dragStartPos.current)) {
+			trackCompareDragged('pointer', pos);
+		}
 	};
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 		stopHinting();
+		window.clearTimeout(keyTimer.current);
+		keyTimer.current = window.setTimeout(() => trackCompareDragged('keyboard', posRef.current), 600);
 		const step = event.shiftKey ? 10 : 2;
 		const moves: Record<string, number> = {
 			ArrowLeft: -step,
