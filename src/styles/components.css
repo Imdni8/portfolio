@@ -646,7 +646,7 @@
 	display: grid;
 	gap: var(--spacing-xs);
 	text-align: center;
-	color: var(--gray-50);
+	color: var(--text-on-overlay);
 	cursor: default;
 }
 
@@ -680,10 +680,11 @@
    at the new tokens. Pointer, touch and keyboard: arrows nudge, shift+arrow
    jumps, Home/End go to the ends.
 
-   Two colours here are deliberately fixed rather than semantic. The labels and
-   pins sit on top of product screenshots, which are light in both themes — so
-   they take gray-900/gray-50 directly. A token that flips with the theme would
-   put dark text on a light screenshot in one of the two.
+   The scrim is deliberately fixed rather than semantic (--gray-900 directly,
+   via --scrim below); the labels, pins and story text ride --text-on-overlay
+   for the same reason — they sit on top of product screenshots, which are
+   light in both themes, so a token that flips with the theme would put dark
+   text on a light screenshot in one of the two.
    -------------------------------------------------------------------------- */
 .ba {
 	--grip-gap: var(--spacing-md);
@@ -757,7 +758,7 @@
 	font-weight: var(--weight-bold);
 	font-size: var(--size-subtitle);
 	line-height: var(--lh-subtitle);
-	color: var(--gray-50);
+	color: var(--text-on-overlay);
 }
 .ba__side--before .ba__label {
 	inset-inline-start: 25%;
@@ -785,7 +786,7 @@
 	font-size: var(--size-fine);
 	font-weight: var(--weight-semibold);
 	line-height: 1;
-	color: var(--gray-50);
+	color: var(--text-on-overlay);
 }
 
 .ba__story {
@@ -800,7 +801,7 @@
 	grid-template-columns: minmax(0, max-content);
 	justify-content: center;
 	background: var(--scrim);
-	color: var(--gray-50);
+	color: var(--text-on-overlay);
 	will-change: translate, opacity;
 }
 
@@ -822,13 +823,13 @@
 	/* .type-overline carries --primary-text; overridden back to the same
 	   on-image tone the label and pins use, since this sits on the photo
 	   scrim rather than the page ground. */
-	color: var(--gray-50);
+	color: var(--text-on-overlay);
 	text-wrap: balance;
 }
 
 /* Family/size/leading come from .type-annotation, applied in the markup — it
-   carries no colour of its own, so this inherits .ba__story's gray-50 like
-   the title above does explicitly. A <ul>, not an <ol>: markers are written
+   carries no colour of its own, so this inherits .ba__story's --text-on-overlay
+   like the title above does explicitly. A <ul>, not an <ol>: markers are written
    in the markup rather than browser-assigned, since a shared callout's marker
    is "★", not the next ordinal. */
 .ba__story-list {

@@ -15,7 +15,7 @@ interface Shot {
 }
 
 /** A numbered callout: a pin pinned to the shot, and the line it explains. */
-interface Note {
+export interface Note {
 	/** position of the pin, as a percentage of the frame */
 	x: number;
 	y: number;
@@ -41,8 +41,10 @@ interface Props {
 const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 
 /** Collapses notes sharing the same `text` into one story-panel line, marked
-    with the label of the first pin that carries it. */
-const dedupeNotes = (notes: Note[]) => {
+    with the label of the first pin that carries it. Also used by
+    CaseStudyHero's sr-only notes list, so the two representations of the
+    same notes cannot dedupe differently. */
+export const dedupeNotes = (notes: Note[]) => {
 	const seen = new Set<string>();
 	const items: { marker: string; text: string }[] = [];
 	notes.forEach((note, i) => {

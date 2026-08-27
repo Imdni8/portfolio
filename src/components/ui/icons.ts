@@ -2,11 +2,10 @@
    "take the system as-is" rule the colour ramp follows. Add an icon by
    importing its raw SVG here; the outline set is at node_modules/lucide-static/icons.
 
-   Four exceptions are vendored in src/assets/icons rather than imported from
+   Three exceptions are vendored in src/assets/icons rather than imported from
    the package: Lucide retired its brand set, so the Figma mark is drawn by
    hand; the breadcrumb's home glyph and slash divider are one-off marks from
-   the Paper design that don't match anything in Lucide's stock set; the AI
-   tag's sparkle mark is a supplied custom icon, not a Lucide redraw. */
+   the Paper design that don't match anything in Lucide's stock set. */
 import close from 'lucide-static/icons/x.svg?raw';
 import arrowDown from 'lucide-static/icons/arrow-down.svg?raw';
 import play from 'lucide-static/icons/play.svg?raw';
@@ -22,10 +21,10 @@ import database from 'lucide-static/icons/database.svg?raw';
 import building2 from 'lucide-static/icons/building-2.svg?raw';
 import wrench from 'lucide-static/icons/wrench.svg?raw';
 import calendar from 'lucide-static/icons/calendar.svg?raw';
+import sparkles from 'lucide-static/icons/sparkles.svg?raw';
 import figma from '../../assets/icons/figma.svg?raw';
 import home from '../../assets/icons/home.svg?raw';
 import slashDivider from '../../assets/icons/slash-divider.svg?raw';
-import ai from '../../assets/icons/ai.svg?raw';
 
 export const icons = {
 	close,
@@ -43,10 +42,10 @@ export const icons = {
 	'building-2': building2,
 	wrench,
 	calendar,
+	sparkles,
 	figma,
 	home,
 	'slash-divider': slashDivider,
-	ai,
 } as const;
 
 export type IconName = keyof typeof icons;

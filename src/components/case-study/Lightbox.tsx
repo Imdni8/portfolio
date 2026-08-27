@@ -19,6 +19,11 @@ const toShot = (el: HTMLElement): Shot => ({
 	caption: el.dataset.zoomCaption || undefined,
 });
 
+/** Wraps `index` by `delta` within a group of `length` shots — shared by
+    keyboard (ArrowLeft/ArrowRight) and the on-screen chevrons so the two
+    can't step differently. */
+const wrapIndex = (index: number, delta: number, length: number) => (index + delta + length) % length;
+
 /**
  * One overlay for the whole page. Any element carrying `data-zoom` opens it,
  * so figures stay static HTML and only this island hydrates. A trigger
@@ -45,7 +50,7 @@ export const Lightbox = () => {
 	useEffect(() => {
 		if (!group) return;
 		const step = (delta: number) =>
-			setGroup((g) => g && { ...g, index: (g.index + delta + g.shots.length) % g.shots.length });
+			setGroup((g) => g && { ...g, index: wrapIndex(g.index, delta, g.shots.length) });
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') setGroup(null);
 			else if (e.key === 'ArrowLeft' && group.shots.length > 1) step(-1);
@@ -74,7 +79,7 @@ export const Lightbox = () => {
 	const many = group.shots.length > 1;
 	const step = (delta: number, e: React.MouseEvent) => {
 		e.stopPropagation();
-		setGroup((g) => g && { ...g, index: (g.index + delta + g.shots.length) % g.shots.length });
+		setGroup((g) => g && { ...g, index: wrapIndex(g.index, delta, g.shots.length) });
 	};
 
 	return (

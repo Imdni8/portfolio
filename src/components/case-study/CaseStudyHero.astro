@@ -1,6 +1,6 @@
 ---
 import { getImage } from 'astro:assets';
-import BeforeAfter from './BeforeAfter';
+import BeforeAfter, { dedupeNotes } from './BeforeAfter';
 import Icon from '../ui/Icon.astro';
 import type { ImageMetadata } from 'astro';
 
@@ -141,13 +141,13 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 					{beforeNotes.length > 0 && (
 						<div class="ba-notes__group">
 							<h2 class="type-overline">{beforeLabel}</h2>
-							<ol>{[...new Set(beforeNotes.map((n) => n.text))].map((text) => <li>{text}</li>)}</ol>
+							<ol>{dedupeNotes(beforeNotes).map(({ text }) => <li>{text}</li>)}</ol>
 						</div>
 					)}
 					{afterNotes.length > 0 && (
 						<div class="ba-notes__group">
 							<h2 class="type-overline">{afterLabel}</h2>
-							<ol>{[...new Set(afterNotes.map((n) => n.text))].map((text) => <li>{text}</li>)}</ol>
+							<ol>{dedupeNotes(afterNotes).map(({ text }) => <li>{text}</li>)}</ol>
 						</div>
 					)}
 				</div>

@@ -16,16 +16,16 @@ const { poster, src, alt } = Astro.props;
     swaps it in), so a page with a film on it costs nothing to load for a
     reader who never plays it. Shared by every video in a case study, so the
     frame, overlay and play button can't drift between them. */}
-<div class="video__frame" data-video={src} data-video-label={alt}>
+<div class="video-frame" data-video={src} data-video-label={alt}>
 	<Image src={poster} alt={alt} widths={[760, 1120, 1470]} sizes="(min-width: 60rem) 92vw, 100vw" />
-	<div class="video__overlay" aria-hidden="true"></div>
-	<button type="button" class="icon-btn icon-btn--primary icon-btn--lg video__play" aria-label={`Play: ${alt}`}>
+	<div class="video-frame__overlay" aria-hidden="true"></div>
+	<button type="button" class="icon-btn icon-btn--primary icon-btn--lg video-frame__play" aria-label={`Play: ${alt}`}>
 		<Icon name="play" />
 	</button>
 </div>
 
 <style>
-	.video__frame {
+	.video-frame {
 		position: relative;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-sm);
@@ -33,8 +33,8 @@ const { poster, src, alt } = Astro.props;
 		background: var(--bg-media);
 	}
 
-	.video__frame :global(img),
-	.video__frame :global(video) {
+	.video-frame :global(img),
+	.video-frame :global(video) {
 		display: block;
 		width: 100%;
 		height: auto;
@@ -47,7 +47,7 @@ const { poster, src, alt } = Astro.props;
 	   uses (components.css), since this too rides on a photo rather than
 	   the page ground. Between the image and the button in markup so it
 	   paints over the former and under the latter without a z-index. */
-	.video__overlay {
+	.video-frame__overlay {
 		position: absolute;
 		inset: 0;
 		background: var(--overlay);
@@ -55,7 +55,7 @@ const { poster, src, alt } = Astro.props;
 
 	/* Shape, colour and size come from .icon-btn--primary.icon-btn--lg; this
 	   is only the centring over the poster. */
-	.video__play {
+	.video-frame__play {
 		position: absolute;
 		inset-block-start: 50%;
 		inset-inline-start: 50%;
