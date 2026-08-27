@@ -19,8 +19,8 @@ interface Props {
 		afterAlt: string;
 		beforeLabel?: string;
 		afterLabel?: string;
-		beforeNotes?: { x: number; y: number; text: string }[];
-		afterNotes?: { x: number; y: number; text: string }[];
+		beforeNotes?: { x: number; y: number; text: string; label?: string }[];
+		afterNotes?: { x: number; y: number; text: string; label?: string }[];
 	};
 }
 
@@ -141,13 +141,13 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 					{beforeNotes.length > 0 && (
 						<div class="ba-notes__group">
 							<h2 class="type-overline">{beforeLabel}</h2>
-							<ol>{beforeNotes.map((n) => <li>{n.text}</li>)}</ol>
+							<ol>{[...new Set(beforeNotes.map((n) => n.text))].map((text) => <li>{text}</li>)}</ol>
 						</div>
 					)}
 					{afterNotes.length > 0 && (
 						<div class="ba-notes__group">
 							<h2 class="type-overline">{afterLabel}</h2>
-							<ol>{afterNotes.map((n) => <li>{n.text}</li>)}</ol>
+							<ol>{[...new Set(afterNotes.map((n) => n.text))].map((text) => <li>{text}</li>)}</ol>
 						</div>
 					)}
 				</div>

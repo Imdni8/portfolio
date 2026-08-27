@@ -34,6 +34,44 @@ hero:
     after: ../../assets/work/audit-logs/00-hero-after.png
     beforeAlt: The initial audit log page — a flat table mixing user actions and database actions with no grouping
     afterAlt: The redesigned audit log page — search converted to tags, database actions grouped and collapsed, a side panel showing the version change
+    beforeNotes:
+        - x: 51.3
+          y: 20
+          text: The entire screen scrolled, causing the search section to go out of screen.
+        - x: 25.5
+          y: 35
+          text: Clearing search filters would affect resource filter as well. They shouldn't be apart. It also takes additional space needlessly.
+        - x: 22
+          y: 42.5
+          text: Human-readable names were not used due to changing version.
+        - x: 10.9
+          y: 63.6
+          text: Horizontally expanding logs took the entire screen space, preventing comparison with adjacent logs.
+    afterNotes:
+        - x: 97
+          y: 6.9
+          text: Search section is pinned and always on screen.
+        - x: 44
+          y: 7
+          text: Filter UX is consistent.
+        - x: 38.1
+          y: 20.6
+          text: By introducing version tags, human-readable names could be used.
+        - x: 73.2
+          y: 35.1
+          text: Using sidepanel keeps adjacent logs on screen, allowing comparison.
+        - x: 86.2
+          y: 15
+          label: "★"
+          text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
+        - x: 47.7
+          y: 24.9
+          label: "★"
+          text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
+        - x: 14.1
+          y: 32.9
+          label: "★"
+          text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
 actions:
     primary:
         label: View final design
@@ -47,6 +85,7 @@ import Section from "../../components/case-study/Section.astro";
 import Figure from "../../components/case-study/Figure.astro";
 import FigureRow from "../../components/case-study/FigureRow.astro";
 import NoteBox from "../../components/case-study/NoteBox.astro";
+import VideoFigure from "../../components/case-study/VideoFigure.astro";
 import Reflection from "../../components/case-study/Reflection.astro";
 import Term from "../../components/case-study/Term.astro";
 
@@ -57,19 +96,17 @@ import inconsistentSearchFilters from "../../assets/work/audit-logs/04-problem-i
 import participantWorkflow from "../../assets/work/audit-logs/05-research-participant-workflow.png";
 import grafanaDashboard from "../../assets/work/audit-logs/06-ideation-grafana-log-dashboard.png";
 import earlierSearchConcept from "../../assets/work/audit-logs/07-ideation-earlier-search-concept.png";
-import dbActionsBefore from "../../assets/work/audit-logs/08-ideation-db-actions-before.png";
-import dbActionsAfter from "../../assets/work/audit-logs/09-ideation-db-actions-after.png";
-import explicitSearchAction from "../../assets/work/audit-logs/10-ideation-explicit-search-action.png";
-import searchTags from "../../assets/work/audit-logs/11-ideation-search-tags.png";
-import aiChatConcept from "../../assets/work/audit-logs/12-ideation-ai-chat-concept.png";
-import aiSummarisationConcept from "../../assets/work/audit-logs/13-ideation-ai-summarisation-concept.png";
-import versionChips from "../../assets/work/audit-logs/14-testing-version-chips.png";
-import annotatedFinal from "../../assets/work/audit-logs/15-outcome-annotated-final.png";
-import reflectionEntityMenu from "../../assets/work/audit-logs/16-reflection-entity-menu.png";
-import reflectionAuditModal from "../../assets/work/audit-logs/17-reflection-audit-modal.png";
+import dbActionsExpanding from "../../assets/work/audit-logs/08-ideation-db-actions.png";
+import explicitSearchAction from "../../assets/work/audit-logs/09-ideation-explicit-search-action.png";
+import searchTags from "../../assets/work/audit-logs/10-ideation-search-tags.png";
+import aiChatConcept from "../../assets/work/audit-logs/11-ideation-ai-chat-concept.png";
+import aiSummarisationConcept from "../../assets/work/audit-logs/12-ideation-ai-summarisation-concept.png";
+import versionChips from "../../assets/work/audit-logs/13-testing-version-chips.png";
+import finalDesignThumbnail from "../../assets/work/audit-logs/00-thumbnail.png";
+import reflectionAuditFlow from "../../assets/work/audit-logs/14-reflection-audit-modal.png";
 
 <Section chapter="problem" eyebrow="Hard to understand" heading="If audit logs can't be understood, the customer's data can be flagged in an audit, creating compliance risk">
-  <Figure slot="visual" src={initialAuditPage} alt="The initial version of the audit log page, listing raw entries per agent with no grouping or visual hierarchy" caption="Initial version of the audit logs" />
+  <VideoFigure slot="visual" poster={initialAuditPage} src="/media/audit-logs-initial-walkthrough.mp4" alt="Walkthrough of the initial version of the audit log page, listing raw entries per agent with no grouping or visual hierarchy" caption="Initial version of the audit logs" />
 
 We got feedback from a customer that audit logs are hard to understand, and that it takes considerable effort to triage them.
 
@@ -115,7 +152,7 @@ After each session, I also gave each participant a <Term id="sus">System Usabili
 
 </Section>
 
-<Section claim eyebrow="Problem breakdown" heading="Based on research, I broke the problem into five distinct parts in order of importance" layout="prose">
+<Section claim eyebrow="Problem breakdown" heading="Based on research, I broke the problem into five distinct parts in order of importance">
 
 1. Help users locate the right log
 2. Make the data change inside a log easy to understand and compare against adjacent logs
@@ -140,10 +177,7 @@ Earlier design direction allowed searching and filtering by time period to locat
 </Section>
 
 <Section claim eyebrow="Visually differentiating database versus user actions" heading='Introduced "database actions" as a new type of log and visually differentiated them from user actions'>
-  <FigureRow slot="visual">
-    <Figure src={dbActionsBefore} alt="Logs listed as a flat sequence of user and database actions with no grouping" caption="Before — ungrouped" />
-    <Figure src={dbActionsAfter} alt="The same logs with database actions collapsed into an expandable 'N db actions' divider between user actions" caption="After — grouped and collapsible" />
-  </FigureRow>
+  <Figure slot="visual" src={dbActionsExpanding} alt="Side by side: a collapsed 'Show db actions' divider between user actions, and the same divider expanded to reveal the grouped database action entries it was hiding" caption="Expanding database actions" />
 
 Users expect to see one log for one action, even if that one action included multiple changes. For example, if an agent's prompt and skill is updated and republished, the action of publishing should occur once in the logs.
 
@@ -193,7 +227,7 @@ Also, during user testing, I observed many users opened the side panel to check 
 </Section>
 
 <Section chapter="outcome" id="outcome" claim eyebrow="Outcome" heading="Improved the audit logs design as measured by increase in SUS from 57 → 72" layout="wide">
-  <Figure slot="visual" src={annotatedFinal} alt="The shipped audit log page, annotated with callouts for each design decision" caption="The shipped design, annotated. Search criteria are visualised as tags to maximise vertical space and support resource filtering. Visual cues differentiate user actions from database actions, and state tags help follow version changes. Database actions can be hidden to focus on user actions only. Reset and refresh are pinned to the top so the user doesn't have to scroll back up, and controls for quickly toggling between logs aid comparison." />
+  <VideoFigure slot="visual" poster={finalDesignThumbnail} src="/media/audit-logs-final-design-walkthrough.mp4" alt="Walkthrough of the shipped audit log page" caption="Final design walkthrough" />
 
 Redesigned audit logs to make it easier to find using timestamp and version number, understand data changes using AI-summarisation, and maximise the vertical space to fit more logs on the screen.
 
@@ -206,8 +240,5 @@ The new version was released on time and well received by the customer who had r
 
 Also, since the workflow predominantly focuses on auditing one agent at a time, for the next iteration I'm going to propose a flow that can be initiated from the agent itself, so we can save the user the trip to the audit page and back. Something like this:
 
-  <FigureRow>
-    <Figure src={reflectionEntityMenu} alt="An agent's overflow menu with a new 'Audit' entry alongside Edit, Share and Setup monitor" caption="An audit entry point proposed directly from the agent list" />
-    <Figure src={reflectionAuditModal} alt="The resulting audit logs modal, scoped to that agent, opened directly from the entry point above" caption="The resulting scoped audit logs modal" />
-  </FigureRow>
+  <Figure src={reflectionAuditFlow} alt="An agent's overflow menu open with a new 'Audit' entry alongside Edit, Share and Setup monitor, pointing to the resulting audit logs modal scoped to that agent" caption="Audit logs open in a modal window from the agent's overflow menu" />
 </Reflection>

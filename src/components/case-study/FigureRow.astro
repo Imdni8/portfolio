@@ -12,11 +12,56 @@ const { labels = [] } = Astro.props;
 
 <style>
 	/* Two or more figures that read as one comparison. Equal columns so the
-	   images can be compared at the same scale — the whole point of a row. */
+	   images can be compared at the same scale — the whole point of a row.
+	   Two explicit row tracks (image, caption) rather than one: each
+	   <figure> below spans both as a subgrid, so image height is matched
+	   only against other images and caption height only against other
+	   captions — a caption that wraps to two lines doesn't eat into its own
+	   figure's image height the way it would if the pair shared one track.
+	   Auto-placement starts a fresh pair of tracks each time the figures
+	   wrap to a new visual row, so matching never reaches across rows. */
 	.row {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+		grid-template-rows: auto auto;
 		gap: var(--spacing-xl);
-		align-items: start;
+	}
+
+	/* Reaches into Figure.astro's own classes — :global() because Astro
+	   scopes a style block to markup it renders itself, and these elements
+	   are rendered by the nested <Figure>, not by this template. Its own
+	   gap, not the row's: --spacing-xl above is the gap between figures,
+	   this is the (smaller) gap between an image and its own caption —
+	   subgrid takes the parent's row *tracks* but not its gap unless asked. */
+	.row :global(.figure) {
+		grid-row: span 2;
+		display: grid;
+		grid-template-rows: subgrid;
+		gap: var(--spacing-md);
+	}
+
+	.row :global(.figure__zoom) {
+		min-height: 0;
+	}
+
+	/* A very wide shot (Figure.astro's own `isWide` check) claims every
+	   column instead of one — auto-placement then can't fit anything else
+	   into its row-pair, so it lands on a full-width row of its own rather
+	   than being squeezed into a column meant for a taller shot. Two wide
+	   figures next to each other in source order each claim a full row in
+	   turn, which is what stacks them. */
+	.row :global(.figure[data-wide]) {
+		grid-column: 1 / -1;
+	}
+
+	/* Fills the stretched image track (grid's default align-items:stretch)
+	   by cropping rather than distorting or leaving gaps — the shots
+	   underneath rarely share an aspect ratio. Cropped from the top: these
+	   are app screenshots, and the toolbar/header at the top identifies the
+	   shot more than whatever sits at the bottom. */
+	.row :global(.figure__zoom img) {
+		height: 100%;
+		object-fit: cover;
+		object-position: top;
 	}
 </style>
