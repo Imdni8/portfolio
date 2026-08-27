@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 export const VideoPlayer = () => {
 	useEffect(() => {
 		const onClick = (e: MouseEvent) => {
-			const btn = (e.target as HTMLElement).closest<HTMLElement>('.video__play');
+			const btn = (e.target as HTMLElement).closest<HTMLElement>('.video-frame__play');
 			if (!btn) return;
 			const frame = btn.closest<HTMLElement>('[data-video]');
 			if (!frame) return;

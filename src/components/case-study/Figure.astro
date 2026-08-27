@@ -12,14 +12,23 @@ interface Props {
 
 const { src, alt, caption, zoomSrc } = Astro.props;
 const full = zoomSrc ?? src;
+
+/** A cropped-down toolbar strip or letterboxed screenshot reads as a sliver
+    once squeezed into one column of a FigureRow — 3.5 sits comfortably
+    above a normal app screenshot's ratio (~1.5–2.9 across this site) and
+    below where these actually land (~4.5–4.8). FigureRow spans a figure
+    carrying this across every column of its row when it's set, so it gets
+    a full-width row of its own instead of a cramped, illegible column. */
+const isWide = src.width / src.height >= 3.5;
 ---
 
-<figure class="figure">
+<figure class="figure" data-wide={isWide || undefined}>
 	<button
 		type="button"
 		class="figure__zoom"
 		data-zoom={full.src}
 		data-zoom-alt={alt}
+		data-zoom-caption={caption}
 		aria-label={`Enlarge: ${alt}`}
 	>
 		<Image src={src} alt={alt} widths={[480, 760, 1120]} sizes="(min-width: 60rem) 46vw, 92vw" />

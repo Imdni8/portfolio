@@ -21,6 +21,7 @@ import database from 'lucide-static/icons/database.svg?raw';
 import building2 from 'lucide-static/icons/building-2.svg?raw';
 import wrench from 'lucide-static/icons/wrench.svg?raw';
 import calendar from 'lucide-static/icons/calendar.svg?raw';
+import sparkles from 'lucide-static/icons/sparkles.svg?raw';
 import figma from '../../assets/icons/figma.svg?raw';
 import home from '../../assets/icons/home.svg?raw';
 import slashDivider from '../../assets/icons/slash-divider.svg?raw';
@@ -41,6 +42,7 @@ export const icons = {
 	'building-2': building2,
 	wrench,
 	calendar,
+	sparkles,
 	figma,
 	home,
 	'slash-divider': slashDivider,

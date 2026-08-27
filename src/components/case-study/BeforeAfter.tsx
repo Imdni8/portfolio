@@ -15,11 +15,15 @@ interface Shot {
 }
 
 /** A numbered callout: a pin pinned to the shot, and the line it explains. */
-interface Note {
+export interface Note {
 	/** position of the pin, as a percentage of the frame */
 	x: number;
 	y: number;
 	text: string;
+	/** overrides the pin's badge (default: its 1-based position in the array)
+	    — give several pins the same label + text to point at multiple spots
+	    that share one callout, e.g. a "★" bonus note. */
+	label?: string;
 }
 
 interface Props {
@@ -35,6 +39,21 @@ interface Props {
 }
 
 const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
+
+/** Collapses notes sharing the same `text` into one story-panel line, marked
+    with the label of the first pin that carries it. Also used by
+    CaseStudyHero's sr-only notes list, so the two representations of the
+    same notes cannot dedupe differently. */
+export const dedupeNotes = (notes: Note[]) => {
+	const seen = new Set<string>();
+	const items: { marker: string; text: string }[] = [];
+	notes.forEach((note, i) => {
+		if (seen.has(note.text)) return;
+		seen.add(note.text);
+		items.push({ marker: note.label ?? String(i + 1), text: note.text });
+	});
+	return items;
+};
 
 /** A linear ramp, clamped to [0,1], rising as `x` moves up through
     [edge, edge + span]. */
@@ -258,7 +277,7 @@ export default function BeforeAfter({
 						opacity: rampUp(story, i * pinStagger(notes.length), PIN_RAMP),
 					}}
 				>
-					{i + 1}
+					{note.label ?? i + 1}
 				</span>
 			))}
 
@@ -268,11 +287,21 @@ export default function BeforeAfter({
 					style={{ opacity: story, translate: `0 ${(1 - story) * 100}%` }}
 				>
 					<p className="ba__story-title type-overline">{label}</p>
-					<ol className="ba__story-list type-annotation">
-						{notes.map((note, i) => (
-							<li key={i}>{note.text}</li>
+					{/* Not an <ol>: several pins can share one callout (e.g. a "★"
+					    bonus note pointing at multiple spots), so the marker beside
+					    each line is the label of its first matching pin — not a
+					    browser-assigned ordinal, which can't mix in an emoji. De-duped
+					    by text so a shared callout reads once rather than repeating. */}
+					<ul className="ba__story-list type-annotation">
+						{dedupeNotes(notes).map(({ marker, text }) => (
+							<li key={text}>
+								<span className="ba__story-marker" aria-hidden="true">
+									{marker}
+								</span>
+								{text}
+							</li>
 						))}
-					</ol>
+					</ul>
 				</div>
 			)}
 		</div>

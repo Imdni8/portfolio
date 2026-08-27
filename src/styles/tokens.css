@@ -218,6 +218,14 @@
 	   in both themes for the same reason --secondary does: a value tied to the
 	   ground beneath it would fight the image instead of reading over it. */
 	--overlay: #0e0e0ebf;
+
+	/* Text and icon colour for anything sitting on --overlay, a fixed dark
+	   scrim, or a product screenshot — surfaces that are dark (or light) in
+	   both themes rather than following --bg. Deliberately not redefined per
+	   theme, same reasoning as --overlay itself: the lightbox's caption/count,
+	   before/after's labels and pins, and its story panel all read light text
+	   over a ground that never flips. */
+	--text-on-overlay: var(--gray-50);
 }
 
 /* ---- 4a · Semantic colour · light -----------------------------------------

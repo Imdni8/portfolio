@@ -32,6 +32,10 @@ export const glossary = {
 		title: 'Progressive disclosure',
 		body: 'Showing only what is needed at each step, and letting people reach the rest on demand. Here: surfacing that updates exist without forcing the builder through every one before they can publish.',
 	},
+	sus: {
+		title: 'System Usability Scale (SUS)',
+		body: 'A standard ten-question usability questionnaire, scored 0–100. Scores above roughly 68 are considered above average.',
+	},
 } as const satisfies Record<string, GlossaryEntry>;
 
 export type TermId = keyof typeof glossary;

@@ -25,6 +25,9 @@ interface Props {
 	technology: string;
 	/** What kind of work this was — icon chips overlapping the cover. */
 	roles?: readonly WorkRole[];
+	/** Whether this project shipped a notable AI feature — rendered as the
+	 *  first (leftmost) chip in the same row as `roles`, when true. */
+	aiFeature?: boolean;
 	thumbnail: { src: ImageMetadata; alt: string };
 	href?: string;
 	status?: 'coming-soon' | 'external';
@@ -34,7 +37,7 @@ interface Props {
 	slug?: string;
 }
 
-const { title, industry, year, technology, roles = [], thumbnail, href, status, slug } = Astro.props;
+const { title, industry, year, technology, roles = [], aiFeature = false, thumbnail, href, status, slug } = Astro.props;
 
 // A link when there's somewhere to go, otherwise a plain container — no
 // dead affordance for a case study that isn't published yet.
@@ -75,8 +78,13 @@ const isExternal = status === 'external';
 			)
 		}
 		{
-			roles.length > 0 && (
+			(aiFeature || roles.length > 0) && (
 				<ul class="card__roles">
+					{aiFeature && (
+						<li>
+							<Tag icon="sparkles">AI</Tag>
+						</li>
+					)}
 					{roles.map((role) => (
 						<li>
 							<Tag icon={ROLE_ICONS[role.kind]}>{role.label}</Tag>

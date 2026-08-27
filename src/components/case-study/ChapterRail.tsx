@@ -11,9 +11,11 @@ export type Chapter = { id: string; label: string };
  */
 export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 	const [active, setActive] = useState(chapters[0]?.id);
-	// True once the footer has come into view — there's nothing left in the
-	// case study for the rail to navigate to at that point, so it retracts.
+	// True once the rail has been pushed fully off-screen by the closing
+	// Reflection (or the footer, lacking one) — there's nothing left in the
+	// case study for it to navigate to at that point, so it goes inert.
 	const [pastEnd, setPastEnd] = useState(false);
+	const navRef = useRef<HTMLElement>(null);
 	const railRef = useRef<HTMLDivElement>(null);
 	const indicatorRef = useRef<HTMLSpanElement>(null);
 	// Read once — it never changes for the session, and every scroll-spy
@@ -26,46 +28,108 @@ export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 	useEffect(() => {
 		const sections = chapters
 			.map((c) => document.querySelector<HTMLElement>(`[data-chapter="${c.id}"]`))
-			.filter((el): el is HTMLElement => el !== null);
+			.filter((el): el is HTMLElement => el !== null)
+			// Defensive: keeps "last one scrolled past" below correct even if a
+			// chapter's Section ever lands out of the order `chapters` lists.
+			.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
 		if (!sections.length) return;
 
-		// rootMargin pins the trigger line near the top of the viewport: a
-		// section counts as current once its heading reaches the rail, not when
-		// it first peeks in from the bottom.
-		// A callback only reports what *changed*, so the set of currently
-		// intersecting sections has to be carried across calls — reading one
-		// batch loses every section that was already in view and leaves the
-		// rail stuck on whichever chapter happened to fire last.
-		const intersecting = new Set<HTMLElement>();
+		// A chapter can own several Sections — only its first carries the
+		// `chapter` prop, and the rest (no `data-chapter` of their own) inherit
+		// it by following in document order. So the active chapter is the last
+		// marker scrolled past the trigger line, not "whichever marker's own box
+		// currently overlaps a band": that reading leaves the rail stuck on a
+		// stale chapter for every inherited Section after a marker, in both
+		// scroll directions, until the next marker's own (possibly short) box
+		// happens to cross the band.
+		const TRIGGER = 0.2;
 
-		const io = new IntersectionObserver(
-			(entries) => {
-				for (const e of entries) {
-					if (e.isIntersecting) intersecting.add(e.target as HTMLElement);
-					else intersecting.delete(e.target as HTMLElement);
-				}
-				const topmost = [...intersecting].sort(
-					(a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top
-				)[0];
-				const id = topmost?.getAttribute('data-chapter');
-				if (id) setActive(id);
-			},
-			{ rootMargin: '-20% 0px -70% 0px', threshold: 0 }
-		);
+		// A scroll read, not an IntersectionObserver — same fix as the nav's
+		// tint trigger (nav-tint.ts) for the same reason: a chapter's Section is
+		// routinely taller than the viewport, so a narrow observed band only
+		// tells you the section has started or finished crossing it, not the
+		// moment its top reaches TRIGGER. Watching it fire proves the mismatch —
+		// "enter" lands with the section's top still well below the line (so
+		// this marker isn't counted yet and the rail is left showing the
+		// previous chapter), and the next callback isn't until "exit", by which
+		// point the whole section — heading, body, everything — has already
+		// scrolled past. Reading live geometry on every scroll frame instead
+		// means the instant a marker's top crosses the line, the very next
+		// frame sees it.
+		let ticking = false;
 
-		sections.forEach((s) => io.observe(s));
-		return () => io.disconnect();
+		const update = () => {
+			ticking = false;
+			const line = window.innerHeight * TRIGGER;
+			let current = sections[0];
+			for (const s of sections) {
+				if (s.getBoundingClientRect().top <= line) current = s;
+				else break;
+			}
+			const id = current.getAttribute('data-chapter');
+			if (id) setActive(id);
+		};
+
+		const onScroll = () => {
+			if (ticking) return;
+			ticking = true;
+			requestAnimationFrame(update);
+		};
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onScroll, { passive: true });
+		update();
+		return () => {
+			window.removeEventListener('scroll', onScroll);
+			window.removeEventListener('resize', onScroll);
+		};
 	}, [chapters]);
 
-	// The footer sits immediately after `<main>` (see CaseStudyLayout), so its
-	// arrival in the viewport is the signal that every chapter has been
-	// scrolled past.
+	// Pushes the rail up out of the viewport exactly as fast as the closing
+	// Reflection's top border (or, lacking one, the footer's) approaches it —
+	// the offset is a live function of their relative positions, recomputed
+	// every scroll frame, not a canned animation on a boolean flip. That's what
+	// makes it read as the border physically shoving the rail off-screen: the
+	// rail's own bottom edge stays glued to the border the entire way, in both
+	// scroll directions, rather than the rail retracting on its own schedule
+	// once some threshold is crossed.
 	useEffect(() => {
-		const footer = document.querySelector('.site-footer');
-		if (!footer) return;
-		const io = new IntersectionObserver(([entry]) => setPastEnd(entry.isIntersecting), { threshold: 0 });
-		io.observe(footer);
-		return () => io.disconnect();
+		const nav = navRef.current;
+		const target =
+			document.querySelector<HTMLElement>('.reflection') ?? document.querySelector<HTMLElement>('.site-footer');
+		if (!nav || !target) return;
+
+		let railHeight = nav.getBoundingClientRect().height;
+		let ticking = false;
+
+		const update = () => {
+			ticking = false;
+			// 0 while the border is still below the rail's own bottom edge (rail
+			// fully pinned), down to -railHeight once the border reaches the top
+			// of the viewport (rail fully off-screen) — clamped so it can't be
+			// pushed past either end.
+			const offset = Math.min(0, Math.max(-railHeight, target.getBoundingClientRect().top - railHeight));
+			nav.style.transform = offset === 0 ? '' : `translateY(${offset}px)`;
+			setPastEnd(offset <= -railHeight);
+		};
+
+		const onScroll = () => {
+			if (ticking) return;
+			ticking = true;
+			requestAnimationFrame(update);
+		};
+		const onResize = () => {
+			railHeight = nav.getBoundingClientRect().height;
+			onScroll();
+		};
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onResize, { passive: true });
+		update();
+		return () => {
+			window.removeEventListener('scroll', onScroll);
+			window.removeEventListener('resize', onResize);
+		};
 	}, []);
 
 	// Slide the shared bar under the active tab — same mechanism as the site
@@ -109,15 +173,11 @@ export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 	const go = (id: string) => {
 		const target = document.querySelector<HTMLElement>(`[data-chapter="${id}"]`);
 		if (!target) return;
-		target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		target.scrollIntoView({ behavior: reducedMotion.current ? 'auto' : 'smooth', block: 'start' });
 	};
 
 	return (
-		<nav
-			className={`rail${pastEnd ? ' rail--hidden' : ''}`}
-			aria-label="Chapters"
-			inert={pastEnd || undefined}
-		>
+		<nav className="rail" aria-label="Chapters" inert={pastEnd || undefined} ref={navRef}>
 			<div className="rail__inner tabs" ref={railRef}>
 				{chapters.map((c) => (
 					<button

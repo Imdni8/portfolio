@@ -19,11 +19,16 @@ import { glob } from 'astro/loaders';
 /** A numbered callout pinned to a hero shot. `x`/`y` are percentages of the
  *  frame, not of the source image — the two differ whenever a shot's aspect
  *  ratio does not match the frame and `object-fit: cover` crops it. Shared by
- *  beforeNotes/afterNotes below so the two can't drift into different shapes. */
+ *  beforeNotes/afterNotes below so the two can't drift into different shapes.
+ *  `label` overrides the pin's badge (default: its 1-based position in the
+ *  array) — for pointing at several spots that are all explained by one
+ *  callout, give each the same `label` and `text`; the story panel collapses
+ *  matching `text` into a single line. */
 const noteSchema = z.object({
 	x: z.number().min(0).max(100),
 	y: z.number().min(0).max(100),
 	text: z.string(),
+	label: z.string().optional(),
 });
 
 const work = defineCollection({
@@ -59,6 +64,14 @@ const work = defineCollection({
 					)
 					.max(2)
 					.default([]),
+
+				/** Whether this project shipped a notable AI feature — rendered as
+				 *  a fixed "AI" tag chip overlapping the cover, always the first
+				 *  (leftmost) chip when present. Kept separate from `roles` above
+				 *  rather than added as a third `kind`: this tag's label is fixed
+				 *  ("AI"), not freeform, and it isn't subject to the
+				 *  `roles.max(2)` cap. */
+				aiFeature: z.boolean().default(false),
 
 				/** Explicit sort key for the homepage grid. Convention: leave gaps
 				 *  of 10 (10, 20, 30…) so a new card can be inserted between two
