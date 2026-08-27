@@ -65,6 +65,14 @@ const work = defineCollection({
 					.max(2)
 					.default([]),
 
+				/** Whether this project shipped a notable AI feature — rendered as
+				 *  a fixed "AI" tag chip overlapping the cover, always the first
+				 *  (leftmost) chip when present. Kept separate from `roles` above
+				 *  rather than added as a third `kind`: this tag's label is fixed
+				 *  ("AI"), not freeform, and it isn't subject to the
+				 *  `roles.max(2)` cap. */
+				aiFeature: z.boolean().default(false),
+
 				/** Explicit sort key for the homepage grid. Convention: leave gaps
 				 *  of 10 (10, 20, 30…) so a new card can be inserted between two
 				 *  existing ones without renumbering the rest. */

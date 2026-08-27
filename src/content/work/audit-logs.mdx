@@ -5,15 +5,16 @@ technology: AI Agents
 year: 2026
 thumbnail:
     src: ../../assets/work/audit-logs/00-thumbnail.png
-    alt: Placeholder thumbnail — case study not yet written
+    alt: The redesigned audit log page, showing grouped database actions and a details side panel
 order: 20
 roles:
     - kind: design-type
       label: Redesign
+aiFeature: true
 subtitle: Redesigned the developer POC of audit logs into a comprehensible audit trail. Usability (SUS) improved from 57 to 72.
 facts:
     - label: Duration
-      value: 3 Weeks
+      value: 3 weeks
     - label: Role
       value: Sole product designer
     - label: Team
@@ -119,7 +120,7 @@ The initial brief was to make logs more comprehensive so that tracking what chan
 
 </Section>
 
-<Section eyebrow="UX audit" heading="Hard to follow the audit trail because of database actions mixed with user actions, vertically expanding logs and poor visual hierarchy">
+<Section chapter="research" eyebrow="UX audit" heading="Hard to follow the audit trail because of database actions mixed with user actions, vertically expanding logs and poor visual hierarchy">
   <FigureRow slot="visual">
     <Figure src={promptFourLogs} alt="Creating a single prompt produced four separate log entries instead of one" caption="Creating 1 prompt produced 4 logs" />
     <Figure src={verticallyExpandingLogs} alt="A log expanded to show its changed fields, pushing every log beneath it further down the page" caption="Vertically expanding logs" />
@@ -129,7 +130,7 @@ The initial brief was to make logs more comprehensive so that tracking what chan
 I began by auditing the current implementation to find UX gaps.
 
 1. Audit page first load lagged severely because opening it triggered a search automatically in the background (confirmed in the network tab of dev tools). As a result, users couldn't change the search criteria because the UI would be unresponsive for some time.
-2. The search results contained user actions and database actions together in one list. So one user action appeared as multiple user actions in the logs.
+2. The search results contained user actions and database actions together in one list. So one user action appeared as multiple log entries.
 3. Each log needed to be expanded twice to see changed fields, which pushed the logs below further down. This was detrimental to the task because users often need to see multiple logs together for comparing data changes.
 4. Filtering by a resource clashed with the initial search filters.
 5. The search section wasn't fixed, forcing the user to scroll back up if they wanted to reset the search criteria or refresh to view the latest logs.
@@ -137,7 +138,7 @@ I began by auditing the current implementation to find UX gaps.
 
 </Section>
 
-<Section chapter="research" claim eyebrow="Qualitative research" heading="Users used timestamp to locate the right logs and then compared adjacent logs to see changes">
+<Section claim eyebrow="Qualitative research" heading="Users used timestamp to locate the right logs and then compared adjacent logs to see changes">
   <Figure slot="visual" src={participantWorkflow} alt="Illustrative screenshot of a participant sharing their screen on a video call while walking through the audit log page" caption="Participant explaining their workflow on a video call [illustrative image]" />
 
 I conducted contextual inquiry with five internal builders in the professional services team to understand how they use audit logs for troubleshooting.
@@ -152,7 +153,7 @@ After each session, I also gave each participant a <Term id="sus">System Usabili
 
 </Section>
 
-<Section claim eyebrow="Problem breakdown" heading="Based on research, I broke the problem into five distinct parts in order of importance">
+<Section chapter="ideation" claim eyebrow="Problem breakdown" heading="Based on research, I broke the problem into five distinct parts in order of importance">
 
 1. Help users locate the right log
 2. Make the data change inside a log easy to understand and compare against adjacent logs
@@ -162,7 +163,7 @@ After each session, I also gave each participant a <Term id="sus">System Usabili
 
 </Section>
 
-<Section chapter="ideation" claim eyebrow="Locating the right logs" heading="Timestamps in the beginning make it easier to locate the right logs">
+<Section claim eyebrow="Locating the right logs" heading="Timestamps in the beginning make it easier to locate the right logs">
   <FigureRow slot="visual">
     <Figure src={grafanaDashboard} alt="Grafana's log dashboard, leading every row with a timestamp" caption="Screenshot of Grafana's log dashboard" />
     <Figure src={earlierSearchConcept} alt="An earlier design concept with a search bar and a details panel for filtering logs by time" caption="Earlier design concept with search and filtering" />
@@ -179,7 +180,7 @@ Earlier design direction allowed searching and filtering by time period to locat
 <Section claim eyebrow="Visually differentiating database versus user actions" heading='Introduced "database actions" as a new type of log and visually differentiated them from user actions'>
   <Figure slot="visual" src={dbActionsExpanding} alt="Side by side: a collapsed 'Show db actions' divider between user actions, and the same divider expanded to reveal the grouped database action entries it was hiding" caption="Expanding database actions" />
 
-Users expect to see one log for one action, even if that one action included multiple changes. For example, if an agent's prompt and skill is updated and republished, the action of publishing should occur once in the logs.
+Users expect to see one log for one action, even if that one action included multiple changes. For example, if an agent's prompt and skill are updated and republished, the action of publishing should occur once in the logs.
 
 But due to how the database was architected, one user action could generate multiple logs. This confused users.
 
@@ -193,9 +194,9 @@ At first, we discussed hiding the database actions. But that could become a comp
     <Figure src={searchTags} alt="Search criteria collapsed into removable tags in a fixed header row" caption="Search criteria converted to tags to allow more vertical space" />
   </FigureRow>
 
-The second problem was to improve how log search was initiated. First, I added an explicit button to prevent automatic searching and the lag it caused on initial page load.
+Another problem was to improve how log search was initiated. First, I added an explicit button to prevent automatic searching and the lag it caused on initial page load.
 
-After executing the search, the fields changed to tags so that...
+After executing the search, the fields changed to tags so that:
 
 1. Vertical space can be maximised to fit more logs
 2. When a user filters by a resource, the tags system can be extended so that filtering stays consistent
