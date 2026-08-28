@@ -1,8 +1,9 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../ui/Icon.astro';
 import Tag from '../ui/Tag.astro';
+import BeforeAfter from '../case-study/BeforeAfter';
 import type { IconName } from '../ui/icons';
 
 /** `kind` is the closed set that picks the icon; `label` is free text
@@ -23,12 +24,29 @@ interface Props {
 	industry: string;
 	year: number;
 	technology: string;
-	/** What kind of work this was — icon chips overlapping the cover. */
+	/** What kind of work this was — icon chips atop the card's text panel. */
 	roles?: readonly WorkRole[];
 	/** Whether this project shipped a notable AI feature — rendered as the
 	 *  first (leftmost) chip in the same row as `roles`, when true. */
 	aiFeature?: boolean;
 	thumbnail: { src: ImageMetadata; alt: string };
+	/** The case study's own opening before/after — reused as the card's media
+	 *  when present, since it already tells the story a static cover can't.
+	 *  Entries without a written page (external, coming-soon) have none, and
+	 *  fall back to `thumbnail`. */
+	hero?: {
+		before: ImageMetadata;
+		after: ImageMetadata;
+		beforeAlt: string;
+		afterAlt: string;
+	};
+	/** A short film for the cover, for entries with no before/after to drag.
+	 *  Only read when `hero` is absent. See the schema note in
+	 *  `src/content.config.ts`. */
+	preview?: {
+		src: string;
+		poster?: ImageMetadata;
+	};
 	href?: string;
 	status?: 'coming-soon' | 'external';
 	/** The collection entry's id, surfaced as `data-slug` purely so the click
@@ -37,46 +55,67 @@ interface Props {
 	slug?: string;
 }
 
-const { title, industry, year, technology, roles = [], aiFeature = false, thumbnail, href, status, slug } = Astro.props;
-
-// A link when there's somewhere to go, otherwise a plain container — no
-// dead affordance for a case study that isn't published yet.
-const Wrapper = href ? 'a' : 'div';
+const {
+	title,
+	industry,
+	year,
+	technology,
+	roles = [],
+	aiFeature = false,
+	thumbnail,
+	hero,
+	preview,
+	href,
+	status,
+	slug,
+} = Astro.props;
 
 const isExternal = status === 'external';
+
+// What the cover shows, in precedence order: a compare if the case study has
+// one, else a film, else the still. A compare and a film are both gestures, so
+// they claim the pointer over the cover for themselves.
+const compare = !isExternal && hero ? hero : undefined;
+const film = !compare && !isExternal && preview ? preview : undefined;
+const coverIsInteractive = Boolean(compare || film);
+
+// Where the link lives. An `external` card leaves the site and a still cover
+// has no gesture of its own, so in both cases the whole card is the link — a
+// dead zone over most of its area would be worse than a large target. Once the
+// cover carries a gesture (drag the compare, play the film) the link retreats
+// to the text panel, so a drag can't double as a navigation. Neither, when
+// there's nowhere to go: no dead affordance for work that isn't published yet.
+const cardHref = href && !coverIsInteractive ? href : undefined;
+const panelHref = href && coverIsInteractive ? href : undefined;
+const Wrapper = cardHref ? 'a' : 'div';
+const Panel = panelHref ? 'a' : 'div';
+
+const mediaWidths = [400, 620, 900];
+const mediaSizes = '(min-width: 85.5rem) 37.5rem, (min-width: 40rem) 44vw, 92vw';
+
+// Resolved here (mirroring CaseStudyHero.astro) rather than passed pre-built
+// from index.astro: the island only takes plain src/srcSet strings, and this
+// keeps that resolution co-located with the one place it's used.
+const [before, after] = compare
+	? await Promise.all([
+			getImage({ src: compare.before, widths: mediaWidths, format: 'webp', quality: 82 }),
+			getImage({ src: compare.after, widths: mediaWidths, format: 'webp', quality: 82 }),
+		])
+	: [];
+
+// `poster` takes a single URL, not a srcset — one width, at the largest the
+// cover is ever rendered.
+const poster = film ? await getImage({ src: film.poster ?? thumbnail.src, width: 900, format: 'webp', quality: 82 }) : undefined;
 ---
 
 <Wrapper
-	class:list={['card', 'glass', { 'card--external': isExternal }]}
-	href={href}
+	class:list={['card', { 'card--external': isExternal }]}
+	href={cardHref}
 	data-slug={slug}
 	target={isExternal ? '_blank' : undefined}
 	rel={isExternal ? 'noopener noreferrer' : undefined}
 >
-	{/* `sizes`: two columns capped at --measure-content, so above 85.5rem the
-	    card stops growing and is a flat 600px; between there and the
-	    single-column breakpoint it holds ~44vw. */}
-	<div class="card__media">
-		<Image
-			src={thumbnail.src}
-			alt={thumbnail.alt}
-			widths={[400, 620, 900]}
-			sizes="(min-width: 85.5rem) 37.5rem, (min-width: 40rem) 44vw, 92vw"
-		/>
-		{
-			status === 'coming-soon' && (
-				<div class="card__overlay">
-					<p class="card__overlay-label">Coming soon</p>
-				</div>
-			)
-		}
-		{
-			isExternal && (
-				<span class="card__external-badge">
-					<Icon name="external-link" />
-				</span>
-			)
-		}
+	<Panel class="card__panel" href={panelHref}>
 		{
 			(aiFeature || roles.length > 0) && (
 				<ul class="card__roles">
@@ -93,50 +132,160 @@ const isExternal = status === 'external';
 				</ul>
 			)
 		}
-	</div>
-	<div class="card__body">
-		<p class="card__title type-card-title">
-			{title}
-			{isExternal && <span class="sr-only"> (opens in new tab)</span>}
-		</p>
-		<p class="card__meta type-meta">
-			<span class="card__meta-item">
-				<Icon name="building-2" />
-				{industry}
-			</span>
-			<span aria-hidden="true">·</span>
-			<span class="card__meta-item">
-				<Icon name="wrench" />
-				{technology}
-			</span>
-			<span aria-hidden="true">·</span>
-			<span class="card__meta-item">
-				<Icon name="calendar" />
-				{year}
-			</span>
-		</p>
+		<div class="card__info">
+			<p class="card__title type-card-title">
+				{title}
+				{isExternal && <span class="sr-only"> (opens in new tab)</span>}
+			</p>
+			<div class="card__meta">
+				<span class="card__meta-item type-meta">
+					<Icon name="building-2" />
+					{industry}
+				</span>
+				<span class="card__meta-item type-meta">
+					<Icon name="wrench" />
+					{technology}
+				</span>
+				<span class="card__meta-item type-meta">
+					<Icon name="calendar" />
+					{year}
+				</span>
+			</div>
+		</div>
+	</Panel>
+	{/* `data-lenis-prevent-touch` only on a cover that owns a gesture: the stack
+	    below runs on Lenis with `syncTouch`, which swallows touchmove to drive
+	    its own smoothing — including the sideways drag of the compare handle.
+	    This hands touch inside the cover back to the browser, where `.ba`'s own
+	    `touch-action: pan-y` already lets a vertical swipe scroll the page. */}
+	<div class="card__media" data-lenis-prevent-touch={coverIsInteractive ? '' : undefined}>
+		{/* The inset frame. The 4px offset is `.card__media`'s padding, and this
+		    is what makes it hold: `.ba--fill` is `position: absolute; inset: 0`,
+		    which resolves against its containing block's *padding* box and so
+		    would sit flush to the card's border without a positioned element
+		    inside the padding to fill instead. */}
+		<div class="card__frame">
+			{
+				compare && before && after ? (
+					<BeforeAfter
+						client:visible
+						fill
+						before={{
+							src: before.src,
+							srcSet: before.srcSet.attribute,
+							sizes: mediaSizes,
+							width: compare.before.width,
+							height: compare.before.height,
+							alt: compare.beforeAlt,
+						}}
+						after={{
+							src: after.src,
+							srcSet: after.srcSet.attribute,
+							sizes: mediaSizes,
+							width: compare.after.width,
+							height: compare.after.height,
+							alt: compare.afterAlt,
+						}}
+					/>
+				) : film ? (
+					<div class="card__film" data-card-film>
+						{/* No `controls`: the whole cover is the play/pause target, and a
+						    native control bar would compete with the button below for it.
+						    Muted + loop + playsinline so a tap starts it everywhere without
+						    taking the page over. */}
+						<video src={film.src} poster={poster?.src} muted loop playsinline preload="metadata" />
+						<button type="button" class="card__play" data-card-play aria-label={`Play the ${title} preview`}>
+							<span class="card__play-icon card__play-icon--play">
+								<Icon name="play" />
+							</span>
+							<span class="card__play-icon card__play-icon--pause">
+								<Icon name="pause" />
+							</span>
+						</button>
+					</div>
+				) : (
+					<Image src={thumbnail.src} alt={thumbnail.alt} widths={mediaWidths} sizes={mediaSizes} />
+				)
+			}
+			{
+				status === 'coming-soon' && (
+					<div class="card__overlay">
+						<p class="card__overlay-label">Coming soon</p>
+					</div>
+				)
+			}
+			{
+				isExternal && (
+					<span class="card__external-badge">
+						<Icon name="external-link" />
+					</span>
+				)
+			}
+		</div>
 	</div>
 </Wrapper>
 
+<script>
+	// The cover is the play/pause target — the card's link sits on the text
+	// panel for exactly this reason, so nothing here has to stop a navigation.
+	// Bundled once per page however many cards render.
+	document.querySelectorAll<HTMLElement>('[data-card-film]').forEach((film) => {
+		const video = film.querySelector('video');
+		const button = film.querySelector<HTMLButtonElement>('[data-card-play]');
+		if (!video || !button) return;
+
+		const label = button.getAttribute('aria-label') ?? '';
+		const sync = () => {
+			film.classList.toggle('is-playing', !video.paused);
+			// Swapped rather than left as "Play…": the button is the only thing
+			// announcing what the cover will do, so it has to track the state the
+			// icon beside it is already showing.
+			button.setAttribute('aria-label', video.paused ? label : label.replace(/^Play\b/, 'Pause'));
+		};
+
+		// One handler on the wrapper, so the button and the frame around it are
+		// the same target — the click on the button bubbles here rather than
+		// being handled twice.
+		film.addEventListener('click', () => {
+			if (video.paused) void video.play().catch(() => {});
+			else video.pause();
+		});
+		video.addEventListener('play', sync);
+		video.addEventListener('pause', sync);
+	});
+</script>
+
 <style>
-	/* The card is one object: a single glass pane with the cover painted over
-	   its top half, not an image with a caption beneath it. `.glass` brings the
-	   border and radius; `overflow: clip` is what rounds the cover's top
-	   corners against them. */
+	/* Two panes side by side — a dark text panel and the cover — rather than
+	   the media-over-body stack this card used to be. A flat raised surface,
+	   not `.glass`: cards now overlap while stacked, and glass's blurred,
+	   partly-transparent tint doesn't fully occlude whatever's behind it —
+	   the card underneath ghosted through the text panel (the media panel,
+	   an opaque photo, never showed the same problem). `overflow: clip` cuts
+	   the media's corners to match the card's own radius. */
 	.card {
 		position: relative;
 		display: flex;
-		flex-direction: column;
+		align-items: stretch;
 		overflow: clip;
+		border-radius: var(--radius-2xl);
+		border: 1px solid var(--border);
+		background: var(--bg-raised);
 		color: inherit;
 		text-decoration: none;
 	}
 
-	a.card {
+	/* The lift belongs to the card, wherever its link actually sits — the whole
+	   card when the cover is a still or the entry is external, the text panel
+	   alone when the cover owns a gesture. Either way the card is one object
+	   and moves as one. */
+	a.card,
+	.card:has(a.card__panel) {
 		transition: transform 0.15s ease;
 	}
 
-	a.card:hover {
+	a.card:hover,
+	.card:has(a.card__panel:hover) {
 		transform: translateY(-2px);
 	}
 
@@ -148,37 +297,175 @@ const isExternal = status === 'external';
 		cursor: alias;
 	}
 
-	a.card:focus-visible {
+	/* Drawn on the card even when the focus is on the panel inside it: the panel
+	   is flush to the card's edge, so its own ring would be swallowed by
+	   `overflow: clip` above. An outline is unaffected by the *focused*
+	   element's overflow, only its ancestors', so hoisting it one level out is
+	   what makes it visible. */
+	a.card:focus-visible,
+	.card:has(a.card__panel:focus-visible) {
 		outline: 2px solid var(--focus-ring);
 		outline-offset: 2px;
-		/* Matches .glass's own radius so the ring hugs the corner. */
-		border-radius: var(--radius-md);
+		/* Matches the card's own radius so the ring hugs the corner. */
+		border-radius: var(--radius-2xl);
 	}
 
-	/* Deliberately does NOT clip: the role-tag row hangs half of itself past
-	   this box's bottom edge, and an `overflow: hidden` here would slice it in
-	   two. The cover is cropped by object-fit on the image instead, which
-	   needs no clipping ancestor, and the card's own `overflow: clip` still
-	   rounds the corners. */
+	/* Fixed 30% share of the row, not a flexed one — a case study with a
+	   longer title shouldn't widen the panel at the cover's expense. */
+	.card__panel {
+		display: flex;
+		flex: 0 0 30%;
+		flex-direction: column;
+		gap: var(--spacing-3xl);
+		padding: var(--spacing-xl);
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.card__roles {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	/* `flex: 1` so title+meta are pinned to the panel's top with whatever
+	   space is left below them, rather than the panel shrinking to fit its
+	   content and leaving the cover looking taller than the text beside it. */
+	.card__info {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: var(--spacing-3xl);
+	}
+
+	.card__title {
+		color: var(--text);
+	}
+
+	.card__meta {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xl);
+		padding-block-start: var(--spacing-xl);
+		border-block-start: 1px solid var(--border-strong);
+		color: var(--text-body);
+	}
+
+	.card__meta-item {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+	}
+
+	/* Remaining 70% of the row. `aspect-ratio` gives this side a definite,
+	   image-independent height — needed because its own content (an `<img>`
+	   at height:100%, or `BeforeAfter`'s `fill` mode, which is absolutely
+	   positioned and so contributes no intrinsic size at all) can't otherwise
+	   drive it: without this, the row's height would be whatever each entry's
+	   own thumbnail happened to be, varying card to card. This is what
+	   `.card__panel` stretches to match instead — same aspect ratio the
+	   original media-on-top card used. The `--spacing-xs` padding leaves the
+	   card's own `--bg-raised` showing as a thin frame around the cover on
+	   every edge — deliberately not a second colour: it's the same surface
+	   the panel beside it sits on, just uncovered rather than painted
+	   separately. */
 	.card__media {
-		position: relative;
-		aspect-ratio: 16 / 10;
-		background: var(--bg-media);
+		flex: 1;
+		/* Not a round 16/10 any more: since this side is the taller of the two
+		   and the panel stretches to match it, this ratio is the card's height
+		   control, and the card wanted 20px more of it. 10.38 is what 16/10
+		   becomes once those 20px are folded in at the grid's capped measure —
+		   a 1240px card leaves the cover 834.6px wide, and 834.6 × 10.38/16 is
+		   541px against 16/10's 522px. It is a ratio, so below the cap (roughly
+		   a 1368px viewport, where the card starts narrowing off
+		   `--measure-content`) the card narrows and the extra 20px scales down
+		   with it. */
+		aspect-ratio: 16 / 10.38;
+		padding: var(--spacing-xs);
+		box-sizing: border-box;
 	}
 
-	.card__media :global(img) {
+	/* The cover itself, and the positioned ancestor everything inside it
+	   measures from — see the note in the markup for why the padding above
+	   needs an element to bite on. */
+	.card__frame {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+
+	/* Scoped to the frame's own children rather than every descendant `img`, so
+	   it can't reach the two shots inside a compare — those are sized and
+	   rounded by `.ba`'s own geometry, and a radius here would have been a
+	   second, competing one. */
+	.card__frame > :global(img),
+	.card__frame > :global(video) {
 		display: block;
 		width: 100%;
 		height: 100%;
+		border-radius: var(--radius-md);
 		object-fit: cover;
 	}
 
+	.card__film {
+		position: absolute;
+		inset: 0;
+		cursor: pointer;
+	}
+
+	.card__film :global(video) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		border-radius: var(--radius-md);
+		object-fit: cover;
+	}
+
+	/* Same circular scrim as .card__external-badge, in the opposite corner —
+	   they are the same kind of mark on the same kind of surface, so they are
+	   sized and coloured the same way. */
+	.card__play {
+		position: absolute;
+		inset-block-end: var(--spacing-xl);
+		inset-inline-end: var(--spacing-xl);
+		display: grid;
+		place-items: center;
+		width: var(--spacing-6xl);
+		height: var(--spacing-6xl);
+		padding: 0;
+		border: none;
+		border-radius: var(--radius-full);
+		background: var(--overlay);
+		color: var(--secondary);
+		cursor: pointer;
+	}
+
+	.card__play:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	/* Both icons ship; the class on the wrapper picks one. State is carried by
+	   the glyph, not by a colour or an opacity, so it survives greyscale. */
+	.card__play-icon {
+		display: none;
+	}
+
+	.card__play-icon .icon {
+		width: 1.625rem;
+		height: 1.625rem;
+	}
+
+	.card__film:not(.is-playing) .card__play-icon--play,
+	.card__film.is-playing .card__play-icon--pause {
+		display: grid;
+	}
+
 	/* Unpublished work's whole cover, not a corner of it, so it fills the
-	   media rather than straddling its seam. Confined to `.card__media` on
-	   purpose: the seam and the body stay legible, only the cover itself
-	   reads as not-yet-real. Painted before `.card__roles` in DOM order, so
-	   any role tags on a `coming-soon` card sit on top of the scrim rather
-	   than under it. */
+	   media rather than straddling its seam. */
 	.card__overlay {
 		position: absolute;
 		inset: 0;
@@ -223,56 +510,14 @@ const isExternal = status === 'external';
 		height: 1.625rem;
 	}
 
-	/* Straddles the seam between the cover and the body, centred on it by its
-	   own half-height rather than by a measured offset, so it stays put
-	   whatever the roles are. Left edge shares the body's padding, which is
-	   what lines it up with the title below. */
-	.card__roles {
-		position: absolute;
-		inset-block-end: 0;
-		inset-inline-start: var(--spacing-3xl);
-		transform: translateY(50%);
-		display: flex;
-		gap: var(--spacing-xl);
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.card__body {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-		padding: var(--spacing-3xl);
-	}
-
-	.card__title {
-		color: var(--text);
-	}
-
-	.card__meta {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		color: var(--text-muted);
-	}
-
-	/* Icon and label as one unit, so the pair wraps and truncates together
-	   rather than the icon ever separating from the data point it precedes. */
-	.card__meta-item {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-	}
-
-	/* The global guard in components.css covers .btn, .tab and .icon-btn; the
-	   card's lift is scoped here, so its opt-out has to be too. */
 	@media (prefers-reduced-motion: reduce) {
-		a.card {
+		a.card,
+		.card:has(a.card__panel) {
 			transition: none;
 		}
 
-		a.card:hover {
+		a.card:hover,
+		.card:has(a.card__panel:hover) {
 			transform: none;
 		}
 	}

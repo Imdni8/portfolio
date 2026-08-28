@@ -11,10 +11,13 @@
    ============================================================================ */
 
 /* ---- Glass -----------------------------------------------------------------
-   A material, not a component: the pane the nav, the work cards and the
-   "Side projects" panel are all cut from, so they read as one surface
-   treatment split across the page. Whatever wears it needs something painted
-   behind it to bend — on the homepage that is the fixed water field.
+   A material, not a component: the pane the nav and the "Side projects"
+   panel are both cut from, so they read as one surface treatment split
+   across the page. Whatever wears it needs something painted behind it to
+   bend — on the homepage that is the fixed water field. Work cards used to
+   wear it too, before they started overlapping in the scroll stack: glass's
+   blur and partial transparency don't fully occlude a card sitting behind
+   another, so the card underneath ghosted through — see WorkCard.astro.
 
    It brings its own border and radius, since the edge is part of the material:
    a rim, not a line drawn round a fill. Every value below reads a token
@@ -702,15 +705,23 @@
 	position: relative;
 	width: 100%;
 	overflow: hidden;
-	/* The same radius the halves carry on their seam-facing corners, so the
-	   pair is rounded consistently on all four. The halves stay square on the
-	   outside and are clipped to this instead — one radius to change, and it
-	   cannot drift from the one in the clip-paths below. */
+	/* The pair's outer edge. Both halves are square in their own clip-paths and
+	   take their rounding from this instead, via `overflow: hidden` — one radius
+	   for all four outer corners, in one place. */
 	border-radius: var(--radius-lg);
 	background: var(--bg-sunken);
 	touch-action: pan-y;
 	user-select: none;
 	cursor: ew-resize;
+}
+
+/* Fills the nearest positioned ancestor instead of sizing itself from
+   `aspectRatio` (which `fill` skips in the component) — for reuse inside a
+   box whose height comes from somewhere else, e.g. WorkCard's media column,
+   which stretches to match its sibling text column's own content height. */
+.ba--fill {
+	position: absolute;
+	inset: 0;
 }
 
 .ba__shot {
@@ -728,14 +739,16 @@
 	inset: 0;
 }
 
-/* Each half is rounded only on the side facing the gutter, so the two shots
-   read as a pair of cards with a channel between them. Outer edges stay square
-   to the frame. */
+/* Each half is cut square at the gutter: the seam is a straight channel between
+   two shots, and the grip rides down the middle of it — rounding the two edges
+   it sits between put a curve either side of the chevrons and read as a gap in
+   the cut rather than as a clean split. The outer corners are not set here at
+   all; they come from `.ba`'s own radius above, clipped by its `overflow`. */
 .ba__base {
-	clip-path: inset(0 calc(100% - var(--pos) * 1% + var(--seam-gutter)) 0 0 round 0 var(--radius-lg) var(--radius-lg) 0);
+	clip-path: inset(0 calc(100% - var(--pos) * 1% + var(--seam-gutter)) 0 0);
 }
 .ba__reveal {
-	clip-path: inset(0 0 0 calc(var(--pos) * 1% + var(--seam-gutter)) round var(--radius-lg) 0 0 var(--radius-lg));
+	clip-path: inset(0 0 0 calc(var(--pos) * 1% + var(--seam-gutter)));
 }
 
 /* Chrome belonging to one shot. The before side is painted under the reveal

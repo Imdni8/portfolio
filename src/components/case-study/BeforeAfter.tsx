@@ -33,8 +33,14 @@ interface Props {
 	afterLabel?: string;
 	beforeNotes?: Note[];
 	afterNotes?: Note[];
-	/** aspect ratio of the viewport both shots are cropped into */
+	/** aspect ratio of the viewport both shots are cropped into. Ignored when
+	 *  `fill` is set. */
 	ratio?: number;
+	/** Fills the nearest positioned ancestor instead of sizing itself from
+	 *  `ratio` — for reuse inside a box whose height comes from elsewhere
+	 *  (e.g. a work card's media column, which stretches to match its
+	 *  sibling text column). */
+	fill?: boolean;
 	start?: number;
 }
 
@@ -88,6 +94,7 @@ export default function BeforeAfter({
 	beforeNotes = [],
 	afterNotes = [],
 	ratio = 2.15,
+	fill = false,
 	start = 50,
 }: Props) {
 	const [pos, setPos] = useState(start);
@@ -249,6 +256,7 @@ export default function BeforeAfter({
 	const nextArrow = rampDown(travelled, 100, EDGE_FADE);
 
 	const classes = ['ba'];
+	if (fill) classes.push('ba--fill');
 	if (dragging) classes.push('is-dragging');
 	if (hinting) classes.push('is-hinting');
 
@@ -311,7 +319,7 @@ export default function BeforeAfter({
 		<div
 			className={classes.join(' ')}
 			ref={frameRef}
-			style={{ aspectRatio: String(ratio), ['--pos' as string]: pos }}
+			style={fill ? { ['--pos' as string]: pos } : { aspectRatio: String(ratio), ['--pos' as string]: pos }}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
 			onPointerUp={stop}

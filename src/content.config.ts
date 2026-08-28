@@ -47,6 +47,22 @@ const work = defineCollection({
 				year: z.number().int(),
 				thumbnail: z.object({ src: image(), alt: z.string() }),
 
+				/** A short film as the card's cover, for work with no before/after
+				 *  to drag. Only read when `hero` is absent — an entry that has a
+				 *  compare shows the compare, since it already tells the story.
+				 *  Lives in `public/media/` (served as-is, never bundled), so
+				 *  `src` is a site-absolute path like `/media/bolt.mp4`. `poster`
+				 *  is the still shown before playback; it falls back to
+				 *  `thumbnail.src`. The card plays it on click, so its cover — like
+				 *  a compare's — does not navigate; the text panel carries the
+				 *  link. See WorkCard.astro. */
+				preview: z
+					.object({
+						src: z.string(),
+						poster: image().optional(),
+					})
+					.optional(),
+
 				/** What kind of work this was — shown as icon chips overlapping the
 				 *  card's cover, on every status including `coming-soon` (over its
 				 *  "Coming soon" scrim). `kind` picks the icon (`design-type` → the

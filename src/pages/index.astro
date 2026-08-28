@@ -9,6 +9,7 @@ import WaterField from '../components/ui/WaterField.astro';
 import GlassDefs from '../components/ui/GlassDefs.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import WorkCard from '../components/work/WorkCard.astro';
+import ScrollStack, { ScrollStackItem } from '../components/vendor/ScrollStack/ScrollStack';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
 import heroWordmark from '../assets/homepage/Hero_wordmark.svg?raw';
@@ -57,8 +58,8 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		<meta name="description" content="Tousif Rahaman — product designer and design engineer." />
 	</head>
 	<body>
-		{/* Both the nav and the work cards wear `.glass`; the filter it bends
-		    the field with is defined once, here. */}
+		{/* The nav wears `.glass`; the filter it bends the field with is
+		    defined once, here. */}
 		<GlassDefs />
 		<div class="site-field">
 			<WaterField grid={72} />
@@ -87,32 +88,50 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		</div>
 		<section class="work">
 			<p class="type-overline work__eyebrow">Selected works</p>
-			{/* The nav darkens its glass as this grid comes up to meet it — the
+			{/* The nav darkens its glass as this section comes up to meet it — the
 			    cover images are predominantly white, and the resting tint is not
 			    enough to keep the links legible against one. See nav-tint.ts. */}
 			<div class="work__inner" data-nav-tint-trigger>
-				{
-					studies.map((entry) => (
-						<WorkCard
-							title={entry.data.title}
-							industry={entry.data.industry}
-							technology={entry.data.technology}
-							year={entry.data.year}
-							roles={entry.data.roles}
-							aiFeature={entry.data.aiFeature}
-							thumbnail={entry.data.thumbnail}
-							slug={entry.id}
-							href={
-								entry.data.status === 'coming-soon'
-									? undefined
-									: entry.data.status === 'external'
-										? entry.data.externalUrl
-										: `/work/${entry.id}`
-							}
-							status={entry.data.status === 'coming-soon' || entry.data.status === 'external' ? entry.data.status : undefined}
-						/>
-					))
-				}
+				{/* `stackPosition` is where a card comes to rest once it pins — the
+				    top of the stack, measured from the top of the viewport. A fixed
+				    length rather than the component's default `20%`: what this
+				    number is really setting is the clearance under the nav, and the
+				    nav is fixed chrome (24px inset + a 40px pill = 64px), so a
+				    proportional value made that gap grow and shrink with the window
+				    for no reason. 128px is that 64px footprint plus one 64px rung of
+				    the space scale. */}
+				<ScrollStack client:load stackPosition="128px" opacityAmount={0.2}>
+					{
+						studies.map((entry) => (
+							<ScrollStackItem>
+								<WorkCard
+									title={entry.data.title}
+									industry={entry.data.industry}
+									technology={entry.data.technology}
+									year={entry.data.year}
+									roles={entry.data.roles}
+									aiFeature={entry.data.aiFeature}
+									thumbnail={entry.data.thumbnail}
+									hero={entry.data.hero}
+									preview={entry.data.preview}
+									slug={entry.id}
+									href={
+										entry.data.status === 'coming-soon'
+											? undefined
+											: entry.data.status === 'external'
+												? entry.data.externalUrl
+												: `/work/${entry.id}`
+									}
+									status={
+										entry.data.status === 'coming-soon' || entry.data.status === 'external'
+											? entry.data.status
+											: undefined
+									}
+								/>
+							</ScrollStackItem>
+						))
+					}
+				</ScrollStack>
 			</div>
 		</section>
 		<Footer />
@@ -137,9 +156,10 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 	   page. So the intro only ever fades while it is holding still, and is
 	   already gone by the time it moves — the two never overlap, which is
 	   what stops it reading as the intro being dragged up by the cards. It
-	   also puts the end of the fade where the eyebrow arrives: `.work` rises
-	   by the full runway over that same stretch (see `.hero`), so opacity
-	   hits 0 exactly as `SELECTED WORKS` settles a grid cell below the nav.
+	   also puts the end of the fade where the work section arrives: `.work`
+	   rises by the full runway over that same stretch (see `.hero`), so
+	   opacity hits 0 exactly as the top of the stack settles a grid cell
+	   below the nav.
 	   The two pass through each other on the way — by the halfway mark the
 	   cards are already crossing the intro — which is why the fade is the
 	   only thing that needs to be timed and the stacking order (see `.work`)
@@ -154,9 +174,26 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 	const hero = document.querySelector<HTMLElement>('.hero');
 	const heroPin = document.querySelector<HTMLElement>('.hero-pin');
 	const intro = document.querySelector<HTMLElement>('.hero-intro');
+	const eyebrow = document.querySelector<HTMLElement>('.work__eyebrow');
 
-	if (hero && heroPin && intro && !reduceMotion.matches) {
+	if (hero && heroPin && intro && eyebrow && !reduceMotion.matches) {
 		intro.classList.add('js-fade');
+
+		/* The eyebrow gets the same treatment on its own terms: the class docks
+		   it at its resting line so it stops being carried up the page with
+		   the cards, and hands it a `--fade` of its own (see
+		   `.work__eyebrow.js-fade`). Its ramp is not the pin runway — it is
+		   measured in the label's own pixels, because what it has to finish
+		   before is the first card arriving at the line it sits on, and that
+		   is exactly its own height plus the margin below it away. Read once
+		   here and on resize rather than per frame, since the computed margin
+		   costs a style flush. */
+		eyebrow.classList.add('js-fade');
+		let eyebrowRamp = 1;
+		const measureEyebrow = () => {
+			const gap = eyebrow.offsetHeight + parseFloat(getComputedStyle(eyebrow).marginBlockEnd);
+			eyebrowRamp = gap > 0 ? gap : 1;
+		};
 
 		let ticking = false;
 
@@ -168,6 +205,12 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 			const travel = pinBox.top - heroBox.top;
 			const progress = runway > 0 ? Math.min(Math.max(travel / runway, 0), 1) : 0;
 			intro.style.setProperty('--fade', String(progress));
+			/* Plain `scrollY`, not the pin's offset: the eyebrow now holds
+			   still while the stack below it moves in flow, so the gap
+			   between them closes 1:1 with the page. Clamped at 0 so an
+			   overscroll bounce past the top can't push it above full. */
+			const eyebrowProgress = Math.min(Math.max(window.scrollY / eyebrowRamp, 0), 1);
+			eyebrow.style.setProperty('--fade', String(eyebrowProgress));
 		};
 
 		const onScroll = () => {
@@ -176,8 +219,14 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 			requestAnimationFrame(update);
 		};
 
+		const onResize = () => {
+			measureEyebrow();
+			onScroll();
+		};
+
 		window.addEventListener('scroll', onScroll, { passive: true });
-		window.addEventListener('resize', onScroll, { passive: true });
+		window.addEventListener('resize', onResize, { passive: true });
+		measureEyebrow();
 		update();
 	}
 </script>
@@ -207,12 +256,16 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 
 		/* The eyebrow's clearance below the pin when the page is at rest.
 		   Unchanged from when it was `.work`'s own `padding-block-start`. */
-		--rest-gap: calc(var(--spacing-11xl) + var(--spacing-6xl));
+		--rest-gap: var(--spacing-8xl);
 
-		/* Where the eyebrow has got to by the time the intro has finished
-		   fading — one cell of the water field's grid below the nav, which is
-		   the 72px pitch passed to `<WaterField>` rounded to the nearest rung
-		   of the space scale. */
+		/* Where the top of the work section has got to by the time the intro
+		   has finished fading — one cell of the water field's grid below the
+		   nav, which is the 72px pitch passed to `<WaterField>` rounded to
+		   the nearest rung of the space scale. (The eyebrow that used to ride
+		   up to this line no longer travels at all — it holds at its resting
+		   position and fades; see `.work__eyebrow.js-fade`. This is still the
+		   section's own flow position, which is what `--overlap` is measured
+		   from.) */
 		--fade-end: calc(var(--nav-footprint) + var(--spacing-8xl));
 
 		/* How far `.work` climbs past the pin's bottom edge to get there, and
@@ -439,8 +492,15 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		padding-block: 0 var(--spacing-7xl);
 	}
 
-	/* Shares `.work__inner`'s max-width/gutter so it lines up with the card
-	   grid's left edge, then adds the 8px clearance above the cards. */
+	/* Shares `.work__inner`'s max-width/gutter so its box lines up with the
+	   stack (dots + cards) below it, then adds the 8px clearance above it.
+	   No `z-index` of its own: `.work__inner` is unpositioned, so its
+	   transformed `.scroll-stack-card` children paint directly into `.work`'s
+	   own stacking context in DOM order — after this element, i.e. in front
+	   of it — which is exactly what keeps the label sitting behind the stack
+	   rather than laid over it. That is load-bearing for the fade below: the
+	   arriving card wipes the label with a clean edge instead of the label
+	   ghosting across its cover image. */
 	.work__eyebrow {
 		max-width: var(--measure-content);
 		margin-inline: auto;
@@ -449,18 +509,35 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		text-align: center;
 	}
 
+	/* The label leaves by fading, not by being carried up the page with the
+	   cards — the same rule `.hero-intro` follows, and for the same reason:
+	   everything in the opening state holds its position while the stack
+	   comes up to meet it, so nothing in it reads as being dragged along by
+	   the scroll.
+
+	   Sticky at its *own* resting offset rather than the nav's, which is what
+	   makes "holds still" literal: `.work`'s document position is exactly
+	   `--pin-height + --rest-gap` (its negative `margin-block-start` cancels
+	   `--overlap` back out, see `.work`), and this label is its first child
+	   with nothing above it, so docking there engages sticky on the first
+	   pixel of scroll and pins the label precisely where it already was.
+
+	   `--fade` is the eyebrow's own ramp, written every scroll frame by the
+	   page script above — 0 → 1 over the gap between this label and the first
+	   card, so it is gone at the moment that card reaches its line rather
+	   than being wiped half-visible. Scrubbed, not transitioned, so it comes
+	   back on the way up. Without JS (or under reduced motion) the class is
+	   never added: no pin and no fade, and the label simply scrolls away with
+	   the section — its behaviour before any of this existed. */
+	.work__eyebrow.js-fade {
+		position: sticky;
+		top: calc(var(--pin-height) + var(--rest-gap));
+		opacity: calc(1 - var(--fade, 0));
+	}
+
 	.work__inner {
 		max-width: var(--measure-content);
 		margin-inline: auto;
 		padding-inline: var(--gutter);
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--spacing-6xl) var(--spacing-5xl);
-	}
-
-	@media (max-width: 40rem) {
-		.work__inner {
-			grid-template-columns: 1fr;
-		}
 	}
 </style>
