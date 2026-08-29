@@ -145,13 +145,20 @@ coexist for a while, not race each other.
   changed. Site-specific composition goes in a separate, normally-named
   wrapper instead of piling onto the vendored file — e.g.
   `src/components/nav/NavMenu.tsx`, which composes `navigation-menu.tsx`
-  with the "Side projects" links and the site's own `.glass` material.
+  with the "Side projects" links (the popup surface wears shadcn's own
+  default `bg-popover` look via the tailwind.css token bridge, not `.glass`
+  — the simplified nav has no glass material anywhere).
   `SiteNav.astro` renders it as a `client:load` island for just that one
   dropdown; the Work/About links beside it have nowhere to open and stay
   plain Astro-rendered anchors, untouched by any of this.
-- **`gsap` was removed** as part of this migration — it was only ever used by
-  the nav dropdown's hand-rolled hover/open GSAP logic (`nav-dropdown.ts`,
-  now deleted), which Base UI's own open/close and focus handling replaced.
+- **`gsap` stays**, but scoped to one job: the per-item hover choreography
+  (hoverline draw + arrow diagonal entrance/exit) in
+  `src/components/nav/nav-dropdown.ts`. The hand-rolled `<details>`
+  open/close toggle that file also used to carry was what this migration
+  deleted — Base UI's own open/close, keyboard and focus handling replaced
+  that half. The surviving choreography half binds via document-level
+  capture-phase delegation because Base UI recreates the item DOM on open;
+  see that file's header comment.
 
 `--secondary` is the one place `#ffffff` appears. The no-pure-white rule governs
 *content* colour; this is a control surface, so white is written as a literal in

@@ -206,15 +206,14 @@ const onAbout = path.startsWith('/about');
 		   (padding-inline counted inward instead of added on) and wraps
 		   "Amplitude taxonomy exporter" onto a third line. */
 		box-sizing: content-box;
-		/* Wide enough that the longest label still fits on one line *while
-		   hovered*, not just at rest. Base UI measures `--popup-width` from
-		   the content once, when the menu opens, and then holds it — but
-		   .nav-dropdown__item's hover state adds `padding-inline-start`,
-		   taking var(--spacing-lg) back off the label after that measurement
-		   is locked in. At the old 14rem the measured width left under a
-		   pixel of slack, so hovering "Amplitude taxonomy exporter" reflowed
-		   it onto a second line and the row jumped. This floor keeps roughly
-		   the shift's width in reserve on both sides of the hover. */
+		/* The floor that gives .nav-dropdown__item-label's `flex-grow: 1`
+		   something to grow into — see that rule below for why the slack is
+		   what keeps "Amplitude taxonomy exporter" off a second line. Base UI
+		   measures `--popup-width` from the content once, when the menu opens,
+		   and then holds it, so the width the label is measured against is
+		   whatever this yields; nothing in the hover state changes it (the
+		   nudge is a transform, not a layout shift). At the old 14rem the
+		   measured width left under a pixel of slack and the label wrapped. */
 		min-width: 21rem;
 	}
 
@@ -228,10 +227,10 @@ const onAbout = path.startsWith('/about');
 	}
 
 	/* Resting state is dim; hover/focus bring text, arrow and border to full
-	   opacity together and nudge the label right — never colour alone. The
-	   one transition covers both properties so they move in lockstep. GSAP
-	   (nav-dropdown.ts) drives the hoverline draw-in and the arrow's
-	   diagonal entrance/exit, which a CSS transition can't express. */
+	   opacity and nudge the label right (see .nav-dropdown__item-label) —
+	   never colour alone. Both share one timing curve so they move in
+	   lockstep. GSAP (nav-dropdown.ts) drives the hoverline draw-in and the
+	   arrow's diagonal entrance/exit, which a CSS transition can't express. */
 	:global(.nav-dropdown__item) {
 		position: relative;
 		overflow: hidden; /* clips the arrow while it's parked off-frame */
@@ -256,13 +255,12 @@ const onAbout = path.startsWith('/about');
 	   above — NavigationMenuLink's own hover:bg-muted/focus:bg-muted (Tailwind,
 	   navigation-menu.tsx) target the same :hover/:focus-visible state, and
 	   cascade layers only settle ties at matching specificity+state; this
-	   project's opacity/padding-shift hover treatment, not a background
+	   project's opacity/label-nudge hover treatment, not a background
 	   swap, is what's meant to read here. */
 	:global(.nav-dropdown__item:hover),
 	:global(.nav-dropdown__item:focus-visible) {
 		background-color: transparent;
 		opacity: 1;
-		padding-inline-start: var(--spacing-lg);
 	}
 
 	:global(.nav-dropdown__item:focus-visible) {
@@ -283,6 +281,22 @@ const onAbout = path.startsWith('/about');
 	   the label's (transparent) box ends. */
 	:global(.nav-dropdown__item-label) {
 		flex-grow: 1;
+		transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+	}
+
+	/* The hover nudge, as a transform rather than the item's
+	   `padding-inline-start` it started as. The two look identical — the label
+	   moves right by the same var(--spacing-lg), the arrow stays pinned right
+	   either way, and the border-bottom spans the full width either way, since
+	   padding sits inside the border box — but a transform composites instead
+	   of laying out. That matters here specifically: Base UI measures the
+	   popup width from the content once, on open, and holds it, so a hover
+	   that resizes the label's content box afterwards is changing the thing
+	   that measurement already committed to. Nothing to reflow now, and no
+	   width has to be held in reserve for the shift. */
+	:global(.nav-dropdown__item:hover) :global(.nav-dropdown__item-label),
+	:global(.nav-dropdown__item:focus-visible) :global(.nav-dropdown__item-label) {
+		transform: translateX(var(--spacing-lg));
 	}
 
 	/* translate: a generic "safely outside any real row" default, not the
@@ -326,7 +340,8 @@ const onAbout = path.startsWith('/about');
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		:global(.nav-dropdown__item) {
+		:global(.nav-dropdown__item),
+		:global(.nav-dropdown__item-label) {
 			transition-duration: 0.01ms;
 		}
 	}

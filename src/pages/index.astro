@@ -10,7 +10,6 @@ import WaterField from '../components/ui/WaterField.astro';
 import GlassDefs from '../components/ui/GlassDefs.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import WorkCard from '../components/work/WorkCard.astro';
-import ShinyText from '../components/ui/ShinyText';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
 import heroWordmark from '../assets/homepage/Hero_wordmark.svg?raw';
@@ -91,15 +90,9 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		    background in — this is the one that scrolls up underneath it (the
 		    hero never does; it fades out while pinned). See SiteNav.astro. */}
 		<section class="work" data-nav-scrim>
-			<p class="work__eyebrow">
-						<ShinyText
-							text="Selected works"
-							className="type-overline"
-							client:load
-							color="var(--primary-text)"
-							shineColor="var(--amber-100)"
-						/>
-					</p>
+			<p class="type-overline work__eyebrow">
+				<span class="work__eyebrow-shine">Selected works</span>
+			</p>
 			<div class="work__inner">
 				{
 					studies.map((entry) => (
@@ -475,6 +468,65 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		position: sticky;
 		top: calc(var(--pin-height) + var(--rest-gap));
 		opacity: calc(1 - var(--fade, 0));
+	}
+
+	/* A light band sweeping across the label, cut to the text with
+	   background-clip — pure CSS keyframes rather than the React island this
+	   effect shipped as initially: a two-second linear sweep with no delay or
+	   direction change is exactly what a background-position animation
+	   expresses, without shipping a component (and an animation library) to
+	   the client for it. The gradient carries the resting colour itself, so
+	   the text reads as plain --primary-text whenever the band is off-frame —
+	   which is the whole animation, and the whole reduced-motion fallback
+	   with it. */
+	.work__eyebrow-shine {
+		display: inline-block;
+		background-image: linear-gradient(
+			120deg,
+			var(--primary-text) 0%,
+			var(--primary-text) 35%,
+			var(--amber-100) 50%,
+			var(--primary-text) 65%,
+			var(--primary-text) 100%
+		);
+		background-size: 200% auto;
+		/* Tiled, not `no-repeat`: the gradient is only twice the element's
+		   width, so a single copy slides off as it travels and leaves the
+		   trailing text with no paint behind it — and unpainted text, under
+		   background-clip: text, is invisible rather than plain. That reads as
+		   a wipe eating the word, not a band crossing it. Repeating keeps the
+		   text painted edge to edge at every frame; the seam is invisible
+		   because the ramp's first and last stops are the same colour. */
+		background-position: 150% center;
+		background-clip: text;
+		-webkit-background-clip: text;
+		color: transparent;
+		-webkit-text-fill-color: transparent;
+		animation: work-eyebrow-shine 2s linear infinite;
+	}
+
+	/* 150% → -50% shifts the background by exactly one tile width, so the
+	   band crosses the word once per cycle and the loop closes on itself —
+	   the frame after the last is identical to the first, with no jump. */
+	@keyframes work-eyebrow-shine {
+		from {
+			background-position: 150% center;
+		}
+
+		to {
+			background-position: -50% center;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.work__eyebrow-shine {
+			animation: none;
+			background-image: none;
+			/* -webkit-text-fill-color has to be restated, not just `color` —
+			   it overrides `color` in WebKit, so transparent would stick. */
+			color: var(--primary-text);
+			-webkit-text-fill-color: var(--primary-text);
+		}
 	}
 
 	.work__inner {

@@ -22,9 +22,11 @@ const sideProjects = [
  * "Side projects" — the one item in the site nav that actually opens
  * something, so it's the one place shadcn/Base UI's NavigationMenu earns
  * its place. Work/About are plain links with nowhere to open and stay
- * Astro-rendered in SiteNav.astro; this replaces only the old
- * `<details>` + hand-rolled GSAP hover/animation logic (nav-dropdown.ts,
- * now deleted) with Base UI's own open/close, keyboard and focus handling.
+ * Astro-rendered in SiteNav.astro; this replaces the old `<details>` and
+ * its hand-rolled open/close toggle with Base UI's own open/close,
+ * keyboard and focus handling. nav-dropdown.ts survives, carrying only the
+ * per-item hover choreography that replacement doesn't cover — the
+ * useEffect below is what wires it up.
  *
  * No `.glass` here — the simplified nav has no pane/pill material at all,
  * just text sitting on the page like Work/About. The popup keeps shadcn's
