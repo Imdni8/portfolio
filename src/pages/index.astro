@@ -10,6 +10,7 @@ import WaterField from '../components/ui/WaterField.astro';
 import GlassDefs from '../components/ui/GlassDefs.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import WorkCard from '../components/work/WorkCard.astro';
+import ShinyText from '../components/ui/ShinyText';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
 import heroWordmark from '../assets/homepage/Hero_wordmark.svg?raw';
@@ -90,7 +91,15 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		    background in — this is the one that scrolls up underneath it (the
 		    hero never does; it fades out while pinned). See SiteNav.astro. */}
 		<section class="work" data-nav-scrim>
-			<p class="type-overline work__eyebrow">Selected works</p>
+			<p class="work__eyebrow">
+						<ShinyText
+							text="Selected works"
+							className="type-overline"
+							client:load
+							color="var(--primary-text)"
+							shineColor="var(--amber-100)"
+						/>
+					</p>
 			<div class="work__inner">
 				{
 					studies.map((entry) => (

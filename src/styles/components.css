@@ -980,3 +980,7 @@
 		color: var(--text-muted);
 	}
 }
+
+.shiny-text {
+	display: inline-block;
+}
