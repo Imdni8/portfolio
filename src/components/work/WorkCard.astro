@@ -152,6 +152,14 @@ const poster = film ? await getImage({ src: film.poster ?? thumbnail.src, width:
 				</span>
 			</div>
 		</div>
+		{
+			href && (
+				<span class="btn btn--primary card__cta">
+					<span>Read case study</span>
+					<Icon name={isExternal ? 'external-link' : 'arrow-right'} />
+				</span>
+			)
+		}
 	</Panel>
 	{/* `data-lenis-prevent-touch` only on a cover that owns a gesture: the stack
 	    below runs on Lenis with `syncTouch`, which swallows touchmove to drive
@@ -212,13 +220,6 @@ const poster = film ? await getImage({ src: film.poster ?? thumbnail.src, width:
 					<div class="card__overlay">
 						<p class="card__overlay-label">Coming soon</p>
 					</div>
-				)
-			}
-			{
-				isExternal && (
-					<span class="card__external-badge">
-						<Icon name="external-link" />
-					</span>
 				)
 			}
 		</div>
@@ -485,29 +486,14 @@ const poster = film ? await getImage({ src: film.poster ?? thumbnail.src, width:
 		margin: 0;
 	}
 
-	/* Sits in the cover's corner rather than replacing it like the coming-soon
-	   scrim does — the work is real and viewable, so nothing should hide the
-	   thumbnail. Same theme-invariant scrim colour as .card__overlay, since it
-	   rides on the cover image rather than the page ground. */
-	.card__external-badge {
-		position: absolute;
-		inset-block-start: var(--spacing-xl);
-		inset-inline-end: var(--spacing-xl);
-		display: grid;
-		place-items: center;
-		width: var(--spacing-6xl);
-		height: var(--spacing-6xl);
-		border-radius: var(--radius-full);
-		background: var(--overlay);
-	}
-
-	/* Matches .icon-btn--lg's box-to-icon ratio (48px box / 26px icon) rather
-	   than a bare fraction of the box, so it reads at the same visual weight
-	   as every other circular icon surface in the system. */
-	.card__external-badge .icon {
-		color: var(--secondary);
-		width: 1.625rem;
-		height: 1.625rem;
+	/* Pinned to the panel's bottom, not stacked right under the meta: `.card__info`
+	   above is `flex: 1`, so it already absorbs whatever vertical space the
+	   panel has left over (see its own comment) — this just has to not grow
+	   with it. `align-self: flex-start` keeps it hugging its own label rather
+	   than stretching to the panel's full width, which `.card__panel`'s default
+	   `align-items: stretch` would otherwise do to every column child. */
+	.card__cta {
+		align-self: flex-start;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

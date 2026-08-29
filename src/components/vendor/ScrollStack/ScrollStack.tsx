@@ -80,7 +80,7 @@ const ScrollStack = ({
 	const lastTransformsRef = useRef(new Map<number, CardTransform>());
 	const isUpdatingRef = useRef(false);
 	// Each card's natural document-top, captured once at mount before any
-	// transform is applied. `getElementOffset` below can't read this live via
+	// transform is applied. `getCardOffset` below can't read this live via
 	// `getBoundingClientRect()` in window-scroll mode: that returns the
 	// *current rendered* position, which already includes whatever translateY
 	// last frame wrote — feeding a card's own applied transform back into the
@@ -111,18 +111,6 @@ const ScrollStack = ({
 		return { scrollTop: scroller?.scrollTop ?? 0, containerHeight: scroller?.clientHeight ?? 0 };
 	}, [useWindowScroll]);
 
-	// For the `.scroll-stack-end` spacer only — it's never transformed, so
-	// reading its live position is safe in either scroll mode.
-	const getElementOffset = useCallback(
-		(element: HTMLElement) => {
-			if (useWindowScroll) {
-				return element.getBoundingClientRect().top + window.scrollY;
-			}
-			return element.offsetTop;
-		},
-		[useWindowScroll]
-	);
-
 	// For cards: the cached mount-time offset in window-scroll mode (see
 	// `cardOffsetsRef` above), or the live (transform-immune) `offsetTop`
 	// otherwise.
@@ -145,11 +133,22 @@ const ScrollStack = ({
 		const stackPositionPx = parsePercentage(stackPosition, containerHeight);
 		const scaleEndPositionPx = parsePercentage(scaleEndPosition, containerHeight);
 
-		const endElement = useWindowScroll
-			? document.querySelector<HTMLElement>('.scroll-stack-end')
-			: (scrollerRef.current?.querySelector<HTMLElement>('.scroll-stack-end') ?? null);
-
-		const endElementTop = endElement ? getElementOffset(endElement) : 0;
+		// Release trigger for the whole assembled stack — shared across every
+		// card (not indexed by `i` below) so they let go and scroll away
+		// together, rather than peeling off one at a time. Anchored to the
+		// *last* card's own entrance finishing (`triggerEnd`, mirrored below)
+		// plus one stack layer's worth of scroll as a held beat, rather than
+		// upstream's `endElementTop - containerHeight / 2`: that measured the
+		// pause from a fixed spacer after the last card, in units of viewport
+		// height, which has no relationship to how tall the last card actually
+		// is. On this site the cards run taller than half the viewport, so
+		// that formula left the fully-assembled stack frozen on screen for a
+		// few hundred pixels of scroll after it finished animating in — the
+		// scrollbar moving with nothing visibly happening — before releasing.
+		const lastIndex = cardsRef.current.length - 1;
+		const lastCard = cardsRef.current[lastIndex];
+		const lastCardTop = lastCard ? getCardOffset(lastCard, lastIndex) : 0;
+		const pinEnd = lastCardTop - scaleEndPositionPx + itemStackDistance;
 
 		// Which card currently reads as the front card, for the depth-dimming
 		// below — computed once per frame from *live* rendered position
@@ -175,7 +174,6 @@ const ScrollStack = ({
 			const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
 			const triggerEnd = cardTop - scaleEndPositionPx;
 			const pinStart = cardTop - stackPositionPx - itemStackDistance * i;
-			const pinEnd = endElementTop - containerHeight / 2;
 
 			const scaleProgress = calculateProgress(scrollTop, triggerStart, triggerEnd);
 			const targetScale = baseScale + i * itemScale;
@@ -246,7 +244,6 @@ const ScrollStack = ({
 		calculateProgress,
 		parsePercentage,
 		getScrollData,
-		getElementOffset,
 		getCardOffset,
 	]);
 
@@ -377,10 +374,7 @@ const ScrollStack = ({
 
 	return (
 		<div className={`scroll-stack-scroller ${className}`.trim()} ref={scrollerRef}>
-			<div className="scroll-stack-inner">
-				{children}
-				<div className="scroll-stack-end" />
-			</div>
+			<div className="scroll-stack-inner">{children}</div>
 		</div>
 	);
 };

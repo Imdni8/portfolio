@@ -8,6 +8,7 @@
    the Paper design that don't match anything in Lucide's stock set. */
 import close from 'lucide-static/icons/x.svg?raw';
 import arrowDown from 'lucide-static/icons/arrow-down.svg?raw';
+import arrowRight from 'lucide-static/icons/arrow-right.svg?raw';
 import play from 'lucide-static/icons/play.svg?raw';
 import pause from 'lucide-static/icons/pause.svg?raw';
 import chevronLeft from 'lucide-static/icons/chevron-left.svg?raw';
@@ -30,6 +31,7 @@ import slashDivider from '../../assets/icons/slash-divider.svg?raw';
 export const icons = {
 	close,
 	'arrow-down': arrowDown,
+	'arrow-right': arrowRight,
 	play,
 	pause,
 	'chevron-left': chevronLeft,

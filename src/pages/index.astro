@@ -98,9 +98,9 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 				    number is really setting is the clearance under the nav, and the
 				    nav is fixed chrome (24px inset + a 40px pill = 64px), so a
 				    proportional value made that gap grow and shrink with the window
-				    for no reason. 128px is that 64px footprint plus one 64px rung of
-				    the space scale. */}
-				<ScrollStack client:load stackPosition="128px" opacityAmount={0.2}>
+				    for no reason. 112px is that 64px footprint plus `--spacing-6xl`'s
+				    48px rung. */}
+				<ScrollStack client:load stackPosition="112px" opacityAmount={0.2}>
 					{
 						studies.map((entry) => (
 							<ScrollStackItem>

@@ -4,32 +4,34 @@
    document flow on a real page, driven by native scroll. */
 
 .scroll-stack-scroller {
-	display: block;
-	width: 100%;
+    display: block;
+    width: 100%;
 }
 
 .scroll-stack-inner {
-	/* Runway after the last card, so it gets its own pin-then-release phase
-	   instead of releasing the instant it arrives — same shape of trick as
-	   `.hero`'s own scroll runway in index.astro. Enough to read as a real
-	   pin phase without stretching the gap to the footer past it. */
-	padding-block-end: 40vh;
+    /* Room for the stack to release and scroll away after it unpins (see
+	   `pinEnd` in ScrollStack.tsx), so the last card has somewhere to go
+	   before the footer arrives — same shape of trick as `.hero`'s own
+	   scroll runway in index.astro. Small on purpose: at rest, the release
+	   transform already carries the last card most of the way toward the
+	   footer on its own (`pinEnd`'s own `stackPositionPx - scaleEndPositionPx
+	   + itemStackDistance * (lastIndex + 1)`, ~209px on a typical viewport),
+	   so this padding is only the remainder needed to clear `.work`'s own
+	   64px trailing padding and the footer's 75px `margin-block-start` — not
+	   a full viewport-relative runway on top of them, which is what left a
+	   few hundred px of dead space between the settled stack and the footer. */
+    padding-block-end: var(--spacing-10xl);
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.scroll-stack-inner {
-		padding-block-end: 0;
-	}
+    .scroll-stack-inner {
+        padding-block-end: 0;
+    }
 }
 
 .scroll-stack-card {
-	width: 100%;
-	/* No height/padding/radius/background/border/overflow here — WorkCard.astro's
+    width: 100%;
+    /* No height/padding/radius/background/border/overflow here — WorkCard.astro's
 	   own `.card` already supplies all of that. */
-	margin: 0 0 var(--spacing-6xl);
-}
-
-.scroll-stack-end {
-	width: 100%;
-	height: 1px;
+    margin: 0 0 var(--spacing-6xl);
 }
