@@ -11,6 +11,7 @@ import SiteNav from '../components/nav/SiteNav.astro';
 import WorkCard from '../components/work/WorkCard.astro';
 import ScrollStack, { ScrollStackItem } from '../components/vendor/ScrollStack/ScrollStack';
 import Footer from '../components/footer/Footer.astro';
+import ViewportGate from '../components/ViewportGate.astro';
 import Analytics from '../components/analytics/Analytics.astro';
 import heroWordmark from '../assets/homepage/Hero_wordmark.svg?raw';
 import philipsLogo from '../assets/homepage/philips_logo.svg?raw';
@@ -135,6 +136,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 			</div>
 		</section>
 		<Footer />
+		<ViewportGate />
 	</body>
 </html>
 

@@ -1010,3 +1010,58 @@
 		color: var(--text-muted);
 	}
 }
+
+/* ---- Viewport gate -----------------------------------------------------
+   The layout has no responsive treatment below 900px yet, so rather than
+   ship a broken composition down there this blocks the page outright.
+
+   Fixed and given an explicit z-index (1000, clear of the lightbox's 100 —
+   the next-highest in the system), which is what lets it paint above every
+   other layer regardless of where `<ViewportGate>` sits in the markup —
+   unlike `.site-footer`/`.hero`/`.work`, it needs no `position: relative`
+   trick to escape the DOM-order-dependent stacking bucket those rely on,
+   because an explicit z-index moves it into the bucket ordered by that
+   number instead.
+
+   Shown by a bare media query rather than JS: it then tracks the viewport
+   for free on resize, and needs no re-init logic across a hard load, a
+   `<ClientRouter/>` soft nav, or back-forward cache — the one thing on this
+   page that doesn't have to worry about any of that. 56.1875rem is 899px,
+   not a rounder number, because the ask is "under 900", not "899 or under
+   -ish": at exactly 900px the site should still render normally. */
+.viewport-gate {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+}
+
+@media (max-width: 56.1875rem) {
+	.viewport-gate {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+}
+
+/* `position: relative` (position: static's the default) is load-bearing,
+   not decorative — see this section's own comment above. WaterField is
+   `position: absolute` with `z-index: auto`, so without this the canvas
+   (positioned) would paint over this content (non-positioned) regardless of
+   DOM order; the property alone is enough to move it into the same
+   DOM-ordered bucket the canvas is in, where "comes after in the markup"
+   is what keeps it on top. */
+.viewport-gate__content {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--spacing-3xl);
+	max-width: 22rem;
+	padding: var(--spacing-4xl);
+	text-align: center;
+}
+
+.viewport-gate__message {
+	color: var(--text);
+}

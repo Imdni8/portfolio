@@ -29,20 +29,30 @@ const { grid = 72, intensity = 1, class: className } = Astro.props;
 
 	/* A bundled module script only ever executes once, but this canvas isn't
 	   persisted — Work<->About swaps in a fresh one on every navigation, so
-	   without this the field would only ever animate on whichever page
+	   without a re-run the field would only ever animate on whichever page
 	   happened to load first. `astro:page-load` fires both on that first load
-	   and after every subsequent swap, so it's the one hook that covers both.
+	   and after every subsequent swap, but only on a page carrying
+	   `<ClientRouter/>` — CaseStudyLayout deliberately carries none (see its
+	   own comment: case studies are a hard navigation), so that event never
+	   fires there at all, and a canvas rendered only from that listener would
+	   sit uninitialised forever.
 
-	   The instances from the outgoing page are torn down first — `destroy()`
-	   cancels its rAF loop and releases its WebGL context — because the
-	   canvas being detached from the DOM doesn't stop either on its own.
-	   Recreating on every navigation without this would leak a WebGL context
-	   (and a full set of window listeners) per visit, and contexts are a
-	   resource the browser caps: a few dozen Work<->About trips would start
-	   silently losing older ones. */
+	   `[name="astro-view-transitions-enabled"]` is the meta tag `<ClientRouter/>`
+	   stamps into the page — the same marker Astro's own router reads
+	   internally to decide whether it's active on the current page — so it's
+	   used here to pick exactly one path rather than running both and racing
+	   them: calling `init()` immediately *and* still binding the listener on
+	   a `<ClientRouter/>` page fires two `createWaterField` builds back to
+	   back (the direct call, then the listener's own first firing for that
+	   same load), and destroying and recreating a WebGL context that fast
+	   was observed to leave the second `compileShader` call failing against
+	   a not-yet-settled context (silent — `shader failed to compile — null`,
+	   no field, on index/about's home canvas as well as this one). Splitting
+	   on the marker keeps each page on a single, unraced init path: the
+	   listener alone where the event will fire, a direct call where it won't. */
 	let fields: WaterField[] = [];
 
-	document.addEventListener('astro:page-load', () => {
+	const init = () => {
 		for (const field of fields) field.destroy();
 		fields = [];
 
@@ -54,5 +64,11 @@ const { grid = 72, intensity = 1, class: className } = Astro.props;
 				}),
 			);
 		}
-	});
+	};
+
+	if (document.querySelector('[name="astro-view-transitions-enabled"]')) {
+		document.addEventListener('astro:page-load', init);
+	} else {
+		init();
+	}
 </script>
