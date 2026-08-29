@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import { ClientRouter } from 'astro:transitions';
 import '../styles/tokens.css';
+import '../styles/tailwind.css';
 import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
@@ -87,10 +88,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		</div>
 		<section class="work">
 			<p class="type-overline work__eyebrow">Selected works</p>
-			{/* The nav darkens its glass as this grid comes up to meet it — the
-			    cover images are predominantly white, and the resting tint is not
-			    enough to keep the links legible against one. See nav-tint.ts. */}
-			<div class="work__inner" data-nav-tint-trigger>
+			<div class="work__inner">
 				{
 					studies.map((entry) => (
 						<WorkCard

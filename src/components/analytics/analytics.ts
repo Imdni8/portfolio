@@ -1,7 +1,7 @@
 /* The one place Amplitude is touched.
    Paired with Analytics.astro beside it, following the repo's convention for
    client-side JS: a thin `<script>` in an `.astro` file importing a plain `.ts`
-   module next to it (see nav-tint.ts/SiteNav.astro, water-field.ts/WaterField.astro).
+   module next to it (see water-field.ts/WaterField.astro).
 
    Everything here is client-only by construction — it runs from a bundled
    Astro `<script>`, which never executes during the static build. */

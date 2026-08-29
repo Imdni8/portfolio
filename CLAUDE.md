@@ -98,6 +98,61 @@ Three conventions worth keeping:
   measure cap, check what's actually beside the block — if the answer is
   "nothing," the cap is the bug, not the missing constraint.
 
+### shadcn/ui
+
+Tailwind v4 and shadcn/ui (`--base base`, i.e. Base UI primitives rather than
+Radix) were added to install `navigation-menu` for the site nav's "Side
+projects" dropdown — the first shadcn component in the repo, not the last;
+the plan is to bring more of `src/components/ui/` onto this stack over time,
+deliberately, one component at a time, rather than converting everything at
+once. Until a given component is migrated, it stays exactly as documented
+above (a CSS class plus a thin React wrapper) — the two systems are meant to
+coexist for a while, not race each other.
+
+- **`components.json`** points `tailwind.css` at `src/styles/tailwind.css`
+  and aliases `ui`/`components`/`lib`/`hooks` to `@/components/ui` etc.
+  (`@/*` → `./src/*`, added to `tsconfig.json`).
+- **`src/styles/tailwind.css`** is the bridge: `@theme inline` maps shadcn's
+  `--color-*` slots (`--color-background`, `--color-muted`, `--color-ring`, …)
+  straight onto tokens.css's existing semantic tokens (`--bg`, `--bg-sunken`,
+  `--focus-ring`, …), so a shadcn component's Tailwind utilities and a
+  hand-written component's CSS classes read the exact same source of truth —
+  Tailwind is a second *syntax* for tokens.css, never a second palette.
+  Deliberately **not** mapped there: `--radius-*` and `--font-*`. Tailwind's
+  own theme namespace for those is the identical CSS custom property name
+  tokens.css already owns (`--radius-md`, `--font-sans`), so aliasing one to
+  the other reads as a variable referencing itself and resolves to nothing —
+  this bit `shadcn init`'s own scaffolded `tailwind.css` on the first run (it
+  also dropped in a default OKLCH palette, a Geist font import and
+  `--chart-*`/`--sidebar-*` tokens this project has no use for, and a
+  `.dark`-class variant that doesn't apply since theme here flips via
+  `[data-theme]`, not a class — all stripped back out). Where a component
+  genuinely needs a radius or font token, it reaches tokens.css directly via
+  Tailwind's arbitrary-value syntax (`rounded-[var(--radius-lg)]`) instead.
+  `@import "shadcn/tailwind.css"` stays, though — that one's pure interaction-
+  state infrastructure (`data-open`/`data-checked`/… custom variants,
+  accordion-height keyframes), not a design decision, so it's framework
+  plumbing worth keeping regardless of which components use it.
+- **Vendored primitives keep the CLI's own lowercase filenames**
+  (`src/components/ui/navigation-menu.tsx`), unlike this project's usual
+  PascalCase wrappers — that's deliberate, so `npx shadcn diff`/`update`
+  still recognizes them as CLI-owned. They're still hand-edited where the
+  project's own conventions require it (`navigation-menu.tsx`'s chevron was
+  swapped from shadcn's default `lucide-react` import to this project's own
+  `Icon`/`icons.ts` registry, since icons here are never sourced from a
+  second icon package) — such edits carry a comment pointing at `shadcn diff`
+  so a future update doesn't silently reintroduce what was deliberately
+  changed. Site-specific composition goes in a separate, normally-named
+  wrapper instead of piling onto the vendored file — e.g.
+  `src/components/nav/NavMenu.tsx`, which composes `navigation-menu.tsx`
+  with the "Side projects" links and the site's own `.glass` material.
+  `SiteNav.astro` renders it as a `client:load` island for just that one
+  dropdown; the Work/About links beside it have nowhere to open and stay
+  plain Astro-rendered anchors, untouched by any of this.
+- **`gsap` was removed** as part of this migration — it was only ever used by
+  the nav dropdown's hand-rolled hover/open GSAP logic (`nav-dropdown.ts`,
+  now deleted), which Base UI's own open/close and focus handling replaced.
+
 `--secondary` is the one place `#ffffff` appears. The no-pure-white rule governs
 *content* colour; this is a control surface, so white is written as a literal in
 the semantic layer rather than added to the grey ramp, where it would invite use
@@ -265,7 +320,12 @@ indented closing tags right after a list before looking anywhere else.
   interaction is needed; everything else is `.astro` and ships zero JS.
 - **MDX** via `@astrojs/mdx` — long-form content in `src/content/`, typed by a
   content collection schema in `src/content.config.ts`.
-- **Plain CSS** — custom properties in `src/styles/`. No Tailwind, no CSS-in-JS.
+- **Plain CSS, plus Tailwind v4 for shadcn/ui components** — most of the site
+  is still custom properties in `src/styles/` (`tokens.css`, `components.css`),
+  no CSS-in-JS. Tailwind was introduced to install shadcn/ui's `navigation-menu`
+  (the nav's "Side projects" dropdown) and is meant to spread sitewide
+  gradually as more components migrate, not as a one-pass rewrite — see
+  "shadcn/ui" under Components for how the two systems coexist today.
 - **TypeScript** — `astro/tsconfigs/strict`, `jsx: react-jsx`.
 - **Fonts** — self-hosted via `@fontsource*` packages (Inter Variable, Playfair
   Display Variable, IBM Plex Mono). Likely to change with the new type scale.
