@@ -79,7 +79,7 @@ const linkedInHref = links.linkedin;
 		<SiteNav />
 
 		<main class="about">
-			<div class="about__frame">
+			<div class="about__frame" data-nav-scrim>
 				<div class="about__row">
 					<div class="about__content">
 						<div class="about__top">
@@ -212,8 +212,10 @@ const linkedInHref = links.linkedin;
 		   stacking context of its own. Load-bearing, not precautionary. */
 		position: relative;
 
-		/* What the nav occupies at the top of the viewport: its 24px inset plus
-		   its ~54px rendered height. Same value as the homepage. */
+		/* What the nav occupies at the top of the viewport, plus a little
+		   clearance: the band it paints is 60px (12px of padding, a 36px row,
+		   12px more), and this leaves 18px under it. Same value as the
+		   homepage. */
 		--nav-footprint: 4.875rem;
 		/* 355px, from the 1512×982 reference frame. No matching token — a
 		   bespoke composition measurement, shared between the row's grid track

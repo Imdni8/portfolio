@@ -13,15 +13,17 @@ const onAbout = path.startsWith('/about');
 ---
 
 <header class="nav-shell" transition:persist>
-	<a class="nav__brand" href="/" aria-label="Tousif Rahaman — home" set:html={logoMark} />
+	<div class="nav-shell__inner">
+		<a class="nav__brand" href="/" aria-label="Tousif Rahaman — home" set:html={logoMark} />
 
-	<div class="nav__group">
-		<nav class="nav__links" aria-label="Primary">
-			<a class="nav__link text-sm" href="/" aria-current={onWork ? 'page' : undefined}>Work</a>
-			<a class="nav__link text-sm" href="/about" aria-current={onAbout ? 'page' : undefined}>About</a>
-		</nav>
+		<div class="nav__group">
+			<nav class="nav__links" aria-label="Primary">
+				<a class="nav__link text-sm" href="/" aria-current={onWork ? 'page' : undefined}>Work</a>
+				<a class="nav__link text-sm" href="/about" aria-current={onAbout ? 'page' : undefined}>About</a>
+			</nav>
 
-		<NavMenu client:load />
+			<NavMenu client:load />
+		</div>
 	</div>
 </header>
 
@@ -29,17 +31,50 @@ const onAbout = path.startsWith('/about');
 	/* Floats over both the water-field hero and the plain-background cards
 	   section below, so it's fixed rather than scoped to either. No pane, no
 	   glass, no card — brand mark on the left, everything else clustered on
-	   the right, all sitting directly on the page. */
+	   the right, all sitting directly on the page.
+
+	   Full-bleed, unlike the row it holds: the band that fades in behind it
+	   (::before) has to reach both viewport edges, so the shell spans the
+	   viewport and `.nav-shell__inner` carries the gutter and the content cap
+	   the header used to hold itself. The `--spacing-3xl` inset became
+	   `--spacing-lg` of padding, mirrored below the row so the band is even
+	   on both sides — 12 + 36 + 12, which puts the band's bottom edge at 60px,
+	   exactly where the row's own bottom edge used to sit. That's why
+	   `--nav-footprint` (index.astro, about.astro) is untouched: the nav takes
+	   up the same room as before, it just fills it now. */
 	.nav-shell {
 		position: fixed;
-		inset-block-start: var(--spacing-3xl);
-		inset-inline: var(--gutter);
+		inset-block-start: 0;
+		inset-inline: 0;
 		z-index: 20;
+		padding-block: var(--spacing-lg);
+		padding-inline: var(--gutter);
+	}
+
+	.nav-shell__inner {
 		max-width: var(--measure-content);
 		margin-inline: auto;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+	}
+
+	/* The band. A pseudo-element rather than a background on `.nav-shell`
+	   itself, because the ramp is an opacity and painting it on the shell
+	   would take the brand and the links down with it. `z-index: -1` puts it
+	   behind them without leaving the shell's own stacking context, so the
+	   whole nav still sits above the page at 20.
+
+	   `--nav-scrim` is written every scroll frame by the script below. Unset
+	   — no JS, or a page with nothing marked `data-nav-scrim` — it falls back
+	   to 0 and the nav stays exactly as transparent as it is today. */
+	.nav-shell::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: var(--bg);
+		opacity: var(--nav-scrim, 0);
 	}
 
 	.nav__brand {
@@ -341,4 +376,79 @@ const onAbout = path.startsWith('/about');
 
 	syncActiveLink();
 	document.addEventListener('astro:after-swap', syncActiveLink);
+
+	/* The nav sits directly on the page with no pane of its own, which works
+	   for as long as the only thing behind it is the water field and stops
+	   working the moment real content scrolls up underneath it. `--nav-scrim`
+	   ramps a solid `--bg` band in behind the row over the last stretch of
+	   scroll before that happens, so the links are never read against a card.
+
+	   Opt-in per page, via `data-nav-scrim` on whatever section does the
+	   scrolling-under (index.astro's `.work`) — the nav can't know that on
+	   its own, and a page with nothing marked just never paints a band.
+
+	   Scrubbed 1:1 to scroll position rather than transitioned on a class
+	   toggle, same reasoning as index.astro's own hero fade: the band should
+	   track the scroll gesture and reverse cleanly on the way back up, not
+	   play a fixed-length animation that happens to start when a threshold is
+	   crossed. The ease-out lives in the curve applied to that progress
+	   instead of in a `transition-timing-function`.
+
+	   The ramp's length is the band's own height, measured — so there is no
+	   magic number here to keep in sync with the nav's size, and the fade
+	   always takes exactly one band-height of scroll. Cubed ease-out
+	   front-loads it inside that: the band is ~88% in when the content is
+	   still half a band below, so it has visibly arrived *before* the overlap
+	   rather than racing it. */
+	const shell = document.querySelector<HTMLElement>('.nav-shell');
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+	let scrimTarget: HTMLElement | null = null;
+	let scrimTicking = false;
+
+	const updateScrim = () => {
+		scrimTicking = false;
+		if (!shell) return;
+
+		if (!scrimTarget) {
+			shell.style.setProperty('--nav-scrim', '0');
+			return;
+		}
+
+		/* The shell is pinned to the top of the viewport, so its height and
+		   the y of its bottom edge are the same number. `gap` is the distance
+		   from that edge down to the top of the section coming up to meet it:
+		   0 is the moment they touch and the fade begins, -band is when it completes. */
+		const band = shell.getBoundingClientRect().height;
+		const gap = scrimTarget.getBoundingClientRect().top - band;
+		const progress = band > 0 ? Math.min(Math.max(-gap / band, 0), 1) : 0;
+
+		/* Under reduced motion the band still appears — it is legibility, not
+		   decoration — but it snaps on at the overlap itself instead of
+		   tracking the scroll. */
+		const scrim = reduceMotion.matches ? (progress >= 1 ? 1 : 0) : 1 - (1 - progress) ** 3;
+
+		shell.style.setProperty('--nav-scrim', String(scrim));
+	};
+
+	const onScrimScroll = () => {
+		if (scrimTicking) return;
+		scrimTicking = true;
+		requestAnimationFrame(updateScrim);
+	};
+
+	/* Re-resolved rather than captured once: the nav is `transition:persist`ed
+	   across Work<->About, so this script body runs on the first load only,
+	   while the element it watches is replaced on every swap. */
+	const resolveScrimTarget = () => {
+		scrimTarget = document.querySelector<HTMLElement>('[data-nav-scrim]');
+		updateScrim();
+	};
+
+	if (shell) {
+		window.addEventListener('scroll', onScrimScroll, { passive: true });
+		window.addEventListener('resize', onScrimScroll, { passive: true });
+		document.addEventListener('astro:after-swap', resolveScrimTarget);
+		resolveScrimTarget();
+	}
 </script>
