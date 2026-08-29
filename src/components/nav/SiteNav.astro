@@ -1,18 +1,6 @@
 ---
-import Icon from '../ui/Icon.astro';
-/* One source for the mark, rendered twice below — visible brand and hidden
-   spacer. Imported ?raw and injected with set:html, the same pattern the
-   footer uses for its brand marks, rather than through ui/icons.ts (that
-   registry is Lucide UI glyphs, not one-off brand artwork). */
+import { NavMenu } from './NavMenu';
 import logoMark from '../../assets/nav/logo.svg?raw';
-
-const sideProjects = [
-	{ label: 'Goalaris', href: 'https://goalaris-beta.vercel.app/' },
-	{
-		label: 'Amplitude taxonomy exporter',
-		href: 'https://www.figma.com/community/plugin/1512420394545664823',
-	},
-];
 
 /* Which link wears the current-page state, read off the URL rather than
    hardcoded — the nav is rendered by every page that has one, so a literal
@@ -25,107 +13,69 @@ const onAbout = path.startsWith('/about');
 ---
 
 <header class="nav-shell" transition:persist>
-	<div class="nav glass" data-nav-tint-pane>
+	<div class="nav-shell__inner">
 		<a class="nav__brand" href="/" aria-label="Tousif Rahaman — home" set:html={logoMark} />
 
-		<!-- Hidden mirror of the side-projects pill (+ the gap in front of it),
-		     so the brand/spacer bookend centres Work/About against the midpoint
-		     of the whole two-pane row instead of just this pane — same
-		     correction the Paper reference makes with a fixed left offset on
-		     its link group, done here as a real element so it tracks the pill's
-		     actual rendered width instead of a number that goes stale the
-		     moment its copy or icon changes. It sits *after* the brand rather
-		     than in front of it: only the total width ahead of .nav__links
-		     decides where the pair centres, so parking it here leaves the
-		     centring untouched while letting the logo sit flush against the
-		     pane's own padding edge. -->
-		<div class="nav-dropdown-mirror nav-dropdown" aria-hidden="true">
-			<span class="nav-dropdown__trigger type-ui-label glass" data-nav-tint-pane>
-				Side projects
-				<Icon name="chevron-down" class="nav-dropdown__chevron" />
-			</span>
+		<div class="nav__group">
+			<nav class="nav__links" aria-label="Primary">
+				<a class="nav__link text-sm" href="/" aria-current={onWork ? 'page' : undefined}>Work</a>
+				<a class="nav__link text-sm" href="/about" aria-current={onAbout ? 'page' : undefined}>About</a>
+			</nav>
+
+			<NavMenu client:load />
 		</div>
-
-		<nav class="nav__links" aria-label="Primary">
-			<a class="nav__link type-nav-link" href="/" aria-current={onWork ? 'page' : undefined}>Work</a>
-			<a class="nav__link type-nav-link" href="/about" aria-current={onAbout ? 'page' : undefined}>About</a>
-			{/* One shared bar rather than a border per link, so switching pages
-			    glides it from one link to the other instead of snapping one
-			    off and the other on. Positioned in JS (syncIndicator, below) —
-			    the nav persists across navigation, so this is what keeps it
-			    honest about which link is actually current. */}
-			<span class="nav__indicator" aria-hidden="true"></span>
-		</nav>
-
-		<!-- Mirrors the brand mark so the link group centres against two equal
-		     bookends instead of skewing toward the visible logo on the left —
-		     same trick as the Paper file's own hidden spacer. -->
-		<span class="nav__spacer" aria-hidden="true" set:html={logoMark} />
 	</div>
-
-	<details class="nav-dropdown">
-		<summary class="nav-dropdown__trigger type-nav-link glass" data-nav-tint-pane>
-			Side projects
-			<Icon name="chevron-down" class="nav-dropdown__chevron" />
-		</summary>
-		<div class="nav-dropdown__panel glass">
-			{
-				sideProjects.map(({ label, href }) => (
-					<a class="nav-dropdown__item" href={href} target="_blank" rel="noopener noreferrer">
-						<span class="nav-dropdown__item-label type-ui-label">{label}</span>
-						<span class="nav-dropdown__item-arrow">
-							<Icon name="arrow-up-right" />
-						</span>
-						<span class="nav-dropdown__item-hoverline" />
-					</a>
-				))
-			}
-		</div>
-	</details>
 </header>
 
 <style>
 	/* Floats over both the water-field hero and the plain-background cards
-	   section below, so it's fixed rather than scoped to either. Two separate
-	   panes now — the primary links and the side-project trigger — laid out
-	   as siblings in one row instead of one bar with a divider. */
+	   section below, so it's fixed rather than scoped to either. No pane, no
+	   glass, no card — brand mark on the left, everything else clustered on
+	   the right, all sitting directly on the page.
+
+	   Full-bleed, unlike the row it holds: the band that fades in behind it
+	   (::before) has to reach both viewport edges, so the shell spans the
+	   viewport and `.nav-shell__inner` carries the gutter and the content cap
+	   the header used to hold itself. The `--spacing-3xl` inset became
+	   `--spacing-lg` of padding, mirrored below the row so the band is even
+	   on both sides — 12 + 36 + 12, which puts the band's bottom edge at 60px,
+	   exactly where the row's own bottom edge used to sit. That's why
+	   `--nav-footprint` (index.astro, about.astro) is untouched: the nav takes
+	   up the same room as before, it just fills it now. */
 	.nav-shell {
 		position: fixed;
-		inset-block-start: var(--spacing-3xl);
-		inset-inline: var(--gutter);
+		inset-block-start: 0;
+		inset-inline: 0;
 		z-index: 20;
+		padding-block: var(--spacing-sm);
+		padding-inline: var(--gutter);
+	}
+
+	.nav-shell__inner {
 		max-width: var(--measure-content);
 		margin-inline: auto;
 		display: flex;
-		align-items: stretch;
-		gap: var(--spacing-3xl);
+		align-items: center;
+		justify-content: space-between;
 	}
 
-	/* .nav and .nav-dropdown__trigger wear `.glass` in the markup — identical
-	   material, so they read as one surface split into two pieces. The rule
-	   lives in components.css now that the work cards (and the dropdown
-	   panel) are cut from it too; the filter it references comes from
-	   <GlassDefs />, rendered once by the page.
+	/* The band. A pseudo-element rather than a background on `.nav-shell`
+	   itself, because the ramp is an opacity and painting it on the shell
+	   would take the brand and the links down with it. `z-index: -1` puts it
+	   behind them without leaving the shell's own stacking context, so the
+	   whole nav still sits above the page at 20.
 
-	   `.glass` sits on .nav-dropdown__trigger (the summary), not on
-	   .nav-dropdown (the <details> wrapping it and the panel): backdrop-filter
-	   establishes a stacking context, and a backdrop-filter element nested
-	   inside another one only sees what its ancestor has already painted —
-	   not the real page behind it. With .glass on the outer <details>, the
-	   panel (its child) blurred against almost nothing and the grid showed
-	   through. Keeping <details> unfiltered and giving trigger and panel their
-	   own .glass each lets both sample the actual backdrop independently, at
-	   the same strength. */
-
-	/* 32px of padding, not 16 — the logo reads as the pane's left edge, and
-	   symmetric padding drops out of the centring maths entirely (it shifts
-	   the brand and the hidden spacer by the same amount), so widening it
-	   moves the logo without moving Work/About. */
-	.nav {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		padding-inline: var(--spacing-4xl);
+	   `--nav-scrim` is written every scroll frame by the script below. Unset
+	   — no JS, or a page with nothing marked `data-nav-scrim` — it falls back
+	   to 0 and the nav stays exactly as transparent as it is today. */
+	.nav-shell::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: var(--bg);
+		border-bottom: 1px solid var(--border);
+		opacity: var(--nav-scrim, 0);
 	}
 
 	.nav__brand {
@@ -146,30 +96,32 @@ const onAbout = path.startsWith('/about');
 		width: auto;
 	}
 
-	/* flex: 1 + centering (not justify-content: space-between across the whole
-	   bar) is what actually centres the link pair between the brand and the
-	   spacer — space-between across three unequal-width groups only balances
-	   the two gaps, not the group itself. */
-	/* Relative: the anchor `.nav__indicator` positions itself against. */
-	.nav__links {
-		position: relative;
-		flex: 1;
-		/* Stretch (not the row's own align-items: center) so this element's
-		   own box always spans the full height of `.nav` — otherwise it's
-		   sized to its tallest child (a link) and centred within the row,
-		   which only matches the row's height by coincidence. The hidden
-		   `.nav-dropdown-mirror` trigger next door wears `.glass` too, and
-		   its border makes it 2px taller than a link, so without stretch
-		   here `.nav__links` (and the indicator glued to its bottom) sits a
-		   pixel short of the pane's actual border. */
-		align-self: stretch;
+	/* Work/About and the Side-projects trigger cluster together on the right
+	   as one visual group, with the same gap between all three items —
+	   .nav__links and NavMenu stay two separate elements underneath (Base
+	   UI's NavigationMenu owns only the dropdown; Work/About have nowhere to
+	   open and stay plain anchors), but this wrapper is what makes them read
+	   as one row instead of two. */
+	.nav__group {
 		display: flex;
 		align-items: center;
-		justify-content: center;
 		gap: var(--spacing-3xl);
 	}
 
+	.nav__links {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-3xl);
+	}
+
+	/* text-sm (Tailwind) replaces .type-nav-link's --size-ui (16px) here —
+	   font-family/weight still come from tokens.css, since dropping them
+	   would silently fall back to Tailwind's system-font stack. .type-nav-link
+	   itself is untouched (the chapter rail and Tabs still wear it at 16px);
+	   this is the nav opting into the smaller Tailwind scale on its own. */
 	.nav__link {
+		font-family: var(--font-sans);
+		font-weight: var(--weight-medium);
 		padding-block: var(--spacing-md);
 		padding-inline: var(--spacing-xs);
 		color: var(--text-muted);
@@ -180,142 +132,106 @@ const onAbout = path.startsWith('/about');
 		color: var(--text);
 	}
 
-	/* Active state carries weight and colour together — never colour alone.
-	   The underline itself is `.nav__indicator`, not a border here: one bar
-	   shared between both links is what lets it glide between them instead
-	   of one snapping off as the other snaps on. */
+	/* Active state carries weight and colour together — never colour alone —
+	   just without the sliding underline bar this used to pair with. */
 	.nav__link[aria-current='page'] {
 		color: var(--primary-text);
 		font-weight: var(--weight-bold);
 	}
 
-	.nav__indicator {
-		position: absolute;
-		/* 0: `.nav__links` is stretched (see above) to the full height of
-		   `.nav`, so its bottom edge coincides exactly with the pane's own
-		   bottom edge. The pane's border is an inset box-shadow now (see
-		   `.glass`), painted just inside that same edge rather than added
-		   outside it — so landing the bar flush here draws it on top of
-		   the border's bottom-most pixel instead of stopping short of it. */
-		inset-block-end: 0;
-		height: 2px;
-		/* Top corners only — the bottom edge sits flush against the pane's
-		   own border-bottom, so rounding it too would just cut a notch out
-		   of a straight line. */
-		border-start-start-radius: var(--radius-xxs);
-		border-start-end-radius: var(--radius-xxs);
-		background: var(--primary-text);
-		pointer-events: none;
-		transition:
-			left 300ms cubic-bezier(0, 0, 0.2, 1),
-			width 300ms cubic-bezier(0, 0, 0.2, 1);
-	}
+	/* .nav-dropdown is NavMenu.tsx's <NavigationMenu> root — a React island,
+	   so (unlike everything above) none of the rules from here down get
+	   Astro's scope attribute on the elements they need to match; every
+	   selector below is :global() for that reason.
 
-	@media (prefers-reduced-motion: reduce) {
-		.nav__indicator {
-			transition-duration: 0.01ms;
-		}
-	}
-
-	.nav__spacer {
-		display: block;
-		visibility: hidden;
-	}
-
-	.nav__spacer :global(svg) {
-		display: block;
-		height: 1.75rem;
-		width: auto;
-	}
-
-	.nav-dropdown-mirror {
-		visibility: hidden;
-		pointer-events: none;
-		/* The gap nav-shell puts between the real .nav and .nav-dropdown panes —
-		   reproduced here since this mirror sits inside .nav, outside that
-		   flex row. */
-		margin-inline-end: var(--spacing-3xl);
-	}
-
-	/* align-items: stretch (not center) — `.nav-dropdown` is itself stretched
-	   to match `.nav`'s height by `.nav-shell`'s own align-items: stretch, but
-	   that only sets the *wrapper*'s height. Centring the trigger inside it
-	   left the visible glass pill shorter than that wrapper, floating with a
-	   gap above and below instead of filling the row like `.nav` does.
-	   Stretching the trigger too makes its glass pill match the row height;
-	   the panel's `inset-block-start: calc(100% + …)` already measures off
-	   this wrapper's full height (not the trigger's), so it's unaffected. */
-	.nav-dropdown {
+	   Base UI's own NavigationMenu.Root ships flex-1 (Tailwind, in
+	   navigation-menu.tsx) — meant for a root that spans a full menu bar,
+	   wrong for a fixed-content trigger sitting beside `.nav__links`.
+	   `flex: 0 0 auto` overrides it outright rather than fighting the
+	   individual grow/shrink longhands piecemeal. */
+	:global(.nav-dropdown) {
 		position: relative;
-		flex-shrink: 0;
 		display: flex;
-		align-items: stretch;
+		align-items: center;
+		flex: 0 0 auto;
 	}
 
-	.nav-dropdown__trigger {
+	/* Same padding/colour treatment as .nav__link, so "Side projects" reads
+	   as the third item in one row rather than a visually distinct control.
+	   background-color: transparent overrides shadcn's own default
+	   hover/open background (Tailwind, navigation-menu.tsx: hover:bg-muted,
+	   focus:bg-muted, data-popup-open:bg-muted/50) — those are layered
+	   utilities, so one unlayered declaration here beats all of them
+	   regardless of which :hover/[data-popup-open] state is active, the
+	   same fix already used on .nav-dropdown__item below. height: auto
+	   overrides Base UI's own fixed h-9 so it doesn't clip .nav__group's
+	   align-items: center row differently from a plain link's line height. */
+	:global(.nav-dropdown__trigger) {
 		display: inline-flex;
 		align-items: center;
 		gap: var(--spacing-xs);
+		height: auto;
+		font-family: var(--font-sans);
+		font-weight: var(--weight-medium);
 		padding-block: var(--spacing-md);
-		padding-inline: var(--spacing-lg);
+		padding-inline: var(--spacing-xs);
 		color: var(--text-muted);
+		background-color: transparent;
 		cursor: pointer;
-		list-style: none;
 	}
 
-	.nav-dropdown__trigger::-webkit-details-marker {
-		display: none;
-	}
-
-	/* Keyed off [open] as well as :hover: the panel is a sibling of the
-	   summary, not a descendant of it, so :hover on the trigger alone drops
-	   the instant the pointer moves off the summary into the panel/links —
-	   even though the dropdown (kept open by the hover-toggle JS) still
-	   reads as active the whole time the pointer is anywhere inside it. */
-	.nav-dropdown__trigger:hover,
-	.nav-dropdown[open] .nav-dropdown__trigger {
+	/* data-popup-open is Base UI's own attribute on the trigger button
+	   itself (see NavigationMenuTrigger in navigation-menu.tsx). */
+	:global(.nav-dropdown__trigger:hover),
+	:global(.nav-dropdown__trigger[data-popup-open]) {
 		color: var(--text);
 	}
 
-	/* :global() because the chevron span is rendered by Icon.astro, not this
-	   component — Astro scopes each style block to the elements its own
-	   template renders, so an unqualified `.nav-dropdown__chevron` here would
-	   never match a span another component created, even with the class
-	   passed down as a prop. */
-	.nav-dropdown :global(.nav-dropdown__chevron) {
+	/* :global() because the chevron span is rendered by navigation-menu.tsx's
+	   own Icon usage, not this component's template. Rotation on open is
+	   handled there too, as a Tailwind group-data variant on the icon. */
+	:global(.nav-dropdown) :global(.nav-dropdown__chevron) {
 		color: var(--primary-text);
-		transition: transform 0.15s ease;
 	}
 
-	.nav-dropdown[open] :global(.nav-dropdown__chevron) {
-		transform: rotate(180deg);
-	}
-
-	/* Border, radius and background come from .glass now (components.css) —
-	   this only adds the positioning and layout .glass doesn't know about. */
-	.nav-dropdown__panel {
-		position: absolute;
-		inset-block-start: calc(100% + var(--spacing-md));
-		inset-inline-end: 0;
+	/* The popup surface now wears shadcn's own default look (bg-popover,
+	   ring-foreground, shadow, rounded-lg — all sourced from tokens.css via
+	   the tailwind.css bridge), not `.glass`. min-width/box-sizing are the
+	   only overrides left. */
+	:global(.nav-dropdown__popup) {
 		/* Pinned explicitly: `min-width` is a content-box measurement, and
 		   about.astro (unlike this component's other host, index.astro)
 		   applies a page-scoped `box-sizing: border-box` reset. Without this,
-		   the same 14rem min-width nets 32px less room on the about page
+		   the same min-width nets 32px less room on the about page
 		   (padding-inline counted inward instead of added on) and wraps
 		   "Amplitude taxonomy exporter" onto a third line. */
 		box-sizing: content-box;
-		min-width: 14rem;
-		padding-inline: var(--spacing-xl);
+		/* The floor that gives .nav-dropdown__item-label's `flex-grow: 1`
+		   something to grow into — see that rule below for why the slack is
+		   what keeps "Amplitude taxonomy exporter" off a second line. Base UI
+		   measures `--popup-width` from the content once, when the menu opens,
+		   and then holds it, so the width the label is measured against is
+		   whatever this yields; nothing in the hover state changes it (the
+		   nudge is a transform, not a layout shift). At the old 14rem the
+		   measured width left under a pixel of slack and the label wrapped. */
+		min-width: 21rem;
+	}
+
+	/* padding (all four sides, not just padding-inline) overrides Base UI's
+	   own p-1 on NavigationMenuContent — the panel has no block padding of
+	   its own, since each .nav-dropdown__item supplies its own. */
+	:global(.nav-dropdown__panel) {
+		padding: 0 var(--spacing-xl);
 		display: flex;
 		flex-direction: column;
 	}
 
 	/* Resting state is dim; hover/focus bring text, arrow and border to full
-	   opacity together and nudge the label right — never colour alone. The one
-	   transition covers both properties so they move in lockstep. GSAP (see
-	   nav-dropdown.ts) drives the hoverline draw-in and the arrow's diagonal
-	   entrance/exit, which a CSS transition can't express. */
-	.nav-dropdown__item {
+	   opacity and nudge the label right (see .nav-dropdown__item-label) —
+	   never colour alone. Both share one timing curve so they move in
+	   lockstep. GSAP (nav-dropdown.ts) drives the hoverline draw-in and the
+	   arrow's diagonal entrance/exit, which a CSS transition can't express. */
+	:global(.nav-dropdown__item) {
 		position: relative;
 		overflow: hidden; /* clips the arrow while it's parked off-frame */
 		display: flex;
@@ -326,44 +242,106 @@ const onAbout = path.startsWith('/about');
 		color: var(--text);
 		text-decoration: none;
 		opacity: 0.6;
+		background-color: transparent;
 		border-bottom: 1px solid var(--border);
 		transition: 0.8s cubic-bezier(0.19, 1, 0.22, 1);
 	}
 
-	.nav-dropdown__item:last-child {
+	:global(.nav-dropdown__item:last-child) {
 		border-bottom: none;
 	}
 
-	.nav-dropdown__item:hover,
-	.nav-dropdown__item:focus-visible {
+	/* background-color: transparent again here, not just on the base rule
+	   above — NavigationMenuLink's own hover:bg-muted/focus:bg-muted (Tailwind,
+	   navigation-menu.tsx) target the same :hover/:focus-visible state, and
+	   cascade layers only settle ties at matching specificity+state; this
+	   project's opacity/label-nudge hover treatment, not a background
+	   swap, is what's meant to read here. */
+	:global(.nav-dropdown__item:hover),
+	:global(.nav-dropdown__item:focus-visible) {
+		background-color: transparent;
 		opacity: 1;
-		padding-inline-start: var(--spacing-lg);
 	}
 
-	.nav-dropdown__item:focus-visible {
+	:global(.nav-dropdown__item:focus-visible) {
 		outline: 2px solid var(--focus-ring);
 		outline-offset: -2px;
 	}
 
-	.nav-dropdown__item-arrow {
+	/* The label takes the row's leftover width instead of sitting at its own
+	   max-content size. That extra width is never *used* — the text is the
+	   same length either way — but a flex item sized to max-content lands a
+	   fraction of a pixel short of the line it is supposed to hold (Inter is
+	   a variable font; the intrinsic measurement rounds down where the line
+	   box rounds up), which is enough to wrap a label that visibly fits.
+	   Growing into the free space the popup's min-width above provides puts
+	   real slack between the label's box and its text, so the break point no
+	   longer sits on a rounding boundary. Nothing moves: the arrow is already
+	   pinned right by the item's justify-content, and this only changes where
+	   the label's (transparent) box ends. */
+	:global(.nav-dropdown__item-label) {
+		flex-grow: 1;
+		transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+	}
+
+	/* The hover nudge, as a transform rather than the item's
+	   `padding-inline-start` it started as. The two look identical — the label
+	   moves right by the same var(--spacing-lg), the arrow stays pinned right
+	   either way, and the border-bottom spans the full width either way, since
+	   padding sits inside the border box — but a transform composites instead
+	   of laying out. That matters here specifically: Base UI measures the
+	   popup width from the content once, on open, and holds it, so a hover
+	   that resizes the label's content box afterwards is changing the thing
+	   that measurement already committed to. Nothing to reflow now, and no
+	   width has to be held in reserve for the shift. */
+	:global(.nav-dropdown__item:hover) :global(.nav-dropdown__item-label),
+	:global(.nav-dropdown__item:focus-visible) :global(.nav-dropdown__item-label) {
+		transform: translateX(var(--spacing-lg));
+	}
+
+	/* translate: a generic "safely outside any real row" default, not the
+	   item's own precise offsetHeight — nav-dropdown.ts's enter/leave tweens
+	   measure that exactly on every interaction, so this only has to hold
+	   up for the brief window (or the reduced-motion case, which never
+	   tweens at all) before a node's first real hover. Needing this at all,
+	   rather than only ever setting it from JS, is the fix for Base UI
+	   recreating these nodes on interaction — a freshly swapped-in arrow
+	   has never been touched by GSAP and must already look "at rest". */
+	/* align-self: flex-start (overriding the item's own align-items: center
+	   just for this child) + a top margin sized to centre a 1rem icon inside
+	   one line of .type-ui-label (line-height 1.5 × 16px = 24px, so (24-16)/2
+	   = 4px) — aligns the arrow with the label's *first* line specifically.
+	   Centring against the item's full height instead (the item's own
+	   align-items) puts the arrow in the gap between lines the moment a
+	   label wraps, e.g. "Amplitude taxonomy exporter" — floating disconnected
+	   from either line rather than reading as this row's icon. */
+	:global(.nav-dropdown__item-arrow) {
 		width: 1rem;
 		height: 1rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
+		align-self: flex-start;
+		margin-block-start: 0.25rem;
+		transform: translate(-6rem, 6rem);
 	}
 
-	.nav-dropdown__item-hoverline {
+	/* scaleX(0) from the left edge is this element's own "at rest" —
+	   same reasoning as the arrow's translate above. */
+	:global(.nav-dropdown__item-hoverline) {
 		position: absolute;
 		inset: auto auto 0 0;
 		width: 100%;
 		height: 1px;
 		background: var(--primary-text);
+		transform: scaleX(0);
+		transform-origin: 0% 50%;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.nav-dropdown__item {
+		:global(.nav-dropdown__item),
+		:global(.nav-dropdown__item-label) {
 			transition-duration: 0.01ms;
 		}
 	}
@@ -375,66 +353,118 @@ const onAbout = path.startsWith('/about');
 		border-radius: var(--radius-xs);
 	}
 
-	/* No border-radius override here, unlike the pair above: those have no
-	   radius of their own, so this rule was giving the outline one to follow.
-	   The trigger now wears `.glass`, which already sets --radius-md — adding
-	   --radius-xs here would shrink its corners the moment it's focused. */
-	.nav-dropdown__trigger:focus-visible {
+	:global(.nav-dropdown__trigger:focus-visible) {
 		outline: 2px solid var(--focus-ring);
 		outline-offset: 2px;
+		border-radius: var(--radius-xs);
 	}
 </style>
 
 <script>
-	import { initNavDropdownHoverAnimation, initNavDropdownHoverToggle } from './nav-dropdown';
-	import { initNavTint } from './nav-tint';
+	/* The "Side projects" panel's own hover choreography (nav-dropdown.ts)
+	   is wired up from inside NavMenu.tsx itself, via useEffect — not here.
+	   That panel lives inside a client:load React island, and a plain
+	   Astro <script> has no reliable way to know whether it's running
+	   before, during or after that island's hydration; see NavMenu.tsx for
+	   why that ordering actually matters (a hydration-mismatch bug, not
+	   just tidiness). */
 
-	for (const details of document.querySelectorAll<HTMLDetailsElement>('.nav-dropdown')) {
-		initNavDropdownHoverToggle(details);
-	}
-
-	for (const panel of document.querySelectorAll<HTMLElement>('.nav-dropdown__panel')) {
-		initNavDropdownHoverAnimation(panel);
-	}
-
-	const shell = document.querySelector<HTMLElement>('.nav-shell');
-	if (shell) initNavTint(shell);
-
-	/* Keeps the active-tab indicator (and `aria-current`) honest about the
-	   URL. The nav is `transition:persist`ed across the Work<->About
-	   navigation, so this script body only ever runs once, on the very first
-	   load — everything below has to be event-driven rather than re-run per
-	   navigation, which is exactly what `astro:after-swap` is for. Reading
-	   the link's own `getBoundingClientRect()` (not a hardcoded width) is
-	   what lets the bar resize between "Work" and "About" instead of just
-	   sliding at a fixed width. */
+	/* Keeps `aria-current` (and with it, .nav__link[aria-current='page']'s
+	   colour/weight) honest about the URL. The nav is `transition:persist`ed
+	   across the Work<->About navigation, so this script body only ever runs
+	   once, on the very first load — this has to be event-driven rather than
+	   re-run per navigation, which is exactly what `astro:after-swap` is for. */
 	const navLinks = document.querySelectorAll<HTMLAnchorElement>('.nav__link');
-	const indicator = document.querySelector<HTMLElement>('.nav__indicator');
-	const navLinksRow = document.querySelector<HTMLElement>('.nav__links');
 
-	const syncIndicator = () => {
-		if (!indicator || !navLinksRow) return;
+	const syncActiveLink = () => {
 		const onWorkNow = location.pathname === '/' || location.pathname === '';
 		const onAboutNow = location.pathname.startsWith('/about');
 
-		let active: HTMLAnchorElement | undefined;
 		for (const link of navLinks) {
 			const current = link.getAttribute('href') === '/' ? onWorkNow : onAboutNow;
 			if (current) {
 				link.setAttribute('aria-current', 'page');
-				active = link;
 			} else {
 				link.removeAttribute('aria-current');
 			}
 		}
-		if (!active) return;
-
-		const linkBox = active.getBoundingClientRect();
-		const rowBox = navLinksRow.getBoundingClientRect();
-		indicator.style.left = `${linkBox.left - rowBox.left}px`;
-		indicator.style.width = `${linkBox.width}px`;
 	};
 
-	syncIndicator();
-	document.addEventListener('astro:after-swap', syncIndicator);
+	syncActiveLink();
+	document.addEventListener('astro:after-swap', syncActiveLink);
+
+	/* The nav sits directly on the page with no pane of its own, which works
+	   for as long as the only thing behind it is the water field and stops
+	   working the moment real content scrolls up underneath it. `--nav-scrim`
+	   ramps a solid `--bg` band in behind the row over the last stretch of
+	   scroll before that happens, so the links are never read against a card.
+
+	   Opt-in per page, via `data-nav-scrim` on whatever section does the
+	   scrolling-under (index.astro's `.work`) — the nav can't know that on
+	   its own, and a page with nothing marked just never paints a band.
+
+	   Scrubbed 1:1 to scroll position rather than transitioned on a class
+	   toggle, same reasoning as index.astro's own hero fade: the band should
+	   track the scroll gesture and reverse cleanly on the way back up, not
+	   play a fixed-length animation that happens to start when a threshold is
+	   crossed. The ease-out lives in the curve applied to that progress
+	   instead of in a `transition-timing-function`.
+
+	   The ramp's length is the band's own height, measured — so there is no
+	   magic number here to keep in sync with the nav's size, and the fade
+	   always takes exactly one band-height of scroll. Cubed ease-out
+	   front-loads it inside that: the band is ~88% in when the content is
+	   still half a band below, so it has visibly arrived *before* the overlap
+	   rather than racing it. */
+	const shell = document.querySelector<HTMLElement>('.nav-shell');
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+	let scrimTarget: HTMLElement | null = null;
+	let scrimTicking = false;
+
+	const updateScrim = () => {
+		scrimTicking = false;
+		if (!shell) return;
+
+		if (!scrimTarget) {
+			shell.style.setProperty('--nav-scrim', '0');
+			return;
+		}
+
+		/* The shell is pinned to the top of the viewport, so its height and
+		   the y of its bottom edge are the same number. `gap` is the distance
+		   from that edge down to the top of the section coming up to meet it:
+		   0 is the moment they touch and the fade begins, -band is when it completes. */
+		const band = shell.getBoundingClientRect().height;
+		const gap = scrimTarget.getBoundingClientRect().top - band;
+		const progress = band > 0 ? Math.min(Math.max(-gap / band, 0), 1) : 0;
+
+		/* Under reduced motion the band still appears — it is legibility, not
+		   decoration — but it snaps on at the overlap itself instead of
+		   tracking the scroll. */
+		const scrim = reduceMotion.matches ? (progress >= 1 ? 1 : 0) : 1 - (1 - progress) ** 3;
+
+		shell.style.setProperty('--nav-scrim', String(scrim));
+	};
+
+	const onScrimScroll = () => {
+		if (scrimTicking) return;
+		scrimTicking = true;
+		requestAnimationFrame(updateScrim);
+	};
+
+	/* Re-resolved rather than captured once: the nav is `transition:persist`ed
+	   across Work<->About, so this script body runs on the first load only,
+	   while the element it watches is replaced on every swap. */
+	const resolveScrimTarget = () => {
+		scrimTarget = document.querySelector<HTMLElement>('[data-nav-scrim]');
+		updateScrim();
+	};
+
+	if (shell) {
+		window.addEventListener('scroll', onScrimScroll, { passive: true });
+		window.addEventListener('resize', onScrimScroll, { passive: true });
+		document.addEventListener('astro:after-swap', resolveScrimTarget);
+		resolveScrimTarget();
+	}
 </script>

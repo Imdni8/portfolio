@@ -44,8 +44,8 @@ export const ChapterRail = ({ chapters }: { chapters: Chapter[] }) => {
 		// happens to cross the band.
 		const TRIGGER = 0.2;
 
-		// A scroll read, not an IntersectionObserver — same fix as the nav's
-		// tint trigger (nav-tint.ts) for the same reason: a chapter's Section is
+		// A scroll read, not an IntersectionObserver — same reasoning the nav's
+		// old scroll-tint trigger used to rely on: a chapter's Section is
 		// routinely taller than the viewport, so a narrow observed band only
 		// tells you the section has started or finished crossing it, not the
 		// moment its top reaches TRIGGER. Watching it fire proves the mismatch —

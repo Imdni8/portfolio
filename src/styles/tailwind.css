@@ -1,0 +1,66 @@
+/* ============================================================================
+   Tailwind entry point — for shadcn/ui-sourced components only.
+
+   tokens.css stays the source of truth: every value below is a `var()`
+   pointing back at a semantic token already defined there, never a literal.
+   This is a second *syntax* for reaching the same tokens (Tailwind utility
+   classes instead of components.css rules), not a second palette — importing
+   this file after tokens.css is what makes that possible, since `@theme
+   inline` resolves these at runtime, not at build time.
+
+   Loaded on every page today (nav is sitewide), but scoped in practice to
+   shadcn-vendored primitives (src/components/ui/navigation-menu.tsx and
+   whatever follows it) and the wrappers built on top of them. Existing
+   components (Button, Tabs, Note, Tag, …) stay on components.css — this
+   isn't a rewrite, just where new shadcn work lands until it's deliberately
+   extended further.
+
+   `shadcn init` (run once, to scaffold components.json/lib/utils.ts) also
+   dropped its own default OKLCH palette, a Geist font import, sidebar/chart
+   tokens and a `.dark`-class variant into this file — none of that applies
+   here (this project has no --destructive/--chart/--sidebar tokens, ships
+   its own fonts, and flips theme via [data-theme] on :root, never a `.dark`
+   class), so it's been stripped back to just the token bridge below plus
+   shadcn's own interaction-state utility layer, which is genuinely
+   framework infrastructure (data-state open/closed/checked/… variants,
+   accordion-height keyframes) rather than a design decision. */
+
+@import 'tailwindcss';
+@import 'shadcn/tailwind.css';
+@import 'tw-animate-css';
+
+@theme inline {
+	--color-background: var(--bg);
+	--color-foreground: var(--text);
+
+	--color-card: var(--bg-raised);
+	--color-card-foreground: var(--text);
+
+	--color-popover: var(--bg-raised);
+	--color-popover-foreground: var(--text);
+
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--text-on-primary);
+
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--text-on-secondary);
+
+	--color-muted: var(--bg-sunken);
+	--color-muted-foreground: var(--text-muted);
+
+	--color-accent: var(--bg-sunken);
+	--color-accent-foreground: var(--text);
+
+	--color-border: var(--border);
+	--color-input: var(--border);
+	--color-ring: var(--focus-ring);
+}
+
+/* Deliberately no --radius-* or --font-* entries above: Tailwind's own theme
+   namespace for those is the *same* custom property name tokens.css already
+   owns (--radius-md, --font-sans, …), so re-pointing one at the other here
+   would read `--radius-md: var(--radius-md)` — a variable referencing
+   itself, which resolves to nothing. Components reach tokens.css's radius
+   and font tokens directly instead, via Tailwind's arbitrary-value syntax
+   (`rounded-[var(--radius-lg)]`, `font-[family-name:var(--font-sans)]`) —
+   still one source of truth, just addressed without the alias. */

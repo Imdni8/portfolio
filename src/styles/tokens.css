@@ -444,24 +444,14 @@
 
 /* ---- 6 · Surface — glass ----------------------------------------------------
    The backdrop-filter material `.glass` (components.css) is built from — one
-   set of values, so the nav, the work cards and the "Side projects" panel
-   can't drift into slightly different glass.
-
-   --glass-tint-rest is the resting mix: 5% of a mid grey, enough to sit on
-   the page ground without going opaque. --glass-tint-scroll is the much
-   heavier mix nav-tint.ts swaps in on the specific panes marked
-   `data-nav-tint-pane` as a pale case-study cover scrolls underneath them
-   (see `.glass--tinted`) — a second token rather than a variant of the first
-   because it's opt-in per pane, not per surface: a work card and the
-   dropdown panel are `.glass` too, and neither should darken on scroll.
-
-   Mixed toward --bg-sunken rather than stated as a literal, so it inverts
-   with the theme: the pane always moves toward the most recessed ground the
-   theme has, the one text colours were already checked against. 82% is
-   where the worst case lands — a pure-white cover behind, no help from the
-   blur — putting the resulting surface at #353738, which carries
-   --text-muted at 4.9:1, --primary-text at 5.6:1 and --text at 11.5:1. Any
-   heavier and the pane stops reading as glass at rest.
+   set of values, so the work cards and the about page's stats panel can't
+   drift into slightly different glass. The nav used to wear this too (and
+   had a second, heavier tint it swapped in via a scroll listener as pale
+   case-study covers scrolled underneath it — `--glass-tint-scroll`,
+   `.glass--tinted`, `nav-tint.ts`) before the nav dropped the material
+   entirely; that machinery is gone with it; --glass-tint-rest is the only
+   mix left, mid grey at 5%, enough to sit on the page ground without going
+   opaque.
    -------------------------------------------------------------------------- */
 :root {
 	--glass-blur: 8px;
@@ -472,5 +462,4 @@
 	--glass-shadow-rim: rgb(0 0 0 / 25%);
 	--glass-shadow-ambient: rgb(0 0 0 / 55%);
 	--glass-tint-rest: color-mix(in srgb, var(--gray-700) 5%, transparent);
-	--glass-tint-scroll: color-mix(in srgb, var(--bg-sunken) 82%, transparent);
 }

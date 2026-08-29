@@ -11,10 +11,14 @@
    ============================================================================ */
 
 /* ---- Glass -----------------------------------------------------------------
-   A material, not a component: the pane the nav, the work cards and the
-   "Side projects" panel are all cut from, so they read as one surface
-   treatment split across the page. Whatever wears it needs something painted
-   behind it to bend — on the homepage that is the fixed water field.
+   A material, not a component: the pane the work cards and the about page's
+   stats panel are cut from, so they read as one surface treatment. The nav
+   wore this too until it dropped the material entirely for a plain text
+   treatment (SiteNav.astro) — along with the scroll-triggered heavier tint
+   it used to swap in as pale covers scrolled underneath it
+   (`--glass-tint-scroll`, `nav-tint.ts`, both now gone). Whatever wears
+   `.glass` needs something painted behind it to bend — on the homepage that
+   is the fixed water field.
 
    It brings its own border and radius, since the edge is part of the material:
    a rim, not a line drawn round a fill. Every value below reads a token
@@ -24,14 +28,8 @@
    The refraction branch below needs <GlassDefs /> rendered once on the page.
    -------------------------------------------------------------------------- */
 .glass {
-	/* Re-declared per element (from the token, not just inherited) so
-	   `.glass--tinted` can darken one pane without the override inheriting
-	   into a `.glass` descendant that never opted in — the dropdown panel
-	   nested inside the trigger pill is the case that matters here. */
-	--glass-tint: var(--glass-tint-rest);
-
 	border-radius: var(--radius-md);
-	background: var(--glass-tint);
+	background: var(--glass-tint-rest);
 	backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 	-webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 	/* The edge is an inset shadow, not a `border` — a real border is stroked
@@ -47,21 +45,6 @@
 		inset 0 -1px 0 var(--glass-shadow-rim),
 		inset 0 0 0 1px var(--glass-border),
 		0 16px 40px -16px var(--glass-shadow-ambient);
-	/* Slow, and eased at both ends: the tint change is triggered by a scroll
-	   threshold, so a quick crossfade reads as the pane flinching at one
-	   particular scroll position. Stretched past the length of a deliberate
-	   scroll gesture it reads instead as the pane responding to what is
-	   arriving underneath it. */
-	transition: background-color 700ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* The pane over pale content — nav-tint.ts toggles this on the panes marked
-   `data-nav-tint-pane` as the work grid scrolls up to meet them (see that
-   file; --glass-tint-scroll in tokens.css carries the contrast math). Not
-   every `.glass` surface is eligible: a work card and the dropdown panel
-   stay at the resting tint regardless of scroll position. */
-.glass--tinted {
-	--glass-tint: var(--glass-tint-scroll);
 }
 
 /* Refraction 50, Dispersion 0, Splay 0 → a single bend pass, no chromatic
@@ -997,3 +980,4 @@
 		color: var(--text-muted);
 	}
 }
+

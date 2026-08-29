@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import { ClientRouter } from 'astro:transitions';
 import '../styles/tokens.css';
+import '../styles/tailwind.css';
 import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
@@ -85,12 +86,14 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 				</main>
 			</div>
 		</div>
-		<section class="work">
-			<p class="type-overline work__eyebrow">Selected works</p>
-			{/* The nav darkens its glass as this grid comes up to meet it — the
-			    cover images are predominantly white, and the resting tint is not
-			    enough to keep the links legible against one. See nav-tint.ts. */}
-			<div class="work__inner" data-nav-tint-trigger>
+		{/* data-nav-scrim: the section the nav watches to know when to fade its
+		    background in — this is the one that scrolls up underneath it (the
+		    hero never does; it fades out while pinned). See SiteNav.astro. */}
+		<section class="work" data-nav-scrim>
+			<p class="type-overline work__eyebrow">
+				<span class="work__eyebrow-shine">Selected works</span>
+			</p>
+			<div class="work__inner">
 				{
 					studies.map((entry) => (
 						<WorkCard
@@ -121,65 +124,58 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 
 <script>
 	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+	let passes: Array<() => void> = [];
+	let ticking = false;
 
-	/* Scrubbed 1:1 to scroll position via a custom property, not a
-	   scroll-triggered CSS transition — the intro should track the scroll
-	   gesture itself (and reverse cleanly on scroll-up), not play an
-	   animation that's merely timed to when scrolling started. Skipped
-	   entirely under reduced motion and without JS, so the intro just falls
-	   fully opaque, its unmodified pre-existing behaviour (`.hero-pin` is
-	   still sticky either way, but with no fade that only reads as the intro
-	   holding still a beat longer before the cards cover it).
+	const update = () => {
+		ticking = false;
+		for (const pass of passes) pass();
+	};
 
-	   The ramp spans exactly the pinned phase, and nothing else: `--fade` is
-	   0 while `.hero-pin` still sits at its flow position, and reaches 1 at
-	   the instant the pin runs out of runway and starts travelling with the
-	   page. So the intro only ever fades while it is holding still, and is
-	   already gone by the time it moves — the two never overlap, which is
-	   what stops it reading as the intro being dragged up by the cards. It
-	   also puts the end of the fade where the eyebrow arrives: `.work` rises
-	   by the full runway over that same stretch (see `.hero`), so opacity
-	   hits 0 exactly as `SELECTED WORKS` settles a grid cell below the nav.
-	   The two pass through each other on the way — by the halfway mark the
-	   cards are already crossing the intro — which is why the fade is the
-	   only thing that needs to be timed and the stacking order (see `.work`)
-	   is what makes the crossing legible.
+	const onScroll = () => {
+		if (ticking) return;
+		ticking = true;
+		requestAnimationFrame(update);
+	};
 
-	   Measured as the pin's offset *inside* `.hero` rather than from
-	   `scrollY`, which needs no page-position arithmetic and is already
-	   clamped at both ends by sticky itself: the offset is 0 at rest (and
-	   stays 0 through an overscroll bounce, where the pin sits at its flow
-	   position), grows 1:1 with scroll while stuck, and freezes at the
-	   runway's full length once released. */
-	const hero = document.querySelector<HTMLElement>('.hero');
-	const heroPin = document.querySelector<HTMLElement>('.hero-pin');
-	const intro = document.querySelector<HTMLElement>('.hero-intro');
+	window.addEventListener('scroll', onScroll, { passive: true });
+	window.addEventListener('resize', onScroll, { passive: true });
 
-	if (hero && heroPin && intro && !reduceMotion.matches) {
-		intro.classList.add('js-fade');
+	document.addEventListener('astro:page-load', () => {
+		passes = [];
+		const hero = document.querySelector<HTMLElement>('.hero');
+		const heroPin = document.querySelector<HTMLElement>('.hero-pin');
+		const intro = document.querySelector<HTMLElement>('.hero-intro');
+		const eyebrow = document.querySelector<HTMLElement>('.work__eyebrow');
+		const cards = document.querySelector<HTMLElement>('.work__inner');
 
-		let ticking = false;
+		if (hero && heroPin && intro && !reduceMotion.matches) {
+			intro.classList.add('js-fade');
 
-		const update = () => {
-			ticking = false;
-			const heroBox = hero.getBoundingClientRect();
-			const pinBox = heroPin.getBoundingClientRect();
-			const runway = heroBox.height - pinBox.height;
-			const travel = pinBox.top - heroBox.top;
-			const progress = runway > 0 ? Math.min(Math.max(travel / runway, 0), 1) : 0;
-			intro.style.setProperty('--fade', String(progress));
-		};
+			passes.push(() => {
+				const heroBox = hero.getBoundingClientRect();
+				const pinBox = heroPin.getBoundingClientRect();
+				const runway = heroBox.height - pinBox.height;
+				const travel = pinBox.top - heroBox.top;
+				const progress = runway > 0 ? Math.min(Math.max(travel / runway, 0), 1) : 0;
+				intro.style.setProperty('--fade', String(progress));
+			});
+		}
 
-		const onScroll = () => {
-			if (ticking) return;
-			ticking = true;
-			requestAnimationFrame(update);
-		};
+		if (eyebrow && cards && !reduceMotion.matches) {
+			eyebrow.classList.add('js-fade');
 
-		window.addEventListener('scroll', onScroll, { passive: true });
-		window.addEventListener('resize', onScroll, { passive: true });
+			passes.push(() => {
+				const eyebrowBox = eyebrow.getBoundingClientRect();
+				const gap = cards.getBoundingClientRect().top - eyebrowBox.bottom;
+				const restGap = parseFloat(getComputedStyle(eyebrow).marginBlockEnd) || 0;
+				const runway = restGap + eyebrowBox.height;
+				const closed = runway > 0 ? Math.min(Math.max((restGap - gap) / runway, 0), 1) : 0;
+				eyebrow.style.setProperty('--fade', String(closed));
+			});
+		}
 		update();
-	}
+	});
 </script>
 
 <style>
@@ -201,18 +197,23 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		   browser's toolbar shows and hides. */
 		--pin-height: 66.4svh;
 
-		/* What the nav occupies at the top of the viewport: its 24px inset
-		   plus its ~54px rendered height. */
+		/* What the nav occupies at the top of the viewport, plus a little
+		   clearance: the band it paints is 60px (12px of padding, a 36px row,
+		   12px more), and this leaves 18px under it. Unchanged when the nav
+		   halved its top inset to fill that band instead of floating in it —
+		   the band's bottom edge landed exactly where the row's used to. */
 		--nav-footprint: 4.875rem;
 
-		/* The eyebrow's clearance below the pin when the page is at rest.
-		   Unchanged from when it was `.work`'s own `padding-block-start`. */
-		--rest-gap: calc(var(--spacing-11xl) + var(--spacing-6xl));
+		/* `.work`'s clearance below the pin when the page is at rest.
+		   Unchanged from when it was `.work`'s own `padding-block-start`.
+		   Also the line the eyebrow is pinned to, since it is `.work`'s first
+		   child — see `.work__eyebrow.js-fade`. */
+		--rest-gap: calc(var(--spacing-10xl));
 
-		/* Where the eyebrow has got to by the time the intro has finished
-		   fading — one cell of the water field's grid below the nav, which is
-		   the 72px pitch passed to `<WaterField>` rounded to the nearest rung
-		   of the space scale. */
+		/* Where the top of `.work` has got to by the time the intro has
+		   finished fading — one cell of the water field's grid below the nav,
+		   which is the 72px pitch passed to `<WaterField>` rounded to the
+		   nearest rung of the space scale. */
 		--fade-end: calc(var(--nav-footprint) + var(--spacing-8xl));
 
 		/* How far `.work` climbs past the pin's bottom edge to get there, and
@@ -240,10 +241,10 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 	   containing block runs out, so this height — and nothing else, not
 	   padding underneath, not a margin on the next section — is what buys the
 	   intro time to hold still. Two rungs make up the surplus. `--rest-gap`
-	   is the clearance the eyebrow already has at rest. `--overlap` is the
-	   part that keeps going afterwards: without it the eyebrow could never
+	   is the clearance `.work` already has at rest. `--overlap` is the
+	   part that keeps going afterwards: without it the cards could never
 	   rise past the pin's own bottom edge while the pin was still stuck,
-	   because it sits in flow directly beneath the hero and so is measured
+	   because they sit in flow directly beneath the hero and so are measured
 	   against the hero's bottom, which puts a floor on the fade far lower
 	   down the viewport than it wants to end. `.work`'s negative
 	   `margin-block-start` is the other half of that: it cancels `--overlap`
@@ -447,6 +448,85 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		margin-block-end: var(--spacing-xl);
 		padding-inline: var(--gutter);
 		text-align: center;
+	}
+
+	/* Held exactly where it already sits, so it never travels up the viewport
+	   at all — the cards come to it, it does not go to them. `top` is the
+	   eyebrow's own resting offset written out: `.work` starts at `.hero`'s
+	   full height less the `--overlap` its negative margin cancels, which
+	   leaves `--pin-height + --rest-gap`, and the eyebrow is `.work`'s first
+	   child with nothing above it. Being its resting offset is the whole point
+	   — sticky engages on the first pixel of scroll and the label is stationary
+	   from the first frame to the last, rather than rising to some other line
+	   and stopping there.
+	   Added by the script rather than written here, because the fade below is
+	   what keeps a pinned label from sitting over the grid for the rest of the
+	   section — the pin can't outlive it. Without JS (or under reduced motion)
+	   the eyebrow scrolls away with the cards exactly as before, the same
+	   fallback `.hero-intro` takes. */
+	.work__eyebrow.js-fade {
+		position: sticky;
+		top: calc(var(--pin-height) + var(--rest-gap));
+		opacity: calc(1 - var(--fade, 0));
+	}
+
+	/* A light band sweeping across the label, cut to the text with
+	   background-clip — pure CSS keyframes rather than the React island this
+	   effect shipped as initially: a two-second linear sweep with no delay or
+	   direction change is exactly what a background-position animation
+	   expresses, without shipping a component (and an animation library) to
+	   the client for it. The gradient carries the resting colour itself, so
+	   the text reads as plain --primary-text whenever the band is off-frame —
+	   which is the whole animation, and the whole reduced-motion fallback
+	   with it. */
+	.work__eyebrow-shine {
+		display: inline-block;
+		background-image: linear-gradient(
+			120deg,
+			var(--primary-text) 0%,
+			var(--primary-text) 35%,
+			var(--amber-100) 50%,
+			var(--primary-text) 65%,
+			var(--primary-text) 100%
+		);
+		background-size: 200% auto;
+		/* Tiled, not `no-repeat`: the gradient is only twice the element's
+		   width, so a single copy slides off as it travels and leaves the
+		   trailing text with no paint behind it — and unpainted text, under
+		   background-clip: text, is invisible rather than plain. That reads as
+		   a wipe eating the word, not a band crossing it. Repeating keeps the
+		   text painted edge to edge at every frame; the seam is invisible
+		   because the ramp's first and last stops are the same colour. */
+		background-position: 150% center;
+		background-clip: text;
+		-webkit-background-clip: text;
+		color: transparent;
+		-webkit-text-fill-color: transparent;
+		animation: work-eyebrow-shine 2s linear infinite;
+	}
+
+	/* 150% → -50% shifts the background by exactly one tile width, so the
+	   band crosses the word once per cycle and the loop closes on itself —
+	   the frame after the last is identical to the first, with no jump. */
+	@keyframes work-eyebrow-shine {
+		from {
+			background-position: 150% center;
+		}
+
+		to {
+			background-position: -50% center;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.work__eyebrow-shine {
+			animation: none;
+			background-image: none;
+			/* -webkit-text-fill-color has to be restated, not just `color` —
+			   it overrides `color` in WebKit, so transparent would stick. */
+			color: var(--primary-text);
+			-webkit-text-fill-color: var(--primary-text);
+		}
 	}
 
 	.work__inner {
