@@ -105,10 +105,6 @@ const work = defineCollection({
 					.max(4)
 					.default([]),
 
-				/** Chapter nav. `id` must match a Section's `chapter` prop. Omit the
-				 *  whole field and the rail is not rendered. */
-				chapters: z.array(z.object({ id: z.string(), label: z.string() })).default([]),
-
 				/** Full-bleed before/after opener. Omit to skip it. Separate from
 				 *  `thumbnail` above — this is for the in-page opener, not the card. */
 				hero: z

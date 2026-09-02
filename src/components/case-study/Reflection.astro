@@ -14,7 +14,7 @@ const { heading = 'Reflections' } = Astro.props;
 
 <style>
 	.reflection {
-		max-width: var(--measure-page);
+		max-width: var(--measure-story);
 		margin: 0 auto;
 		padding: var(--spacing-7xl) var(--gutter) var(--spacing-9xl);
 		border-block-start: 1px solid var(--border);
@@ -32,7 +32,7 @@ const { heading = 'Reflections' } = Astro.props;
 	}
 
 	/* No measure cap: .reflection is single-column, already bounded by
-	   --measure-page, with no rail or split column beside it to leave a
+	   --measure-story, with no rail or split column beside it to leave a
 	   ragged void against — the same reasoning the hero's h1/subtitle follow. */
 	.reflection__body :global(p) {
 		font-family: var(--font-sans);

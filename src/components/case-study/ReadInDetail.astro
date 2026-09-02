@@ -1,0 +1,163 @@
+---
+/**
+ * The curtain between the 30-second cut and the long-form case study.
+ *
+ * The long form is real content in the page, not a teaser: it renders in full,
+ * gets clipped to a 344px peek, and a wash in the page colour buries the rest
+ * with the invitation to keep reading centred on it. Clicking expands it in
+ * place — one URL, no navigation, and the peek is the actual next chapter
+ * rather than a stand-in for it.
+ *
+ * Expanding is one-way. Nobody expects to re-hide an article they just opened,
+ * and a toggle would need a scroll-back to stop the reader landing far below
+ * the collapsed block.
+ */
+interface Props {
+	/** Line above the button. */
+	prompt?: string;
+	label?: string;
+	/** Turns the button into a link, for a destination outside this page. */
+	href?: string;
+}
+
+const { prompt = 'Want to know more?', label = 'Read in detail', href } = Astro.props;
+---
+
+<section class="read-more" data-collapsed>
+	<div class="read-more__content" tabindex="-1">
+		<slot />
+	</div>
+
+	<div class="read-more__veil">
+		<p class="type-ui-label read-more__prompt">{prompt}</p>
+		{
+			href ? (
+				<a class="btn btn--secondary" href={href}>
+					{label}
+				</a>
+			) : (
+				<button type="button" class="btn btn--secondary" aria-expanded="false" data-read-more-expand>
+					{label}
+				</button>
+			)
+		}
+	</div>
+</section>
+
+{/* With scripting off the curtain never opens, so it must never close: this
+    releases the clip and drops the veil, and the reader gets the whole article
+    uncurtained. It pairs with the script below never writing `inert` into the
+    markup — an inert attribute rendered server-side would strand the content
+    for exactly the readers who cannot un-strand it. */}
+<noscript>
+	<style>
+		.read-more[data-collapsed] .read-more__content {
+			height: auto;
+		}
+		.read-more__veil {
+			display: none;
+		}
+	</style>
+</noscript>
+
+<script>
+	for (const button of document.querySelectorAll<HTMLElement>('[data-read-more-expand]')) {
+		const section = button.closest<HTMLElement>('.read-more');
+		const content = section?.querySelector<HTMLElement>('.read-more__content');
+		const veil = button.closest<HTMLElement>('.read-more__veil');
+		if (!section || !content || !veil) continue;
+
+		// Set here rather than in the template so the no-JS path above stays
+		// reachable. The clipped content is full of focusable elements — every
+		// Figure is a zoom button and every Term is a button too — so without
+		// this, tabbing walks focus into content the reader cannot see.
+		content.inert = true;
+
+		button.addEventListener('click', () => {
+			section.removeAttribute('data-collapsed');
+			content.inert = false;
+			button.setAttribute('aria-expanded', 'true');
+			veil.remove();
+
+			// The reader's eye is on the button, which has just vanished; move
+			// the caret to the top of what it revealed so a keyboard user's next
+			// Tab continues into the article instead of restarting at the page.
+			content.focus();
+		});
+	}
+</script>
+
+<style>
+	/* One grid cell, two children stacked in it — the veil sits over the content
+	   without either being taken out of flow, so the section's height is the
+	   clipped content's height and nothing below it has to be pushed by hand.
+
+	   No measure or inline padding of its own: the chapters inside bring the
+	   page frame, and re-applying it here would double the gutter. That also
+	   lets the veil run the full width for free. */
+	.read-more {
+		display: grid;
+		padding-block-start: var(--spacing-6xl);
+		padding-block-end: var(--spacing-8xl);
+	}
+
+	.read-more > * {
+		grid-area: 1 / 1;
+	}
+
+	.read-more__content:focus {
+		outline: none;
+	}
+
+	/* Hard-clipped, not masked: the veil covers this box top to bottom and
+	   reaches full --bg exactly where the box ends, so the cut lands under an
+	   opaque stop and never shows as an edge. 344px per the spec. */
+	.read-more[data-collapsed] .read-more__content {
+		height: 21.5rem;
+		overflow: hidden;
+	}
+
+	/* The first chapter's own top step would otherwise eat 80px of the 344px
+	   peek as blank padding; the section's padding-block-start above stands in
+	   for it. :global() because the chapters arrive through the slot as MDX and
+	   never carry this component's scope hash. */
+	.read-more :global(.read-more__content > :first-child) {
+		padding-block-start: 0;
+	}
+
+	/* The wash the CTA sits on. One linear gradient in the page colour across
+	   the whole width — the preview does not dim toward a point, it dims toward
+	   the bottom of the page, so the copy on the left and the copy on the right
+	   are equally far gone at any given line.
+
+	   z-index, not just DOM order: an in-flow box paints its background in the
+	   background layer, underneath every line of text in the section — so
+	   without a stacking context of its own the wash would slide behind exactly
+	   the type it is there to cover. */
+	.read-more__veil {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: var(--spacing-lg);
+		background: linear-gradient(
+			180deg,
+			color-mix(in srgb, var(--bg) 40%, transparent) 0%,
+			color-mix(in srgb, var(--bg) 90%, transparent) 35%,
+			var(--bg) 100%
+		);
+	}
+
+	/* .type-ui-label is the 16px control rung, but it is semibold — and the
+	   button's own label directly below is semibold too, so at the same weight
+	   the two read as one block. One property overridden on the shared style
+	   rather than a hand-assembled one, the same pattern Reflection's h2 and
+	   the footer's tagline use. */
+	.read-more__prompt {
+		margin: 0;
+		font-weight: var(--weight-regular);
+		color: var(--text);
+	}
+</style>

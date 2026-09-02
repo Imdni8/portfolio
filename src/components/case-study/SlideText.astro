@@ -1,0 +1,27 @@
+---
+/**
+ * One titled block of copy under a Solution slide's media card. Styled with
+ * plain Tailwind utilities and Tailwind's stock palette, deliberately not
+ * tokens.css — the same scoped exception StorySection carries, so the two
+ * halves of the 30-second cut set type from one place. See CLAUDE.md's
+ * case-studies section.
+ *
+ * The block is a grid child of Slide's .solution-slide__text, which owns the
+ * step between blocks; this only owns the tight step from its own title to
+ * its own copy.
+ */
+interface Props {
+	title: string;
+}
+const { title } = Astro.props;
+---
+
+<div class="grid gap-1.5">
+	<h3 class="font-['Playfair_Display_Variable'] text-lg leading-6 font-semibold text-white">{title}</h3>
+	{/* The copy arrives from MDX as unclassed <p>, so the type is set on the
+	    wrapper and inherited, with only the paragraph's own default margin to
+	    reset. */}
+	<div class="font-['Inter_Variable'] text-base leading-6 text-neutral-200 [&>p]:m-0 [&>p+p]:mt-4">
+		<slot />
+	</div>
+</div>

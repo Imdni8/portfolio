@@ -1,0 +1,106 @@
+---
+import { Image } from 'astro:assets';
+import vidBg from '../../assets/work/vid-bg.jpg';
+
+/**
+ * One Solution carousel slide: a media card on top, one or two <SlideText>
+ * blocks stacked below it. The card is the vid-bg.jpg backdrop with a
+ * <SlideVideo> pinned to one of its corners, passed in through the `media`
+ * slot; that component owns its own positioning, since Astro's scoped styles
+ * do not reach slotted content. Without a `media` slot the card falls back to
+ * an empty placeholder rectangle, so a slide with no film still renders as a
+ * card rather than a bare backdrop.
+ *
+ * Wide enough (`flex: 0 0 var(--slide-basis)` — the same 74% Solution.astro's
+ * track mask fades against) that only one slide sits fully in view at a
+ * time; the next one peeks in at the edge, dimmed and fading out under the
+ * track's mask. `data-active` (toggled by solution-carousel.ts's scroll
+ * listener) is what switches the opacity — and, for a slide carrying a video,
+ * what starts and stops playback; see that file.
+ */
+const hasMedia = Astro.slots.has('media');
+---
+
+<div class="solution-slide">
+	<div class="solution-slide__media">
+		<Image
+			class="solution-slide__media-bg"
+			src={vidBg}
+			alt=""
+			widths={[480, 760, 1120]}
+			sizes="(min-width: 60rem) 70vw, 88vw"
+		/>
+		{hasMedia ? <slot name="media" /> : <div class="solution-slide__placeholder" />}
+	</div>
+	<div class="solution-slide__text">
+		<slot />
+	</div>
+</div>
+
+<style>
+	/* `align-content: start` is what keeps the step from the card to the copy
+	   the same on every slide. Slides are flex items in the track, so they all
+	   stretch to the tallest one — the two-block slides. Under the default
+	   `stretch` that surplus is handed to the grid's auto rows, and the media
+	   row takes its share while the card inside it does not follow (its
+	   aspect-ratio holds at 16/10), leaving 49–61px of empty row under the card
+	   on the one-block slides. Packing the rows to the start instead sends the
+	   surplus to the bottom of the slide, where nothing is riding on it. */
+	.solution-slide {
+		flex: 0 0 var(--slide-basis, 74%);
+		scroll-snap-align: start;
+		display: grid;
+		align-content: start;
+		gap: var(--spacing-xl);
+		opacity: 0.4;
+		transition: opacity 200ms ease;
+	}
+
+	.solution-slide[data-active] {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.solution-slide {
+			transition-duration: 0.01ms;
+		}
+	}
+
+	/* The card owns its own height now that its child can be absolutely
+	   positioned — a pinned <SlideVideo> is out of flow and would leave the
+	   card with nothing to measure. `position: relative` + `overflow: hidden`
+	   are the clip a pinned video bleeds against; the padding still frames the
+	   placeholder fallback, and does not affect the video, which resolves its
+	   insets against the padding box (i.e. the card's own edge). */
+	.solution-slide__media {
+		position: relative;
+		aspect-ratio: 16 / 10;
+		border-radius: var(--radius-xl);
+		overflow: hidden;
+		padding: var(--spacing-2xl);
+	}
+
+	.solution-slide__media-bg {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.solution-slide__placeholder {
+		position: relative;
+		z-index: 1;
+		block-size: 100%;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--bg-media);
+	}
+
+	.solution-slide__text {
+		display: grid;
+		gap: var(--spacing-2xl);
+		align-content: start;
+	}
+</style>

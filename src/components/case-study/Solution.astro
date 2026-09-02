@@ -1,0 +1,119 @@
+---
+import Icon from '../ui/Icon.astro';
+
+/**
+ * The "Solution" chapter — a horizontal, scroll-snapped carousel of shipped
+ * highlights. Not routed through Section.astro: its heading row (prev/next
+ * controls beside the h2) is a different shape from every other chapter's,
+ * the same reasoning Reflection.astro already uses for staying outside the
+ * shared component rather than growing it a slot only one caller needs.
+ *
+ * Composed directly in MDX with <Slide>/<SlideText> children, the same
+ * authoring convention <FigureRow>/<Figure> already use, rather than a data
+ * array — one case study's whole story stays in its one MDX file.
+ */
+---
+
+<section class="solution" data-section="solution" data-chapter="solution">
+	<div class="solution__head">
+		<h2 class="m-0 font-['Playfair_Display_Variable'] text-3xl leading-10 font-semibold text-white">Solution</h2>
+		<div class="solution__controls">
+			<button type="button" class="icon-btn icon-btn--secondary icon-btn--sm" data-carousel-prev aria-label="Previous">
+				<Icon name="chevron-left" />
+			</button>
+			<button type="button" class="icon-btn icon-btn--secondary icon-btn--sm" data-carousel-next aria-label="Next">
+				<Icon name="chevron-right" />
+			</button>
+		</div>
+	</div>
+	<div class="solution__track" data-carousel-track>
+		<slot />
+	</div>
+</section>
+
+<script>
+	import { initSolutionCarousel } from './solution-carousel';
+
+	for (const track of document.querySelectorAll<HTMLElement>('[data-carousel-track]')) {
+		initSolutionCarousel(track);
+	}
+</script>
+
+<style>
+	/* Registered so the track's mask stop can be transitioned — an unregistered
+	   custom property has no type, so it would jump between 74% and 100%
+	   instead of animating, and mask-image itself is not interpolable. Astro
+	   leaves at-rules global (it only rewrites selectors), hence the prefixed
+	   name rather than a bare --fade-start. */
+	@property --solution-fade-start {
+		syntax: '<percentage>';
+		inherits: false;
+		initial-value: 100%;
+	}
+
+	.solution {
+		max-width: var(--measure-story);
+		margin: 0 auto;
+		padding: var(--spacing-8xl) var(--gutter);
+		display: grid;
+		gap: var(--spacing-3xl);
+	}
+
+	.solution__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-xl);
+	}
+
+	.solution__controls {
+		display: flex;
+		gap: var(--spacing-sm);
+		flex-shrink: 0;
+	}
+
+	/* scroll-snap does the sliding on its own; solution-carousel.ts only
+	   moves the scroll position by one slide per click and disables a button
+	   once its end of the track is reached — no library, no slide-index
+	   React state.
+
+	   --slide-basis is read by Slide.astro's flex-basis, so the one card
+	   width lives here and the mask fade below can't drift from it: the
+	   mask starts fading right where the in-focus slide ends, so the next
+	   slide's peeking sliver reads as emerging from the gradient rather
+	   than being hard-clipped by the track's overflow box. */
+	.solution__track {
+		--slide-basis: 74%;
+		--solution-fade-start: var(--slide-basis);
+		display: flex;
+		gap: var(--spacing-xl);
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+		mask-image: linear-gradient(to right, black 0%, black var(--solution-fade-start), transparent 100%);
+		-webkit-mask-image: linear-gradient(to right, black 0%, black var(--solution-fade-start), transparent 100%);
+		transition: --solution-fade-start 200ms ease;
+	}
+
+	/* The fade exists to dim the *next* slide peeking in at the edge. On the
+	   last slide there is no next slide — the track has run out of scroll, so
+	   the gradient lands on the slide itself and eats its right third. Pushing
+	   the black stop out to 100% makes the gradient fully opaque, which is the
+	   same thing as no mask, but reached by moving one value so it can
+	   transition rather than popping. [data-at-end] is set by
+	   solution-carousel.ts off the identical condition that disables the next
+	   button. */
+	.solution__track[data-at-end] {
+		--solution-fade-start: 100%;
+	}
+
+	.solution__track::-webkit-scrollbar {
+		display: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.solution__track {
+			transition-duration: 0.01ms;
+		}
+	}
+</style>

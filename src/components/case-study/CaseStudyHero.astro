@@ -44,7 +44,7 @@ const [before, after] = hero
 // 2×gutter) in resolved units, since `sizes` cannot read custom properties —
 // it is evaluated before the stylesheet that defines them is available. Errs
 // slightly wide rather than narrow, so a mismatch costs a few kB, not blur.
-const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
+const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem - 8vw), calc(100vw - 8vw)';
 ---
 
 <header class="hero">
@@ -158,7 +158,7 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 
 <style>
 	.hero__inner {
-		max-width: var(--measure-page);
+		max-width: var(--measure-story);
 		margin: 0 auto;
 		padding: var(--spacing-9xl) var(--gutter) var(--spacing-7xl);
 		display: grid;
@@ -251,7 +251,7 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 		gap: var(--spacing-2xl);
 	}
 
-	/* No measure cap: the column is already bounded by --measure-page and the
+	/* No measure cap: the column is already bounded by --measure-story and the
 	   facts rail beside it, and the reference sets both to the full width of
 	   that column. Capping them again left a ragged void on the right. */
 	h1 {
@@ -341,14 +341,14 @@ const compareSizes = '(min-width: 100rem) 83.875rem, calc(100vw - 8vw)';
 	   its own aspect ratio, so this only has to give it the width.
 
 	   The cap is measured off the column rather than restating a fixed number,
-	   so it holds below --measure-page too, where the column is the viewport
+	   so it holds below --measure-story too, where the column is the viewport
 	   less its gutters.
 
 	   No background here: the island carries its own, and a sunken band exactly
 	   the width of the frame would do nothing but show square corners behind
 	   the frame's rounded ones. */
 	.hero__compare {
-		max-width: calc(min(var(--measure-page), 100%) - 2 * var(--gutter));
+		max-width: calc(min(var(--measure-story), 100%) - 2 * var(--gutter));
 		margin-inline: auto;
 		/* The chapter rail follows immediately and is sticky, so it needs
 		   clearing rather than butting against the frame. */

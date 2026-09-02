@@ -3,7 +3,6 @@ import '../styles/tokens.css';
 import '../styles/tailwind.css';
 import '../styles/components.css';
 import CaseStudyHero from '../components/case-study/CaseStudyHero.astro';
-import { ChapterRail } from '../components/case-study/ChapterRail';
 import { Lightbox } from '../components/case-study/Lightbox';
 import { Glossary } from '../components/case-study/Glossary';
 import { VideoPlayer } from '../components/case-study/VideoPlayer';
@@ -17,7 +16,6 @@ interface Props {
 	title: string;
 	subtitle: string;
 	facts?: { label: string; value: string }[];
-	chapters?: { id: string; label: string }[];
 	hero?: {
 		before: ImageMetadata;
 		after: ImageMetadata;
@@ -34,7 +32,7 @@ interface Props {
 	};
 }
 
-const { title, subtitle, facts = [], chapters = [], hero, actions = {} } = Astro.props;
+const { title, subtitle, facts = [], hero, actions = {} } = Astro.props;
 ---
 
 <!doctype html>
@@ -55,8 +53,6 @@ const { title, subtitle, facts = [], chapters = [], hero, actions = {} } = Astro
 	</head>
 	<body>
 		<CaseStudyHero title={title} subtitle={subtitle} facts={facts} actions={actions} hero={hero} />
-
-		{chapters.length > 0 && <ChapterRail chapters={chapters} client:load />}
 
 		{/* `data-case-study` is read by trackCaseStudyViewed(): a bundled Astro
 		    `<script>` is static and cannot see frontmatter, so the title has to
@@ -93,9 +89,6 @@ const { title, subtitle, facts = [], chapters = [], hero, actions = {} } = Astro
 
 	html {
 		scroll-behavior: smooth;
-		/* The chapter rail is sticky, so anchored sections must stop below it
-		   rather than under it. */
-		scroll-padding-block-start: 5rem;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

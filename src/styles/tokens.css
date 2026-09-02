@@ -138,6 +138,13 @@
 	   where the eye can track from one to the other. */
 	--measure-page: 91.875rem; /* 1470px */
 	--measure-content: 77.5rem; /* 1240px — nav and selected-work grid cap */
+	/* A case study's reading column. Narrower than --measure-page because the
+	   story is read top to bottom rather than scanned as a grid: at 1470px the
+	   two-column sections put the copy and the shot beside it too far apart to
+	   track between. The page frame still governs the chrome around it — the
+	   footer stays at --measure-page, so the story reads as a column inside the
+	   page rather than as the page itself. */
+	--measure-story: 75rem; /* 1200px */
 	--gutter: clamp(1.25rem, 4vw, 4rem);
 
 	--spacing-none: 0rem; /* 0px */

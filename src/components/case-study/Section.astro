@@ -42,7 +42,7 @@ const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro
 		/* Named, because the eyebrow below has to subtract it back out. */
 		--section-row-gap: var(--spacing-3xl);
 
-		max-width: var(--measure-page);
+		max-width: var(--measure-story);
 		margin: 0 auto;
 		padding: var(--spacing-8xl) var(--gutter);
 		display: grid;
@@ -72,7 +72,7 @@ const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro
 	}
 
 	.section--prose {
-		max-width: calc(var(--measure-page) * 0.62);
+		max-width: calc(var(--measure-story) * 0.62);
 	}
 
 	/* The eyebrow labels the whole section, so it spans the columns rather than
@@ -166,5 +166,29 @@ const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro
 	.section__body :global(strong) {
 		color: var(--text);
 		font-weight: var(--weight-semibold);
+	}
+
+	/* Pull-quote — a claim lifted out of the prose above it. Reuses
+	   .type-subtitle's family/size/leading/tracking verbatim and layers one
+	   local weight override, the same one-property-override pattern
+	   Reflection.astro's h2 and the footer's .type-meta already use, rather
+	   than assembling a style by hand. 48ch (tighter than the paragraph's
+	   62ch above) because this larger type would otherwise read wider in
+	   pixels than the body copy it's quoting. */
+	.section__body > :global(blockquote) {
+		margin: 0;
+		max-width: 48ch;
+		padding-inline-start: var(--spacing-2xl);
+		border-inline-start: 2px solid var(--primary-text);
+		font-family: var(--font-sans);
+		font-weight: var(--weight-semibold);
+		font-size: var(--size-subtitle);
+		line-height: var(--lh-subtitle);
+		letter-spacing: var(--track-tight);
+		color: var(--text);
+	}
+
+	.section__body > :global(blockquote p) {
+		margin: 0;
 	}
 </style>
