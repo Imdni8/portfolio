@@ -6,6 +6,7 @@ import CaseStudyHero from '../components/case-study/CaseStudyHero.astro';
 import { Lightbox } from '../components/case-study/Lightbox';
 import { Glossary } from '../components/case-study/Glossary';
 import { VideoPlayer } from '../components/case-study/VideoPlayer';
+import { Toast } from '../components/case-study/Toast';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
 import Footer from '../components/footer/Footer.astro';
@@ -68,6 +69,7 @@ const { title, subtitle, facts = [], hero, actions = {} } = Astro.props;
 		<Lightbox client:idle />
 		<Glossary client:idle />
 		<VideoPlayer client:idle />
+		<Toast client:idle />
 	</body>
 </html>
 

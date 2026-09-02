@@ -220,6 +220,13 @@
 	   --primary-text's job, and it is 2.4:1 against --bg. */
 	--brand-mark: #ef942b;
 
+	/* The mascot's own skin tone — its torso, in the footer mascot and now the
+	   Toast's icon panel. Same reasoning as --brand-mark just above: artwork
+	   colour, not interface colour, so it is a literal fixed across both
+	   themes rather than a rung on the amber ramp (the mascot SVGs bake this
+	   exact value into their own torso paths). */
+	--brand-torso: #d77757;
+
 	/* The scrim a "coming soon" cover sits under. Also a literal rather than a
 	   ramp step — it sits on a photo, not the page, so it stays the same wash
 	   in both themes for the same reason --secondary does: a value tied to the

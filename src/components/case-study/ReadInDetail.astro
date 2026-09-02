@@ -36,7 +36,7 @@ const { prompt = 'Want to know more?', label = 'Read in detail', href } = Astro.
 					{label}
 				</a>
 			) : (
-				<button type="button" class="btn btn--secondary" aria-expanded="false" data-read-more-expand>
+				<button type="button" class="btn btn--secondary" aria-expanded="false" data-read-more-expand data-toast-trigger="Brave of you">
 					{label}
 				</button>
 			)
@@ -107,6 +107,15 @@ const { prompt = 'Want to know more?', label = 'Read in detail', href } = Astro.
 
 	.read-more__content:focus {
 		outline: none;
+	}
+
+	/* Expanding moves focus to this element, and the browser's native
+	   focus-scroll snaps its top edge flush to the viewport edge with no
+	   headroom. scroll-margin-top applies to that native scroll the same way
+	   it would to scrollIntoView(), so the revealed chapter lands with some
+	   air above it instead of touching the browser chrome. */
+	.read-more__content {
+		scroll-margin-top: var(--spacing-8xl);
 	}
 
 	/* Hard-clipped, not masked: the veil covers this box top to bottom and
