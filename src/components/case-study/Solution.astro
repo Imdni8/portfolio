@@ -86,7 +86,13 @@ import Icon from '../ui/Icon.astro';
 		--slide-basis: 74%;
 		--solution-fade-start: var(--slide-basis);
 		display: flex;
-		gap: var(--spacing-xl);
+		/* Literal, not a token — 36px falls between --spacing-4xl (32px) and
+		   --spacing-5xl (40px). The mask fade below doesn't need a matching
+		   adjustment: --solution-fade-start is tied to --slide-basis (a
+		   percentage of the track's own box), which flex-basis resolves
+		   independently of gap, so the fade still starts exactly at the
+		   active card's right edge no matter what this is set to. */
+		gap: 36px;
 		overflow-x: auto;
 		scroll-snap-type: x mandatory;
 		scrollbar-width: none;
