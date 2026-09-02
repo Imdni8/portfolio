@@ -310,6 +310,114 @@ a `coming-soon` entry has only a thumbnail, no hero pair.
 `agent-versioning.mdx` — is current and documented here, not prior work to
 disregard; treat it as the pattern to follow when writing a new case study.
 
+**The 30-second cut** sits in front of that long form: `StorySection` (a
+heading, an optional blockquote highlight, prose, and an optional shot beside
+it), `Solution`/`Slide`/`SlideVideo`/`SlideText` (the scroll-snapped highlights
+carousel), and `ReadInDetail` (the curtain the long form sits behind). **The long form
+itself** is `StoryChapter` (a group heading — "Narrowing the problem", "UX
+decisions") holding `StoryBlock`s (one titled row: shot left, copy right).
+All of them are written in Tailwind utilities against Tailwind's stock palette
+rather than tokens.css — a scoped exception for this one text treatment, not a
+sitewide migration; everything around them still reads the semantic layer.
+The copy column's utility string lives once in
+`src/components/case-study/story-type.ts` and is imported by both
+`StorySection` and `StoryBlock`, because two copies of a string that long
+drift on the first edit.
+
+Its type is four rungs, and none of them is a `.type-*` class — the cut was
+specced independently of the design system's scale, and the nearest Tailwind
+step is what each one landed on:
+
+| Role | Spec | Tailwind |
+| --- | --- | --- |
+| Section/chapter heading (`StorySection`, `Solution`, `StoryChapter`) | Playfair semibold 30/40 | `text-3xl leading-10 font-semibold` |
+| Blockquote highlight | Inter medium 24/32 | `text-2xl leading-8 font-medium` |
+| Slide/block title (`SlideText`, `StoryBlock`) | Playfair semibold 18/24 | `text-lg leading-6 font-semibold` |
+| Running copy | Inter regular 16/24, `#EAEAEA` | `text-base leading-6 text-neutral-200` |
+
+Every one of those sizes and leadings *is* expressible in tokens, which is
+worth knowing before anyone concludes the cut needs new ones: `--lh-subtitle`
+(1.333) yields 40px against `--size-heading`, 32px against `--size-subtitle`
+and 24px against `--size-body`, and 16/24 is `--size-ui`/`--lh-ui` exactly.
+The one real difference is that the token sizes clamp and Tailwind's don't, so
+the token version is fluid below ~937px where Tailwind's is fixed. `#EAEAEA`
+is within a shade of `--text-body` (`gray-200`, `#e3e7e8`). What tokens.css
+genuinely lacks is a *named* `.type-*` style for Inter-regular-16/24 —
+`.type-ui-label` and `.type-nav-link` sit on that size at semibold and medium.
+
+- **`StorySection` splits into two columns only when it is given a `visual`
+  slot** (`minmax(0,5fr) minmax(0,7fr)` at `lg`), copy on the left, shot on
+  the right and top-aligned with the blockquote. With no visual there is
+  nothing beside the copy, so it runs the section's full measure uncapped —
+  the same rule `Section` and the hero follow, and the reason the Problem
+  chapter looks wider than Code contribution.
+- **`SlideVideo` pins a clip to one corner of a `Slide`'s media card** and lets
+  it bleed off the two opposite edges, so `vid-bg.jpg` reads as an L-shaped
+  strip along the other two. It goes in through `Slide`'s `media` slot; with no
+  such slot the card falls back to an empty placeholder rectangle. Four things
+  are load-bearing:
+  - **`pin` names the corner the video hugs and runs past**, not the visible
+    one — `pin="bottom-right"` insets from the top and left. Which corner a
+    slide takes is a framing decision made against the recording: pin *away*
+    from the action, so the clipped edges are the empty ones. The banner clip
+    lives at the top of frame, so it pins `bottom-*`; the floating update tab
+    lives at the bottom, which is why that one slide is `top-left`.
+  - **`--pin-inset` and `--pin-bleed` are the whole tuning surface**, both
+    `--spacing-6xl` (48px), stepping to `--spacing-3xl` under 40rem. Equal
+    values make the video box exactly the card's own size translated diagonally
+    — so the visible window is ~89% × ~91% of the frame, identical on every
+    slide. There is deliberately no per-slide size prop.
+  - **There is no `autoplay` attribute, and that is the point.**
+    `solution-carousel.ts`'s `updateActive()` starts and stops playback off the
+    same `data-active` signal that drives the slide's opacity, gated on an
+    `IntersectionObserver` for the track. So at most one clip decodes at a time,
+    `preload="none"` means nothing is fetched until the reader pages to it, and
+    `prefers-reduced-motion` costs one condition rather than a CSS branch —
+    play() is simply never called and the poster stands.
+  - **The card carries `aspect-ratio: 16 / 10`**, because a pinned video is out
+    of flow and would otherwise leave `.solution-slide__media` with no height.
+    Deliver clips at 1920×1200 to match it; `object-fit: cover` is the safety
+    net for anything else, with `object-position` at the visible corner so its
+    trim eats the same edges the card is already clipping. Per repo convention
+    the clip is a `/media/…` string and the poster an `src/assets` import —
+    the latter through `getImage()`, since a 1920-wide PNG for a frame that is
+    mostly never seen is 350 KB against a 19 KB webp.
+- **`StoryBlock` is `StorySection` reversed**, deliberately: the shot leads on
+  the left and the copy follows on the right, at an even split rather than
+  5fr/7fr. In the 30-second cut the copy leads and the shot supports it; in the
+  long form the shot *is* the finding and the copy explains it. Its `visual`
+  slot takes more than one child — the dependency-card block puts a `NoteBox`
+  under its `Figure` in the same column, authored as two siblings both carrying
+  `slot="visual"`.
+- **`ReadInDetail` is a curtain over real content, not a teaser.** Its default
+  slot holds the whole long form; it renders in full, gets clipped to a 344px
+  peek and buried under a full-width `--bg` wash (40% → 90% at 35% → opaque)
+  with the CTA centred on it. Clicking expands in place — one URL, one-way, no
+  navigation. Four things there are load-bearing:
+  - **The wash is uniform across the width** — the preview dims toward the
+    bottom of the page, not toward a point, so the left column and the right
+    column are equally far gone on any given line. An earlier radial version
+    was the bug.
+  - **The wash needs its own `z-index`.** An in-flow box paints its background
+    under every line of text in the section, so without a stacking context it
+    slides behind the type it exists to cover.
+  - **`inert` is required, not a nicety.** The clipped content holds eleven
+    focusable elements on this page alone — every `Figure` is a zoom button and
+    every `Term` is a button too — so without it, tabbing walks focus into
+    content the reader cannot see. It is set *by the script*, never in the
+    markup, so that the `<noscript>` block (which releases the clip and drops
+    the veil) leaves nothing stranded for a reader who cannot un-strand it.
+  - **`.read-more` carries no measure or inline padding.** The chapters inside
+    bring the page frame; re-applying it would double the gutter. The first
+    chapter's own top step is zeroed via `:global()`, or 80px of the 344px peek
+    is blank padding — scoped styles never reach slotted MDX.
+- **A case study's content column is `--measure-story` (1200px), not
+  `--measure-page`.** Hero, sections, carousel and the read-more seam all
+  read it; the footer stays at `--measure-page`, so the story reads as a
+  column inside the page rather than as the page itself. `CaseStudyHero`'s
+  `compareSizes` is a hand-resolved mirror of that formula (`sizes` cannot
+  see custom properties) — if the measure moves, move that string too.
+
 **A closing tag (`</Section>` etc.) must be flush left — never indented.**
 If a `<Section>`'s content ends with a numbered/bulleted list, an indented
 closing tag (even by a few spaces) reads to CommonMark as a continuation of

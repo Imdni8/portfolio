@@ -482,94 +482,9 @@
 }
 
 /* ---- Case-study islands ----------------------------------------------------
-   Styles for the four hydrated components. They live here rather than in the
-   .tsx files so the whole system stays inspectable in one stylesheet.
+   Styles for the three hydrated components. They live here rather than in
+   the .tsx files so the whole system stays inspectable in one stylesheet.
    -------------------------------------------------------------------------- */
-
-/* Chapter rail. Sticks under the top of the viewport once the hero passes,
-   then gets pushed back off it — see ChapterRail's scroll effect — once the
-   closing Reflection's (or, lacking one, the footer's) top border reaches the
-   rail's own bottom edge. That effect writes `transform` on this element
-   directly, every scroll frame, so no transition is declared here: one would
-   only add lag between the border and the rail it's meant to stay glued to. */
-.rail {
-	position: sticky;
-	inset-block-start: 0;
-	z-index: 10;
-	background: color-mix(in srgb, var(--bg) 92%, transparent);
-	backdrop-filter: blur(8px);
-	border-block-end: 1px solid var(--border);
-}
-
-.rail__inner {
-	position: relative; /* anchor for .rail__indicator, below */
-	max-width: var(--measure-page);
-	margin: 0 auto;
-	padding-inline: var(--gutter);
-	border-block-end: 0;
-	gap: var(--spacing-4xl);
-	scrollbar-width: none;
-
-	/* Spread to the full content width, so the first and last chapters line up
-	   with the column edges below. When the row stops fitting, space-between
-	   has no free space to hand out and collapses to start alignment on its
-	   own — which is what a scrolling rail wants. */
-	justify-content: space-between;
-}
-
-/* One shared bar that glides between chapters instead of each tab carrying
-   its own static underline — the same mechanism as `.nav__indicator`, so the
-   rail reads as the same system as the site nav rather than a different
-   tab style. Left/width are written in ChapterRail's effect; it lives inside
-   the scrolling `.rail__inner` (not `.rail`) so it scrolls with the tab it
-   points to instead of staying pinned while the row scrolls under it. */
-.rail__indicator {
-	position: absolute;
-	inset-block-end: 0;
-	height: 2px;
-	border-start-start-radius: var(--radius-xxs);
-	border-start-end-radius: var(--radius-xxs);
-	background: var(--primary-text);
-	pointer-events: none;
-	transition:
-		left 300ms cubic-bezier(0, 0, 0.2, 1),
-		width 300ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.rail__indicator {
-		transition-duration: 0.01ms;
-	}
-}
-
-/* The rail's active state is carried by `.rail__indicator` now, not the
-   shared `.tab[aria-selected='true']` box-shadow — scoped here rather than
-   changed on `.tab` itself, since that class is also the design system's
-   general-purpose Tabs component (src/components/ui/Tabs.tsx), which keeps
-   its own static underline. */
-.rail__inner .tab[aria-selected='true'] {
-	box-shadow: none;
-}
-
-/* Every tab carries inline padding so its focus ring has somewhere to sit.
-   That padding would push the first and last chapter's *letterforms* 4px
-   inside the content edge they are meant to align with, so the outer two are
-   pulled back out by exactly that much. Alignment reads off the type, not the
-   box around it.
-
-   `:first-of-type`/`:last-of-type`, not `:first-child`/`:last-child` — the
-   indicator span (above) is now the last actual child of `.rail__inner`, so
-   `:last-child` would stop matching the last button entirely. `-of-type`
-   matches by tag (`<button>`), which the `<span>` indicator doesn't share. */
-.rail__inner .tab:first-of-type {
-	margin-inline-start: calc(var(--spacing-xs) * -1);
-}
-.rail__inner .tab:last-of-type {
-	margin-inline-end: calc(var(--spacing-xs) * -1);
-}
-.rail__inner::-webkit-scrollbar {
-	display: none;
-}
 
 /* Lightbox */
 .lightbox {
@@ -978,6 +893,208 @@
 
 	.ba-notes li::marker {
 		color: var(--text-muted);
+	}
+}
+
+/* ---- Toast -------------------------------------------------------------------
+   Fires once, from ReadInDetail's "Read in detail" button. A two-tone pill,
+   not a badge-plus-label: a static --brand-torso panel on the left with the
+   glasses icon riding on top of it, a plain white text half on the right.
+   White/near-black rather than the semantic --bg-raised/--text-body pair,
+   deliberately — same reasoning as --secondary in tokens.css: this is a
+   fixed control-like surface, not page content, so it does not move with
+   the theme. box-shadow reuses --glass-shadow-ambient (this codebase's one
+   existing shadow colour) rather than a new literal. Drops in from above
+   (toast-in), rather than just fading in place, and leaves by pulling its
+   two halves apart — see .toast--leaving. */
+.toast {
+	position: fixed;
+	top: 30px; /* literal, per spec — doesn't land on a spacing rung */
+	right: 30px;
+	z-index: 110; /* above Lightbox's 100, so a toast never hides behind it */
+	display: flex;
+	align-items: stretch;
+	width: 260px; /* literal, per spec — doesn't land on a spacing rung */
+	background: var(--secondary);
+	border-radius: var(--radius-md);
+	overflow: hidden; /* clips the icon to the pill; the seam against the text half stays a hard edge */
+	box-shadow: 0 8px 24px var(--glass-shadow-ambient);
+	animation: toast-in 300ms ease-out;
+}
+
+/* Deliberately does NOT clip: the glasses overhang its right edge, so the
+   temple bar carries on over the text half instead of being sheared off at
+   the seam. Nothing is lost by dropping the clip — this box is the toast's
+   full height (align-items: stretch, no padding on .toast), so .toast's own
+   overflow: hidden already cuts the mascot's entrance at exactly the same
+   top and bottom edges this one would have. */
+.toast__icon {
+	position: relative;
+	flex-shrink: 0;
+	width: 85px;
+	/* Painted on the box itself, not on the moving part: through the entrance
+	   this panel holds still while the glasses ride up over it, so the orange
+	   reaches every edge (including the bottom) regardless of where
+	   .toast__glasses's own transform ends up resting. On the way out the two
+	   are one thing and this box is what moves — see .toast--leaving. */
+	background: var(--brand-torso);
+}
+
+/* Sized and inset from the panel's own top-left, echoing where the glasses
+   actually sit on the mascot's torso — filling most of the panel rather
+   than a centred badge. `left` and `width` are proportions of the panel
+   rather than tokens, because what they set is a relationship to its edges
+   and no absolute rung expresses that: 8% + 95% = 103%, so the left temple
+   tip stops just short of the panel and the right bar runs 3% past it,
+   peeking onto the white text half. Being positioned, it paints above the
+   static text half for free. `top` is the resting position, so
+   toast-mascot-move animates to translateY(0) and nothing has to be
+   restated in the reduced-motion branch. */
+.toast__glasses {
+	position: absolute;
+	top: var(--spacing-lg);
+	left: 8%;
+	width: 95%;
+	animation:
+		toast-mascot-move 0.7s cubic-bezier(0.45, 1.45, 0.71, 1.23) forwards,
+		toast-mascot-fade 0.5s cubic-bezier(0, 0, 0.58, 1) forwards;
+}
+
+.toast__glasses svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.toast__text {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--spacing-lg) var(--spacing-2xl);
+	color: var(--text-on-secondary);
+	white-space: nowrap;
+}
+
+/* The exit, one second end to end. Toast.tsx sets this class after the hold
+   and unmounts EXIT_MS later, so the two have to stay in step — the numbers
+   below are the contract.
+
+   The pill does not simply fade: it comes apart. The mascot backs out to the
+   left and the copy leaves to the right, and the pill dissolves underneath
+   them the whole time rather than waiting its turn — all three start on the
+   same frame, so there is no beat where one half of the animation is
+   obviously waiting for the other.
+
+   The mascot leaving is .toast__icon, not .toast__glasses: the orange torso
+   and the glasses riding on it are one character and they go together. The
+   glasses need no exit of their own — they are inside the box that is
+   leaving, and their entrance's `forwards` fill just carries them along.
+
+   The two halves travel `linear`, and that is the one place this sequence
+   does not ease. Ease-out is a deceleration curve — it is *defined* by
+   arriving at rest — so a half that eases out has visibly stopped before the
+   dissolve is done with it, and parks in frame for the remainder. Linear
+   holds its speed all the way to the point where the pill takes it, which is
+   what makes it read as leaving rather than halting. The dissolve keeps its
+   ease-out: nothing is arriving there, so nothing needs to settle.
+
+   These rules sit after .toast so they win the animation shorthand on equal
+   specificity; toast-in has long since finished by then and carries no
+   `forwards`, so there is nothing filled to unwind. */
+.toast--leaving .toast__icon {
+	animation: toast-mascot-out 1s linear forwards;
+}
+
+.toast--leaving .toast__text {
+	animation: toast-text-out 1s linear forwards;
+}
+
+.toast--leaving {
+	animation: toast-dissolve 1s ease-out forwards;
+}
+
+@keyframes toast-in {
+	from {
+		opacity: 0;
+		transform: translateY(-40px);
+	}
+}
+
+/* Starts just past the panel's bottom edge (12px top + 27px ≈ the 44px
+   panel height) and rides up to its resting inset. */
+@keyframes toast-mascot-move {
+	from {
+		transform: translateY(27px);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@keyframes toast-mascot-fade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* Travel only, no opacity of their own — that is deliberate, and it is what
+   keeps the exit an actual second long. Both halves sit inside the pill, so
+   toast-dissolve already fades them, continuously, from the first frame to
+   the last; giving them a second fade multiplies the two curves together and
+   the composite collapses (measured: 0.22 by 300ms, 0.07 by 450ms — visually
+   finished in half the time the sequence is specified to take). One fade, on
+   the pill, and the halves are still visibly moving when it takes them.
+
+   The distance is --spacing-8xl (80px) rather than something smaller because
+   it has to outrun the fade: .toast__icon is 85px wide, so by the end the
+   mascot has all but cleared the pill's left edge instead of drifting a token
+   or two and waiting there. Both halves travel the same distance in opposite
+   directions, so the split stays symmetrical.
+
+   No `from`: the implicit one is whatever the element is showing when the
+   class lands, which for both halves is simply where they sit. */
+@keyframes toast-mascot-out {
+	to {
+		transform: translateX(calc(var(--spacing-8xl) * -1));
+	}
+}
+
+@keyframes toast-text-out {
+	to {
+		transform: translateX(var(--spacing-8xl));
+	}
+}
+
+@keyframes toast-dissolve {
+	to {
+		opacity: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	/* :not() so this reaches the entrance and stops there. The exit is
+	   deliberately left running: the unmount is on a timer either way, so
+	   dropping it would leave the toast sitting for a second looking finished
+	   and then blinking out of existence. What goes is the travel, not the
+	   fade — a cross-fade is not the motion this query is asking us to remove,
+	   and .toast--leaving's dissolve takes the contents with it, so the two
+	   halves below only need their drift cancelled. */
+	.toast:not(.toast--leaving) {
+		animation: none;
+	}
+
+	.toast__glasses {
+		animation: none;
+		opacity: 1;
+	}
+
+	.toast--leaving .toast__icon,
+	.toast--leaving .toast__text {
+		animation: none;
 	}
 }
 

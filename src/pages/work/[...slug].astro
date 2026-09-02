@@ -14,12 +14,12 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { title, facts, chapters, hero, actions } = entry.data;
+const { title, facts, hero, actions } = entry.data;
 // The schema's refine guarantees `subtitle` whenever status isn't
 // `coming-soon` — which getStaticPaths above has already filtered to.
 const subtitle = entry.data.subtitle!;
 ---
 
-<CaseStudyLayout title={title} subtitle={subtitle} facts={facts} chapters={chapters} hero={hero} actions={actions}>
+<CaseStudyLayout title={title} subtitle={subtitle} facts={facts} hero={hero} actions={actions}>
 	<Content />
 </CaseStudyLayout>

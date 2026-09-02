@@ -1,0 +1,30 @@
+---
+/**
+ * A chapter of the long-form cut — "Narrowing the problem", "UX decisions" —
+ * holding a group heading and the <StoryBlock>s under it.
+ *
+ * It owns the page frame (measure, gutter, top step) so its blocks don't each
+ * re-apply it; a block is a plain grid child. Same scoped Tailwind treatment
+ * as StorySection — see CLAUDE.md's case-studies section.
+ *
+ * The heading wears exactly StorySection's and Solution's rung, so a chapter
+ * of the long form and a chapter of the 30-second cut read as peers rather
+ * than as two levels of a hierarchy.
+ */
+interface Props {
+	heading: string;
+}
+const { heading } = Astro.props;
+---
+
+<section class="mx-auto max-w-[var(--measure-story)] px-[var(--gutter)] pt-20">
+	{/* The chapter heading sits tight to its first block's title — closer than
+	    the step between blocks — so the two read as a label and its first
+	    entry rather than as two separate headings. */}
+	<h2 class="mb-4 font-['Playfair_Display_Variable'] text-3xl leading-10 font-semibold text-white">
+		{heading}
+	</h2>
+	<div class="grid gap-12">
+		<slot />
+	</div>
+</section>

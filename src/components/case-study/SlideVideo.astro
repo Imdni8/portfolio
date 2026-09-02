@@ -1,0 +1,168 @@
+---
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+/**
+ * The screen recording inside a Solution slide's media card, anchored to one
+ * corner and bleeding off the two opposite edges so the vid-bg.jpg backdrop
+ * reads as an L-shaped strip along the other two.
+ *
+ * `pin` names the corner the video **hugs and runs past**; the opposite corner
+ * is the visible, rounded one. Which corner a slide takes is a framing
+ * decision made against the recording itself — pin away from where the action
+ * sits, so the clipped edges are the empty ones. (The banner clip lives at the
+ * top of frame, so it pins bottom-*; the floating update tab lives at the
+ * bottom, so that slide is the one `top-left`.) `center` is the one non-corner
+ * option, for a recording whose subject is itself centred (a modal over a
+ * dimmed backdrop, not an off-center panel) — there is no empty corner to
+ * bleed toward, so the video insets evenly on all four sides instead and
+ * rounds on all four corners, framed by the vid-bg strip evenly rather than
+ * an L-shaped sliver.
+ *
+ * The <video> is the component root: .solution-slide__media already supplies
+ * `position: relative` and `overflow: hidden`, which is the entire clip
+ * mechanism, so a wrapper would only add a box to reason about.
+ *
+ * Note there is deliberately **no `autoplay`**. solution-carousel.ts starts and
+ * stops playback off the same `data-active` signal that drives the slide's
+ * opacity, so only the slide in view ever decodes — and the reduced-motion
+ * case falls out for free, because nothing calls play() and the poster stands.
+ * `preload="none"` is the other half of that: five clips on one page should not
+ * all be fetched before the reader has paged to them.
+ */
+interface Props {
+	/** A `/media/…` path. Video is served from public/ and never bundled — see
+	 *  CLAUDE.md; astro:assets does not process video anyway. */
+	src: string;
+	/** The still under the video until it plays, and the whole picture for a
+	 *  reader on prefers-reduced-motion. An src/assets import, like every other
+	 *  poster in the case-study kit. */
+	poster: ImageMetadata;
+	alt: string;
+	pin: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+}
+const { src, poster, alt, pin } = Astro.props;
+
+/* Through Astro's pipeline rather than `poster.src`, which would ship the raw
+   1920-wide PNG for a frame that is mostly never seen. */
+const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' })).src;
+---
+
+<video
+	class="slide-video"
+	data-pin={pin}
+	src={src}
+	poster={posterUrl}
+	aria-label={alt}
+	muted
+	loop
+	playsinline
+	preload="none"></video>
+
+<style>
+	.slide-video {
+		/* The two values the framing is tuned with. Equal, they make the video
+		   box exactly the card's own size translated diagonally toward the
+		   pinned corner — so the visible window is ~89% × ~91% of the frame,
+		   the same gentle crop on every slide. Raise --pin-inset for a wider
+		   backdrop strip, --pin-bleed for a harder crop. */
+		--pin-inset: var(--spacing-6xl);
+		--pin-bleed: var(--spacing-6xl);
+
+		position: absolute;
+		z-index: 1;
+		display: block;
+
+		/* All four insets are set per variant, so the box is sized by its
+		   offsets and needs no width/height of its own. */
+		object-fit: cover;
+
+		/* Inherited from the placeholder this replaces: the border's two bled
+		   sides fall outside the card's clip, so only the two visible edges
+		   draw a line — which is the result we want, not a compromise. */
+		border: 1px solid var(--border);
+		background: var(--bg-media);
+	}
+
+	/* 48px is 6% of the card's width and 9.6% of its height at the design's
+	   reference desktop size, but the card is fluid — on a phone the same
+	   literal would eat a quarter of the frame's height and read as a margin
+	   rather than a peek. One step down at the same 40rem breakpoint the
+	   footer's row uses puts it back to ~10%. */
+	@media (max-width: 40rem) {
+		.slide-video {
+			--pin-inset: var(--spacing-3xl);
+			--pin-bleed: var(--spacing-3xl);
+		}
+	}
+
+	/* One variant per corner. The site is LTR-only, so the logical properties
+	   below map straight onto the physical names in `pin`:
+	   block-start = top, inline-start = left.
+
+	   Each sets the two visible edges to +inset, the two pinned edges to
+	   -bleed, a radius on the single corner that is actually on screen, and an
+	   object-position at that same corner — so if a delivered file is not 16:10
+	   the cover trim eats from the same edges the card is already clipping,
+	   rather than fighting them. */
+
+	/* Hugs bottom + right; top-left corner visible. */
+	.slide-video[data-pin='bottom-right'] {
+		inset-block-start: var(--pin-inset);
+		inset-inline-start: var(--pin-inset);
+		inset-block-end: calc(-1 * var(--pin-bleed));
+		inset-inline-end: calc(-1 * var(--pin-bleed));
+		border-start-start-radius: var(--radius-lg);
+		object-position: left top;
+	}
+
+	/* Hugs bottom + left; top-right corner visible. */
+	.slide-video[data-pin='bottom-left'] {
+		inset-block-start: var(--pin-inset);
+		inset-inline-end: var(--pin-inset);
+		inset-block-end: calc(-1 * var(--pin-bleed));
+		inset-inline-start: calc(-1 * var(--pin-bleed));
+		border-start-end-radius: var(--radius-lg);
+		object-position: right top;
+	}
+
+	/* Hugs top + right; bottom-left corner visible. */
+	.slide-video[data-pin='top-right'] {
+		inset-block-end: var(--pin-inset);
+		inset-inline-start: var(--pin-inset);
+		inset-block-start: calc(-1 * var(--pin-bleed));
+		inset-inline-end: calc(-1 * var(--pin-bleed));
+		border-end-start-radius: var(--radius-lg);
+		object-position: left bottom;
+	}
+
+	/* Hugs top + left; bottom-right corner visible. */
+	.slide-video[data-pin='top-left'] {
+		inset-block-end: var(--pin-inset);
+		inset-inline-end: var(--pin-inset);
+		inset-block-start: calc(-1 * var(--pin-bleed));
+		inset-inline-start: calc(-1 * var(--pin-bleed));
+		border-end-end-radius: var(--radius-lg);
+		object-position: right bottom;
+	}
+
+	/* No corner to hug — all four edges inset equally, all four corners
+	   rounded, so the backdrop reads as an even frame rather than an
+	   L-shaped strip. The corner variants above get their sizing for free
+	   from opposing inset/bleed cancelling out to exactly 100% of the card
+	   (their whole point — see the file header); here there is no negative
+	   bleed to cancel against, and a replaced element with no loaded
+	   intrinsic size (preload="none", metadata not yet fetched) does not
+	   stretch to fill an inset box the way a non-replaced element would —
+	   Chrome sizes it to 100% of the card regardless and only honours
+	   top/left, so the box overshoots bottom/right by a full --pin-inset.
+	   Explicit width/height sidesteps that resolution entirely. */
+	.slide-video[data-pin='center'] {
+		top: var(--pin-inset);
+		left: var(--pin-inset);
+		width: calc(100% - 2 * var(--pin-inset));
+		height: calc(100% - 2 * var(--pin-inset));
+		border-radius: var(--radius-lg);
+		object-position: center;
+	}
+</style>

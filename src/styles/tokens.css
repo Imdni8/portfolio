@@ -138,6 +138,13 @@
 	   where the eye can track from one to the other. */
 	--measure-page: 91.875rem; /* 1470px */
 	--measure-content: 77.5rem; /* 1240px — nav and selected-work grid cap */
+	/* A case study's reading column. Narrower than --measure-page because the
+	   story is read top to bottom rather than scanned as a grid: at 1470px the
+	   two-column sections put the copy and the shot beside it too far apart to
+	   track between. The page frame still governs the chrome around it — the
+	   footer stays at --measure-page, so the story reads as a column inside the
+	   page rather than as the page itself. */
+	--measure-story: 75rem; /* 1200px */
 	--gutter: clamp(1.25rem, 4vw, 4rem);
 
 	--spacing-none: 0rem; /* 0px */
@@ -212,6 +219,13 @@
 	   findable. Do not reach for this as a text or surface colour — that is
 	   --primary-text's job, and it is 2.4:1 against --bg. */
 	--brand-mark: #ef942b;
+
+	/* The mascot's own skin tone — its torso, in the footer mascot and now the
+	   Toast's icon panel. Same reasoning as --brand-mark just above: artwork
+	   colour, not interface colour, so it is a literal fixed across both
+	   themes rather than a rung on the amber ramp (the mascot SVGs bake this
+	   exact value into their own torso paths). */
+	--brand-torso: #d77757;
 
 	/* The scrim a "coming soon" cover sits under. Also a literal rather than a
 	   ramp step — it sits on a photo, not the page, so it stays the same wash
