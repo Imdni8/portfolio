@@ -239,8 +239,14 @@ const isExternal = status === 'external';
 		list-style: none;
 	}
 
+	/* `flex: 1` lets the body fill the card's full stretched height — the grid
+	   row stretches both cards to the taller one's height (CSS Grid's default
+	   `align-items: stretch`), so without this the extra height lands as
+	   invisible trailing space below the body instead of being available to
+	   push the meta line down. */
 	.card__body {
 		display: flex;
+		flex: 1;
 		flex-direction: column;
 		gap: var(--spacing-md);
 		padding: var(--spacing-3xl);
@@ -250,10 +256,16 @@ const isExternal = status === 'external';
 		color: var(--text);
 	}
 
+	/* `margin-block-start: auto` anchors the meta line to the body's bottom
+	   edge rather than directly under the title, so it lands at the same
+	   height as its neighbour's meta line regardless of either card's title
+	   length — the two cards' bottoms are already equal via the grid row
+	   stretch above. */
 	.card__meta {
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-md);
+		margin-block-start: auto;
 		color: var(--text-muted);
 	}
 
