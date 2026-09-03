@@ -898,7 +898,7 @@
 }
 
 /* ---- Toast -------------------------------------------------------------------
-   Fires once, from ReadInDetail's "Read in detail" button. A two-tone pill,
+   Fires once, from ReadInDetail's "Read design process" button. A two-tone pill,
    not a badge-plus-label: a static --brand-torso panel on the left with the
    glasses icon riding on top of it, a plain white text half on the right.
    White/near-black rather than the semantic --bg-raised/--text-body pair,

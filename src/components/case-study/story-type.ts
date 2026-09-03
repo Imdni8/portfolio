@@ -5,11 +5,19 @@
  * on the first edit, and the two columns have to set identical type or the
  * 30-second cut and the long form stop reading as one document.
  *
- * Tailwind utilities against Tailwind's stock palette, deliberately not
- * tokens.css — the scoped exception documented under "the 30-second cut" in
- * CLAUDE.md's case-studies section. The rungs are: Inter 16/24 in
- * neutral-200 (#e5e5e5, the nearest stock step to the spec's #EAEAEA) for
- * running copy, Inter medium 24/32 in white for the blockquote claim.
+ * Tailwind utilities, but against tokens.css rather than Tailwind's stock
+ * palette: every colour below goes through the `@theme inline` bridge in
+ * src/styles/tailwind.css, so `text-foreground` resolves to --text and flips
+ * with the theme. The stock steps this used to carry (neutral-200, white,
+ * neutral-800) are dark-only literals and rendered the whole cut at ~1.1:1 on
+ * the light ground. Same rungs, same sizes — Inter 16/24 for running copy,
+ * Inter medium 24/32 for the blockquote claim — sourced correctly.
+ *
+ * The family goes through `font-[family-name:var(--font-sans)]`, not
+ * `font-['Inter_Variable']`: the latter compiles to a single-family
+ * declaration and throws away the ui-sans-serif/system-ui fallbacks
+ * tokens.css defines, so a blocked or still-loading webfont drops the whole
+ * column to Times. See tailwind.css's closing comment.
  *
  * Tailwind scans .ts files in src/, so the candidates here are picked up the
  * same as if they were written inline in the template.
@@ -29,11 +37,22 @@
  *   list items — an adjacent-sibling margin is what actually works here.
  */
 export const storyProse = [
-	"space-y-6 font-['Inter_Variable'] text-base leading-6 text-neutral-200",
-	'[&>blockquote]:border-l-2 [&>blockquote]:border-white [&>blockquote]:pl-6',
-	'[&>blockquote]:text-2xl [&>blockquote]:leading-8 [&>blockquote]:font-medium [&>blockquote]:text-white',
+	'space-y-6 font-[family-name:var(--font-sans)] text-base leading-6 text-body',
+	// border-foreground, not border-border: this bar is an accent set against
+	// the copy, not a structural edge. --border is --gray-700 on the dark
+	// ground, which would render it as a hairline.
+	'[&>blockquote]:border-l-2 [&>blockquote]:border-foreground [&>blockquote]:pl-6',
+	'[&>blockquote]:text-2xl [&>blockquote]:leading-8 [&>blockquote]:font-medium [&>blockquote]:text-foreground',
 	'[&>blockquote>p]:m-0',
 	'[&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-6 [&_ul]:pl-6',
-	'[&_li+li]:mt-2 [&_li]:marker:text-neutral-400',
-	'[&_strong]:font-semibold [&_strong]:text-white',
+	'[&_li+li]:mt-2 [&_li]:marker:text-muted-foreground',
+	'[&_strong]:font-semibold [&_strong]:text-foreground',
 ].join(' ');
+
+/**
+ * The heading rung shared by StorySection, Solution and StoryChapter (30/40
+ * Playfair semibold), and by StoryBlock/SlideText one step down (18/24). Kept
+ * beside the prose string for the same reason that one exists: four files set
+ * this type, and four copies drift.
+ */
+export const storyHeading = 'font-[family-name:var(--font-display)] font-semibold text-foreground';

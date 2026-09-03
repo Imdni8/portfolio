@@ -56,12 +56,8 @@ hero:
           text: Agent settings are accessible in a side panel like the rest of the nodes on canvas
 ---
 
-import Section from "../../components/case-study/Section.astro";
 import Figure from "../../components/case-study/Figure.astro";
-import FigureRow from "../../components/case-study/FigureRow.astro";
 import NoteBox from "../../components/case-study/NoteBox.astro";
-import VideoFigure from "../../components/case-study/VideoFigure.astro";
-import Reflection from "../../components/case-study/Reflection.astro";
 import Term from "../../components/case-study/Term.astro";
 import Solution from "../../components/case-study/Solution.astro";
 import Slide from "../../components/case-study/Slide.astro";
@@ -69,6 +65,7 @@ import SlideVideo from "../../components/case-study/SlideVideo.astro";
 import SlideText from "../../components/case-study/SlideText.astro";
 import StorySection from "../../components/case-study/StorySection.astro";
 import ReadInDetail from "../../components/case-study/ReadInDetail.astro";
+import StorySeam from "../../components/case-study/StorySeam.astro";
 import StoryChapter from "../../components/case-study/StoryChapter.astro";
 import StoryBlock from "../../components/case-study/StoryBlock.astro";
 
@@ -79,10 +76,7 @@ import dependencyCardIterations from "../../assets/work/agent-versioning/05-idea
 import mandatoryPublish from "../../assets/work/agent-versioning/06-ideation-mandatory-publish.png";
 import versionsModal from "../../assets/work/agent-versioning/07-ideation-versions-modal.png";
 import visualCues from "../../assets/work/agent-versioning/08-ideation-visual-cues.png";
-import scopeSidePanel from "../../assets/work/agent-versioning/09-constraint-side-panel.png";
-import scopeModal from "../../assets/work/agent-versioning/10-constraint-modal.png";
 import versionCardFix from "../../assets/work/agent-versioning/11-refinement-version-card.png";
-import outcomeStill from "../../assets/work/agent-versioning/12-outcome-still.png";
 
 import slideVersionPicker from "../../assets/work/agent-versioning/slide-1-version-picker.png";
 import slideDependencyCard from "../../assets/work/agent-versioning/slide-2-dependency-card.png";
@@ -209,9 +203,7 @@ hour.
 
 </StorySection>
 
-<div class="mx-auto max-w-[var(--measure-story)] px-[var(--gutter)] py-20">
-  <hr class="border-t border-neutral-800" />
-</div>
+<StorySeam />
 
 {/* Everything inside <ReadInDetail> is clipped to a 344px peek and buried
     under a wash until the reader opens it. It is real content, not a teaser —
@@ -284,7 +276,10 @@ Therefore, the experience of versioning boils down to helping the user:
 
 <Figure slot="visual" src={dependencyCardIterations} alt="Three iterations of the dependency card, from a simple accept/dismiss affordance to the selected version-aware design" />
 
-<NoteBox slot="visual" title="Note on user testing">
+{/* `open` because this note was plain always-visible prose before NoteBox
+    became a collapsible <details>; leaving it closed would silently hide
+    copy this published page had always shown. */}
+<NoteBox slot="visual" title="Note on user testing" open>
 
 Because conducting user tests with end users (eg, CRAs) can take significantly longer to set
 up, and we were on the clock with versioning, I validated these concepts with 5 internal
@@ -385,6 +380,11 @@ canvas in a subtle way without demanding too much cognition from them. I achieve
   To restore one: give it a StoryBlock title (its old `eyebrow`), turn its
   `claim heading` into a leading blockquote if the design keeps the claim, and
   move it inside a StoryChapter in the <ReadInDetail> block above.
+
+  Restoring also means putting the imports back at the top of this file:
+  Section, FigureRow, VideoFigure, Reflection, scopeSidePanel, scopeModal and
+  outcomeStill were removed as dead, since a commented block is discarded
+  before anything in it is resolved and no tooling here would ever flag them.
 
 <Section chapter="constraint" eyebrow="Meeting engineering constraints" claim heading="To meet the release date, I reduced scope by cutting the side panel because even though it was better UX, it wasn't crucial to versioning">
   <FigureRow slot="visual">

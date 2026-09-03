@@ -1,0 +1,21 @@
+---
+/**
+ * The rule between the 30-second cut and the <ReadInDetail> curtain.
+ *
+ * A component rather than a div in each MDX file: the two case studies were
+ * carrying byte-identical copies of this markup, complete with a hardcoded
+ * `border-neutral-800` that is invisible on the light ground — a colour
+ * literal in content, where no component-level fix can reach it. It wears the
+ * same frame and rule StorySection's own `divider` renders, so the seam above
+ * the curtain and the seam under the hero cannot drift apart.
+ *
+ * The py-20 stacks with the preceding section's own py-20 and .read-more's
+ * padding-block-start: ~288px of air before the CTA. That is the spacing the
+ * page already shipped with, so it is preserved here rather than quietly
+ * retuned — change it once, here, if the gap wants closing.
+ */
+---
+
+<div class="mx-auto max-w-[var(--measure-story)] px-[var(--gutter)] py-20">
+	<hr class="border-t border-border" />
+</div>

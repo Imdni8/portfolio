@@ -69,7 +69,6 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 >
 	<video
 		class="slide-video"
-		data-pin={pin}
 		src={src}
 		poster={posterUrl}
 		aria-hidden="true"
@@ -99,6 +98,15 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		z-index: 1;
 		display: block;
 		cursor: zoom-in;
+
+		/* Load-bearing since the radius moved here off the <video>. A replaced
+		   element clips its own painted frame to its own border-radius, so the
+		   video used to round itself; a <button> does not clip its children,
+		   so without this the video's square corner paints straight over the
+		   one rounded corner each variant sets below. The focus ring is
+		   unaffected — an outline is not clipped by its own element's
+		   overflow. Same reason Figure.astro's zoom button carries it. */
+		overflow: hidden;
 
 		/* All four insets are set per variant, so the box is sized by its
 		   offsets and needs no width/height of its own. */
@@ -142,7 +150,14 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 	   -bleed, a radius on the single corner that is actually on screen, and an
 	   object-position at that same corner — so if a delivered file is not 16:10
 	   the cover trim eats from the same edges the card is already clipping,
-	   rather than fighting them. */
+	   rather than fighting them.
+
+	   All four properties hang off the one `data-pin`, on the button: the
+	   object-position reaches the video as a descendant rather than the video
+	   carrying a second copy of the attribute to be kept in sync. Written flat
+	   rather than as a nested `& .slide-video` — Astro does not add its scope
+	   hash inside a nested selector, and the nesting itself would need browser
+	   support the rest of this file does not. */
 
 	/* Hugs bottom + right; top-left corner visible. */
 	.slide-video__trigger[data-pin='bottom-right'] {
@@ -152,7 +167,7 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		inset-inline-end: calc(-1 * var(--pin-bleed));
 		border-start-start-radius: var(--radius-lg);
 	}
-	.slide-video[data-pin='bottom-right'] {
+	.slide-video__trigger[data-pin='bottom-right'] .slide-video {
 		object-position: left top;
 	}
 
@@ -164,7 +179,7 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		inset-inline-start: calc(-1 * var(--pin-bleed));
 		border-start-end-radius: var(--radius-lg);
 	}
-	.slide-video[data-pin='bottom-left'] {
+	.slide-video__trigger[data-pin='bottom-left'] .slide-video {
 		object-position: right top;
 	}
 
@@ -176,7 +191,7 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		inset-inline-end: calc(-1 * var(--pin-bleed));
 		border-end-start-radius: var(--radius-lg);
 	}
-	.slide-video[data-pin='top-right'] {
+	.slide-video__trigger[data-pin='top-right'] .slide-video {
 		object-position: left bottom;
 	}
 
@@ -188,7 +203,7 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		inset-inline-start: calc(-1 * var(--pin-bleed));
 		border-end-end-radius: var(--radius-lg);
 	}
-	.slide-video[data-pin='top-left'] {
+	.slide-video__trigger[data-pin='top-left'] .slide-video {
 		object-position: right bottom;
 	}
 
@@ -205,7 +220,7 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		inset: var(--pin-inset);
 		border-radius: var(--radius-lg);
 	}
-	.slide-video[data-pin='center'] {
+	.slide-video__trigger[data-pin='center'] .slide-video {
 		object-position: center;
 	}
 </style>

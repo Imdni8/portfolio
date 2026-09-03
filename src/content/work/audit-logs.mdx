@@ -64,12 +64,9 @@ hero:
           text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
 ---
 
-import Section from "../../components/case-study/Section.astro";
 import Figure from "../../components/case-study/Figure.astro";
-import FigureRow from "../../components/case-study/FigureRow.astro";
 import NoteBox from "../../components/case-study/NoteBox.astro";
 import VideoFigure from "../../components/case-study/VideoFigure.astro";
-import Reflection from "../../components/case-study/Reflection.astro";
 import Term from "../../components/case-study/Term.astro";
 import Solution from "../../components/case-study/Solution.astro";
 import Slide from "../../components/case-study/Slide.astro";
@@ -77,9 +74,9 @@ import SlideVideo from "../../components/case-study/SlideVideo.astro";
 import SlideText from "../../components/case-study/SlideText.astro";
 import StorySection from "../../components/case-study/StorySection.astro";
 import ReadInDetail from "../../components/case-study/ReadInDetail.astro";
+import StorySeam from "../../components/case-study/StorySeam.astro";
 import StoryChapter from "../../components/case-study/StoryChapter.astro";
 import StoryBlock from "../../components/case-study/StoryBlock.astro";
-import { storyProse } from "../../components/case-study/story-type";
 
 import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.jpg";
 import slideSidePanel from "../../assets/work/audit-logs/slide-2-side-panel.jpg";
@@ -88,7 +85,6 @@ import slideFilterByResource from "../../assets/work/audit-logs/slide-4-filter-b
 import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg";
 
 import initialAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
-import promptFourLogs from "../../assets/work/audit-logs/02-problem-prompt-four-logs.png";
 import verticallyExpandingLogs from "../../assets/work/audit-logs/03-problem-vertically-expanding-logs.png";
 import inconsistentSearchFilters from "../../assets/work/audit-logs/04-problem-inconsistent-search-filters.png";
 import participantWorkflow from "../../assets/work/audit-logs/05-research-participant-workflow.png";
@@ -100,10 +96,8 @@ import searchTags from "../../assets/work/audit-logs/10-ideation-search-tags.png
 import aiChatConcept from "../../assets/work/audit-logs/11-ideation-ai-chat-concept.png";
 import aiSummarisationConcept from "../../assets/work/audit-logs/12-ideation-ai-summarisation-concept.png";
 import versionChips from "../../assets/work/audit-logs/13-testing-version-chips.png";
-import finalDesignThumbnail from "../../assets/work/audit-logs/00-thumbnail.png";
-import reflectionAuditFlow from "../../assets/work/audit-logs/14-reflection-audit-modal.png";
 
-<StorySection heading="Problem" divider evenColumns>
+<StorySection heading="Problem" divider split="even">
 
 > Incomprehensible agent audit trail led to longer times for fixing agents and more effort to audit, creating compliance risk
 
@@ -137,7 +131,7 @@ Audit logs are a regulated artifact. When a sponsor or auditor asks what an agen
       alt="A log's details opening in a side panel, showing the version change, event ID and affected fields"
       pin="bottom-left"
     />
-    <SlideText title="Informative sidepanel">
+    <SlideText title="Informative side panel">
       Additional information that doesn't help users find the right log is stashed inside the side panel, so it's accessible without cluttering their view.
     </SlideText>
   </Slide>
@@ -179,7 +173,7 @@ Audit logs are a regulated artifact. When a sponsor or auditor asks what an agen
   </Slide>
 </Solution>
 
-<StorySection heading="Refining based on usertesting" evenColumns>
+<StorySection heading="Refining based on user testing" split="even">
 
 > Appending version number improved user's ability to compare logs, and follow audit trails better
 
@@ -195,9 +189,7 @@ Because the turnaround cycles were fast (1-week sprints), I couldn't get feedbac
 
 </StorySection>
 
-<div class="mx-auto max-w-[var(--measure-story)] px-[var(--gutter)] py-20">
-  <hr class="border-t border-neutral-800" />
-</div>
+<StorySeam />
 
 {/* Everything inside <ReadInDetail> is clipped to a 344px peek and buried
     under a wash until the reader opens it. It is real content, not a teaser —
@@ -247,7 +239,7 @@ After each session, I also gave each participant a <Term id="sus">System Usabili
 
 <StoryChapter heading="Ideation">
 
-<div class={storyProse}>
+<Fragment slot="intro">
 
 Based on the research, I synthesised the project into five goals
 
@@ -257,7 +249,7 @@ Based on the research, I synthesised the project into five goals
 4. Optimise layout to fit more logs vertically
 5. Eliminate initial lag from unintentional log searching
 
-</div>
+</Fragment>
 
 <StoryBlock title="Help identify the right logs">
 
@@ -318,6 +310,12 @@ Concept 2 was selected because we weren't sure if follow-up chats were necessary
     design reference for this page. Kept below, commented out, in their old
     pre-redesign <Section> shape so the content isn't lost; restore once
     there's a design for how they fit the new cut.
+
+    Restoring one also means putting its imports back at the top of this file:
+    Section, Reflection, finalDesignThumbnail and reflectionAuditFlow were
+    removed with the rest of the dead imports, since nothing the compiler
+    sees was referencing them (a commented block is discarded before any of
+    it is resolved, so no tooling here would ever have flagged them).
 
 <Section chapter="outcome" id="outcome" claim eyebrow="Outcome" heading="Improved the audit logs design as measured by increase in SUS from 57 → 72" layout="wide">
   <VideoFigure slot="visual" poster={finalDesignThumbnail} src="/media/audit-logs-final-design-walkthrough.mp4" alt="Walkthrough of the shipped audit log page" caption="Final design walkthrough" />

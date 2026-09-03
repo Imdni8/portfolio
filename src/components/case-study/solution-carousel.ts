@@ -9,6 +9,9 @@
 const reducedMotion = () =>
 	typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/** Set by Lightbox.tsx while its overlay is open — see updateActive(). */
+const overlayOpen = () => document.documentElement.hasAttribute('data-lightbox-open');
+
 export function initSolutionCarousel(track: HTMLElement) {
 	const root = track.closest('.solution');
 	const prev = root?.querySelector<HTMLButtonElement>('[data-carousel-prev]');
@@ -91,14 +94,24 @@ export function initSolutionCarousel(track: HTMLElement) {
 	// promise dance for nothing. The .catch() is not optional either: play()
 	// rejects if the element is paused before it resolves, which an unhandled
 	// rejection would surface in the console on any fast scroll.
+	//
+	// It also owns the track's tab stops. Every slide's video sits inside a
+	// click-to-enlarge <button>, and four of the five are off screen at 40%
+	// opacity at any moment — left focusable, Tab walks into one and the
+	// browser's focus-scroll drags the snap track sideways under the reader.
+	// tabIndex, not `inert`: inert would also kill pointer events, so a slide
+	// peeking in at the edge could no longer be clicked to open.
 	const updateActive = () => {
 		const active = currentIndex();
 		slides.forEach((slide, i) => {
 			const on = i === active;
 			slide.toggleAttribute('data-active', on);
+			for (const trigger of slide.querySelectorAll<HTMLElement>('[data-zoom], [data-zoom-video]')) {
+				trigger.tabIndex = on ? 0 : -1;
+			}
 			const video = slide.querySelector('video');
 			if (!video) return;
-			if (on && visible && !reducedMotion()) {
+			if (on && visible && !reducedMotion() && !overlayOpen()) {
 				if (video.paused) video.play().catch(() => {});
 			} else if (!video.paused) {
 				video.pause();
@@ -123,6 +136,11 @@ export function initSolutionCarousel(track: HTMLElement) {
 
 	prev.addEventListener('click', () => goTo(currentIndex() - 1));
 	next.addEventListener('click', () => goTo(currentIndex() + 1));
+
+	// Fired by Lightbox.tsx on open and on close — the other half of the
+	// overlayOpen() gate in updateActive(), so the slide's own clip stops while
+	// the same film plays full-screen and picks up again when it closes.
+	document.addEventListener('lightbox:change', updateActive);
 
 	let ticking = false;
 	track.addEventListener(

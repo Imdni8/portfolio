@@ -1,5 +1,6 @@
 ---
 import Icon from '../ui/Icon.astro';
+import { storyHeading } from './story-type';
 
 /**
  * The "Solution" chapter — a horizontal, scroll-snapped carousel of shipped
@@ -16,7 +17,7 @@ import Icon from '../ui/Icon.astro';
 
 <section class="solution" data-section="solution" data-chapter="solution">
 	<div class="solution__head">
-		<h2 class="m-0 font-['Playfair_Display_Variable'] text-3xl leading-10 font-semibold text-white">Solution</h2>
+		<h2 class:list={['m-0 text-3xl leading-10', storyHeading]}>Solution</h2>
 		<div class="solution__controls">
 			<button type="button" class="icon-btn icon-btn--secondary icon-btn--sm" data-carousel-prev aria-label="Previous">
 				<Icon name="chevron-left" />
@@ -70,6 +71,16 @@ import Icon from '../ui/Icon.astro';
 		display: flex;
 		gap: var(--spacing-sm);
 		flex-shrink: 0;
+	}
+
+	/* The system's disabled state drops a control to an outline (see
+	   components.css) — right for a button that stays in place, wrong for these:
+	   a ringed-but-dead chevron beside a live one reads as two controls rather
+	   than one spent end of a track. The dimmed glyph alone carries the state.
+	   Scoped here, not in components.css, so the shared rule keeps its outline
+	   for every other icon button. */
+	.solution__controls .icon-btn:disabled {
+		border-color: transparent;
 	}
 
 	/* scroll-snap does the sliding on its own; solution-carousel.ts only

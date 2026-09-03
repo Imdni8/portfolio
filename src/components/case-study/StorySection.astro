@@ -2,31 +2,37 @@
 /**
  * Problem / Code-contribution text shape for the 30-second-skimmable case
  * study cut: a heading, optional blockquote "highlight", prose, and an
- * optional image beside it. Styled with plain Tailwind utilities and
- * Tailwind's stock palette, deliberately not tokens.css — a scoped exception
- * for this one new text treatment, not a sitewide migration. See
- * StorySection in CLAUDE.md's case-studies section for the reasoning.
+ * optional image beside it. Written in Tailwind utilities, with every colour
+ * and family sourced from tokens.css through the `@theme inline` bridge in
+ * src/styles/tailwind.css. See CLAUDE.md's case-studies section.
  */
-import { storyProse } from './story-type';
+import { storyProse, storyHeading } from './story-type';
 
 interface Props {
 	heading: string;
 	/** Renders a top rule before the heading — used once, on Problem, to
 	 *  separate the section from the hero above it. */
 	divider?: boolean;
-	/** Default is 5fr/7fr, copy narrower than the shot (Problem, Code
-	 *  contribution). Set true for an even 50/50 split when the visual doesn't
-	 *  need the extra room — e.g. a portrait-ish screenshot next to a claim
-	 *  that's mostly text. */
-	evenColumns?: boolean;
+	/** How the copy and the visual share the row. '5-7' (the default) gives the
+	 *  shot the wider column; 'even' splits 50/50 where the visual doesn't need
+	 *  the extra room — e.g. a portrait-ish screenshot next to a claim that's
+	 *  mostly text. Named rather than boolean so a third ratio is one more
+	 *  entry in the map below, not a second boolean with no defined
+	 *  precedence against the first. */
+	split?: '5-7' | 'even';
 }
-const { heading, divider = false, evenColumns = false } = Astro.props;
+const { heading, divider = false, split = '5-7' } = Astro.props;
 const hasVisual = Astro.slots.has('visual');
+
+const COLUMNS = {
+	'5-7': 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start',
+	even: 'lg:grid-cols-2 lg:items-start',
+} as const;
 ---
 
 <section class="mx-auto max-w-[var(--measure-story)] px-[var(--gutter)] py-20">
-	{divider && <hr class="mb-20 border-t border-neutral-800" />}
-	<h2 class="mb-6 font-['Playfair_Display_Variable'] text-3xl leading-10 font-semibold text-white">
+	{divider && <hr class="mb-20 border-t border-border" />}
+	<h2 class:list={['mb-6 text-3xl leading-10', storyHeading]}>
 		{heading}
 	</h2>
 	{/* With a visual the copy takes the narrower of two columns and the shot
@@ -36,10 +42,7 @@ const hasVisual = Astro.slots.has('visual');
 	    section's full measure, uncapped: the same "don't narrow a column that
 	    has nothing next to it" rule Section.astro and the hero follow. */}
 	<div
-		class:list={[
-			'grid gap-10',
-			hasVisual && (evenColumns ? 'lg:grid-cols-2 lg:items-start' : 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start'),
-		]}
+		class:list={['grid gap-10', hasVisual && COLUMNS[split]]}
 	>
 		<div class={storyProse}>
 			<slot />

@@ -23,11 +23,17 @@ const toShot = (el: HTMLElement): Shot =>
     can't step differently. */
 const wrapIndex = (index: number, delta: number, length: number) => (index + delta + length) % length;
 
+const prefersReducedMotion = () =>
+	typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 /**
  * One overlay for the whole page. Any element carrying `data-zoom` opens it,
- * so figures stay static HTML and only this island hydrates. A trigger
- * inside a FigureRow opens with its row siblings as a group — arrow keys
- * and on-screen chevrons step through them — rather than just the one shot.
+ * so figures stay static HTML and only this island hydrates. A trigger inside
+ * a container marked `data-zoom-group` opens with its siblings as a group —
+ * arrow keys and on-screen chevrons step through them — rather than just the
+ * one shot. FigureRow and StoryBlock's visual column both mark themselves;
+ * grouping is a content relationship, so it is an explicit attribute rather
+ * than whichever class happens to be doing the layout.
  */
 export const Lightbox = () => {
 	const [group, setGroup] = useState<Group | null>(null);
@@ -38,8 +44,10 @@ export const Lightbox = () => {
 			if (!trigger) return;
 			e.preventDefault();
 
-			const row = trigger.closest<HTMLElement>('.row');
-			const triggers = row ? [...row.querySelectorAll<HTMLElement>('[data-zoom], [data-zoom-video]')] : [trigger];
+			const container = trigger.closest<HTMLElement>('[data-zoom-group]');
+			const triggers = container
+				? [...container.querySelectorAll<HTMLElement>('[data-zoom], [data-zoom-video]')]
+				: [trigger];
 			setGroup({ shots: triggers.map(toShot), index: Math.max(0, triggers.indexOf(trigger)) });
 		};
 		document.addEventListener('click', onClick);
@@ -68,6 +76,17 @@ export const Lightbox = () => {
 		// updates `index` on the same array) — so the listener and the
 		// scroll lock aren't torn down and rebuilt on every arrow press.
 	}, [group?.shots]);
+
+	// A clip being watched full-screen must not also decode underneath the
+	// overlay. solution-carousel.ts's updateActive() reads this attribute as
+	// one more playback gate, alongside `visible` and reduced motion; the
+	// event is what makes the gate two-way, since without it a paused slide
+	// would stay paused until the next scroll or resize happened to re-run
+	// that function.
+	useEffect(() => {
+		document.documentElement.toggleAttribute('data-lightbox-open', !!group);
+		document.dispatchEvent(new Event('lightbox:change'));
+	}, [!!group]);
 
 	// Astro only emits an <astro-island> around output that exists — a
 	// component that returns null on the server never ships its script at
@@ -114,12 +133,18 @@ export const Lightbox = () => {
 			)}
 
 			{shot.kind === 'video' ? (
+				// autoPlay is gated, not assumed: SlideVideo deliberately ships no
+				// `autoplay` attribute so that under reduced motion nothing ever
+				// calls play() and the poster stands. Handing the same clip to the
+				// overlay unconditionally would give a reduced-motion reader exactly
+				// the animation the carousel was built to withhold — `controls`
+				// leaves it their choice instead.
 				<video
 					src={shot.src}
 					poster={shot.poster}
 					aria-label={shot.alt}
 					controls
-					autoPlay
+					autoPlay={!prefersReducedMotion()}
 					muted
 					loop
 					playsInline

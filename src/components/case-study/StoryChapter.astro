@@ -10,21 +10,41 @@
  * The heading wears exactly StorySection's and Solution's rung, so a chapter
  * of the long form and a chapter of the 30-second cut read as peers rather
  * than as two levels of a hierarchy.
+ *
+ * The optional `intro` slot is a chapter opener that is copy only — no shot,
+ * so not a StoryBlock. It exists so a case study never has to import
+ * story-type.ts and hand-assemble the prose column itself: that would give
+ * the column's markup two authors, and any later change to how it is wrapped
+ * would silently miss whichever one lives in content. Pass it from MDX as
+ * `<Fragment slot="intro">`.
  */
+import { storyProse, storyHeading } from './story-type';
+
 interface Props {
 	heading: string;
 }
 const { heading } = Astro.props;
+const hasIntro = Astro.slots.has('intro');
 ---
 
 <section class="mx-auto max-w-[var(--measure-story)] px-[var(--gutter)] pt-20">
 	{/* The chapter heading sits tight to its first block's title — closer than
 	    the step between blocks — so the two read as a label and its first
 	    entry rather than as two separate headings. */}
-	<h2 class="mb-4 font-['Playfair_Display_Variable'] text-3xl leading-10 font-semibold text-white">
+	<h2 class:list={['mb-4 text-3xl leading-10', storyHeading]}>
 		{heading}
 	</h2>
+	{/* The intro sits inside the blocks' own grid rather than above it, so it
+	    takes the same 48px step down to the first block that two blocks take
+	    between themselves — one rhythm for the chapter, not two. */}
 	<div class="grid gap-12">
+		{
+			hasIntro && (
+				<div class={storyProse}>
+					<slot name="intro" />
+				</div>
+			)
+		}
 		<slot />
 	</div>
 </section>
