@@ -2,45 +2,52 @@ import { useEffect, useState } from 'react';
 import { Icon } from '../ui/Icon';
 import { IconButton } from '../ui/IconButton';
 
-interface Shot {
-	src: string;
-	alt: string;
-	caption?: string;
-}
+type Shot =
+	| { kind: 'image'; src: string; alt: string; caption?: string }
+	| { kind: 'video'; src: string; poster?: string; alt: string };
 
 interface Group {
 	shots: Shot[];
 	index: number;
 }
 
-const toShot = (el: HTMLElement): Shot => ({
-	src: el.dataset.zoom!,
-	alt: el.dataset.zoomAlt ?? '',
-	caption: el.dataset.zoomCaption || undefined,
-});
+/** A trigger carries either `data-zoom` (image) or `data-zoom-video` — the
+    same alt/caption dataset names double up across both kinds. */
+const toShot = (el: HTMLElement): Shot =>
+	el.dataset.zoomVideo
+		? { kind: 'video', src: el.dataset.zoomVideo, poster: el.dataset.zoomPoster || undefined, alt: el.dataset.zoomAlt ?? '' }
+		: { kind: 'image', src: el.dataset.zoom!, alt: el.dataset.zoomAlt ?? '', caption: el.dataset.zoomCaption || undefined };
 
 /** Wraps `index` by `delta` within a group of `length` shots — shared by
     keyboard (ArrowLeft/ArrowRight) and the on-screen chevrons so the two
     can't step differently. */
 const wrapIndex = (index: number, delta: number, length: number) => (index + delta + length) % length;
 
+const prefersReducedMotion = () =>
+	typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 /**
  * One overlay for the whole page. Any element carrying `data-zoom` opens it,
- * so figures stay static HTML and only this island hydrates. A trigger
- * inside a FigureRow opens with its row siblings as a group — arrow keys
- * and on-screen chevrons step through them — rather than just the one shot.
+ * so figures stay static HTML and only this island hydrates. A trigger inside
+ * a container marked `data-zoom-group` opens with its siblings as a group —
+ * arrow keys and on-screen chevrons step through them — rather than just the
+ * one shot. FigureRow and StoryBlock's visual column both mark themselves;
+ * grouping is a content relationship, so it is an explicit attribute rather
+ * than whichever class happens to be doing the layout.
  */
 export const Lightbox = () => {
 	const [group, setGroup] = useState<Group | null>(null);
 
 	useEffect(() => {
 		const onClick = (e: MouseEvent) => {
-			const trigger = (e.target as HTMLElement).closest<HTMLElement>('[data-zoom]');
+			const trigger = (e.target as HTMLElement).closest<HTMLElement>('[data-zoom], [data-zoom-video]');
 			if (!trigger) return;
 			e.preventDefault();
 
-			const row = trigger.closest<HTMLElement>('.row');
-			const triggers = row ? [...row.querySelectorAll<HTMLElement>('[data-zoom]')] : [trigger];
+			const container = trigger.closest<HTMLElement>('[data-zoom-group]');
+			const triggers = container
+				? [...container.querySelectorAll<HTMLElement>('[data-zoom], [data-zoom-video]')]
+				: [trigger];
 			setGroup({ shots: triggers.map(toShot), index: Math.max(0, triggers.indexOf(trigger)) });
 		};
 		document.addEventListener('click', onClick);
@@ -69,6 +76,17 @@ export const Lightbox = () => {
 		// updates `index` on the same array) — so the listener and the
 		// scroll lock aren't torn down and rebuilt on every arrow press.
 	}, [group?.shots]);
+
+	// A clip being watched full-screen must not also decode underneath the
+	// overlay. solution-carousel.ts's updateActive() reads this attribute as
+	// one more playback gate, alongside `visible` and reduced motion; the
+	// event is what makes the gate two-way, since without it a paused slide
+	// would stay paused until the next scroll or resize happened to re-run
+	// that function.
+	useEffect(() => {
+		document.documentElement.toggleAttribute('data-lightbox-open', !!group);
+		document.dispatchEvent(new Event('lightbox:change'));
+	}, [!!group]);
 
 	// Astro only emits an <astro-island> around output that exists — a
 	// component that returns null on the server never ships its script at
@@ -114,11 +132,33 @@ export const Lightbox = () => {
 				</>
 			)}
 
-			<img src={shot.src} alt={shot.alt} onClick={(e) => e.stopPropagation()} />
+			{shot.kind === 'video' ? (
+				// autoPlay is gated, not assumed: SlideVideo deliberately ships no
+				// `autoplay` attribute so that under reduced motion nothing ever
+				// calls play() and the poster stands. Handing the same clip to the
+				// overlay unconditionally would give a reduced-motion reader exactly
+				// the animation the carousel was built to withhold — `controls`
+				// leaves it their choice instead.
+				<video
+					src={shot.src}
+					poster={shot.poster}
+					aria-label={shot.alt}
+					controls
+					autoPlay={!prefersReducedMotion()}
+					muted
+					loop
+					playsInline
+					onClick={(e) => e.stopPropagation()}
+				/>
+			) : (
+				<img src={shot.src} alt={shot.alt} onClick={(e) => e.stopPropagation()} />
+			)}
 
-			{(shot.caption || many) && (
+			{((shot.kind === 'image' && shot.caption) || many) && (
 				<div className="lightbox__meta" onClick={(e) => e.stopPropagation()}>
-					{shot.caption && <p className="lightbox__caption type-annotation">{shot.caption}</p>}
+					{shot.kind === 'image' && shot.caption && (
+						<p className="lightbox__caption type-annotation">{shot.caption}</p>
+					)}
 					{many && (
 						<p className="lightbox__count type-annotation">
 							{group.index + 1} / {group.shots.length}

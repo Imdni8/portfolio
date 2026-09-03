@@ -48,6 +48,16 @@
 	--color-muted: var(--bg-sunken);
 	--color-muted-foreground: var(--text-muted);
 
+	/* The third text rung. --color-foreground is the headline colour
+	   (--text/--gray-50) and --color-muted-foreground the quiet one; running
+	   copy sits between them on --text-body, which shadcn's own slot list has
+	   no name for. Added for the case-study cut, whose whole prose column is
+	   this rung. Note the utility is `text-body`, which is a *colour* — it does
+	   not collide with Tailwind's font-size scale, since that reads the
+	   `--text-*` theme namespace and tokens.css's --text-body lives on :root,
+	   outside any @theme block. */
+	--color-body: var(--text-body);
+
 	--color-accent: var(--bg-sunken);
 	--color-accent-foreground: var(--text);
 

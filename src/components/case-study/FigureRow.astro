@@ -6,7 +6,11 @@ interface Props {
 const { labels = [] } = Astro.props;
 ---
 
-<div class="row" data-labels={labels.join('|')}>
+{/* data-zoom-group, not the .row class, is what Lightbox.tsx groups on — a
+    style class is a layout decision and the two stopped being the same thing
+    once StoryBlock started stacking its pairs instead of putting them in a
+    row. See Lightbox.tsx. */}
+<div class="row" data-zoom-group data-labels={labels.join('|')}>
 	<slot />
 </div>
 

@@ -15,7 +15,7 @@
  * a <NoteBox> under its <Figure> in the same column, authored as two siblings
  * both carrying slot="visual".
  */
-import { storyProse } from './story-type';
+import { storyProse, storyHeading } from './story-type';
 
 interface Props {
 	title: string;
@@ -24,13 +24,17 @@ const { title } = Astro.props;
 ---
 
 <div>
-	<h3 class="mb-4 font-['Playfair_Display_Variable'] text-lg leading-6 font-semibold text-white">
+	<h3 class:list={['mb-4 text-lg leading-6', storyHeading]}>
 		{title}
 	</h3>
 	{/* items-start so a short copy column doesn't stretch to a tall shot's
 	    height, and gap-12 to match the 48px the design puts between them. */}
 	<div class="grid gap-12 lg:grid-cols-2 lg:items-start">
-		<div class="grid content-start gap-6">
+		{/* data-zoom-group is what makes two stacked shots open in the lightbox
+		    as one steppable pair — see Lightbox.tsx. It is a behaviour hook
+		    only: unlike FigureRow, which is also a *layout* (equal columns,
+		    subgrid captions), this column stays a stack. */}
+		<div class="grid content-start gap-6" data-zoom-group>
 			<slot name="visual" />
 		</div>
 		<div class={storyProse}>

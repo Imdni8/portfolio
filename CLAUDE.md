@@ -316,13 +316,20 @@ it), `Solution`/`Slide`/`SlideVideo`/`SlideText` (the scroll-snapped highlights
 carousel), and `ReadInDetail` (the curtain the long form sits behind). **The long form
 itself** is `StoryChapter` (a group heading — "Narrowing the problem", "UX
 decisions") holding `StoryBlock`s (one titled row: shot left, copy right).
-All of them are written in Tailwind utilities against Tailwind's stock palette
-rather than tokens.css — a scoped exception for this one text treatment, not a
-sitewide migration; everything around them still reads the semantic layer.
-The copy column's utility string lives once in
-`src/components/case-study/story-type.ts` and is imported by both
-`StorySection` and `StoryBlock`, because two copies of a string that long
-drift on the first edit.
+All of them are written in Tailwind utilities rather than in `components.css`
+classes — but the *values* are tokens.css's, reached through the `@theme
+inline` bridge in `src/styles/tailwind.css`. Tailwind here is a second syntax
+for the semantic layer, never a second palette. **This is the rule, not a
+style preference:** the cut originally used Tailwind's stock palette
+(`text-white`, `text-neutral-200`, `border-neutral-800`) and those are
+dark-only literals, so the entire 30-second cut rendered at roughly 1.1:1 on
+the light ground. Any colour or family written as a stock Tailwind step or a
+bare arbitrary value is that bug waiting to happen again.
+
+Two shared strings live in `src/components/case-study/story-type.ts` and are
+imported by every component in the cut: `storyProse` (the copy column) and
+`storyHeading` (family, weight and colour for the two heading rungs). Sizes
+stay at the call site, since they differ by rung.
 
 Its type is four rungs, and none of them is a `.type-*` class — the cut was
 specced independently of the design system's scale, and the nearest Tailwind
@@ -330,10 +337,24 @@ step is what each one landed on:
 
 | Role | Spec | Tailwind |
 | --- | --- | --- |
-| Section/chapter heading (`StorySection`, `Solution`, `StoryChapter`) | Playfair semibold 30/40 | `text-3xl leading-10 font-semibold` |
-| Blockquote highlight | Inter medium 24/32 | `text-2xl leading-8 font-medium` |
-| Slide/block title (`SlideText`, `StoryBlock`) | Playfair semibold 18/24 | `text-lg leading-6 font-semibold` |
-| Running copy | Inter regular 16/24, `#EAEAEA` | `text-base leading-6 text-neutral-200` |
+| Section/chapter heading (`StorySection`, `Solution`, `StoryChapter`) | Playfair semibold 30/40 | `text-3xl leading-10` + `storyHeading` |
+| Blockquote highlight | Inter medium 24/32 | `text-2xl leading-8 font-medium text-foreground` |
+| Slide/block title (`SlideText`, `StoryBlock`) | Playfair semibold 18/24 | `text-lg leading-6` + `storyHeading` |
+| Running copy | Inter regular 16/24, `#EAEAEA` | `text-base leading-6 text-body` |
+
+Colour goes through four bridge slots: `text-foreground` (`--text`, headings,
+`<strong>` and the blockquote), `text-body` (`--text-body`, running copy —
+the one slot this project added to shadcn's list, since shadcn has no name
+for a third text rung), `text-muted-foreground` (`--text-muted`, list
+markers) and `border-border` (`--border`, rules). The blockquote's left bar
+is the exception that proves the rule: it takes `border-foreground`, not
+`border-border`, because it is an accent set against the copy rather than a
+structural edge — `--border` is `--gray-700` on the dark ground and would
+render it as a hairline. Families go through
+`font-[family-name:var(--font-sans|--font-display)]`, never
+`font-['Inter_Variable']`: the quoted form compiles to a single-family
+declaration and throws away the fallback stack, dropping the whole column to
+Times whenever the webfont is slow or blocked.
 
 Every one of those sizes and leadings *is* expressible in tokens, which is
 worth knowing before anyone concludes the cut needs new ones: `--lh-subtitle`
@@ -346,11 +367,25 @@ genuinely lacks is a *named* `.type-*` style for Inter-regular-16/24 —
 `.type-ui-label` and `.type-nav-link` sit on that size at semibold and medium.
 
 - **`StorySection` splits into two columns only when it is given a `visual`
-  slot** (`minmax(0,5fr) minmax(0,7fr)` at `lg`), copy on the left, shot on
-  the right and top-aligned with the blockquote. With no visual there is
-  nothing beside the copy, so it runs the section's full measure uncapped —
-  the same rule `Section` and the hero follow, and the reason the Problem
-  chapter looks wider than Code contribution.
+  slot** — `split="5-7"` (the default, `minmax(0,5fr) minmax(0,7fr)` at `lg`)
+  or `split="even"`, copy on the left, shot on the right and top-aligned with
+  the blockquote. With no visual there is nothing beside the copy, so it runs
+  the section's full measure uncapped — the same rule `Section` and the hero
+  follow, and the reason the Problem chapter looks wider than Code
+  contribution. `split` is a named union rather than a boolean so a third
+  ratio is one more entry in the component's `COLUMNS` map, not a second
+  boolean with no defined precedence against the first.
+- **`StoryChapter` takes an optional `intro` slot** — a copy-only chapter
+  opener, for the prose that introduces a chapter before its first titled
+  block. Pass it from MDX as `<Fragment slot="intro">`. It exists so content
+  never imports `story-type.ts` to hand-roll the prose column: that would
+  give the column's markup two authors, and a later change to how it is
+  wrapped would silently miss whichever copy lives in content.
+- **`StorySeam` is the rule between the cut and the curtain.** Both case
+  studies used to carry a hand-written copy of it, colour literal and all.
+  Its `py-20` stacks with the preceding section's own and with
+  `.read-more`'s padding — ~288px before the CTA, which is the shipped
+  spacing; change it once, there.
 - **`SlideVideo` pins a clip to one corner of a `Slide`'s media card** and lets
   it bleed off the two opposite edges, so `vid-bg.jpg` reads as an L-shaped
   strip along the other two. It goes in through `Slide`'s `media` slot; with no
@@ -373,7 +408,17 @@ genuinely lacks is a *named* `.type-*` style for Inter-regular-16/24 —
     `IntersectionObserver` for the track. So at most one clip decodes at a time,
     `preload="none"` means nothing is fetched until the reader pages to it, and
     `prefers-reduced-motion` costs one condition rather than a CSS branch —
-    play() is simply never called and the poster stands.
+    play() is simply never called and the poster stands. `Lightbox` honours the
+    same contract: its `<video>` sets `autoPlay` only when reduced motion is
+    off, and while the overlay is open it stamps `data-lightbox-open` on
+    `<html>` and fires a `lightbox:change` event so `updateActive()` pauses
+    the slide's own copy of the clip rather than decoding it twice.
+  - **The trigger is a `<button>`, so `updateActive()` also owns the track's
+    tab stops** — it sets `tabIndex` to `-1` on every zoom trigger outside the
+    active slide. Without that, Tab walks into an off-screen slide and the
+    browser's focus-scroll drags the scroll-snap track sideways under the
+    reader. `tabIndex`, not `inert`: `inert` would also kill pointer events,
+    so a slide peeking in at the edge could no longer be clicked.
   - **The card carries `aspect-ratio: 16 / 10`**, because a pinned video is out
     of flow and would otherwise leave `.solution-slide__media` with no height.
     Deliver clips at 1920×1200 to match it; `object-fit: cover` is the safety
@@ -388,7 +433,22 @@ genuinely lacks is a *named* `.type-*` style for Inter-regular-16/24 —
   long form the shot *is* the finding and the copy explains it. Its `visual`
   slot takes more than one child — the dependency-card block puts a `NoteBox`
   under its `Figure` in the same column, authored as two siblings both carrying
-  `slot="visual"`.
+  `slot="visual"`. That column is marked `data-zoom-group`, so two stacked
+  shots open in the lightbox as one steppable pair.
+- **Lightbox grouping is `data-zoom-group`, not a style class.** It used to be
+  `.row`, which only `FigureRow` emits — so the moment `StoryBlock` started
+  stacking its comparison pairs instead of putting them in a row, every pair
+  opened as a group of one and the arrows and chevrons vanished from the
+  overlay. Grouping is a content relationship; the attribute says so, and a
+  container can opt in without also taking `FigureRow`'s equal-column,
+  subgrid-caption layout.
+- **`NoteBox` is a collapsed `<details>` by default; pass `open` to expand
+  it.** `agent-versioning`'s note carries `open` because it was always-visible
+  prose before the component became collapsible, and a component-level default
+  should not silently edit a shipped page. Its flex row is an inner `<span>`,
+  never the `<summary>` itself — setting `display` on a `<summary>` away from
+  `list-item` stops the disclosure toggling on older WebKit, and there is no
+  script behind it to recover.
 - **`ReadInDetail` is a curtain over real content, not a teaser.** Its default
   slot holds the whole long form; it renders in full, gets clipped to a 344px
   peek and buried under a full-width `--bg` wash (40% → 90% at 35% → opaque)
