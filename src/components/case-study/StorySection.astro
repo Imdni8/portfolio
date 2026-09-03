@@ -14,8 +14,13 @@ interface Props {
 	/** Renders a top rule before the heading — used once, on Problem, to
 	 *  separate the section from the hero above it. */
 	divider?: boolean;
+	/** Default is 5fr/7fr, copy narrower than the shot (Problem, Code
+	 *  contribution). Set true for an even 50/50 split when the visual doesn't
+	 *  need the extra room — e.g. a portrait-ish screenshot next to a claim
+	 *  that's mostly text. */
+	evenColumns?: boolean;
 }
-const { heading, divider = false } = Astro.props;
+const { heading, divider = false, evenColumns = false } = Astro.props;
 const hasVisual = Astro.slots.has('visual');
 ---
 
@@ -30,7 +35,12 @@ const hasVisual = Astro.slots.has('visual');
 	    Without a visual there is nothing to sit beside and the copy runs the
 	    section's full measure, uncapped: the same "don't narrow a column that
 	    has nothing next to it" rule Section.astro and the hero follow. */}
-	<div class:list={['grid gap-10', hasVisual && 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start']}>
+	<div
+		class:list={[
+			'grid gap-10',
+			hasVisual && (evenColumns ? 'lg:grid-cols-2 lg:items-start' : 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start'),
+		]}
+	>
 		<div class={storyProse}>
 			<slot />
 		</div>

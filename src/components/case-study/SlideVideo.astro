@@ -19,9 +19,9 @@ import type { ImageMetadata } from 'astro';
  * rounds on all four corners, framed by the vid-bg strip evenly rather than
  * an L-shaped sliver.
  *
- * The <video> is the component root: .solution-slide__media already supplies
- * `position: relative` and `overflow: hidden`, which is the entire clip
- * mechanism, so a wrapper would only add a box to reason about.
+ * The trigger button is the component root: .solution-slide__media already
+ * supplies `position: relative` and `overflow: hidden`, which is the entire
+ * clip mechanism the button's absolute positioning relies on.
  *
  * Note there is deliberately **no `autoplay`**. solution-carousel.ts starts and
  * stops playback off the same `data-active` signal that drives the slide's
@@ -29,6 +29,16 @@ import type { ImageMetadata } from 'astro';
  * case falls out for free, because nothing calls play() and the poster stands.
  * `preload="none"` is the other half of that: five clips on one page should not
  * all be fetched before the reader has paged to them.
+ *
+ * The video sits inside a `<button>` trigger, not as the root — same
+ * click-to-enlarge pattern Figure.astro uses for images (a button so it's
+ * keyboard-reachable), wired to the same global Lightbox overlay via
+ * `data-zoom-video`/`data-zoom-poster`/`data-zoom-alt` instead of Figure's
+ * `data-zoom`. The pin positioning that used to sit on the video itself now
+ * sits on the button — the video just fills it — because the video needs to
+ * stay hidden from assistive tech (its content is spoken through the
+ * button's own `aria-label`) and unfocusable, which is what a plain `<video>`
+ * with no `controls` already is by default.
  */
 interface Props {
 	/** A `/media/…` path. Video is served from public/ and never bundled — see
@@ -48,19 +58,33 @@ const { src, poster, alt, pin } = Astro.props;
 const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' })).src;
 ---
 
-<video
-	class="slide-video"
+<button
+	type="button"
+	class="slide-video__trigger"
 	data-pin={pin}
-	src={src}
-	poster={posterUrl}
-	aria-label={alt}
-	muted
-	loop
-	playsinline
-	preload="none"></video>
+	data-zoom-video={src}
+	data-zoom-poster={posterUrl}
+	data-zoom-alt={alt}
+	aria-label={`Expand: ${alt}`}
+>
+	<video
+		class="slide-video"
+		data-pin={pin}
+		src={src}
+		poster={posterUrl}
+		aria-hidden="true"
+		muted
+		loop
+		playsinline
+		preload="none"></video>
+</button>
 
 <style>
-	.slide-video {
+	/* The positioned, pinned, bordered box — everything the plain <video> used
+	   to carry before it moved behind a click-to-enlarge trigger (see file
+	   header). The video inside is just an unstyled fill; every framing
+	   decision below lives on the button. */
+	.slide-video__trigger {
 		/* The two values the framing is tuned with. Equal, they make the video
 		   box exactly the card's own size translated diagonally toward the
 		   pinned corner — so the visible window is ~89% × ~91% of the frame,
@@ -69,13 +93,15 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		--pin-inset: var(--spacing-6xl);
 		--pin-bleed: var(--spacing-6xl);
 
+		appearance: none;
+		padding: 0;
 		position: absolute;
 		z-index: 1;
 		display: block;
+		cursor: zoom-in;
 
 		/* All four insets are set per variant, so the box is sized by its
 		   offsets and needs no width/height of its own. */
-		object-fit: cover;
 
 		/* Inherited from the placeholder this replaces: the border's two bled
 		   sides fall outside the card's clip, so only the two visible edges
@@ -84,13 +110,25 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		background: var(--bg-media);
 	}
 
+	.slide-video__trigger:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	.slide-video {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
 	/* 48px is 6% of the card's width and 9.6% of its height at the design's
 	   reference desktop size, but the card is fluid — on a phone the same
 	   literal would eat a quarter of the frame's height and read as a margin
 	   rather than a peek. One step down at the same 40rem breakpoint the
 	   footer's row uses puts it back to ~10%. */
 	@media (max-width: 40rem) {
-		.slide-video {
+		.slide-video__trigger {
 			--pin-inset: var(--spacing-3xl);
 			--pin-bleed: var(--spacing-3xl);
 		}
@@ -107,42 +145,50 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 	   rather than fighting them. */
 
 	/* Hugs bottom + right; top-left corner visible. */
-	.slide-video[data-pin='bottom-right'] {
+	.slide-video__trigger[data-pin='bottom-right'] {
 		inset-block-start: var(--pin-inset);
 		inset-inline-start: var(--pin-inset);
 		inset-block-end: calc(-1 * var(--pin-bleed));
 		inset-inline-end: calc(-1 * var(--pin-bleed));
 		border-start-start-radius: var(--radius-lg);
+	}
+	.slide-video[data-pin='bottom-right'] {
 		object-position: left top;
 	}
 
 	/* Hugs bottom + left; top-right corner visible. */
-	.slide-video[data-pin='bottom-left'] {
+	.slide-video__trigger[data-pin='bottom-left'] {
 		inset-block-start: var(--pin-inset);
 		inset-inline-end: var(--pin-inset);
 		inset-block-end: calc(-1 * var(--pin-bleed));
 		inset-inline-start: calc(-1 * var(--pin-bleed));
 		border-start-end-radius: var(--radius-lg);
+	}
+	.slide-video[data-pin='bottom-left'] {
 		object-position: right top;
 	}
 
 	/* Hugs top + right; bottom-left corner visible. */
-	.slide-video[data-pin='top-right'] {
+	.slide-video__trigger[data-pin='top-right'] {
 		inset-block-end: var(--pin-inset);
 		inset-inline-start: var(--pin-inset);
 		inset-block-start: calc(-1 * var(--pin-bleed));
 		inset-inline-end: calc(-1 * var(--pin-bleed));
 		border-end-start-radius: var(--radius-lg);
+	}
+	.slide-video[data-pin='top-right'] {
 		object-position: left bottom;
 	}
 
 	/* Hugs top + left; bottom-right corner visible. */
-	.slide-video[data-pin='top-left'] {
+	.slide-video__trigger[data-pin='top-left'] {
 		inset-block-end: var(--pin-inset);
 		inset-inline-end: var(--pin-inset);
 		inset-block-start: calc(-1 * var(--pin-bleed));
 		inset-inline-start: calc(-1 * var(--pin-bleed));
 		border-end-end-radius: var(--radius-lg);
+	}
+	.slide-video[data-pin='top-left'] {
 		object-position: right bottom;
 	}
 
@@ -151,18 +197,15 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 	   L-shaped strip. The corner variants above get their sizing for free
 	   from opposing inset/bleed cancelling out to exactly 100% of the card
 	   (their whole point — see the file header); here there is no negative
-	   bleed to cancel against, and a replaced element with no loaded
-	   intrinsic size (preload="none", metadata not yet fetched) does not
-	   stretch to fill an inset box the way a non-replaced element would —
-	   Chrome sizes it to 100% of the card regardless and only honours
-	   top/left, so the box overshoots bottom/right by a full --pin-inset.
-	   Explicit width/height sidesteps that resolution entirely. */
-	.slide-video[data-pin='center'] {
-		top: var(--pin-inset);
-		left: var(--pin-inset);
-		width: calc(100% - 2 * var(--pin-inset));
-		height: calc(100% - 2 * var(--pin-inset));
+	   bleed to cancel against, so a plain `inset` on all four sides is enough
+	   — unlike the bare <video> this trigger replaced, a <button> is not a
+	   replaced element, so it has no unloaded-intrinsic-size sizing quirk to
+	   work around. */
+	.slide-video__trigger[data-pin='center'] {
+		inset: var(--pin-inset);
 		border-radius: var(--radius-lg);
+	}
+	.slide-video[data-pin='center'] {
 		object-position: center;
 	}
 </style>

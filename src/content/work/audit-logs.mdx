@@ -1,5 +1,5 @@
 ---
-title: Making audit logs more human readable
+title: Improved agent audit trail's usability by 26%
 industry: Clinical trials
 technology: AI Agents
 year: 2026
@@ -7,12 +7,11 @@ thumbnail:
     src: ../../assets/work/audit-logs/00-thumbnail.png
     alt: The redesigned audit log page, showing grouped database actions and a details side panel
 order: 20
-status: coming-soon
 roles:
     - kind: design-type
       label: Redesign
 aiFeature: true
-subtitle: Redesigned the developer POC of audit logs into a comprehensible audit trail. Usability (SUS) improved from 57 to 72.
+subtitle: Redesigned the developer POC of audit logs to be more comprehensible, increasing usability (measured by SUS) from 57 to 72.
 facts:
     - label: Duration
       value: 3 weeks
@@ -20,17 +19,6 @@ facts:
       value: Sole product designer
     - label: Team
       value: EPD trio (1 Des, 1 PM, 1 Dev)
-chapters:
-    - id: problem
-      label: Problem
-    - id: research
-      label: Research
-    - id: ideation
-      label: Ideation
-    - id: testing
-      label: Testing
-    - id: outcome
-      label: Outcome
 hero:
     before: ../../assets/work/audit-logs/00-hero-before.png
     after: ../../assets/work/audit-logs/00-hero-after.png
@@ -74,13 +62,6 @@ hero:
           y: 32.9
           label: "★"
           text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
-actions:
-    primary:
-        label: View final design
-        href: "#outcome"
-    secondary:
-        label: Read case study
-        href: "#story"
 ---
 
 import Section from "../../components/case-study/Section.astro";
@@ -90,6 +71,21 @@ import NoteBox from "../../components/case-study/NoteBox.astro";
 import VideoFigure from "../../components/case-study/VideoFigure.astro";
 import Reflection from "../../components/case-study/Reflection.astro";
 import Term from "../../components/case-study/Term.astro";
+import Solution from "../../components/case-study/Solution.astro";
+import Slide from "../../components/case-study/Slide.astro";
+import SlideVideo from "../../components/case-study/SlideVideo.astro";
+import SlideText from "../../components/case-study/SlideText.astro";
+import StorySection from "../../components/case-study/StorySection.astro";
+import ReadInDetail from "../../components/case-study/ReadInDetail.astro";
+import StoryChapter from "../../components/case-study/StoryChapter.astro";
+import StoryBlock from "../../components/case-study/StoryBlock.astro";
+import { storyProse } from "../../components/case-study/story-type";
+
+import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.jpg";
+import slideSidePanel from "../../assets/work/audit-logs/slide-2-side-panel.jpg";
+import slideDbActions from "../../assets/work/audit-logs/slide-3-db-actions.jpg";
+import slideFilterByResource from "../../assets/work/audit-logs/slide-4-filter-by-resource.jpg";
+import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg";
 
 import initialAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
 import promptFourLogs from "../../assets/work/audit-logs/02-problem-prompt-four-logs.png";
@@ -107,28 +103,120 @@ import versionChips from "../../assets/work/audit-logs/13-testing-version-chips.
 import finalDesignThumbnail from "../../assets/work/audit-logs/00-thumbnail.png";
 import reflectionAuditFlow from "../../assets/work/audit-logs/14-reflection-audit-modal.png";
 
-<Section chapter="problem" eyebrow="Hard to understand" heading="If audit logs can't be understood, the customer's data can be flagged in an audit, creating compliance risk">
-  <VideoFigure slot="visual" poster={initialAuditPage} src="/media/audit-logs-initial-walkthrough.mp4" alt="Walkthrough of the initial version of the audit log page, listing raw entries per agent with no grouping or visual hierarchy" caption="Initial version of the audit logs" />
+<StorySection heading="Problem" divider evenColumns>
 
-We got feedback from a customer that audit logs are hard to understand, and that it takes considerable effort to triage them.
+> Incomprehensible agent audit trail led to longer times for fixing agents and more effort to audit, creating compliance risk
 
-Audit logs are a regulated artifact. When a sponsor or auditor asks what an agent did and when, the log is the evidence. If it can't be understood, the customer's data can be flagged in an audit, creating compliance risk and other unwanted effects downstream.
+Audit logs are a regulated artifact. When a sponsor or auditor asks what an agent did and when, the log is the evidence. If it causes confusion, the trial data can be flagged as unfit for use, creating compliance risk and other unwanted effects downstream.
 
-The initial brief was to make logs more comprehensive so that tracking what changed, by whom and when becomes easier. The primary use case and user persona I was solving for:
+<VideoFigure slot="visual" poster={initialAuditPage} src="/media/audit-logs-initial-walkthrough.mp4" alt="Walkthrough of the initial version of the audit log page, listing raw entries per agent with no grouping or visual hierarchy" caption="Initial version of the audit logs" />
 
-1. Engineers and/or builders troubleshooting agents by locating which change broke the agent, and
-2. Auditors performing compliance audits by going over all the logs to find any compliance issues
+</StorySection>
 
-</Section>
+<Solution>
+  <Slide>
+    <SlideVideo
+      slot="media"
+      src="/media/audit-logs-log-results.mp4"
+      poster={slideLogResults}
+      alt="The audit log list showing timestamp-led rows with action-type icons, a colour-coded left border, and a shrunken search bar"
+      pin="bottom-right"
+    />
+    <SlideText title="Comprehensive and scannable audit trail">
+      Each log leads with a timestamp and is easier to scan thanks to icons and a colour-coded left border per action type.
+    </SlideText>
+    <SlideText title="Optimised vertical space">
+      The search bar is shrunken to fit more logs on screen.
+    </SlideText>
+  </Slide>
+  <Slide>
+    <SlideVideo
+      slot="media"
+      src="/media/audit-logs-side-panel.mp4"
+      poster={slideSidePanel}
+      alt="A log's details opening in a side panel, showing the version change, event ID and affected fields"
+      pin="bottom-left"
+    />
+    <SlideText title="Informative sidepanel">
+      Additional information that doesn't help users find the right log is stashed inside the side panel, so it's accessible without cluttering their view.
+    </SlideText>
+  </Slide>
+  <Slide>
+    <SlideVideo
+      slot="media"
+      src="/media/audit-logs-db-actions.mp4"
+      poster={slideDbActions}
+      alt="Expanding a 'Show db actions' divider to reveal the grouped database action entries it was hiding"
+      pin="bottom-right"
+    />
+    <SlideText title="Database actions">
+      The audit trail originally mixed user actions with database actions. I split database actions out and gave them a distinct look, so users can tell them apart from user actions at a glance.
+    </SlideText>
+  </Slide>
+  <Slide>
+    <SlideVideo
+      slot="media"
+      src="/media/audit-logs-filter-by-resource.mp4"
+      poster={slideFilterByResource}
+      alt="Filtering the audit trail by resource using a control consistent with the rest of the platform"
+      pin="bottom-right"
+    />
+    <SlideText title="Audit trail filtering">
+      Fixed the filtering component to make it consistent with the rest of the platform.
+    </SlideText>
+  </Slide>
+  <Slide>
+    <SlideVideo
+      slot="media"
+      src="/media/audit-logs-ai-summary.mp4"
+      poster={slideAiSummary}
+      alt="Generating an AI summary of a log's data change inside the details panel"
+      pin="bottom-left"
+    />
+    <SlideText title="AI Summary">
+      Proposed and designed a simple feature to summarise a log using AI.
+    </SlideText>
+  </Slide>
+</Solution>
 
-<Section chapter="research" eyebrow="UX audit" heading="Hard to follow the audit trail because of database actions mixed with user actions, vertically expanding logs and poor visual hierarchy">
-  <FigureRow slot="visual">
-    <Figure src={promptFourLogs} alt="Creating a single prompt produced four separate log entries instead of one" caption="Creating 1 prompt produced 4 logs" />
-    <Figure src={verticallyExpandingLogs} alt="A log expanded to show its changed fields, pushing every log beneath it further down the page" caption="Vertically expanding logs" />
-    <Figure src={inconsistentSearchFilters} alt="The search bar showing a resource filter applied as a separate, inconsistent control" caption="Inconsistent search filters" />
-  </FigureRow>
+<StorySection heading="Refining based on usertesting" evenColumns>
 
-I began by auditing the current implementation to find UX gaps.
+> Appending version number improved user's ability to compare logs, and follow audit trails better
+
+Once implementation was complete, I user-tested the design again with 5 internal users. The overall SUS came to 72 after the redesign.
+
+Also, during user testing, I observed many users opened the side panel to check the version of the agent. Upon asking why, they said knowing the version number helps them compare the logs faster and figure out exactly which change caused the problem.
+
+<NoteBox title="Note on user testing">
+Because the turnaround cycles were fast (1-week sprints), I couldn't get feedback from end users. Not having any insight from the regulator persona is a known risk that I've flagged to the team.
+</NoteBox>
+
+<Figure slot="visual" src={versionChips} alt="The log list with a version chip such as v1 or v2 shown beside each resource name" caption="Appending version to agent helps user follow changes easily" />
+
+</StorySection>
+
+<div class="mx-auto max-w-[var(--measure-story)] px-[var(--gutter)] py-20">
+  <hr class="border-t border-neutral-800" />
+</div>
+
+{/* Everything inside <ReadInDetail> is clipped to a 344px peek and buried
+    under a wash until the reader opens it. It is real content, not a teaser —
+    so every closing tag below must sit flush left, including the nested ones.
+    Several blocks end on a numbered list, and an indented closing tag after a
+    list reads to CommonMark as a continuation of the last list item; the MDX
+    compiler then fails with a RolldownError pointing nowhere near the cause.
+    See CLAUDE.md's case-studies section. */}
+
+<ReadInDetail>
+
+<StoryChapter heading="Understanding the problem">
+
+<StoryBlock title="UX Audit">
+
+<Figure slot="visual" src={verticallyExpandingLogs} alt="A log expanded to show its changed fields, pushing every log beneath it further down the page" caption="vertically expanding logs" />
+<Figure slot="visual" src={inconsistentSearchFilters} alt="The search bar showing a resource filter applied as a separate, inconsistent control" caption="inconsistent search filters" />
+
+> Hard to follow the audit trail because of database actions mixed with user actions, vertically expanding logs and poor visual hierarchy
 
 1. Audit page first load lagged severely because opening it triggered a search automatically in the background (confirmed in the network tab of dev tools). As a result, users couldn't change the search criteria because the UI would be unresponsive for some time.
 2. The search results contained user actions and database actions together in one list. So one user action appeared as multiple log entries.
@@ -137,10 +225,11 @@ I began by auditing the current implementation to find UX gaps.
 5. The search section wasn't fixed, forcing the user to scroll back up if they wanted to reset the search criteria or refresh to view the latest logs.
 6. The log list was hard to scan because of poor visual hierarchy.
 
-</Section>
+</StoryBlock>
 
-<Section claim eyebrow="Qualitative research" heading="Users used timestamp to locate the right logs and then compared adjacent logs to see changes">
-  <Figure slot="visual" src={participantWorkflow} alt="Illustrative screenshot of a participant sharing their screen on a video call while walking through the audit log page" caption="Participant explaining their workflow on a video call [illustrative image]" />
+<StoryBlock title="User research">
+
+<Figure slot="visual" src={participantWorkflow} alt="Illustrative screenshot of a participant sharing their screen on a video call while walking through the audit log page" caption="Participant explaining their workflow on a video call [illustrative image]" />
 
 I conducted contextual inquiry with five internal builders in the professional services team to understand how they use audit logs for troubleshooting.
 
@@ -152,9 +241,15 @@ My finding was that there is an order to how they locate logs, after filtering f
 
 After each session, I also gave each participant a <Term id="sus">System Usability Scale</Term> (SUS) questionnaire to establish benchmark usability of the current system. The average SUS for this version came to 57.
 
-</Section>
+</StoryBlock>
 
-<Section chapter="ideation" claim eyebrow="Problem breakdown" heading="Based on research, I broke the problem into five distinct parts in order of importance">
+</StoryChapter>
+
+<StoryChapter heading="Ideation">
+
+<div class={storyProse}>
+
+Based on the research, I synthesised the project into five goals
 
 1. Help users locate the right log
 2. Make the data change inside a log easy to understand and compare against adjacent logs
@@ -162,13 +257,14 @@ After each session, I also gave each participant a <Term id="sus">System Usabili
 4. Optimise layout to fit more logs vertically
 5. Eliminate initial lag from unintentional log searching
 
-</Section>
+</div>
 
-<Section claim eyebrow="Locating the right logs" heading="Timestamps in the beginning make it easier to locate the right logs">
-  <FigureRow slot="visual">
-    <Figure src={grafanaDashboard} alt="Grafana's log dashboard, leading every row with a timestamp" caption="Screenshot of Grafana's log dashboard" />
-    <Figure src={earlierSearchConcept} alt="An earlier design concept with a search bar and a details panel for filtering logs by time" caption="Earlier design concept with search and filtering" />
-  </FigureRow>
+<StoryBlock title="Help identify the right logs">
+
+<Figure slot="visual" src={grafanaDashboard} alt="Grafana's log dashboard, leading every row with a timestamp" caption="Screenshot of Grafana's log dashboard" />
+<Figure slot="visual" src={earlierSearchConcept} alt="An earlier design concept with a search bar and a details panel for filtering logs by time" caption="Earlier design concept with search and filtering" />
+
+> Timestamps in the beginning make it easier to locate the right logs
 
 Logs being a core part of many developer applications (e.g. Grafana), I began by studying existing examples. From Grafana's log design, I picked the timestamp-led pattern because it helps users ignore other details and locate the right group of logs by time.
 
@@ -176,10 +272,11 @@ But instead of surfacing the technical details right at the top level and making
 
 Earlier design direction allowed searching and filtering by time period to locate logs faster, but I had to drop it because the results were fetched in batches, so both searching and filtering would happen on a subset of the data.
 
-</Section>
+</StoryBlock>
 
-<Section claim eyebrow="Visually differentiating database versus user actions" heading='Introduced "database actions" as a new type of log and visually differentiated them from user actions'>
-  <Figure slot="visual" src={dbActionsExpanding} alt="Side by side: a collapsed 'Show db actions' divider between user actions, and the same divider expanded to reveal the grouped database action entries it was hiding" caption="Expanding database actions" />
+<StoryBlock title="Handle audit trail cluttering due to database actions">
+
+<Figure slot="visual" src={dbActionsExpanding} alt="Four separate log entries — created, updated, updated, created — all for the same prompt, three of them sharing one timestamp" caption="One user action created four logs" />
 
 Users expect to see one log for one action, even if that one action included multiple changes. For example, if an agent's prompt and skill are updated and republished, the action of publishing should occur once in the logs.
 
@@ -187,13 +284,12 @@ But due to how the database was architected, one user action could generate mult
 
 At first, we discussed hiding the database actions. But that could become a compliance issue. So after discussing feasibility with developers, I introduced the idea of "database actions" and designed logs to visually differentiate between database actions and user actions.
 
-</Section>
+</StoryBlock>
 
-<Section claim eyebrow="Log search redesign" heading="Search tags allow more logs to fit in the viewport and extends to resource filtering in a consistent manner">
-  <FigureRow slot="visual">
-    <Figure src={explicitSearchAction} alt="A redesigned search control with an explicit Search button instead of searching automatically on load" caption="Added an explicit search action to prevent automatic search from causing lag" />
-    <Figure src={searchTags} alt="Search criteria collapsed into removable tags in a fixed header row" caption="Search criteria converted to tags to allow more vertical space" />
-  </FigureRow>
+<StoryBlock title="Log Search redesign">
+
+<Figure slot="visual" src={explicitSearchAction} alt="A redesigned search control with an explicit Search button instead of searching automatically on load" caption="Added an explicit search action to prevent automatic search from causing lag" />
+<Figure slot="visual" src={searchTags} alt="Search criteria collapsed into removable tags in a fixed header row" caption="Search criteria converted to tags to allow more vertical space" />
 
 Another problem was to improve how log search was initiated. First, I added an explicit button to prevent automatic searching and the lag it caused on initial page load.
 
@@ -202,31 +298,26 @@ After executing the search, the fields changed to tags so that:
 1. Vertical space can be maximised to fit more logs
 2. When a user filters by a resource, the tags system can be extended so that filtering stays consistent
 
-</Section>
+</StoryBlock>
 
-<Section claim eyebrow="Making log reading less technical" heading="Shipped simple AI-summarisation for explainability, choosing to iterate on feedback instead of designing for all edge cases right away">
-  <FigureRow slot="visual">
-    <Figure src={aiChatConcept} alt="Concept 1 — a chat panel that lets the user ask follow-up questions about the log" caption="Concept 1: AI-chat to support follow-up questions" />
-    <Figure src={aiSummarisationConcept} alt="Concept 2 — a Summarise action that writes a plain-language summary directly into the details panel" caption="Concept 2: AI summarisation" />
-  </FigureRow>
+<StoryBlock title="Summarising logs">
+
+<Figure slot="visual" src={aiChatConcept} alt="Concept 1 — a chat panel that lets the user ask follow-up questions about the log" caption="Concept 1: AI-chat to support follow-up questions" />
+<Figure slot="visual" src={aiSummarisationConcept} alt="Concept 2 — a Summarise action that writes a plain-language summary directly into the details panel" caption="Concept 2: AI summarisation" />
 
 Sometimes the jargon used in the data changes of a log is not understandable to users. To overcome this, I explored two AI-summarisation directions.
 
 Concept 2 was selected because we weren't sure if follow-up chats were necessary. We decided to ship the simpler version and iterate based on feedback, intentionally ignoring the edge cases for handling wrong summary generation.
 
-</Section>
+</StoryBlock>
 
-<Section chapter="testing" claim eyebrow="User testing the design" heading="Appending version number improved user's ability to compare logs, and therefore follow audit trails better">
-  <Figure slot="visual" src={versionChips} alt="The log list with a version chip such as v1 or v2 shown beside each resource name" caption="Appending version to agent helps user follow changes easily" />
+</StoryChapter>
 
-Once implementation was complete, I user-tested the design again with 5 internal users. The overall SUS came to 72 after the redesign.
-
-Also, during user testing, I observed many users opened the side panel to check the version of the agent. Upon asking, they said knowing the version number helps them compare the logs faster and figure out exactly which change caused the problem.
-
-  <NoteBox title="Note on user testing">
-    Because the turnaround cycles are fast (1-week sprints), I couldn't get feedback from customers or the regulator. Not having any insight from the regulator persona is a known risk that I've flagged to the team.
-  </NoteBox>
-</Section>
+{/* Outcome and Reflection are dropped from the page for now, matching
+    agent-versioning's current WIP state — neither appears in the latest
+    design reference for this page. Kept below, commented out, in their old
+    pre-redesign <Section> shape so the content isn't lost; restore once
+    there's a design for how they fit the new cut.
 
 <Section chapter="outcome" id="outcome" claim eyebrow="Outcome" heading="Improved the audit logs design as measured by increase in SUS from 57 → 72" layout="wide">
   <VideoFigure slot="visual" poster={finalDesignThumbnail} src="/media/audit-logs-final-design-walkthrough.mp4" alt="Walkthrough of the shipped audit log page" caption="Final design walkthrough" />
@@ -244,3 +335,6 @@ Also, since the workflow predominantly focuses on auditing one agent at a time, 
 
   <Figure src={reflectionAuditFlow} alt="An agent's overflow menu open with a new 'Audit' entry alongside Edit, Share and Setup monitor, pointing to the resulting audit logs modal scoped to that agent" caption="Audit logs open in a modal window from the agent's overflow menu" />
 </Reflection>
+*/}
+
+</ReadInDetail>

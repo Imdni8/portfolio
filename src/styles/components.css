@@ -498,7 +498,8 @@
 	cursor: zoom-out;
 }
 
-.lightbox img {
+.lightbox img,
+.lightbox video {
 	max-width: 100%;
 	max-height: 90vh;
 	width: auto;

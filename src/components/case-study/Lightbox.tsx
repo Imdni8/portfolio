@@ -2,22 +2,21 @@ import { useEffect, useState } from 'react';
 import { Icon } from '../ui/Icon';
 import { IconButton } from '../ui/IconButton';
 
-interface Shot {
-	src: string;
-	alt: string;
-	caption?: string;
-}
+type Shot =
+	| { kind: 'image'; src: string; alt: string; caption?: string }
+	| { kind: 'video'; src: string; poster?: string; alt: string };
 
 interface Group {
 	shots: Shot[];
 	index: number;
 }
 
-const toShot = (el: HTMLElement): Shot => ({
-	src: el.dataset.zoom!,
-	alt: el.dataset.zoomAlt ?? '',
-	caption: el.dataset.zoomCaption || undefined,
-});
+/** A trigger carries either `data-zoom` (image) or `data-zoom-video` — the
+    same alt/caption dataset names double up across both kinds. */
+const toShot = (el: HTMLElement): Shot =>
+	el.dataset.zoomVideo
+		? { kind: 'video', src: el.dataset.zoomVideo, poster: el.dataset.zoomPoster || undefined, alt: el.dataset.zoomAlt ?? '' }
+		: { kind: 'image', src: el.dataset.zoom!, alt: el.dataset.zoomAlt ?? '', caption: el.dataset.zoomCaption || undefined };
 
 /** Wraps `index` by `delta` within a group of `length` shots — shared by
     keyboard (ArrowLeft/ArrowRight) and the on-screen chevrons so the two
@@ -35,12 +34,12 @@ export const Lightbox = () => {
 
 	useEffect(() => {
 		const onClick = (e: MouseEvent) => {
-			const trigger = (e.target as HTMLElement).closest<HTMLElement>('[data-zoom]');
+			const trigger = (e.target as HTMLElement).closest<HTMLElement>('[data-zoom], [data-zoom-video]');
 			if (!trigger) return;
 			e.preventDefault();
 
 			const row = trigger.closest<HTMLElement>('.row');
-			const triggers = row ? [...row.querySelectorAll<HTMLElement>('[data-zoom]')] : [trigger];
+			const triggers = row ? [...row.querySelectorAll<HTMLElement>('[data-zoom], [data-zoom-video]')] : [trigger];
 			setGroup({ shots: triggers.map(toShot), index: Math.max(0, triggers.indexOf(trigger)) });
 		};
 		document.addEventListener('click', onClick);
@@ -114,11 +113,27 @@ export const Lightbox = () => {
 				</>
 			)}
 
-			<img src={shot.src} alt={shot.alt} onClick={(e) => e.stopPropagation()} />
+			{shot.kind === 'video' ? (
+				<video
+					src={shot.src}
+					poster={shot.poster}
+					aria-label={shot.alt}
+					controls
+					autoPlay
+					muted
+					loop
+					playsInline
+					onClick={(e) => e.stopPropagation()}
+				/>
+			) : (
+				<img src={shot.src} alt={shot.alt} onClick={(e) => e.stopPropagation()} />
+			)}
 
-			{(shot.caption || many) && (
+			{((shot.kind === 'image' && shot.caption) || many) && (
 				<div className="lightbox__meta" onClick={(e) => e.stopPropagation()}>
-					{shot.caption && <p className="lightbox__caption type-annotation">{shot.caption}</p>}
+					{shot.kind === 'image' && shot.caption && (
+						<p className="lightbox__caption type-annotation">{shot.caption}</p>
+					)}
 					{many && (
 						<p className="lightbox__count type-annotation">
 							{group.index + 1} / {group.shots.length}
