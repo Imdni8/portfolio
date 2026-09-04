@@ -11,7 +11,6 @@
   },
   "type": "module",
   "dependencies": {
-    "@amplitude/unified": "^1.1.29",
     "@astrojs/mdx": "^7.0.5",
     "@astrojs/react": "^6.0.2",
     "@base-ui/react": "^1.7.0",
@@ -25,6 +24,7 @@
     "clsx": "^2.1.1",
     "gsap": "^3.15.0",
     "lucide-static": "^1.33.0",
+    "posthog-js": "^1.427.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwind-merge": "^3.6.0",
