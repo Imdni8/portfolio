@@ -45,8 +45,6 @@ export function initAnalytics(): void {
 		return;
 	}
 
-	/* Autocapture is on by default and covers generic element clicks; the named
-	   events below are the moments it cannot infer. */
 	posthog.init(API_KEY, {
 		api_host: API_HOST,
 		/* A dated snapshot of PostHog's own defaults, pinned so an SDK upgrade
@@ -62,6 +60,18 @@ export function initAnalytics(): void {
 		   above already selects it — writing it out means a later `defaults`
 		   bump cannot quietly take it away. */
 		capture_pageview: 'history_change',
+		/* Off deliberately. Autocapture writes a `$autocapture` event for every
+		   click, change and submit anywhere on the page — undifferentiated noise
+		   on a site whose interesting moments are all named below, and the thing
+		   that makes a taxonomy unreadable.
+
+		   Two things it is routinely confused with, and does not govern: page
+		   views come from `capture_pageview` above and still fire, and session
+		   replay is a project setting, not a client flag. Its neighbours are
+		   separate flags left at their defaults — `rageclick`, `enable_heatmaps`
+		   and `capture_dead_clicks`; turn those off too if the goal is a strictly
+		   named taxonomy rather than just quieter click data. */
+		autocapture: false,
 	});
 
 	/* Session replay has no config line to port from the Amplitude setup this
@@ -107,6 +117,12 @@ function cardTitle(card: HTMLElement): string | undefined {
 		.trim();
 }
 
+/** The case study's title, put into the DOM by CaseStudyLayout — see
+ *  trackCaseStudyOpened() for why it travels that way rather than as a prop. */
+function caseStudyTitle(): string | undefined {
+	return document.querySelector<HTMLElement>('[data-case-study]')?.dataset.caseStudy;
+}
+
 /** Every case study lives at `/work/<slug>`, so the URL is the slug. */
 function caseStudySlug(): string | undefined {
 	const parts = window.location.pathname.split('/').filter(Boolean);
@@ -137,10 +153,8 @@ export function trackCaseStudyOpened(): void {
 	initAnalytics();
 	if (!API_KEY) return;
 
-	const story = document.querySelector<HTMLElement>('[data-case-study]');
-
 	trackNow('Opened Case Study', {
-		case_study_title: story?.dataset.caseStudy,
+		case_study_title: caseStudyTitle(),
 		case_study_slug: caseStudySlug(),
 		is_external: false,
 	});
@@ -189,6 +203,27 @@ export function initInteractionTracking(): void {
 			return;
 		}
 
+		/* The curtain CTA that opens the long-form case study — keyed on
+		   `[data-read-more-expand]`, ReadInDetail's own behavioural hook, rather
+		   than on `.btn--secondary`, which is a shared style that says nothing
+		   about what the button does.
+
+		   ReadInDetail's listener calls `veil.remove()` on this same click, so
+		   the button is gone from the document by the time the click finishes.
+		   That is safe here: an event's propagation path is fixed when it is
+		   dispatched, so detaching the target mid-flight does not stop the event
+		   reaching this delegated listener on the way up. It does mean the
+		   button can be clicked at most once per page, so there is nothing to
+		   de-duplicate — the curtain is one-way by design. */
+		const readMore = target.closest<HTMLElement>('[data-read-more-expand]');
+		if (readMore) {
+			trackNow('Read Design Process', {
+				case_study_title: caseStudyTitle(),
+				case_study_slug: caseStudySlug(),
+			});
+			return;
+		}
+
 		const resume = target.closest<HTMLAnchorElement>('[data-analytics="resume"]');
 		if (resume) {
 			trackNow('Opened Resume');
@@ -219,6 +254,34 @@ export function initInteractionTracking(): void {
 	   are exactly the pages that soft-navigate, which is where this fires. */
 	document.addEventListener('astro:page-load', () => {
 		mascotSeen = false;
+	});
+}
+
+/** Bound once per document — see initHomepageTracking(). */
+let homepageBound = false;
+
+/* The homepage arrival, bound from Analytics.astro.
+
+   A listener rather than a one-shot call, because index and about share a
+   document under `<ClientRouter />`: arriving at `/` from `/about` is a
+   pushState, and a bundled module script does not re-execute for it — a
+   listener does. `astro:page-load` also fires on the initial load, and this
+   module runs from `<head>` before the router dispatches it, so the single
+   binding covers both arrivals rather than needing a separate first-load call.
+
+   The path test is what keeps this to the homepage: /about shares the document,
+   so without it the event would fire there too. Case study pages never reach it
+   at all — they mount no `<ClientRouter />`, so nothing dispatches
+   `astro:page-load` on them. */
+export function initHomepageTracking(): void {
+	if (homepageBound) return;
+	homepageBound = true;
+
+	initAnalytics();
+	if (!API_KEY) return;
+
+	document.addEventListener('astro:page-load', () => {
+		if (window.location.pathname === '/') trackNow('Homepage Visited');
 	});
 }
 
