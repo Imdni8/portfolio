@@ -77,9 +77,9 @@ const { title, subtitle, facts = [], hero, actions = {} } = Astro.props;
     `<ClientRouter />` — so this is a hard navigation and the script runs once
     per case study opened, which is exactly the moment the event names. */}
 <script>
-	import { trackCaseStudyViewed } from '../components/analytics/analytics';
+	import { trackCaseStudyOpened } from '../components/analytics/analytics';
 
-	trackCaseStudyViewed();
+	trackCaseStudyOpened();
 </script>
 
 <style is:global>
