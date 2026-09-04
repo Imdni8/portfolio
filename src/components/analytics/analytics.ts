@@ -17,14 +17,28 @@ import posthog from 'posthog-js';
    initAnalytics(), which turns a silent no-op into a visible warning. */
 const API_KEY = import.meta.env.PUBLIC_POSTHOG_KEY;
 
-/* The ingestion endpoint is region-specific, and this project's PostHog cloud
-   is EU — so that is the fallback here, deliberately not PostHog's own US
-   default. Sending to the wrong region is accepted and then dropped, so getting
-   this wrong fails as "everything looks fine and no data ever arrives"; falling
-   back to the region the project is actually in means a missing or forgotten
-   var degrades to correct behaviour instead of to that. The var survives as an
-   override, for pointing a build at a project in the other cloud. */
-const API_HOST = import.meta.env.PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com';
+/* Events leave through this site's own origin rather than going to
+   `eu.i.posthog.com` directly, because tracker blockers recognise PostHog's
+   ingestion path and drop the request before it ever leaves the browser. That
+   is measured, not assumed: from a real deployment every POST to `/i/v0/e/`
+   came back 503, while the identical request sent from curl on the same machine
+   got a 200 and the correct CORS headers back. Since every named event below
+   sets `send_instantly`, that one path carries all of them — so the blocked
+   case was 100% of custom events, not a shaved percentage.
+
+   `/ingest/*` is rewritten upstream in two places that have to agree, neither
+   of them visible from this file: `vercel.json` for the deployed site, and the
+   dev-server proxy in `astro.config.mjs` so localhost behaves identically. The
+   region now lives in those rewrites instead of in a `PUBLIC_POSTHOG_HOST`
+   variable — a same-origin host cannot carry one, and one region spelled across
+   two rewrite rules is already one more copy than ideal without adding a third
+   that can silently disagree. */
+const API_HOST = '/ingest';
+
+/* Where the PostHog *app* lives, as distinct from where events go. Without it
+   the toolbar and every "view this in PostHog" link resolve against `/ingest`
+   and 404, since that path only proxies ingestion. */
+const UI_HOST = 'https://eu.posthog.com';
 
 /* PostHog must be initialised exactly once per document.
 
@@ -47,6 +61,7 @@ export function initAnalytics(): void {
 
 	posthog.init(API_KEY, {
 		api_host: API_HOST,
+		ui_host: UI_HOST,
 		/* A dated snapshot of PostHog's own defaults, pinned so an SDK upgrade
 		   cannot change behaviour underneath the site. '2026-08-30' is the
 		   newest; among other things it injects the lazily-loaded replay script
