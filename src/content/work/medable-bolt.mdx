@@ -6,15 +6,12 @@ technology: AI agents
 year: 2026
 thumbnail:
     src: ../../assets/work/medable-bolt/00-thumbnail.png
-    alt: The Bolt chat handing a task off to the regulatory and dashboarding agents
-order: 30
+    alt: The Bolt chat running a tagged task, the regulatory agent searching the study database and returning five non-compliant studies
+order: 20
 roles:
     - kind: design-type
       label: New feature
 aiFeature: true
-# Draft. `unlisted` builds the page at /work/medable-bolt for review but keeps
-# the card off the homepage — flip to `published` once the story is written.
-status: unlisted
 subtitle: Bolt is the single source of intake for all tasks, handing them off to specialised agents built and validated for it, saving the user the trouble to choose the right agent for the task.
 facts:
     - label: Duration
@@ -28,7 +25,7 @@ facts:
 # the same way agent-versioning reuses its after shot.
 heroShot:
     src: ../../assets/work/medable-bolt/00-thumbnail.png
-    alt: The Bolt chat drafting a Slack message — Bolt hands the task off to the regulatory and dashboarding agents and reports each tool call as it runs
+    alt: The Bolt chat after a run — the task tagged with @regulatory agent and @dashboarding agent, each tool call listed as it completes, and five non-compliant studies returned
 ---
 
 import Figure from "../../components/case-study/Figure.astro";
@@ -70,55 +67,58 @@ before delegating their task. Bolt was conceived for solving this problem.
 </StorySection>
 
 <Solution>
-  <Slide>
-    <SlideVideo
-      slot="media"
-      src="/media/medable-bolt-agent-handoff.mp4"
-      poster={slideAgentHandoff}
-      alt="A task typed into Bolt, then a banner reading 'Bolt handed off to Regulatory agent and dashboarding agent' as the regulatory agent starts searching the study database"
-      pin="bottom-right"
-    />
-    <SlideText title="Bolt hands off to the right agent">
-      Users can initiate the task via Bolt and Bolt chooses the right agents for it, thus
-      minimising the need to know which agent does what.
-    </SlideText>
-  </Slide>
-  <Slide>
-    <SlideVideo
-      slot="media"
-      src="/media/medable-bolt-tag-agents.mp4"
-      poster={slideTagAgents}
-      alt="Typing @d into Bolt's composer opens an agent picker offering the dashboarding agent, tagging both the regulatory and dashboarding agents in the prompt"
-      pin="bottom-right"
-    />
-    <SlideText title="User can tag agents">
-      If the user knows which agents are appropriate for the job, they can tag them directly.
-    </SlideText>
-  </Slide>
-  <Slide>
-    <SlideVideo
-      slot="media"
-      src="/media/medable-bolt-in-conversation-auth.mp4"
-      poster={slideInConversationAuth}
-      alt="A Slack sign-in sheet opening inside the conversation when the connector's credentials have expired, so the run continues without leaving the chat"
-      pin="center"
-    />
-    <SlideText title="In conversation authentication">
-      To prevent the conversation from stalling if the credentials for a connector have expired,
-      Bolt can launch the authentication tool inside the conversation instead of asking them to
-      authenticate it first and then come back.
-    </SlideText>
-  </Slide>
+    <Slide>
+        <SlideVideo
+            slot="media"
+            src="/media/medable-bolt-agent-handoff.mp4"
+            poster={slideAgentHandoff}
+            alt="A task typed into Bolt, then a banner reading 'Bolt handed off to Regulatory agent and dashboarding agent' as the regulatory agent starts searching the study database"
+            pin="bottom-right"
+        />
+        <SlideText title="Bolt hands off to the right agent">
+            Users can initiate the task via Bolt and Bolt chooses the right
+            agents for it, thus minimising the need to know which agent does
+            what.
+        </SlideText>
+    </Slide>
+    <Slide>
+        <SlideVideo
+            slot="media"
+            src="/media/medable-bolt-tag-agents.mp4"
+            poster={slideTagAgents}
+            alt="Typing @d into Bolt's composer opens an agent picker offering the dashboarding agent, tagging both the regulatory and dashboarding agents in the prompt"
+            pin="bottom-right"
+        />
+        <SlideText title="User can tag agents">
+            If the user knows which agents are appropriate for the job, they can
+            tag them directly.
+        </SlideText>
+    </Slide>
+    <Slide>
+        <SlideVideo
+            slot="media"
+            src="/media/medable-bolt-in-conversation-auth.mp4"
+            poster={slideInConversationAuth}
+            alt="A Slack sign-in sheet opening inside the conversation when the connector's credentials have expired, so the run continues without leaving the chat"
+            pin="center"
+        />
+        <SlideText title="In conversation authentication">
+            To prevent the conversation from stalling if the credentials for a
+            connector have expired, Bolt can launch the authentication tool
+            inside the conversation instead of asking them to authenticate it
+            first and then come back.
+        </SlideText>
+    </Slide>
 </Solution>
 
 <StorySeam />
 
-{/* Everything inside <ReadInDetail> is clipped to a 344px peek and buried
-    under a wash until the reader opens it. It is real content, not a teaser —
-    so every closing tag below must sit flush left, including the nested ones.
-    An indented closing tag after a list reads to CommonMark as a continuation
-    of the last list item; the MDX compiler then fails with a RolldownError
-    pointing nowhere near the cause. See CLAUDE.md's case-studies section. */}
+{/_ Everything inside <ReadInDetail> is clipped to a 344px peek and buried
+under a wash until the reader opens it. It is real content, not a teaser —
+so every closing tag below must sit flush left, including the nested ones.
+An indented closing tag after a list reads to CommonMark as a continuation
+of the last list item; the MDX compiler then fails with a RolldownError
+pointing nowhere near the cause. See CLAUDE.md's case-studies section. _/}
 
 <ReadInDetail>
 
