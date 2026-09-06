@@ -1,5 +1,5 @@
 ---
-import { getImage } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import BeforeAfter, { dedupeNotes } from './BeforeAfter';
 import Icon from '../ui/Icon.astro';
 import type { ImageMetadata } from 'astro';
@@ -12,6 +12,9 @@ interface Props {
 		primary?: { label: string; href: string };
 		secondary?: { label: string; href: string };
 	};
+	/** A single opener shot, for a case study with nothing to compare. The
+	 *  schema keeps this and `hero` mutually exclusive. */
+	heroShot?: { src: ImageMetadata; alt: string };
 	hero?: {
 		before: ImageMetadata;
 		after: ImageMetadata;
@@ -24,7 +27,7 @@ interface Props {
 	};
 }
 
-const { title, subtitle, facts = [], actions = {}, hero } = Astro.props;
+const { title, subtitle, facts = [], actions = {}, hero, heroShot } = Astro.props;
 const beforeLabel = hero?.beforeLabel ?? 'Before';
 const afterLabel = hero?.afterLabel ?? 'After';
 const beforeNotes = hero?.beforeNotes ?? [];
@@ -104,8 +107,26 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 	</div>
 
 	{
+		heroShot && (
+			/* The still counterpart to the compare below: same frame, same
+			   width, no drag affordance. `sizes` is compareSizes for the same
+			   reason — the two openers occupy the identical box, so they want
+			   the identical responsive set. */
+			<div class="hero__frame hero__shot">
+				<Image
+					src={heroShot.src}
+					alt={heroShot.alt}
+					widths={shotWidths}
+					sizes={compareSizes}
+					quality={82}
+				/>
+			</div>
+		)
+	}
+
+	{
 		hero && before && after && (
-			<div class="hero__compare">
+			<div class="hero__frame hero__compare">
 				<BeforeAfter
 					client:load
 					before={{
@@ -347,11 +368,30 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 	   No background here: the island carries its own, and a sunken band exactly
 	   the width of the frame would do nothing but show square corners behind
 	   the frame's rounded ones. */
-	.hero__compare {
+	/* The opener's box, shared by both variants — a compare and a single shot
+	   are the same frame in the same slot, so the width lives here once rather
+	   than in two rules that could drift. */
+	.hero__frame {
 		max-width: calc(min(var(--measure-story), 100%) - 2 * var(--gutter));
 		margin-inline: auto;
 		/* The chapter rail follows immediately and is sticky, so it needs
 		   clearing rather than butting against the frame. */
 		margin-block-end: var(--spacing-4xl);
+	}
+
+	/* Radius and ground are lifted from `.ba` in components.css, so a still
+	   opener is cut to the same corner as a compare one. The compare owns its
+	   own copy there because it also clips two absolutely-positioned halves to
+	   it; this only has to clip one <img>. */
+	.hero__shot {
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+		background: var(--bg-sunken);
+	}
+
+	.hero__shot :global(img) {
+		display: block;
+		width: 100%;
+		height: auto;
 	}
 </style>

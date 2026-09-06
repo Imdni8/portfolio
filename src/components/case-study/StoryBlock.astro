@@ -1,7 +1,12 @@
 ---
 /**
- * One titled row inside a <StoryChapter>: a Playfair title across the width,
- * then the shot on the left and the copy on the right.
+ * One row inside a <StoryChapter>: an optional Playfair title across the
+ * width, then the shot on the left and the copy on the right.
+ *
+ * `title` is optional because a row is not always named by a heading — where
+ * the shot's own caption already names it ("Direction 1: Global chat"), a
+ * title above the copy would say it twice, in two places, at two rungs. The
+ * row still reads as one because the grid and the step below are unchanged.
  *
  * Two things are deliberately the reverse of StorySection, which is why this
  * is a component rather than a prop on that one:
@@ -18,15 +23,19 @@
 import { storyProse, storyHeading } from './story-type';
 
 interface Props {
-	title: string;
+	title?: string;
 }
 const { title } = Astro.props;
 ---
 
 <div>
-	<h3 class:list={['mb-4 text-lg leading-6', storyHeading]}>
-		{title}
-	</h3>
+	{
+		title && (
+			<h3 class:list={['mb-4 text-lg leading-6', storyHeading]}>
+				{title}
+			</h3>
+		)
+	}
 	{/* items-start so a short copy column doesn't stretch to a tall shot's
 	    height, and gap-12 to match the 48px the design puts between them. */}
 	<div class="grid gap-12 lg:grid-cols-2 lg:items-start">

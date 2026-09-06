@@ -1,0 +1,124 @@
+---
+import { Image, getImage } from 'astro:assets';
+import BoltShell from './BoltShell';
+
+/**
+ * The Bolt prototype as a <Slide> media slot — the counterpart to SlideVideo,
+ * for the one slide whose media is a running thing rather than a film of one.
+ *
+ * Goes in a `<Slide surface="bare">`, which drops the vid-bg.jpg backdrop and
+ * the card's padding: a pinned clip lies *on* that photograph, this fills the
+ * card instead.
+ *
+ * Hydration is `client:media`, not `client:visible`. Below the breakpoint the
+ * shell is replaced by a still, so hydrating there would ship an interactive
+ * island for something nobody can reach — the media query is the same one the
+ * stylesheet swaps on, and the two have to stay in step.
+ */
+interface Props {
+	/**
+	 * What a small screen sees instead. Optional: without it the fallback is an
+	 * honest line of copy rather than a broken frame, so the component never
+	 * hard-fails on a missing asset — but ship the still, it is the whole point
+	 * of the fallback.
+	 */
+	still?: ImageMetadata;
+	stillAlt?: string;
+}
+const { still, stillAlt = 'The Bolt agent chat after a run: two agents, their tool calls and results.' } =
+	Astro.props;
+
+/* The lightbox takes a URL, not an ImageMetadata — same as SlideVideo's
+   poster. Full design width, since this is the "look closer" copy. */
+const zoomUrl = still ? (await getImage({ src: still, width: 1440, format: 'webp' })).src : undefined;
+---
+
+<div class="bolt-slot">
+	<div class="bolt-slot__live">
+		<BoltShell client:media="(min-width: 48rem)" />
+	</div>
+	<div class="bolt-slot__still">
+		{
+			still ? (
+				/* A zoom trigger, so a small screen keeps the one affordance the
+				   shell's own expand button gives every other reader. It costs
+				   nothing: the page-level Lightbox already listens for [data-zoom]
+				   anywhere, so this is markup, not another island. */
+				<button
+					type="button"
+					class="bolt-slot__zoom"
+					data-zoom={zoomUrl}
+					data-zoom-alt={stillAlt}
+					aria-label={`Enlarge: ${stillAlt}`}
+				>
+					<Image src={still} alt={stillAlt} widths={[480, 760, 1120]} sizes="92vw" />
+				</button>
+			) : (
+				<p class="type-annotation">Open this on a wider screen to run the prototype.</p>
+			)
+		}
+	</div>
+</div>
+
+<style>
+	/* The media slot's own box. .solution-slide__media is the positioned,
+	   clipped, 16/10 card; everything in the slot resolves against it. */
+	.bolt-slot,
+	.bolt-slot__live,
+	.bolt-slot__still {
+		position: absolute;
+		inset: 0;
+	}
+
+	.bolt-slot__still {
+		display: grid;
+		place-items: center;
+		background: var(--bg-media);
+		color: var(--text-muted);
+		text-align: center;
+	}
+
+	/* Only the no-image fallback needs breathing room; the still itself fills
+	   the card edge to edge. */
+	.bolt-slot__still:not(:has(.bolt-slot__zoom)) {
+		padding: var(--spacing-4xl);
+	}
+
+	.bolt-slot__zoom {
+		appearance: none;
+		display: block;
+		width: 100%;
+		height: 100%;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: zoom-in;
+	}
+
+	.bolt-slot__zoom:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: -2px;
+	}
+
+	.bolt-slot__zoom :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	/* 48rem, the same breakpoint BoltShell hydrates at. Below it the shell is
+	   not merely hidden but never interactive, so the still is the whole
+	   experience rather than a poster in front of one. */
+	@media (min-width: 48rem) {
+		.bolt-slot__still {
+			display: none;
+		}
+	}
+
+	@media (max-width: 47.999rem) {
+		.bolt-slot__live {
+			display: none;
+		}
+	}
+</style>

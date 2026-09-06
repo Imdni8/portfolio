@@ -1,16 +1,193 @@
 ---
-title: Designing Bolt's agent experience
+title: "Designing Bolt: Agent studio's task orchestrator agent"
 # metadata
 industry: Clinical trials
 technology: AI agents
 year: 2026
 thumbnail:
     src: ../../assets/work/medable-bolt/00-thumbnail.png
-    alt: Placeholder thumbnail — case study not yet written
-order: 30
+    alt: The Bolt chat running a tagged task, the regulatory agent searching the study database and returning five non-compliant studies
+order: 20
 roles:
     - kind: design-type
       label: New feature
 aiFeature: true
-status: coming-soon
+subtitle: Bolt is the single source of intake for all tasks, handing them off to specialised agents built and validated for it, saving the user the trouble to choose the right agent for the task.
+facts:
+    - label: Duration
+      value: 2 weeks
+    - label: Role
+      value: Sole product designer
+    - label: Team
+      value: EPD (1 Des, 1 PM, 3 Devs)
+# A single opener rather than a before/after: Bolt is new, so there is no
+# earlier state of it to drag against. Same file as the card's thumbnail,
+# the same way agent-versioning reuses its after shot.
+heroShot:
+    src: ../../assets/work/medable-bolt/00-thumbnail.png
+    alt: The Bolt chat after a run — the task tagged with @regulatory agent and @dashboarding agent, each tool call listed as it completes, and five non-compliant studies returned
 ---
+
+import Figure from "../../components/case-study/Figure.astro";
+import StorySection from "../../components/case-study/StorySection.astro";
+import StoryChapter from "../../components/case-study/StoryChapter.astro";
+import StoryBlock from "../../components/case-study/StoryBlock.astro";
+import StorySeam from "../../components/case-study/StorySeam.astro";
+import ReadInDetail from "../../components/case-study/ReadInDetail.astro";
+import Solution from "../../components/case-study/Solution.astro";
+import Slide from "../../components/case-study/Slide.astro";
+import SlideVideo from "../../components/case-study/SlideVideo.astro";
+import SlideText from "../../components/case-study/SlideText.astro";
+
+import problemAgentList from "../../assets/work/medable-bolt/01-problem.png";
+// PLACEHOLDERS — flat hatched fills at the right aspect ratio. Drop the real
+// exports in over these three filenames and nothing else has to change.
+import logoIterations from "../../assets/work/medable-bolt/02-logo-iterations.png";
+import directionGlobalChat from "../../assets/work/medable-bolt/03-direction-global-chat.png";
+import directionSideChat from "../../assets/work/medable-bolt/04-direction-side-chat.png";
+
+import slideAgentHandoff from "../../assets/work/medable-bolt/slide-1-agent-handoff.png";
+import slideTagAgents from "../../assets/work/medable-bolt/slide-2-tag-agents.png";
+import slideInConversationAuth from "../../assets/work/medable-bolt/slide-3-in-conversation-auth.png";
+
+<StorySection heading="Problem" divider split="even">
+
+> User had to choose the right agent and keep all MCPs authenticated before they could start a conversation, leading to high setup friction
+
+The reason for having multiple agents was that each one could be audited and approved for
+specific tasks, which is great for compliance. But it also forced user to find the right agent
+before delegating their task. Bolt was conceived for solving this problem.
+
+<Figure
+    slot="visual"
+    src={problemAgentList}
+    alt="The agent list in Agent studio — five agent cards, each with its own description and version, and a Create Agent button"
+/>
+
+</StorySection>
+
+<Solution>
+    <Slide>
+        <SlideVideo
+            slot="media"
+            src="/media/medable-bolt-agent-handoff.mp4"
+            poster={slideAgentHandoff}
+            alt="A task typed into Bolt, then a banner reading 'Bolt handed off to Regulatory agent and dashboarding agent' as the regulatory agent starts searching the study database"
+            pin="bottom-right"
+        />
+        <SlideText title="Bolt hands off to the right agent">
+            Users can initiate the task via Bolt and Bolt chooses the right
+            agents for it, thus minimising the need to know which agent does
+            what.
+        </SlideText>
+    </Slide>
+    <Slide>
+        <SlideVideo
+            slot="media"
+            src="/media/medable-bolt-tag-agents.mp4"
+            poster={slideTagAgents}
+            alt="Typing @d into Bolt's composer opens an agent picker offering the dashboarding agent, tagging both the regulatory and dashboarding agents in the prompt"
+            pin="bottom-right"
+        />
+        <SlideText title="User can tag agents">
+            If the user knows which agents are appropriate for the job, they can
+            tag them directly.
+        </SlideText>
+    </Slide>
+    <Slide>
+        <SlideVideo
+            slot="media"
+            src="/media/medable-bolt-in-conversation-auth.mp4"
+            poster={slideInConversationAuth}
+            alt="A Slack sign-in sheet opening inside the conversation when the connector's credentials have expired, so the run continues without leaving the chat"
+            pin="center"
+        />
+        <SlideText title="In conversation authentication">
+            To prevent the conversation from stalling if the credentials for a
+            connector have expired, Bolt can launch the authentication tool
+            inside the conversation instead of asking them to authenticate it
+            first and then come back.
+        </SlideText>
+    </Slide>
+</Solution>
+
+<StorySeam />
+
+{/* Everything inside <ReadInDetail> is clipped to a 344px peek and buried
+under a wash until the reader opens it. It is real content, not a teaser —
+so every closing tag below must sit flush left, including the nested ones.
+An indented closing tag after a list reads to CommonMark as a continuation
+of the last list item; the MDX compiler then fails with a RolldownError
+pointing nowhere near the cause. See CLAUDE.md's case-studies section. */}
+
+<ReadInDetail>
+
+<StorySection heading="Bolt's identity">
+
+To differentiate Bolt from the rest of the agents, and give it more emphasis, I felt Bolt
+needed its own identity.
+
+I began by asking what feeling it should evoke — fast, instantaneous, energetic, raw. I studied
+images of bolts and thunder to finalise the following visual metaphors: sharp curves, dynamic,
+asymmetry.
+
+I explored 6–7 variations to arrive at the final logo.
+
+<Figure
+    src={logoIterations}
+    alt="Six lightning-bolt logo variations, each shown again below in the Create menu beside Bolt and Agents"
+    caption="Logo iterations"
+/>
+
+</StorySection>
+
+<StoryChapter heading="Embedding Bolt in Agent studio">
+
+<Fragment slot="intro">
+
+> Conversations with Bolt should feel like group chats between the user, Bolt and other agents Bolt “invites” to the chat
+
+When I began designing the Bolt experience, I asked myself how would the user relate to Bolt.
+After discussing with the PM, I proposed conversations with Bolt to be like group chats between
+the user, Bolt and other agents Bolt “invites” to the chat. Additionally, I was also solving for
+how user will find and interact with Bolt, for example, start a new chat and view previous chats.
+
+Some directions explored and dropped…
+
+</Fragment>
+
+<StoryBlock>
+
+<Figure
+    slot="visual"
+    src={directionGlobalChat}
+    alt="The agent list with a global Bolt chat summoned over the whole product surface"
+    caption="Direction 1: Global chat"
+/>
+
+I liked the idea of “summoning” Bolt anywhere on the product surface. But the complexity of
+managing previous chats and keeping current chats in context while allowing user to move around
+the product snowballed. Also, it required a big UI nav revamp which I wasn't sure of committing
+to without validating the efficacy of this approach. Leading me to drop this idea for the time
+being.
+
+</StoryBlock>
+
+<StoryBlock>
+
+<Figure
+    slot="visual"
+    src={directionSideChat}
+    alt="The agent list with Bolt docked as a side chat panel on the right, narrowing the content area"
+    caption="Direction 2: Side chat"
+/>
+
+Side chat has come up in a lot of enterprise products lately. I tried it but decided against it
+because it obstructed the view and added a lot of visual clutter to an already information dense
+screen.
+
+</StoryBlock>
+
+</StoryChapter>
+
+</ReadInDetail>

@@ -17,6 +17,7 @@ interface Props {
 	title: string;
 	subtitle: string;
 	facts?: { label: string; value: string }[];
+	heroShot?: { src: ImageMetadata; alt: string };
 	hero?: {
 		before: ImageMetadata;
 		after: ImageMetadata;
@@ -33,7 +34,7 @@ interface Props {
 	};
 }
 
-const { title, subtitle, facts = [], hero, actions = {} } = Astro.props;
+const { title, subtitle, facts = [], hero, heroShot, actions = {} } = Astro.props;
 ---
 
 <!doctype html>
@@ -53,7 +54,7 @@ const { title, subtitle, facts = [], hero, actions = {} } = Astro.props;
 		<meta property="og:type" content="article" />
 	</head>
 	<body>
-		<CaseStudyHero title={title} subtitle={subtitle} facts={facts} actions={actions} hero={hero} />
+		<CaseStudyHero title={title} subtitle={subtitle} facts={facts} actions={actions} hero={hero} heroShot={heroShot} />
 
 		{/* `data-case-study` is read by trackCaseStudyViewed(): a bundled Astro
 		    `<script>` is static and cannot see frontmatter, so the title has to
