@@ -1,16 +1,84 @@
 ---
-title: Designing Bolt's agent experience
+title: "Designing Bolt: Agent studio's task orchestrator agent"
 # metadata
 industry: Clinical trials
 technology: AI agents
 year: 2026
 thumbnail:
     src: ../../assets/work/medable-bolt/00-thumbnail.png
-    alt: Placeholder thumbnail — case study not yet written
+    alt: The Bolt chat handing a task off to the regulatory and dashboarding agents
 order: 30
 roles:
     - kind: design-type
       label: New feature
 aiFeature: true
-status: coming-soon
+# Draft. `unlisted` builds the page at /work/medable-bolt for review but keeps
+# the card off the homepage — flip to `published` once the story is written.
+status: unlisted
+subtitle: Bolt is the single source of intake for all tasks, handing them off to specialised agents built and validated for it, saving the user the trouble to choose the right agent for the task.
+facts:
+    - label: Duration
+      value: 2 weeks
+    - label: Role
+      value: Sole product designer
+    - label: Team
+      value: EPD (1 Des, 1 PM, 3 Devs)
+# A single opener rather than a before/after: Bolt is new, so there is no
+# earlier state of it to drag against. Same file as the card's thumbnail,
+# the same way agent-versioning reuses its after shot.
+heroShot:
+    src: ../../assets/work/medable-bolt/00-thumbnail.png
+    alt: The Bolt chat drafting a Slack message — Bolt hands the task off to the regulatory and dashboarding agents and reports each tool call as it runs
 ---
+
+import Figure from "../../components/case-study/Figure.astro";
+import StorySection from "../../components/case-study/StorySection.astro";
+import Solution from "../../components/case-study/Solution.astro";
+import Slide from "../../components/case-study/Slide.astro";
+import SlideVideo from "../../components/case-study/SlideVideo.astro";
+import SlideText from "../../components/case-study/SlideText.astro";
+
+import problemAgentList from "../../assets/work/medable-bolt/01-problem.png";
+
+<StorySection heading="Problem" divider split="even">
+
+> User had to choose the right agent and keep all MCPs authenticated before they could start a conversation, leading to high setup friction
+
+The reason for having multiple agents was that each one could be audited and approved for
+specific tasks, which is great for compliance. But it also forced user to find the right agent
+before delegating their task. Bolt was conceived for solving this problem.
+
+<Figure
+    slot="visual"
+    src={problemAgentList}
+    alt="The agent list in Agent studio — five agent cards, each with its own description and version, and a Create Agent button"
+/>
+
+</StorySection>
+
+<Solution>
+  {/* TODO: films pending. Each slide below renders Slide's placeholder card
+      until its <SlideVideo slot="media" …> lands. Pins are decided already —
+      noted per slide so wiring a clip is a fill-in, not a fresh framing call. */}
+  <Slide>
+    {/* <SlideVideo slot="media" src="/media/medable-bolt-agent-handoff.mp4" poster={…} alt="…" pin="bottom-left" /> */}
+    <SlideText title="Bolt hands off to the right agent">
+      Users can initiate the task via Bolt and Bolt chooses the right agents for it, thus
+      minimising the need to know which agent does what.
+    </SlideText>
+  </Slide>
+  <Slide>
+    {/* <SlideVideo slot="media" src="/media/medable-bolt-tag-agents.mp4" poster={…} alt="…" pin="bottom-left" /> */}
+    <SlideText title="User can tag agents">
+      If the user knows which agents are appropriate for the job, they can tag them directly.
+    </SlideText>
+  </Slide>
+  <Slide>
+    {/* <SlideVideo slot="media" src="/media/medable-bolt-in-conversation-auth.mp4" poster={…} alt="…" pin="center" /> */}
+    <SlideText title="In conversation authentication">
+      To prevent the conversation from stalling if the credentials for a connector have expired,
+      Bolt can launch the authentication tool inside the conversation instead of asking them to
+      authenticate it first and then come back.
+    </SlideText>
+  </Slide>
+</Solution>

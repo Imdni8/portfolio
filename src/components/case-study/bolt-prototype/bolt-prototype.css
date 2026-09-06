@@ -1,0 +1,815 @@
+/* ---------------------------------------------------------------------------
+   The Bolt prototype's own stylesheet.
+
+   THIS FILE IS THE ONE DOCUMENTED EXCEPTION TO THE PROJECT'S "always use the
+   design tokens" rule, and the exception is bounded to exactly what is inside
+   `.bolt-proto__stage`.
+
+   Why: the stage is a picture of somebody else's product. Repainting Medable's
+   app in this portfolio's amber-and-grey would not make it more consistent, it
+   would make it a lie — the reader is being shown what shipped, and what
+   shipped is purple. So the shell carries its own palette, declared once on
+   `.bolt-proto` below and sampled from the reference screenshot, and every
+   value inside the stage is a literal px against a fixed 1440x900 design box.
+
+   Where the exception stops: anything the *site* owns still reads tokens.css —
+   the expand button, the modal's chrome, the small-screen fallback frame. Those
+   are marked in place. If a colour in here ever needs to answer to the site's
+   theme, it is in the wrong half of this file.
+
+   The one thing the shell does borrow is `--font-sans`. The product is set in
+   Inter and so is this site, so reaching for the already-loaded face is more
+   faithful than shipping a second copy of the same font.
+   ------------------------------------------------------------------------- */
+
+/* The island's own root. Fills whatever box BoltPrototype.astro hands it —
+   the media card in place, the sized frame inside the modal. */
+.bolt-proto__host {
+	position: absolute;
+	inset: 0;
+}
+
+.bolt-proto {
+	/* Sampled from the reference screenshot, pending the real brand values. */
+	--bolt-bg: #ffffff;
+	--bolt-bg-sunken: #f9fafb;
+	--bolt-bg-subtle: #f7f8f9;
+	--bolt-bg-hover: #eff1f3;
+	--bolt-border: #edeef1;
+	--bolt-border-strong: #e2e5ea;
+	--bolt-text: #101828;
+	--bolt-text-secondary: #344054;
+	--bolt-text-muted: #71757e;
+	--bolt-text-subtle: #98a0aa;
+	--bolt-brand: #5f46cf;
+	--bolt-brand-soft: #ede9fd;
+	--bolt-accent-blue: #5272f6;
+	--bolt-accent-purple: #9660f6;
+	--bolt-accent-lilac: #efcafc;
+	--bolt-amber: #ca8a04;
+
+	/* The design box every literal px below is measured against. The card it
+	   sits in is 16/10, and so is this, so nothing letterboxes. */
+	--bolt-design-w: 1440px;
+	--bolt-design-h: 900px;
+
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	container-type: inline-size;
+	background: var(--bolt-bg);
+}
+
+/* The whole shell is authored at 1440x900 and scaled to whatever box it lands
+   in, so one set of px values serves the 1072px card and a 1600px modal alike.
+
+   The calc() is the pre-hydration default and wants length-over-length
+   division (Chrome 116+, Safari 17.4+, Firefox 118+). BoltShell.tsx overwrites
+   --bolt-scale inline from a ResizeObserver the moment it mounts, which both
+   wins over this and covers the browsers where the division does not parse —
+   there the transform is simply invalid for one frame and the shell renders
+   unscaled behind `overflow: hidden`. */
+.bolt-proto__stage {
+	--bolt-scale: calc(100cqw / 1440);
+	position: absolute;
+	inset: 0;
+	width: var(--bolt-design-w);
+	height: var(--bolt-design-h);
+	transform: scale(var(--bolt-scale));
+	transform-origin: top left;
+	font-family: var(--font-sans);
+	font-size: 14px;
+	line-height: 1.45;
+	color: var(--bolt-text);
+	background: var(--bolt-bg);
+	text-align: left;
+	-webkit-font-smoothing: antialiased;
+}
+
+.bolt-proto__stage *,
+.bolt-proto__stage *::before,
+.bolt-proto__stage *::after {
+	box-sizing: border-box;
+}
+
+/* Inline SVGs come in at their own viewBox size; every glyph in here is sized
+   by its container instead. */
+.bolt-proto__stage svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	stroke-width: 1.75;
+}
+
+/* --- shell frame ---------------------------------------------------------- */
+
+.bolt-app {
+	display: grid;
+	grid-template-rows: 56px minmax(0, 1fr);
+	height: 100%;
+	background: var(--bolt-bg);
+}
+
+.bolt-topbar {
+	display: grid;
+	grid-template-columns: 256px minmax(0, 1fr) auto;
+	align-items: center;
+	border-bottom: 1px solid var(--bolt-border);
+	padding-inline-end: 20px;
+}
+
+.bolt-topbar__brand {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-inline-start: 20px;
+	color: var(--bolt-brand);
+}
+
+.bolt-topbar__brand-mark {
+	width: 26px;
+	height: 26px;
+	flex: none;
+}
+
+.bolt-topbar__brand-name {
+	font-size: 19px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+	color: var(--bolt-text);
+}
+
+.bolt-topbar__nav {
+	display: flex;
+	align-items: center;
+	gap: 28px;
+	height: 100%;
+	padding-inline-start: 12px;
+}
+
+.bolt-topbar__link {
+	position: relative;
+	display: flex;
+	align-items: center;
+	height: 100%;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--bolt-text-muted);
+	white-space: nowrap;
+}
+
+.bolt-topbar__link[data-active] {
+	color: var(--bolt-brand);
+	font-weight: 600;
+}
+
+.bolt-topbar__link[data-active]::after {
+	content: '';
+	position: absolute;
+	inset-inline: -2px;
+	bottom: -1px;
+	height: 2px;
+	background: var(--bolt-brand);
+	border-radius: 2px 2px 0 0;
+}
+
+.bolt-topbar__end {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	color: var(--bolt-text-muted);
+}
+
+.bolt-topbar__workspace {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--bolt-text-secondary);
+}
+
+.bolt-topbar__workspace span {
+	width: 16px;
+	height: 16px;
+}
+
+.bolt-topbar__divider {
+	width: 1px;
+	height: 24px;
+	background: var(--bolt-border);
+}
+
+.bolt-topbar__icon {
+	width: 20px;
+	height: 20px;
+	color: var(--bolt-text-muted);
+}
+
+.bolt-topbar__avatar {
+	width: 28px;
+	height: 28px;
+	color: var(--bolt-text-subtle);
+}
+
+.bolt-body {
+	display: grid;
+	grid-template-columns: 256px minmax(0, 1fr);
+	min-height: 0;
+}
+
+/* --- sidebar -------------------------------------------------------------- */
+
+.bolt-sidebar {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-height: 0;
+	padding: 14px 12px 16px;
+	overflow: hidden;
+	background: var(--bolt-bg-sunken);
+	border-inline-end: 1px solid var(--bolt-border);
+}
+
+.bolt-sidebar__label {
+	padding: 8px 8px 4px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--bolt-text-subtle);
+}
+
+.bolt-sidebar__group {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 8px;
+	border-radius: 6px;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--bolt-brand);
+}
+
+.bolt-sidebar__group-mark {
+	width: 20px;
+	height: 20px;
+	flex: none;
+}
+
+.bolt-sidebar__group-caret {
+	width: 16px;
+	height: 16px;
+	margin-inline-start: auto;
+	color: var(--bolt-text-muted);
+}
+
+.bolt-sidebar__chat {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 32px;
+	padding: 0 8px 0 20px;
+	border-radius: 6px;
+	font-size: 14px;
+	color: var(--bolt-text-secondary);
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.bolt-sidebar__chat[data-current] {
+	background: var(--bolt-bg-hover);
+	font-weight: 600;
+	color: var(--bolt-text);
+}
+
+.bolt-sidebar__chat span {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.bolt-sidebar__dot {
+	width: 7px;
+	height: 7px;
+	flex: none;
+	border-radius: 50%;
+	background: var(--bolt-brand);
+}
+
+.bolt-sidebar__dot[data-dot='amber'] {
+	background: var(--bolt-amber);
+}
+
+/* Sized as a glyph, not as the 7px status dot the chat rows otherwise carry. */
+.bolt-sidebar__chat-icon {
+	width: 16px;
+	height: 16px;
+	flex: none;
+	color: var(--bolt-text-muted);
+}
+
+.bolt-sidebar__dot[data-dot='idle'] {
+	background: transparent;
+	box-shadow: inset 0 0 0 1px var(--bolt-text-subtle);
+}
+
+.bolt-sidebar__item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 34px;
+	padding: 0 8px;
+	border-radius: 6px;
+	font-size: 14px;
+	color: var(--bolt-text-secondary);
+}
+
+.bolt-sidebar__item i {
+	width: 18px;
+	height: 18px;
+	flex: none;
+	color: var(--bolt-text-muted);
+}
+
+.bolt-sidebar__rule {
+	height: 1px;
+	margin: 8px 8px 4px;
+	background: var(--bolt-border);
+}
+
+/* --- main column ---------------------------------------------------------- */
+
+.bolt-main {
+	display: grid;
+	grid-template-rows: 40px minmax(0, 1fr) auto;
+	min-height: 0;
+	background: var(--bolt-bg);
+}
+
+.bolt-titlebar {
+	display: flex;
+	align-items: center;
+	padding-inline: 24px;
+	border-bottom: 1px solid var(--bolt-border);
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--bolt-text-secondary);
+}
+
+.bolt-thread {
+	min-height: 0;
+	overflow-y: auto;
+	scrollbar-width: none;
+	scroll-behavior: smooth;
+}
+
+.bolt-thread::-webkit-scrollbar {
+	display: none;
+}
+
+.bolt-thread__inner {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	width: 748px;
+	max-width: 100%;
+	margin: 0 auto;
+	padding: 40px 0 32px;
+}
+
+/* Every unit lands with the same short rise. `.bolt-in` is added by the view
+   to whatever has just been revealed. */
+@keyframes bolt-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.bolt-in {
+	animation: bolt-in 260ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* --- thread units --------------------------------------------------------- */
+
+.bolt-user {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 6px;
+}
+
+.bolt-user__bubble {
+	/* Measured off the reference, where the prompt breaks over three lines. */
+	max-width: 330px;
+	padding: 12px 16px;
+	border-radius: 10px;
+	background: var(--bolt-bg-subtle);
+	font-size: 15px;
+	line-height: 1.5;
+	color: var(--bolt-text);
+}
+
+.bolt-user__time {
+	font-size: 12px;
+	color: var(--bolt-text-subtle);
+}
+
+.bolt-thought {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 13px;
+	color: var(--bolt-text-muted);
+}
+
+.bolt-thought i {
+	width: 14px;
+	height: 14px;
+}
+
+.bolt-text {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.55;
+	color: var(--bolt-text);
+}
+
+/* Holds the line's full width open while it types, so nothing below it jumps
+   line by line as characters land. */
+.bolt-text__caret {
+	display: inline-block;
+	width: 1px;
+	height: 1em;
+	margin-inline-start: 1px;
+	translate: 0 2px;
+	background: var(--bolt-text);
+	animation: bolt-caret 900ms steps(2, start) infinite;
+}
+
+@keyframes bolt-caret {
+	to {
+		opacity: 0;
+	}
+}
+
+/* --- agent card ----------------------------------------------------------- */
+
+.bolt-agent {
+	display: flex;
+	flex-direction: column;
+}
+
+.bolt-agent__head {
+	display: grid;
+	grid-template-columns: 32px minmax(0, 1fr);
+	gap: 10px;
+	align-items: center;
+}
+
+.bolt-agent__avatar {
+	display: grid;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	padding: 6px;
+	border-radius: 8px;
+	background: var(--bolt-brand);
+	color: #ffffff;
+}
+
+.bolt-agent__name {
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--bolt-text);
+}
+
+.bolt-agent__status {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 13px;
+	color: var(--bolt-text-muted);
+}
+
+.bolt-agent__status i {
+	width: 14px;
+	height: 14px;
+}
+
+.bolt-agent[data-state='running'] .bolt-agent__status {
+	animation: bolt-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes bolt-pulse {
+	50% {
+		opacity: 0.45;
+	}
+}
+
+.bolt-agent__log {
+	display: flex;
+	flex-direction: column;
+	padding-inline-start: 8px;
+}
+
+/* Each row carries the connector segment above it, so the rail is drawn by
+   the rows that exist rather than by a single line that would have to know
+   where the last one ended. */
+.bolt-tool {
+	position: relative;
+	display: grid;
+	grid-template-columns: 16px minmax(0, 1fr) auto;
+	gap: 8px;
+	align-items: center;
+	padding-top: 14px;
+	font-size: 13px;
+	color: var(--bolt-text-secondary);
+}
+
+.bolt-tool::before {
+	content: '';
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline-start: 7px;
+	width: 1px;
+	height: 14px;
+	background: var(--bolt-border-strong);
+}
+
+.bolt-tool i {
+	width: 16px;
+	height: 16px;
+	color: var(--bolt-text-muted);
+}
+
+.bolt-tool__meta {
+	font-size: 12px;
+	color: var(--bolt-text-subtle);
+}
+
+.bolt-results {
+	margin-block-start: 10px;
+	margin-inline-start: 24px;
+	padding: 6px 0;
+	border: 1px solid var(--bolt-border);
+	border-radius: 10px;
+	background: var(--bolt-bg-sunken);
+}
+
+.bolt-results__row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 7px 14px;
+	font-size: 13px;
+	color: var(--bolt-text-secondary);
+}
+
+.bolt-results__row i {
+	width: 16px;
+	height: 16px;
+	flex: none;
+}
+
+/* --- composer ------------------------------------------------------------- */
+
+.bolt-composer {
+	padding: 0 0 26px;
+}
+
+.bolt-composer__inner {
+	width: 748px;
+	max-width: 100%;
+	margin: 0 auto;
+	border-top: 1px solid var(--bolt-border);
+	padding-top: 20px;
+}
+
+.bolt-composer__box {
+	display: grid;
+	grid-template-columns: 20px minmax(0, 1fr) auto auto;
+	gap: 12px;
+	align-items: center;
+	min-height: 56px;
+	padding: 8px 12px;
+	border: 2px solid var(--bolt-border-strong);
+	border-radius: 12px;
+	background: var(--bolt-bg);
+}
+
+/* The gradient edge is the product's own "working" affordance, so it is bound
+   to the running state rather than worn all the time. Painted as two stacked
+   backgrounds clipped to different boxes, since a gradient cannot be a
+   border-color. */
+.bolt-composer__box[data-state='running'] {
+	border-color: transparent;
+	background-image:
+		linear-gradient(var(--bolt-bg), var(--bolt-bg)),
+		linear-gradient(
+			95deg,
+			var(--bolt-accent-blue),
+			var(--bolt-accent-purple) 55%,
+			var(--bolt-accent-lilac)
+		);
+	background-origin: border-box;
+	background-clip: padding-box, border-box;
+}
+
+.bolt-composer__plus {
+	width: 20px;
+	height: 20px;
+	color: var(--bolt-text-muted);
+}
+
+.bolt-composer__field {
+	font-size: 15px;
+	color: var(--bolt-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.bolt-composer__field[data-placeholder] {
+	color: var(--bolt-text-subtle);
+}
+
+.bolt-composer__mic {
+	width: 20px;
+	height: 20px;
+	color: var(--bolt-text-muted);
+}
+
+/* The one genuinely interactive control inside the shell. It is a real
+   <button> wearing the product's look — the reader has to be able to press it,
+   so it takes a real focus ring rather than the shell's flat mimicry. */
+.bolt-composer__send {
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	padding: 8px;
+	border: 0;
+	border-radius: 8px;
+	background-image: linear-gradient(135deg, var(--bolt-accent-blue), var(--bolt-accent-purple));
+	color: #ffffff;
+	cursor: pointer;
+	transition: filter 150ms ease;
+}
+
+.bolt-composer__send:hover {
+	filter: brightness(1.08);
+}
+
+.bolt-composer__send:focus-visible {
+	outline: 2px solid var(--bolt-accent-purple);
+	outline-offset: 2px;
+}
+
+.bolt-composer__send svg {
+	stroke-width: 2.25;
+}
+
+/* Stop is a filled square, matching the reference. */
+.bolt-composer__send[data-action='stop'] svg {
+	fill: currentColor;
+}
+
+/* --- site-owned chrome ---------------------------------------------------- */
+/* Everything below this line answers to tokens.css, not to the palette above.
+   These are the portfolio's own controls sitting on top of the picture. */
+
+.bolt-proto__controls {
+	position: absolute;
+	inset-block-start: var(--spacing-lg);
+	inset-inline-end: var(--spacing-lg);
+	z-index: 2;
+	display: flex;
+	gap: var(--spacing-sm);
+}
+
+/* The card is a light surface whatever the page theme is, so these controls
+   pin themselves to the dark end rather than following --text. */
+.bolt-proto__controls .icon-btn {
+	background: color-mix(in srgb, var(--gray-950) 72%, transparent);
+	border-color: color-mix(in srgb, var(--gray-50) 24%, transparent);
+	color: var(--gray-50);
+	backdrop-filter: blur(6px);
+}
+
+.bolt-proto__controls .icon-btn:hover {
+	background: color-mix(in srgb, var(--gray-950) 84%, transparent);
+	border-color: color-mix(in srgb, var(--gray-50) 40%, transparent);
+}
+
+/* A "press to run" invitation, centred in the card. It is a label, not a
+   button: the composer's send is the control, and two things to press for one
+   action is one too many — hence `pointer-events: none`, so it can never eat
+   the click it is asking for.
+
+   Centred rather than pinned to the bottom, which is where it started: an
+   empty thread is the biggest thing on the idle card, and a pill floating over
+   the composer covered the very control it was pointing at. Here it reads as
+   the thread's own empty state, and it fades out from exactly where the
+   transcript is about to appear. */
+.bolt-proto__hint {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: grid;
+	place-items: center;
+	margin: 0;
+	pointer-events: none;
+	transition: opacity 240ms ease;
+}
+
+.bolt-proto__hint span {
+	padding: var(--spacing-md) var(--spacing-xl);
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--gray-950) 76%, transparent);
+	color: var(--gray-50);
+	backdrop-filter: blur(6px);
+}
+
+.bolt-proto__hint[data-hidden] {
+	opacity: 0;
+}
+
+/* --- expanded ------------------------------------------------------------- */
+
+/* Promoted to the top layer, which is what gets it out from under both
+   .solution-slide__media's overflow clip and the track's mask without a
+   z-index fight. */
+.bolt-proto__dialog {
+	width: 100vw;
+	max-width: 100vw;
+	height: 100dvh;
+	max-height: 100dvh;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	overflow: hidden;
+}
+
+.bolt-proto__dialog::backdrop {
+	background: color-mix(in srgb, var(--gray-950) 92%, transparent);
+}
+
+.bolt-proto__dialog-inner {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 100%;
+	height: 100%;
+	padding: var(--spacing-4xl);
+}
+
+/* The scaled stage needs a box with the design box's ratio to sit in, so the
+   ResizeObserver has something honest to measure. */
+.bolt-proto__dialog .bolt-proto {
+	position: relative;
+	inset: auto;
+	width: min(100%, calc((100dvh - var(--spacing-4xl) * 2) * 1.6));
+	aspect-ratio: 16 / 10;
+	border-radius: var(--radius-lg);
+	box-shadow: 0 24px 80px color-mix(in srgb, var(--gray-950) 60%, transparent);
+}
+
+/* Sits on the modal's backdrop rather than on the shell, so it never has to
+   compete with whatever the product draws in its own top-right corner. */
+.bolt-proto__close {
+	position: absolute;
+	inset-block-start: var(--spacing-lg);
+	inset-inline-end: var(--spacing-lg);
+	z-index: 3;
+	background: color-mix(in srgb, var(--gray-950) 72%, transparent);
+	border-color: color-mix(in srgb, var(--gray-50) 24%, transparent);
+	color: var(--gray-50);
+}
+
+.bolt-proto__close:hover {
+	background: color-mix(in srgb, var(--gray-950) 84%, transparent);
+	border-color: color-mix(in srgb, var(--gray-50) 40%, transparent);
+}
+
+/* --- motion --------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+	.bolt-in,
+	.bolt-agent[data-state='running'] .bolt-agent__status,
+	.bolt-text__caret {
+		animation: none;
+	}
+
+	.bolt-thread {
+		scroll-behavior: auto;
+	}
+
+	.bolt-proto__hint,
+	.bolt-composer__send {
+		transition-duration: 0.01ms;
+	}
+}

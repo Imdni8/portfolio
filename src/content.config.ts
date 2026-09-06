@@ -126,6 +126,13 @@ const work = defineCollection({
 					})
 					.optional(),
 
+				/** Single full-bleed opener shot, for a case study whose opener is
+				 *  one state rather than a pair — there is nothing to compare, so
+				 *  a drag handle would be an affordance over a still. Mutually
+				 *  exclusive with `hero` above (enforced below): both would put
+				 *  two openers in the same slot with no defined order. */
+				heroShot: z.object({ src: image(), alt: z.string() }).optional(),
+
 				/** Hero actions. `video` scrolls to the outcome film, `read` to the body. */
 				actions: z
 					.object({
@@ -141,6 +148,10 @@ const work = defineCollection({
 			.refine((data) => data.status !== 'external' || Boolean(data.externalUrl), {
 				message: 'externalUrl is required when status is "external"',
 				path: ['externalUrl'],
+			})
+			.refine((data) => !(data.hero && data.heroShot), {
+				message: 'set either `hero` (a before/after compare) or `heroShot` (a single shot), not both',
+				path: ['heroShot'],
 			})
 			.refine((data) => data.roles.some((role) => role.kind === 'design-type'), {
 				message: 'roles must include a "design-type" entry',
