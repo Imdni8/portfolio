@@ -69,7 +69,7 @@ const socials = [
 	   tokens.css. */
 	.site-footer {
 		/* `position: relative` (not the default static) promotes this into
-		   the same paint step as `.hero-intro`/`.work` on the homepage — the
+		   the same paint step as `.hero`/`.work` on the homepage — the
 		   homepage and about page both have a `position: fixed` water-field
 		   background with z-index:auto, which paints *after* (on top of)
 		   static in-flow content per the CSS stacking spec, regardless of
@@ -243,6 +243,7 @@ const socials = [
 		color: var(--text-muted);
 		white-space: nowrap;
 	}
+
 
 	.site-footer__tagline {
 		color: var(--primary-text);

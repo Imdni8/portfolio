@@ -464,11 +464,11 @@
    The label is the other half, and it is not solvable from here: it is the
    smallest type on the page and it sits on the ring's bright inner edge, so no
    opacity that leaves a visible effect recovers it — at 10% it is still only
-   2.79:1 against 4.5:1. Mounting the ring again means dealing with
-   `.hero-intro__clients-label` in index.astro at the same time, either by
-   moving it up a step to `--text-body` (4.54:1 on that ground) or by giving it
-   a ground of its own. It reads `--text-muted` today, which is correct with no
-   ring over it and wrong the moment there is one.
+   2.79:1 against 4.5:1. Half of that is now dealt with: the label
+   (`.hero__clients-label` in index.astro, renamed with the hero rebuild) moved
+   up a step to `--text-body`, 4.54:1 on that ground — it was already short of
+   the water field's own measured budget without any ring at all. What is left
+   is the wordmark's, above; the label no longer blocks a remount.
 
    The blend reaches the water field and stops there: `.site-field` isolates,
    so nothing below the background can be blended into.

@@ -1,15 +1,12 @@
 ---
 import { NavMenu } from './NavMenu';
+import Icon from '../ui/Icon.astro';
+import { links } from '../../data/links';
 import logoMark from '../../assets/nav/logo.svg?raw';
 
-/* Which link wears the current-page state, read off the URL rather than
-   hardcoded — the nav is rendered by every page that has one, so a literal
-   here marks the wrong link the moment there is more than one such page.
-   `startsWith` on /about so a future /about/… subpage keeps the mark; the
-   work index is an exact match, since /work/<slug> pages render no nav. */
-const path = Astro.url.pathname;
-const onWork = path === '/' || path === '';
-const onAbout = path.startsWith('/about');
+/* No `aria-current` anywhere in here any more: the nav holds one off-site
+   link and one dropdown, and neither can ever be the current page. The brand
+   mark is the only route back to `/`, which is also what it was before. */
 ---
 
 <header class="nav-shell" transition:persist>
@@ -18,8 +15,24 @@ const onAbout = path.startsWith('/about');
 
 		<div class="nav__group">
 			<nav class="nav__links" aria-label="Primary">
-				<a class="nav__link text-sm" href="/" aria-current={onWork ? 'page' : undefined}>Work</a>
-				<a class="nav__link text-sm" href="/about" aria-current={onAbout ? 'page' : undefined}>About</a>
+				{/* Off-site (Drive), so it takes the same arrow the Side-projects rows
+				    use — one glyph from icons.ts, not a second copy of it. `links` is
+				    the shared declaration in src/data/links.ts, so the footer and this
+				    cannot drift onto different résumé URLs. */}
+				<a
+					class="nav__link nav__link--external text-sm"
+					href={links.resume}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Resume<span class="sr-only"> (opens in new tab)</span>
+					{/* The span is what moves; the link's own `overflow: hidden` is what
+					    hides it at rest. Same arrangement as a Side-projects row, and the
+					    same code drives both — see nav-dropdown.ts. .icon inside is
+					    already 1em square (components.css), so the glyph tracks the link's
+					    `text-sm` and inherits its muted -> full hover colour. */}
+					<span class="nav__link-arrow"><Icon name="arrow-up-right" /></span>
+				</a>
 			</nav>
 
 			<NavMenu client:load />
@@ -51,12 +64,18 @@ const onAbout = path.startsWith('/about');
 		padding-inline: var(--gutter);
 	}
 
+	/* Brand, Resume and Side projects read as one left cluster now rather than
+	   as a mark on one edge and a group on the other — the row is short enough
+	   that splitting it across 1240px left the right-hand pair looking stranded.
+	   `--spacing-6xl` sets the mark apart from the links; the links keep the
+	   tighter `--spacing-3xl` between themselves, so the grouping reads. */
 	.nav-shell__inner {
 		max-width: var(--measure-content);
 		margin-inline: auto;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: flex-start;
+		gap: var(--spacing-6xl);
 	}
 
 	/* The band. A pseudo-element rather than a background on `.nav-shell`
@@ -120,6 +139,9 @@ const onAbout = path.startsWith('/about');
 	   itself is untouched (the chapter rail and Tabs still wear it at 16px);
 	   this is the nav opting into the smaller Tailwind scale on its own. */
 	.nav__link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-xs);
 		font-family: var(--font-sans);
 		font-weight: var(--weight-medium);
 		padding-block: var(--spacing-md);
@@ -132,11 +154,27 @@ const onAbout = path.startsWith('/about');
 		color: var(--text);
 	}
 
-	/* Active state carries weight and colour together — never colour alone —
-	   just without the sliding underline bar this used to pair with. */
-	.nav__link[aria-current='page'] {
-		color: var(--primary-text);
-		font-weight: var(--weight-bold);
+	/* The arrow flies in diagonally on hover and back out on leave, exactly as
+	   a Side-projects row's does — nav-dropdown.ts drives both off one pair of
+	   selectors. Two things make it work, and both mirror
+	   `.nav-dropdown__item`/`.nav-dropdown__item-arrow`:
+
+	   `overflow: hidden` is the clip. The arrow is parked well outside the
+	   link's padding box at rest, and this is what stops it being drawn there.
+
+	   The rest transform lives here in CSS rather than being set by the script,
+	   for the reason nav-dropdown.ts's header gives: the element has to already
+	   look right before any JS has touched it. 6rem is the same generous
+	   overshoot the dropdown rows use — the script tweens from the row's own
+	   measured height, so this value only has to clear the box, not match. */
+	.nav__link--external {
+		overflow: hidden;
+	}
+
+	.nav__link-arrow {
+		display: inline-flex;
+		flex-shrink: 0;
+		transform: translate(-6rem, 6rem);
 	}
 
 	/* .nav-dropdown is NavMenu.tsx's <NavigationMenu> root — a React island,
@@ -369,39 +407,20 @@ const onAbout = path.startsWith('/about');
 	   why that ordering actually matters (a hydration-mismatch bug, not
 	   just tidiness). */
 
-	/* Keeps `aria-current` (and with it, .nav__link[aria-current='page']'s
-	   colour/weight) honest about the URL. The nav is `transition:persist`ed
-	   across the Work<->About navigation, so this script body only ever runs
-	   once, on the very first load — this has to be event-driven rather than
-	   re-run per navigation, which is exactly what `astro:after-swap` is for. */
-	const navLinks = document.querySelectorAll<HTMLAnchorElement>('.nav__link');
-
-	const syncActiveLink = () => {
-		const onWorkNow = location.pathname === '/' || location.pathname === '';
-		const onAboutNow = location.pathname.startsWith('/about');
-
-		for (const link of navLinks) {
-			const current = link.getAttribute('href') === '/' ? onWorkNow : onAboutNow;
-			if (current) {
-				link.setAttribute('aria-current', 'page');
-			} else {
-				link.removeAttribute('aria-current');
-			}
-		}
-	};
-
-	syncActiveLink();
-	document.addEventListener('astro:after-swap', syncActiveLink);
-
 	/* The nav sits directly on the page with no pane of its own, which works
 	   for as long as the only thing behind it is the water field and stops
 	   working the moment real content scrolls up underneath it. `--nav-scrim`
 	   ramps a solid `--bg` band in behind the row over the last stretch of
 	   scroll before that happens, so the links are never read against a card.
 
-	   Opt-in per page, via `data-nav-scrim` on whatever section does the
-	   scrolling-under (index.astro's `.work`) — the nav can't know that on
-	   its own, and a page with nothing marked just never paints a band.
+	   Opt-in per page, via `data-nav-scrim` on the first thing that scrolls up
+	   under the nav — each page's own content column, so the ramp starts at the
+	   top of the content rather than at the top of the padding above it
+	   (index.astro's `.hero__inner`, about.astro's `.about__frame`). The nav
+	   can't know that on its own, and a page with nothing marked just never
+	   paints a band. One target per page is enough: progress clamps at 1, so
+	   once that column has passed under the nav the band stays on for
+	   everything below it.
 
 	   Scrubbed 1:1 to scroll position rather than transitioned on a class
 	   toggle, same reasoning as index.astro's own hero fade: the band should

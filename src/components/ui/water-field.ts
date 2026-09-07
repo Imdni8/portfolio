@@ -27,6 +27,12 @@ export type WaterFieldOptions = {
 	intensity?: number;
 	/** Ceiling on devicePixelRatio. The field is soft; 1.5 is plenty. */
 	maxDpr?: number;
+	/** Film grain amplitude, in 8-bit levels. 0 leaves only the dither. */
+	grain?: number;
+	/** How much of the crests' brightening is spent on warmth, 0–1. */
+	bloom?: number;
+	/** Corner falloff, 0–1 as a mix weight toward the sunken ground. */
+	vignette?: number;
 };
 
 export type WaterField = { destroy: () => void };
@@ -56,6 +62,9 @@ uniform vec4  uRipple[RIPPLES];  // xy centre (p-space), z age (s), w strength
 uniform vec3  uPointer;          // xy position (p-space), z presence 0-1
 uniform float uGrid;             // pitch in device px; <= 0 hides the grid
 uniform float uIntensity;
+uniform float uGrain;            // grain amplitude, in 8-bit levels
+uniform float uBloom;            // share of the crest budget spent on warmth
+uniform float uVignette;         // corner falloff, as a mix weight
 uniform vec3  uGroundLow;
 uniform vec3  uGroundHigh;
 uniform vec3  uRibbon;
@@ -88,9 +97,29 @@ const float GRID_EDGE_FADE = 0.10;
    which is --text-body at 5.2:1 and 5.5:1. Raise either and the dark theme is
    the one that fails first.
 
+   Re-measured the same way after grain, bloom and the tunable vignette went in:
+   L 0.103 and L 0.384, which is 5.5:1 and 6.1:1. Both moved the right way, and
+   that is the bloom's doing rather than luck — see its comment in main() for
+   why re-spending this weight can only pull the extremes back toward the
+   ground.
+
    --text-muted and anything fainter is NOT covered — it lands near 2.7:1 on a
    bright wisp — so muted copy over the field needs a ground of its own. */
 const float RIBBON_MAX = 0.22;
+/* Where on the crest budget the warmth starts and how long it takes to arrive,
+   both as fractions of RIBBON_MAX. Entering this late is deliberate: amber
+   mixed into a mid-grey wisp reads as olive, not as light. Only the brightest
+   crests are pale enough for it to read as warmth, so the ramp is placed to
+   miss everything below them. */
+const float BLOOM_ENTER = 0.55;
+const float BLOOM_RANGE = 0.35;
+/* Ceiling on the share of that budget bloom may divert. Below 1 on purpose: at
+   1 the brightest crests would go fully amber and lose the silver the ribbons
+   are made of. */
+const float BLOOM_SHARE = 0.65;
+/* Grain cell, in device pixels. Larger than the dither's single pixel — that
+   is the whole difference between film and sensor noise. */
+const float GRAIN_CELL = 2.0;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -206,10 +235,12 @@ void main() {
 	   -------------------------------------------------------------------- */
 	vec3 col = mix(uGroundLow, uGroundHigh, smoothstep(0.0, 1.0, uv.y) * 0.9);
 
-	/* A light source off the top-left corner, the way the reference lights it. */
-	float bloom = exp(-length((uv - vec2(0.16, 0.94)) * vec2(aspect, 1.0)) * 1.35);
-	col = mix(col, uGroundHigh, bloom * 0.5);
-	col = mix(col, uGlow, bloom * 0.07);
+	/* A light source off the top-left corner, the way the reference lights it.
+	   Named for what it is — the crest bloom below is a different effect that
+	   wants the word. */
+	float keyLight = exp(-length((uv - vec2(0.16, 0.94)) * vec2(aspect, 1.0)) * 1.35);
+	col = mix(col, uGroundHigh, keyLight * 0.5);
+	col = mix(col, uGlow, keyLight * 0.07);
 
 	/* Crests reach for the light, troughs fall toward the sunken ground, so a
 	   wave has a near side and a far side instead of only glowing. */
@@ -221,7 +252,25 @@ void main() {
 	float toRibbon = ribbon * 0.34 * uIntensity + vein * 0.22 * uIntensity + max(lift, 0.0) * 1.4;
 	toRibbon = RIBBON_MAX * (1.0 - exp(-toRibbon / RIBBON_MAX));
 
-	col = mix(col, uRibbon, toRibbon);
+	/* Bloom: the brightest crests go warm. Written as a *re-spend* of the weight
+	   above rather than as a second pass on top of it — the share that would have
+	   gone to uRibbon goes to uGlow instead, so the total distance the field may
+	   travel from its ground is still governed by RIBBON_MAX and the measured
+	   number above stays measured. Adding it beside that cap, the way a
+	   luma-thresholded bloom normally works, would silently void the
+	   measurement.
+
+	   Doing it this way is also what makes it safe on both themes without a
+	   branch. uGlow sits between the two grounds and uRibbon at the far end of
+	   the range: on dark it is dimmer than uRibbon (gray-50), so diverting
+	   weight to it can only lower the peak; on light uRibbon is gray-900 and
+	   uGlow is lighter than it, so diverting weight moves the crest back toward
+	   the ground. Either way the worst case improves rather than degrades. */
+	float glow = smoothstep(BLOOM_ENTER, BLOOM_ENTER + BLOOM_RANGE, toRibbon / RIBBON_MAX);
+	glow *= clamp(uBloom, 0.0, 1.0) * BLOOM_SHARE;
+
+	col = mix(col, uRibbon, toRibbon * (1.0 - glow));
+	col = mix(col, uGlow, toRibbon * glow);
 	col = mix(col, uGroundLow, max(-lift, 0.0) * 0.9);
 
 	/* --- grid ----------------------------------------------------------- */
@@ -236,7 +285,7 @@ void main() {
 		/* Strongest up top where the fluid is thin, gone by the lower third —
 		   a grid that runs edge to edge reads as a wireframe, not as depth. */
 		float edgeFade = smoothstep(0.0, GRID_EDGE_FADE, uv.x) * smoothstep(0.0, GRID_EDGE_FADE, 1.0 - uv.x);
-		float fade = smoothstep(0.02, 0.55, uv.y) * (0.55 + 0.45 * bloom) * edgeFade;
+		float fade = smoothstep(0.02, 0.55, uv.y) * (0.55 + 0.45 * keyLight) * edgeFade;
 		fade *= 1.0 + 1.8 * surf.w;        // and it lights up under the cursor
 
 		/* Held to the same budget as the ribbons, and for the same reason: a
@@ -248,13 +297,32 @@ void main() {
 
 	/* Corners fall away so the field has no visible edge. Toward the sunken
 	   ground rather than toward black, which on the light theme would be a
-	   dirty vignette instead of a receding one. */
-	vec2 vig = abs(uv - 0.5) * 2.0;
-	col = mix(col, uGroundLow, 0.20 * pow(max(vig.x, vig.y), 3.0));
+	   dirty vignette instead of a receding one.
 
-	/* Ordered-enough dither. Without it a gradient this dark bands into
-	   visible steps on an 8-bit display. */
+	   The falloff is a max-norm, not a radius: a round vignette on a 16:9 frame
+	   leaves the short edges lighter than the long ones, which reads as a lens
+	   rather than as a field with no end. Only the amplitude is tunable; the
+	   shape is a decision, not a knob. */
+	vec2 vig = abs(uv - 0.5) * 2.0;
+	col = mix(col, uGroundLow, uVignette * pow(max(vig.x, vig.y), 3.0));
+
+	/* Ordered-enough dither. Without it a gradient this dark bands into visible
+	   steps on an 8-bit display. Per pixel, deliberately: a block-sized dither
+	   is a worse dither, which is why the grain below is a separate term rather
+	   than this one turned up. */
 	col += (hash(gl_FragCoord.xy + fract(t)) - 0.5) / 255.0;
+
+	/* Film grain — the same hash at a coarser cell and a larger amplitude.
+	   Symmetric about zero on purpose: it must not move the field's mean
+	   luminance, or it moves the contrast floor RIBBON_MAX was measured
+	   against. Only the peak shifts, by half of uGrain in 8-bit levels, which
+	   at the default is a fraction of a percent of the worst case.
+	   The time term, scaled past the cell grid so neighbouring cells do not
+	   collide, re-rolls the pattern every frame — that is the whole difference
+	   between film grain and a fixed screen door. */
+	if (uGrain > 0.0) {
+		col += (hash(floor(gl_FragCoord.xy / GRAIN_CELL) * 1.7 + fract(t) * 71.3) - 0.5) * uGrain / 255.0;
+	}
 
 	gl_FragColor = vec4(col, 1.0);
 }
@@ -300,6 +368,13 @@ export function createWaterField(
 	const gridPitch = options.grid ?? 72;
 	const intensity = options.intensity ?? 1;
 	const maxDpr = options.maxDpr ?? 1.5;
+	/* 1.5 levels out of 255. Enough to read as film at arm's length, small
+	   enough that the half-level it adds to the peak is inside the slack the
+	   contrast budget already carries. */
+	const grain = options.grain ?? 1.5;
+	const bloom = options.bloom ?? 0.6;
+	/* The value this shipped with before the amplitude became a uniform. */
+	const vignette = options.vignette ?? 0.2;
 
 	const gl = canvas.getContext('webgl', {
 		alpha: false,
@@ -351,6 +426,9 @@ export function createWaterField(
 			pointer: gl.getUniformLocation(program, 'uPointer'),
 			grid: gl.getUniformLocation(program, 'uGrid'),
 			intensity: gl.getUniformLocation(program, 'uIntensity'),
+			grain: gl.getUniformLocation(program, 'uGrain'),
+			bloom: gl.getUniformLocation(program, 'uBloom'),
+			vignette: gl.getUniformLocation(program, 'uVignette'),
 			groundLow: gl.getUniformLocation(program, 'uGroundLow'),
 			groundHigh: gl.getUniformLocation(program, 'uGroundHigh'),
 			ribbon: gl.getUniformLocation(program, 'uRibbon'),
@@ -358,6 +436,12 @@ export function createWaterField(
 			gridColor: gl.getUniformLocation(program, 'uGridColor'),
 		};
 		gl.uniform1f(u.intensity, intensity);
+		/* Set once here rather than per frame: none of the three ever changes
+		   after construction, and `build()` is also what a context-restore runs,
+		   so this is the one place that has to re-state them. */
+		gl.uniform1f(u.grain, grain);
+		gl.uniform1f(u.bloom, bloom);
+		gl.uniform1f(u.vignette, vignette);
 		readPalette();
 		resize();
 	};

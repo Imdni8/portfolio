@@ -5,6 +5,12 @@ import { WaterField } from '../components/ui/WaterField';
  * Move the cursor across the field. A stroke drops a wave packet every few
  * pixels of travel; each one opens outward, spreads and fades, and the grid
  * and the fluid both bend through it because all three read one displacement.
+ *
+ * `grain`, `bloom` and `vignette` are the finish. Bloom is not a second pass
+ * on top of the crests — it re-spends part of their own brightening budget on
+ * warmth, so turning it up cannot raise the field's peak past the contrast
+ * ceiling the fluid is already held to. Grain is symmetric about zero for the
+ * same reason. See water-field.ts's RIBBON_MAX comment.
  */
 const meta = {
 	title: 'Components/Water field',
@@ -14,8 +20,11 @@ const meta = {
 		grid: { control: { type: 'range', min: 0, max: 160, step: 4 } },
 		intensity: { control: { type: 'range', min: 0, max: 1, step: 0.05 } },
 		maxDpr: { control: { type: 'range', min: 0.5, max: 3, step: 0.25 } },
+		grain: { control: { type: 'range', min: 0, max: 6, step: 0.25 } },
+		bloom: { control: { type: 'range', min: 0, max: 1, step: 0.05 } },
+		vignette: { control: { type: 'range', min: 0, max: 0.5, step: 0.02 } },
 	},
-	args: { grid: 72, intensity: 1 },
+	args: { grid: 72, intensity: 1, grain: 1.5, bloom: 0.6, vignette: 0.2 },
 	decorators: [
 		(Story) => (
 			<div style={{ position: 'relative', isolation: 'isolate', height: '32rem' }}>

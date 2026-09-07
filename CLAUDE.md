@@ -149,8 +149,10 @@ coexist for a while, not race each other.
   default `bg-popover` look via the tailwind.css token bridge, not `.glass`
   — the simplified nav has no glass material anywhere).
   `SiteNav.astro` renders it as a `client:load` island for just that one
-  dropdown; the Work/About links beside it have nowhere to open and stay
-  plain Astro-rendered anchors, untouched by any of this.
+  dropdown; the Resume link beside it is off-site, has nowhere to open, and
+  stays a plain Astro-rendered anchor, untouched by any of this. Its popup is
+  `align="start"`, not `end` — the whole nav row clusters on the left, so a
+  trailing-edge alignment would open the panel away from its trigger.
 - **`gsap` stays**, but scoped to one job: the per-item hover choreography
   (hoverline draw + arrow diagonal entrance/exit) in
   `src/components/nav/nav-dropdown.ts`. The hand-rolled `<details>`
@@ -168,6 +170,40 @@ button is white on both grounds. On light that leaves the label doing the
 identifying: the fill is 1.11:1 against `bg` and the `gray-200` border 1.12:1.
 Raising `--secondary-border` to `--gray-500` would carry the edge at 4.14:1 if
 that is ever wanted.
+
+## Site nav
+
+Brand mark, **Resume** (off-site, `links.resume` from `src/data/links.ts`, with
+the `arrow-up-right` glyph) and the **Side projects** dropdown — all three
+clustered on the *left*, in that order. There is no Work link (the homepage grid
+is the work) and no About link; nothing in the nav can ever be the current page,
+so `SiteNav.astro` carries no `aria-current` and no URL-reading frontmatter.
+
+**`/about` is deliberately unlinked.** The page still builds and still answers at
+`/about`, but nothing on the site points at it — not the nav, not the footer.
+It is parked, not retired; re-linking it is one anchor, wherever it belongs.
+
+## The page frame
+
+Every top-level column on the site resolves to the same left edge, and the
+formula that gets there is:
+
+```css
+box-sizing: border-box;
+max-width: calc(var(--measure-content) + 2 * var(--gutter));
+margin-inline: auto;
+padding-inline: var(--gutter);
+```
+
+or its equivalent — the gutter *outside* the cap, on a full-bleed parent, which
+is what `.nav-shell`/`.nav-shell__inner` and `about.astro` do. The two are the
+same geometry; a bare `max-width: var(--measure-content)` with padding inside it
+is **not**, and that is the trap. It was equivalent while the pages were
+content-box, but Tailwind's preflight (`src/styles/tailwind.css`) makes
+everything border-box, so the padding now eats a gutter off each side — the
+homepage's card grid silently drifted 60px right of the nav and the footer's own
+rule before this was caught. `Footer.astro`'s `.site-footer__inner` comment
+carries the measurements.
 
 ## Footer
 
@@ -213,7 +249,7 @@ brand mark + name (left) · tagline (centre) · social links (right).
   background (`position: fixed`, `z-index: auto`) paints *after* static
   in-flow content per the CSS stacking spec, regardless of DOM order — so
   without this the footer lays out correctly but is invisible, hidden under
-  that layer. Same fix `.hero-intro`/`.work` already use for the same reason.
+  that layer. Same fix `.hero`/`.work` already use for the same reason.
 - **`margin-block-start: 75px` is a literal, not a token** — deliberate, per
   spec; it doesn't land on `--spacing-7xl` (64px) or `--spacing-8xl` (80px).
 - **The mascot mark** is sized with `aspect-ratio: 123 / 96` (the source
@@ -487,6 +523,34 @@ a `RolldownError` with a garbled destructure line concatenating attribute
 names and values into one giant identifier — points nowhere near the real
 line. If a case study throws `RolldownError` after an edit, check for
 indented closing tags right after a list before looking anywhere else.
+
+## Water field
+
+`src/components/ui/water-field.ts` is the background on `index.astro` and
+`about.astro` — one WebGL pass drawing a domain-warped fBm fluid, a grid that
+refracts through the same displacement, and pointer-driven wave packets. The
+palette is read out of `tokens.css` at run time, so it follows `[data-theme]`
+without restating a colour.
+
+`scratch/watery-grid-background-plan.md` describes a three-canvas version of
+this and **predates it** — read it as history, not as a spec. Its Phases 1 and 2
+are what shipped here, unified into one pass; its Phase 3 (a dot/particle field)
+was never built.
+
+Options: `grid`, `intensity`, `maxDpr`, plus the finish — `grain`, `bloom`,
+`vignette`. All six go through `WaterField.astro`'s `data-*` attributes or the
+React wrapper, and all six have sliders in `src/stories/WaterField.stories.tsx`,
+which is the place to tune them.
+
+**Every brightener is capped by `RIBBON_MAX`, and that cap is a measured number,
+not a taste one.** Its comment records the sweep it came from and the contrast
+it buys `--text-body` on both grounds. Bloom is written as a *re-spend* of that
+same weight — the share that would have gone to `uRibbon` goes to `uGlow`
+instead — rather than as a second pass on top of it, precisely so adding it
+cannot void the measurement. Anything new that lifts the field has to fold into
+that budget the same way, and the numbers have to be re-measured after (sample
+the canvas over a pointer sweep, both themes; Playwright is already a dev
+dependency for exactly this kind of check).
 
 ## Stack
 
