@@ -417,11 +417,18 @@ genuinely lacks is a *named* `.type-*` style for Inter-regular-16/24 —
   never imports `story-type.ts` to hand-roll the prose column: that would
   give the column's markup two authors, and a later change to how it is
   wrapped would silently miss whichever copy lives in content.
-- **`StorySeam` is the rule between the cut and the curtain.** Both case
-  studies used to carry a hand-written copy of it, colour literal and all.
-  Its `py-20` stacks with the preceding section's own and with
-  `.read-more`'s padding — ~288px before the CTA, which is the shipped
-  spacing; change it once, there.
+- **The step between the cut and the curtain is `.read-more`'s own
+  `padding-block-start`, and nothing else.** There used to be a `StorySeam`
+  spacer component in the MDX above it (originally a hand-written `<div>`
+  copied into all three case studies, colour literal and all). Its `py-20`
+  stacked with the preceding section's `py-20` and with `.read-more`'s own
+  padding for ~288px — the one gap on the page that was not the sitewide
+  160px step, since every other chapter boundary here is 80px below one
+  section plus 80px above the next. The seam is deleted; `.read-more`'s
+  `padding-block-start` is `--spacing-8xl`, which both restores that 160px
+  and exactly stands in for the first chapter's own top step (zeroed inside
+  the curtain so it does not eat 80px of the 344px peek). Retune the gap
+  there.
 - **`SlideVideo` pins a clip to one corner of a `Slide`'s media card** and lets
   it bleed off the two opposite edges, so `vid-bg.jpg` reads as an L-shaped
   strip along the other two. It goes in through `Slide`'s `media` slot; with no
