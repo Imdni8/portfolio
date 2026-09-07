@@ -94,10 +94,20 @@ const { prompt = 'Want to know more?', label = 'Read design process', href } = A
 
 	   No measure or inline padding of its own: the chapters inside bring the
 	   page frame, and re-applying it here would double the gutter. That also
-	   lets the veil run the full width for free. */
+	   lets the veil run the full width for free.
+
+	   padding-block-start is --spacing-8xl because it is standing in for the
+	   first chapter's own top step, which the rule further down zeroes so it
+	   does not eat 80px of the 344px peek. Matching that step exactly is what
+	   keeps the curtain on the page's rhythm: every other chapter boundary
+	   here is 80px of the section above plus 80px of the section below, and
+	   this one now resolves to the same 160px. There used to be a <StorySeam />
+	   spacer in the MDX above adding another 160px on top, which is what made
+	   this the one 288px gap on the page; it is gone, so this value is the
+	   whole of the step — change it here if the gap ever wants retuning. */
 	.read-more {
 		display: grid;
-		padding-block-start: var(--spacing-6xl);
+		padding-block-start: var(--spacing-8xl);
 		padding-block-end: var(--spacing-8xl);
 	}
 
@@ -127,9 +137,9 @@ const { prompt = 'Want to know more?', label = 'Read design process', href } = A
 	}
 
 	/* The first chapter's own top step would otherwise eat 80px of the 344px
-	   peek as blank padding; the section's padding-block-start above stands in
-	   for it. :global() because the chapters arrive through the slot as MDX and
-	   never carry this component's scope hash. */
+	   peek as blank padding; the section's own padding-block-start above is the
+	   same 80px and stands in for it. :global() because the chapters arrive
+	   through the slot as MDX and never carry this component's scope hash. */
 	.read-more :global(.read-more__content > :first-child) {
 		padding-block-start: 0;
 	}

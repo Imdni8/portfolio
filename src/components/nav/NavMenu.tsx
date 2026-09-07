@@ -21,22 +21,23 @@ const sideProjects = [
 /**
  * "Side projects" — the one item in the site nav that actually opens
  * something, so it's the one place shadcn/Base UI's NavigationMenu earns
- * its place. Work/About are plain links with nowhere to open and stay
- * Astro-rendered in SiteNav.astro; this replaces the old `<details>` and
- * its hand-rolled open/close toggle with Base UI's own open/close,
- * keyboard and focus handling. nav-dropdown.ts survives, carrying only the
- * per-item hover choreography that replacement doesn't cover — the
- * useEffect below is what wires it up.
+ * its place. Resume beside it is a plain off-site anchor with nowhere to
+ * open and stays Astro-rendered in SiteNav.astro; this replaces the old
+ * `<details>` and its hand-rolled open/close toggle with Base UI's own
+ * open/close, keyboard and focus handling. nav-dropdown.ts survives,
+ * carrying only the per-item hover choreography that replacement doesn't
+ * cover — the useEffect below is what wires it up.
  *
  * No `.glass` here — the simplified nav has no pane/pill material at all,
  * just text sitting on the page like Work/About. The popup keeps shadcn's
  * own default surface (bg-popover/ring-foreground via the tailwind.css
  * token bridge), which is why NavMenu no longer needs a popupClassName.
  *
- * `align="end"` + the default `sideOffset` (8px, the same as
- * `--spacing-md`) reproduce the old panel's `inset-inline-end: 0` /
- * `calc(100% + var(--spacing-md))` positioning — but via Base UI's
- * collision-aware floating position instead of a fixed inset.
+ * `align="start"`, not `end`: the whole nav row is clustered on the left
+ * now, so a panel aligned to the trigger's trailing edge would open away
+ * from it, out toward the middle of an otherwise empty band. The default
+ * `sideOffset` (8px, the same as `--spacing-md`) is unchanged, and Base
+ * UI's collision handling still flips it at narrow widths.
  *
  * `keepMounted` on Content is still worth keeping even though it turned
  * out not to solve the problem it was added for — Base UI recreates the
@@ -57,7 +58,7 @@ export const NavMenu = () => {
 	useEffect(() => initNavDropdownHoverAnimation(), []);
 
 	return (
-		<NavigationMenu className="nav-dropdown" align="end" popupClassName="nav-dropdown__popup">
+		<NavigationMenu className="nav-dropdown" align="start" popupClassName="nav-dropdown__popup">
 			<NavigationMenuList className="nav-dropdown__list">
 				<NavigationMenuItem>
 					<NavigationMenuTrigger className="nav-dropdown__trigger text-sm">

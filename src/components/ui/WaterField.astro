@@ -11,10 +11,19 @@ interface Props {
 	grid?: number;
 	/** Presence of the fluid, 0–1. Lower it behind dense copy. */
 	intensity?: number;
+	/** Film grain amplitude, in 8-bit levels. 0 leaves only the dither. */
+	grain?: number;
+	/** How much of the crests' brightening is spent on warmth, 0–1. */
+	bloom?: number;
+	/** Corner falloff, 0–1 as a mix weight toward the sunken ground. */
+	vignette?: number;
 	class?: string;
 }
 
-const { grid = 72, intensity = 1, class: className } = Astro.props;
+/* Defaults are stated once, in water-field.ts — repeating them here would
+   give each one two sources of truth, and the `??` in the script below is
+   what keeps an unset prop reaching the engine as `undefined`. */
+const { grid = 72, intensity = 1, grain, bloom, vignette, class: className } = Astro.props;
 ---
 
 <canvas
@@ -22,6 +31,9 @@ const { grid = 72, intensity = 1, class: className } = Astro.props;
 	data-water-field
 	data-grid={grid}
 	data-intensity={intensity}
+	data-grain={grain}
+	data-bloom={bloom}
+	data-vignette={vignette}
 	aria-hidden="true"></canvas>
 
 <script>
@@ -42,6 +54,11 @@ const { grid = 72, intensity = 1, class: className } = Astro.props;
 	   silently losing older ones. */
 	let fields: WaterField[] = [];
 
+	/* An absent attribute has to stay absent all the way to the engine, so its
+	   own default applies — `Number(undefined)` is NaN, and a NaN uniform blanks
+	   the field. */
+	const num = (v: string | undefined) => (v === undefined || v === '' ? undefined : Number(v));
+
 	document.addEventListener('astro:page-load', () => {
 		for (const field of fields) field.destroy();
 		fields = [];
@@ -51,6 +68,9 @@ const { grid = 72, intensity = 1, class: className } = Astro.props;
 				createWaterField(canvas, {
 					grid: Number(canvas.dataset.grid ?? 72),
 					intensity: Number(canvas.dataset.intensity ?? 1),
+					grain: num(canvas.dataset.grain),
+					bloom: num(canvas.dataset.bloom),
+					vignette: num(canvas.dataset.vignette),
 				}),
 			);
 		}
