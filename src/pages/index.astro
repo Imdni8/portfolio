@@ -12,6 +12,7 @@ import SiteNav from '../components/nav/SiteNav.astro';
 import WorkCard from '../components/work/WorkCard.astro';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
+import FontPreload from '../components/FontPreload.astro';
 import philipsLogo from '../assets/homepage/philips_logo.svg?raw';
 import jjLogo from '../assets/homepage/J&J_logo.svg?raw';
 import medableLogo from '../assets/homepage/medable_logo.svg?raw';
@@ -56,10 +57,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<ClientRouter />
-		<Analytics />
-		{import.meta.env.DEV && <ThemePreview />}
-		{import.meta.env.DEV && <DevOutline />}
+		<FontPreload />
 		<title>Tousif's portfolio</title>
 		<meta name="description" content="Tousif Rahaman — product designer and design engineer." />
 
@@ -75,6 +73,16 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		<meta name="twitter:title" content="Tousif's portfolio" />
 		<meta name="twitter:description" content="Tousif Rahaman — product designer and design engineer." />
 		<meta name="twitter:image" content={new URL('/og-image.png', Astro.site)} />
+
+		{/* Last in `<head>`, after everything that decides how the page looks.
+		    Neither the router nor the analytics module is needed for first
+		    paint, and putting their fetches ahead of the title, the preloads and
+		    the social meta only gives them a head start over the things that
+		    are. */}
+		<ClientRouter />
+		<Analytics />
+		{import.meta.env.DEV && <ThemePreview />}
+		{import.meta.env.DEV && <DevOutline />}
 	</head>
 	<body>
 		{/* Both the nav and the work cards wear `.glass`; the filter it bends
@@ -132,8 +140,11 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 					<span class="work__eyebrow-shine">Selected works</span>
 				</p>
 				<div class="work__inner">
+					{/* `priority` on the first two only: the grid is two columns above
+					    40rem and one below it, so those are the only cards that can be
+					    in the initial viewport at any width — the rest stay lazy. */}
 					{
-						studies.map((entry) => (
+						studies.map((entry, i) => (
 							<WorkCard
 								title={entry.data.title}
 								industry={entry.data.industry}
@@ -150,6 +161,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 											: `/work/${entry.id}`
 								}
 								status={entry.data.status === 'coming-soon' || entry.data.status === 'external' ? entry.data.status : undefined}
+								priority={i < 2}
 							/>
 						))
 					}

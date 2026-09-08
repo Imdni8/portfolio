@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui/Icon';
-import { trackCompareDragged } from '../analytics/analytics';
+
+/* Loaded on the first drag, not with the island.
+ *
+ * This component is `client:load` inside CaseStudyHero, so a static import of
+ * `../analytics/analytics` pulls the whole posthog-js SDK into the chunk the
+ * case study's opener hydrates from — paid on every page view, including the
+ * (majority) ones where the slider is never touched and the event never
+ * fires. The dynamic import keeps the tracking call and drops it out of the
+ * critical path; the `.catch()` matters because a blocked or failed analytics
+ * chunk must never take the slider down with it. */
+const trackCompareDragged = (method: 'pointer' | 'keyboard', position: number) => {
+	void import('../analytics/analytics')
+		.then((m) => m.trackCompareDragged(method, position))
+		.catch(() => {});
+};
 
 interface Shot {
 	src: string;
@@ -329,6 +343,10 @@ export default function BeforeAfter({
 					height={before.height}
 					alt={before.alt}
 					draggable={false}
+					/* The compare is the page opener, so both halves are LCP
+					   candidates — the reveal only clips the `after` side, it does
+					   not defer it. */
+					fetchPriority="high"
 				/>
 				{renderSide('before', beforeLabel, beforeNotes, beforeStory, beforeChip)}
 			</div>
@@ -343,6 +361,7 @@ export default function BeforeAfter({
 					height={after.height}
 					alt={after.alt}
 					draggable={false}
+					fetchPriority="high"
 				/>
 				{/* Inside the reveal, so it is clipped to the after side and cannot survive at 100%. */}
 				{renderSide('after', afterLabel, afterNotes, afterStory, afterChip)}

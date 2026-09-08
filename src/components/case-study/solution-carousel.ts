@@ -19,6 +19,19 @@ export function initSolutionCarousel(track: HTMLElement) {
 	const slides = Array.from(track.querySelectorAll<HTMLElement>(':scope > .solution-slide'));
 	if (!prev || !next || !slides.length) return;
 
+	/* Each slide's zoom triggers and its clip, resolved once.
+	 *
+	 * updateActive() below reaches for both on every scroll frame, every
+	 * resize and every lightbox open/close, and the slides are Astro-rendered
+	 * markup that never changes after hydration — so re-querying them is a
+	 * per-frame walk of the subtree for an answer that was already known.
+	 * Cached beside `slides` for the same reason `slides` itself is. */
+	const parts = slides.map((slide) => ({
+		slide,
+		triggers: Array.from(slide.querySelectorAll<HTMLElement>('[data-zoom], [data-zoom-video]')),
+		video: slide.querySelector('video'),
+	}));
+
 	/**
 	 * Each slide's start edge in the track's own scroll coordinate space — the
 	 * space `scrollLeft` is measured in.
@@ -103,15 +116,18 @@ export function initSolutionCarousel(track: HTMLElement) {
 	// peeking in at the edge could no longer be clicked to open.
 	const updateActive = () => {
 		const active = currentIndex();
-		slides.forEach((slide, i) => {
+		/* One matchMedia read and one attribute read for the whole pass, rather
+		   than one of each per slide — both answers are the same for every slide
+		   in a single call. */
+		const mayPlay = visible && !reducedMotion() && !overlayOpen();
+		parts.forEach(({ slide, triggers, video }, i) => {
 			const on = i === active;
 			slide.toggleAttribute('data-active', on);
-			for (const trigger of slide.querySelectorAll<HTMLElement>('[data-zoom], [data-zoom-video]')) {
+			for (const trigger of triggers) {
 				trigger.tabIndex = on ? 0 : -1;
 			}
-			const video = slide.querySelector('video');
 			if (!video) return;
-			if (on && visible && !reducedMotion() && !overlayOpen()) {
+			if (on && mayPlay) {
 				if (video.paused) video.play().catch(() => {});
 			} else if (!video.paused) {
 				video.pause();
@@ -142,28 +158,23 @@ export function initSolutionCarousel(track: HTMLElement) {
 	// the same film plays full-screen and picks up again when it closes.
 	document.addEventListener('lightbox:change', updateActive);
 
+	// One update per frame at most, however many events arrive in it. Shared by
+	// scroll and resize: dragging a window edge fires `resize` many times a
+	// second, and each one re-runs exactly the work a scroll frame does — so
+	// the handler that was already hardened against this is the one both use.
 	let ticking = false;
-	track.addEventListener(
-		'scroll',
-		() => {
-			if (ticking) return;
-			ticking = true;
-			requestAnimationFrame(() => {
-				ticking = false;
-				updateButtons();
-				updateActive();
-			});
-		},
-		{ passive: true },
-	);
-	window.addEventListener(
-		'resize',
-		() => {
+	const schedule = () => {
+		if (ticking) return;
+		ticking = true;
+		requestAnimationFrame(() => {
+			ticking = false;
 			updateButtons();
 			updateActive();
-		},
-		{ passive: true },
-	);
+		});
+	};
+
+	track.addEventListener('scroll', schedule, { passive: true });
+	window.addEventListener('resize', schedule, { passive: true });
 	updateButtons();
 	updateActive();
 }

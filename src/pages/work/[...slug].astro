@@ -18,8 +18,52 @@ const { title, facts, hero, heroShot, actions } = entry.data;
 // The schema's refine guarantees `subtitle` whenever status isn't
 // `coming-soon` — which getStaticPaths above has already filtered to.
 const subtitle = entry.data.subtitle!;
+
+/* Which of the layout's overlay islands this particular study actually needs.
+ *
+ * Glossary and VideoPlayer are page-level singletons that sit and wait for a
+ * trigger, and most case studies never render one: four of the six here use
+ * no `<Term>` and no video at all, so hydrating both on every page is a fixed
+ * per-page tax with nothing on the page that could ever fire it.
+ *
+ * The test is the raw MDX body rather than a frontmatter flag, so a study that
+ * gains its first `<Term>` picks the island up by being written, with nothing
+ * to remember. It reads the component name because each island has exactly one
+ * component that emits its trigger — `Term` for Glossary's `data-term`, and
+ * `Video`/`VideoFigure` (the latter wraps the former) for VideoPlayer's
+ * `data-video`. Lightbox and Toast are deliberately not gated this way: their
+ * triggers come from several components each (Figure, SlideVideo,
+ * BoltPrototype, plus any `data-toast-trigger`), so a name test there would be
+ * a list to keep in sync rather than a fact about the page.
+ *
+ * The `\b` is what keeps each test to whole component names — without it
+ * `<Term` would also match a future `<Terminal`, and quietly hydrate an island
+ * that page has no trigger for.
+ *
+ * MDX comments and fenced code are stripped first, because both hold component
+ * markup that never renders and both are in active use here: agent-versioning
+ * parks three unconverted `<Section>` chapters — one of them containing a
+ * `<VideoFigure>` — in a `{/* … *\/}` block, and a naive test hydrates
+ * VideoPlayer for that page on the strength of a video it does not show. The
+ * failure is one-directional by construction: stripping can only ever remove
+ * markup that would not have rendered, so a real usage cannot be missed. */
+const body = (entry.body ?? '')
+	.replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, '')
+	.replace(/```[\s\S]*?```/g, '');
+const usesGlossary = /<Term\b/.test(body);
+const usesVideo = /<Video(Figure)?\b/.test(body);
 ---
 
-<CaseStudyLayout title={title} subtitle={subtitle} thumbnail={entry.data.thumbnail} facts={facts} hero={hero} heroShot={heroShot} actions={actions}>
+<CaseStudyLayout
+	title={title}
+	subtitle={subtitle}
+	thumbnail={entry.data.thumbnail}
+	facts={facts}
+	hero={hero}
+	heroShot={heroShot}
+	actions={actions}
+	usesGlossary={usesGlossary}
+	usesVideo={usesVideo}
+>
 	<Content />
 </CaseStudyLayout>

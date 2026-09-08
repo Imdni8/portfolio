@@ -113,12 +113,18 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 			   reason — the two openers occupy the identical box, so they want
 			   the identical responsive set. */
 			<div class="hero__frame hero__shot">
+				{/* The opener, so it is the page's LCP candidate on every case
+				    study that has one. Astro's image service defaults to
+				    `loading="lazy"`, which would put it behind an intersection
+				    check instead of starting it during HTML parse. */}
 				<Image
 					src={heroShot.src}
 					alt={heroShot.alt}
 					widths={shotWidths}
 					sizes={compareSizes}
 					quality={82}
+					loading="eager"
+					fetchpriority="high"
 				/>
 			</div>
 		)

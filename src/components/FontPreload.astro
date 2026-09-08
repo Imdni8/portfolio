@@ -1,0 +1,40 @@
+---
+/**
+ * Preload hints for the two faces that render above the fold.
+ *
+ * Without these, a webfont is only discovered after the browser has fetched
+ * *and parsed* the stylesheet that carries its `@font-face` — one extra
+ * round-trip after CSS, on the critical path, on every first visit. Fontsource
+ * ships `font-display: swap`, so the cost shows up as a visible FOUT: the
+ * headline paints in a fallback serif and then reflows to Playfair once the
+ * real face lands. The preload moves the fetch forward to HTML parse, in
+ * parallel with the stylesheet rather than behind it.
+ *
+ * Deliberately only two files, and only the `latin` subsets:
+ *
+ * - Preloading is a priority claim, not a free hint. Every extra file competes
+ *   with the ones that actually block first paint, so this covers the faces
+ *   used by visible text at the top of the page — Playfair for the headline,
+ *   Inter for everything else — and nothing more. IBM Plex Mono is left out on
+ *   purpose: it sets eyebrows and meta lines, which are small, late and
+ *   below the headline, and a third claim would slow the two that matter.
+ * - The italic faces, and the cyrillic/greek/vietnamese subsets, are left to
+ *   normal discovery. `unicode-range` means most visitors never download them
+ *   at all, and preloading a file the page turns out not to use is pure waste
+ *   plus a console warning.
+ *
+ * `crossorigin` is required even though these are same-origin: fonts are
+ * fetched in CORS mode, and a preload whose mode does not match the eventual
+ * request is discarded and fetched a second time — the exact opposite of the
+ * point. `as="font"` is what sets that mode.
+ *
+ * The URLs come through Vite (`?url`) rather than being written out, because
+ * the built filenames are content-hashed — a hand-written path would go stale
+ * on the next font upgrade and preload a 404.
+ */
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import playfairLatin from '@fontsource-variable/playfair-display/files/playfair-display-latin-wght-normal.woff2?url';
+---
+
+<link rel="preload" href={playfairLatin} as="font" type="font/woff2" crossorigin />
+<link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />

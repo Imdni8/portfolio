@@ -658,8 +658,23 @@ export function createWaterField(
 	const sizeObserver = new ResizeObserver(() => resize());
 	sizeObserver.observe(canvas);
 
+	/* The canvas's viewport rect, re-read at most once a frame.
+	   
+	   `getBoundingClientRect()` is a layout read, and this fires on every
+	   scroll and resize event — many per frame on a trackpad. It cannot simply
+	   be dropped: the pointer handlers map the cursor through `rect`, and while
+	   the site mounts this canvas `position: fixed; inset: 0` (where scrolling
+	   genuinely cannot move it), the component is also used unpositioned — the
+	   Storybook stories among others — where it can. Batching keeps that case
+	   correct and takes the repeated read out of the scroll path. */
+	let rectQueued = false;
 	const onScroll = () => {
-		rect = canvas.getBoundingClientRect();
+		if (rectQueued) return;
+		rectQueued = true;
+		requestAnimationFrame(() => {
+			rectQueued = false;
+			rect = canvas.getBoundingClientRect();
+		});
 	};
 
 	const onMotionChange = () => {

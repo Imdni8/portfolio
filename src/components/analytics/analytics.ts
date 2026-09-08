@@ -3,14 +3,20 @@
    client-side JS: a thin `<script>` in an `.astro` file importing a plain `.ts`
    module next to it (see water-field.ts/WaterField.astro).
 
-   Everything that *acts* here is client-only: the exports run from bundled
-   Astro `<script>`s and from the BeforeAfter island's event handlers, never
-   during the static build. The import below is the one line that does execute
-   in Node at build time, since BeforeAfter.tsx pulls this module into a
-   server-rendered island — posthog-js guards its own browser globals for
-   exactly that case, which is why importing it there is safe and calling into
-   it from module scope would not be. */
-import posthog from 'posthog-js';
+   Everything here is client-only: the exports run from bundled Astro
+   `<script>`s and from the BeforeAfter island's event handlers, never during
+   the static build.
+
+   The SDK itself is imported dynamically, in startAnalytics() below, and that
+   is the single most load-bearing decision in this file. `posthog-js` is 274KB
+   raw / 88KB gzipped — as a static import at the top of this module it lands in
+   the chunk Analytics.astro's `<script>` pulls in from `<head>` on every page
+   of the site, so every visitor downloads and parses it before the page has
+   settled, to measure a handful of named events. Behind `import()` it is a
+   separate chunk fetched off the critical path. Keep it that way: adding a
+   top-level `import posthog from 'posthog-js'` here silently undoes it, with
+   nothing failing to show that it did. */
+type PostHog = typeof import('posthog-js').default;
 
 /* Inlined at build time by Vite. Absent whenever `.env` is missing (it is
    gitignored) or the deploy host has no such variable set — hence the guard in
@@ -40,26 +46,75 @@ const API_HOST = '/ingest';
    and 404, since that path only proxies ingestion. */
 const UI_HOST = 'https://eu.posthog.com';
 
-/* PostHog must be initialised exactly once per document.
+/* PostHog must be loaded and initialised exactly once per document.
 
-   Callers: Analytics.astro on every page, trackCaseStudyViewed() below, and
+   Callers: Analytics.astro on every page, trackCaseStudyOpened() below, and
    the BeforeAfter island — each self-initialises so a `capture` can never be
    stranded ahead of its own init. Bundled Astro `<script>`s are ES modules, so
    the browser already refuses to re-execute one across a `<ClientRouter />`
-   soft navigation (index <-> about); this flag covers the in-document case
-   that module caching does not. */
-let started = false;
+   soft navigation (index <-> about); these hold the line for the in-document
+   case that module caching does not.
 
-export function initAnalytics(): void {
-	if (started) return;
-	started = true;
+   `posthog` is the loaded SDK once it is here and `null` until then — it is
+   the readiness flag as well as the handle, so there is no second boolean that
+   can disagree with it. */
+let posthog: PostHog | null = null;
+let starting: Promise<void> | null = null;
+let scheduled = false;
+
+/* Events that arrived before the SDK finished loading. Drained in order once
+   it has — see startAnalytics(). Without this, any interaction in the window
+   between the first click and the chunk landing would capture into nothing. */
+const queued: Array<{ event: string; props?: Record<string, unknown> }> = [];
+
+/* The first idle slot, or a short timeout where there is no scheduler.
+   `timeout` is the guarantee that matters: a page that never goes idle (a long
+   animation, a busy main thread) must still initialise rather than silently
+   stop measuring. */
+function whenIdle(fn: () => void): void {
+	if (typeof requestIdleCallback === 'function') requestIdleCallback(() => fn(), { timeout: 4000 });
+	else setTimeout(fn, 1);
+}
+
+/* Fetch the SDK, initialise it, and flush anything that queued up meanwhile.
+
+   Separated from the scheduling around it so both the idle callback and a
+   trackNow() that beats it can call this; the `starting` promise is what makes
+   that idempotent, since two callers racing here would otherwise fetch and
+   init twice.
+
+   The `.catch()` is not optional. This is a network fetch now, and a blocked
+   tracker chunk or an offline visitor must fail as "no analytics", never as an
+   unhandled rejection in the console of a page whose content is fine. */
+function startAnalytics(): Promise<void> {
+	if (starting) return starting;
 
 	if (!API_KEY) {
 		console.warn('PostHog API key missing — analytics disabled');
-		return;
+		starting = Promise.resolve();
+		return starting;
 	}
 
-	posthog.init(API_KEY, {
+	const key = API_KEY;
+	starting = import('posthog-js')
+		.then(({ default: ph }) => {
+			configure(ph, key);
+			posthog = ph;
+			for (const q of queued.splice(0)) send(q.event, q.props);
+		})
+		.catch(() => {
+			/* Blocked, offline, or the chunk 404s. Drop the backlog rather than
+			   letting it grow for the life of the page. */
+			queued.length = 0;
+		});
+
+	return starting;
+}
+
+/* The configuration, kept out of startAnalytics() so the loading choreography
+   above reads as choreography and this reads as settings. */
+function configure(posthog: PostHog, key: string): void {
+	posthog.init(key, {
 		api_host: API_HOST,
 		ui_host: UI_HOST,
 		/* A dated snapshot of PostHog's own defaults, pinned so an SDK upgrade
@@ -82,10 +137,16 @@ export function initAnalytics(): void {
 
 		   Two things it is routinely confused with, and does not govern: page
 		   views come from `capture_pageview` above and still fire, and session
-		   replay is a project setting, not a client flag. Its neighbours are
-		   separate flags left at their defaults — `rageclick`, `enable_heatmaps`
-		   and `capture_dead_clicks`; turn those off too if the goal is a strictly
-		   named taxonomy rather than just quieter click data. */
+		   replay is a project setting, not a client flag.
+
+		   Rageclick detection does *not* need turning off separately, which is
+		   worth stating because it reads like it should: in this SDK version
+		   `rageclick` is a key on `AutocaptureConfig`, not a top-level option,
+		   and the RageClick detector is owned by the Autocapture extension —
+		   `autocapture: false` stops the extension, and the detector with it.
+		   Heatmaps and dead clicks are separate extensions rather than config
+		   flags here, so `enable_heatmaps`/`capture_dead_clicks` are not options
+		   to set either; check `posthog-js`'s own types before adding one. */
 		autocapture: false,
 	});
 
@@ -94,6 +155,22 @@ export function initAnalytics(): void {
 	   the project rather than the client: turn on "Record user sessions" under
 	   Project settings → Session replay, and the SDK above picks it up with no
 	   code change. */
+}
+
+/* What callers actually call. It schedules the load rather than performing it.
+
+   Analytics.astro renders in `<head>` on every page, so doing this work inline
+   puts an 88KB fetch, a second network request and a set of localStorage and
+   cookie reads in contention with the stylesheet and the webfonts that decide
+   first paint — for a measurement nothing on the page is waiting for.
+
+   Waiting for the first idle slot costs no events: trackNow() below starts the
+   load itself and queues behind it, so the deferral can only ever delay an
+   event, never drop one. */
+export function initAnalytics(): void {
+	if (starting || scheduled) return;
+	scheduled = true;
+	whenIdle(() => void startAnalytics());
 }
 
 /* Send in the same tick, and in a form that survives the page going away.
@@ -109,8 +186,40 @@ export function initAnalytics(): void {
 
    These two options together are the equivalent of the `amplitude.flush()` this
    replaces; the browser SDK exposes no public `flush()` of its own. */
+function send(event: string, props?: Record<string, unknown>): void {
+	posthog?.capture(event, props, { send_instantly: true, transport: 'sendBeacon' });
+}
+
 function trackNow(event: string, props?: Record<string, unknown>): void {
-	posthog.capture(event, props, { send_instantly: true, transport: 'sendBeacon' });
+	if (!API_KEY) return;
+	if (posthog) {
+		send(event, props);
+		return;
+	}
+	/* The SDK is not here yet. Queue the event and pull the load forward rather
+	   than waiting for the idle slot — this is an interaction, so the visitor
+	   may be on their way out. In practice the queue is almost always empty:
+	   initAnalytics() runs from `<head>` on page load, so the chunk has
+	   normally landed long before anyone has clicked anything. */
+	queued.push({ event, props });
+	void startAnalytics();
+}
+
+/* An arrival rather than an interaction.
+
+   The difference that matters is who might leave: an interaction is often the
+   last thing that happens before attention goes elsewhere, which is what
+   `send_instantly`/`sendBeacon` above exist for. An arrival is the opposite —
+   the visitor has just got here and is still reading.
+
+   So this waits for idle rather than calling trackNow() directly, whose whole
+   job is to pull the SDK load *forward* for a visitor who may be on their way
+   out. Dragging an 88KB fetch into first paint to record that someone arrived
+   is exactly the trade this file is trying not to make. The event still cannot
+   be lost: if the SDK has not landed by the time this fires, trackNow() queues
+   it like any other. */
+function trackOnIdle(event: string, props?: Record<string, unknown>): void {
+	whenIdle(() => trackNow(event, props));
 }
 
 /* The card's title, without the assistive-tech text that shares its element.
@@ -168,7 +277,7 @@ export function trackCaseStudyOpened(): void {
 	initAnalytics();
 	if (!API_KEY) return;
 
-	trackNow('Opened Case Study', {
+	trackOnIdle('Opened Case Study', {
 		case_study_title: caseStudyTitle(),
 		case_study_slug: caseStudySlug(),
 		is_external: false,
@@ -296,7 +405,7 @@ export function initHomepageTracking(): void {
 	if (!API_KEY) return;
 
 	document.addEventListener('astro:page-load', () => {
-		if (window.location.pathname === '/') trackNow('Homepage Visited');
+		if (window.location.pathname === '/') trackOnIdle('Homepage Visited');
 	});
 }
 
