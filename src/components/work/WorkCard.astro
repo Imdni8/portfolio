@@ -31,9 +31,15 @@ interface Props {
 	thumbnail: { src: ImageMetadata; alt: string };
 	href?: string;
 	status?: 'coming-soon' | 'external';
+	/** True for the cards that sit in the initial viewport. Astro's image
+	 *  service defaults every `<Image>` to `loading="lazy"`, which puts the
+	 *  first row's covers behind an intersection check instead of starting
+	 *  them during HTML parse — on the homepage those covers *are* the LCP
+	 *  candidate, so the default costs exactly the image it should hurry. */
+	priority?: boolean;
 }
 
-const { title, industry, year, technology, roles = [], aiFeature = false, thumbnail, href, status } = Astro.props;
+const { title, industry, year, technology, roles = [], aiFeature = false, thumbnail, href, status, priority = false } = Astro.props;
 
 // A link when there's somewhere to go, otherwise a plain container — no
 // dead affordance for a case study that isn't published yet.
@@ -57,6 +63,8 @@ const isExternal = status === 'external';
 			alt={thumbnail.alt}
 			widths={[400, 620, 900]}
 			sizes="(min-width: 85.5rem) 37.5rem, (min-width: 40rem) 44vw, 92vw"
+			loading={priority ? 'eager' : 'lazy'}
+			fetchpriority={priority ? 'high' : 'auto'}
 		/>
 		{
 			status === 'coming-soon' && (

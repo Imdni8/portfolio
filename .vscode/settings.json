@@ -1,0 +1,37 @@
+{
+  // `.mdx` is not Markdown. Without this, VS Code falls back to the Markdown
+  // language for it, and a Markdown formatter rewrites `{/* … */}` comment
+  // blocks to `{/_ … _/}` — which breaks the MDX parse and fails the build
+  // with "Unterminated regular expression" pointing nowhere near the cause.
+  // The `mdx` language id comes from the recommended MDX extension; with the
+  // extension absent this line is inert, which is why the guards below do not
+  // rely on it.
+  "files.associations": {
+    "*.mdx": "mdx"
+  },
+
+  // This project is hand-formatted; see .prettierignore for the measurements
+  // behind that. Format-on-save is off workspace-wide rather than per-language,
+  // so a file type nobody thought about cannot be reformatted by surprise.
+  "editor.formatOnSave": false,
+  "editor.formatOnPaste": false,
+  "editor.formatOnSaveMode": "file",
+
+  // Belt and braces for the two that actually broke: these hold even if
+  // someone turns the workspace-wide setting back on.
+  "[mdx]": {
+    "editor.formatOnSave": false
+  },
+  "[markdown]": {
+    "editor.formatOnSave": false
+  },
+
+  // Tabs, matching .editorconfig, for editors that have not loaded it yet.
+  "editor.insertSpaces": false,
+  "editor.detectIndentation": false,
+
+  // Keep the search/file tree honest about what is and is not source.
+  "files.exclude": {
+    "**/.DS_Store": true
+  }
+}

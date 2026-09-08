@@ -35,7 +35,14 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 				</a>
 			</nav>
 
-			<NavMenu client:load />
+			{/* `client:idle`, not `client:load`. The trigger renders correctly as
+			    static SSR markup, and everything this island adds — Base UI's
+			    open/close, keyboard and focus handling, plus GSAP's hover
+			    choreography — is only reachable once the reader goes for it. At
+			    `client:load` its React + Base UI + GSAP chunk parses and hydrates
+			    around first paint on every page on the site, for a dropdown most
+			    visits never open. */}
+			<NavMenu client:idle />
 		</div>
 	</div>
 </header>

@@ -14,7 +14,12 @@ node_modules/
 .env.production
 
 # editors
-.vscode/
+# `.vscode/*` rather than `.vscode/`, so the two shared files below can be
+# un-ignored: git cannot re-include a path inside an ignored *directory*.
+# Personal settings (launch.json, per-user overrides) stay ignored as before.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 
 # temp files

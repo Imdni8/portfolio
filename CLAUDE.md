@@ -213,7 +213,8 @@ pattern as `SiteNav.astro`. There is no shared root layout (`index.astro`,
 `about.astro` and `CaseStudyLayout.astro` each own their own `<!doctype html>`
 shell — see Stack), so it's imported and rendered just before `</body>` in all
 three places independently; adding a fourth top-level page means wiring it in
-there too.
+there too. `Analytics.astro` and `FontPreload.astro` are copied across the same
+three heads for the same reason — see Performance.
 
 Assets live in `src/assets/footer/`, imported via Vite's `?raw` suffix and
 rendered with `set:html` — the same pattern the homepage uses for its client
@@ -559,6 +560,59 @@ that budget the same way, and the numbers have to be re-measured after (sample
 the canvas over a pointer sweep, both themes; Playwright is already a dev
 dependency for exactly this kind of check).
 
+## Performance
+
+Four things on the critical path are deliberate and easy to undo by accident.
+
+- **`posthog-js` is behind a dynamic `import()`**, in `analytics.ts`'s
+  `startAnalytics()`. It is 274KB raw / 88KB gzipped, and `Analytics.astro`
+  renders in `<head>` on every page — so as a top-level import it was the
+  largest thing every visitor downloaded, to record a handful of named events.
+  Adding `import posthog from 'posthog-js'` back at the top of that file
+  silently reverses this and nothing fails to show that it did; the chunk just
+  rejoins the critical path. The init is additionally scheduled on
+  `requestIdleCallback` (with a 4s `timeout` so a busy page still measures).
+  Nothing is lost by either deferral: `trackNow()` pulls the load forward for
+  interactions and queues the event behind it, and arrivals go through
+  `trackOnIdle()` precisely so they *don't* pull it forward.
+- **Above-the-fold images have to opt out of lazy loading.** Astro's image
+  service defaults every `<Image>` to `loading="lazy"`, which is wrong for
+  exactly the images that are the LCP candidate. `WorkCard` takes a `priority`
+  prop (`index.astro` passes it to the first two cards — the grid is two
+  columns at most, so those are the only ones that can be in the initial
+  viewport), `CaseStudyHero`'s `heroShot` sets it directly, and
+  `BeforeAfter`'s two shots carry `fetchPriority="high"`.
+- **`FontPreload.astro` is global chrome, like `Footer` and `Analytics`.**
+  There is no shared root layout, so it is rendered in `index.astro`,
+  `about.astro` and `CaseStudyLayout.astro` independently — a fourth top-level
+  page needs it wired in there too, or that page's headline paints in a
+  fallback serif and reflows. It preloads only the two `latin` faces that set
+  visible text at the top of the page; the file explains why more would be
+  worse. `<ClientRouter />` and `<Analytics />` sit *last* in each `<head>`
+  for the same reason, after everything that decides how the page looks.
+- **Islands are gated on being reachable.** `NavMenu` is `client:idle`, not
+  `client:load` — its trigger renders as static SSR markup and nothing it adds
+  is needed before the reader goes for it. On a case study,
+  `pages/work/[...slug].astro` scans the MDX body (comments and code fences
+  stripped) for `<Term>` and `<Video>`/`<VideoFigure>`, and `CaseStudyLayout`
+  renders `Glossary`/`VideoPlayer` only where there is something that can open
+  them. `Lightbox` and `Toast` are deliberately *not* gated this way: their
+  triggers come from several components each, so a name test would be a list
+  to keep in sync rather than a fact about the page.
+
+Two things that look like wins and are not, so they don't get "fixed" later:
+
+- **The water field's `IntersectionObserver` cannot report `false` on this
+  site**, because `.water-field` sits inside a `position: fixed; inset: 0`
+  parent and always covers the viewport. That is not a bug to repair — the
+  field is meant to be visible the whole way down (`.hero` and `.work` carry
+  no background), so there is nothing to pause, and an IO cannot detect
+  occlusion anyway. It earns its place for the unpositioned uses (the
+  Storybook stories), which is also why `onScroll` still re-reads the rect —
+  rAF-batched, since scrolling genuinely cannot move it here.
+- **The `.glass` cards repaint with the field behind them.** That is what the
+  material is; the cost is the design, not a defect.
+
 ## Stack
 
 - **Astro 7** — static output, no adapter, no server.
@@ -590,6 +644,32 @@ npm run build-storybook  # → storybook-static/ (gitignored)
 
 There is no test runner and no linter configured. `npm run check` is the only
 gate; run it before calling work done.
+
+**There is also no formatter, and that is enforced rather than assumed.** This
+codebase is hand-formatted; Prettier arrives transitively via
+`@astrojs/language-server` and Storybook, and if it runs it does damage:
+
+- On **MDX** it is destructive. An editor that treats `.mdx` as Markdown — VS
+  Code's default without the MDX extension — normalises `*` emphasis to `_`,
+  rewriting `{/* … */}` comment blocks to `{/_ … _/}`. MDX then reads that as a
+  JSX expression holding an unterminated regular expression, and the build dies
+  with `Unterminated regular expression` pointing at the delimiter rather than
+  at the formatter. This is the same genre of misdirection as the indented
+  closing tag under "Case studies", and it has already happened once. Even the
+  correct `mdx` parser is unsafe, because reindenting a closing tag after a
+  list is exactly the failure that section warns about.
+- On **everything else** it is churn. Prettier's config-less defaults rewrite
+  all 42 `src` TS/TSX files, and a config tuned to match the house style
+  (tabs, single quotes, `printWidth` 110) still restructures 20 of them.
+
+Three files hold the line, and all three are committed so they travel:
+`.prettierignore` (ignores `*`, and says why — there is deliberately no
+`.prettierrc`, since one would imply Prettier owns this formatting),
+`.editorconfig` (tabs, LF, and no trailing-whitespace trimming in Markdown),
+and `.vscode/settings.json` (format-on-save off, plus `*.mdx` pinned to the
+`mdx` language so it is never parsed as Markdown). `.gitignore` was narrowed
+from `.vscode/` to `.vscode/*` with negations for `settings.json` and
+`extensions.json` to make that possible.
 
 **Never run `npm run build` (or a bare `astro build`/`astro check`) while
 `npm run dev` is also running against this working tree.** A build

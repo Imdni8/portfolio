@@ -60,12 +60,22 @@ const linkedInHref = links.linkedin;
 			name="description"
 			content="Tousif Rahaman — product designer and design engineer, turning messy workflows and data into usable interfaces."
 		/>
+
+		{/* Open Graph */}
 		<meta property="og:title" content="About — Tousif Rahaman" />
 		<meta
 			property="og:description"
 			content="Product designer and design engineer, turning messy workflows and data into usable interfaces."
 		/>
 		<meta property="og:type" content="profile" />
+		<meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+		<meta property="og:image" content={new URL('/og-image.png', Astro.site)} />
+
+		{/* Twitter */}
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="About — Tousif Rahaman" />
+		<meta name="twitter:description" content="Product designer and design engineer, turning messy workflows and data into usable interfaces." />
+		<meta name="twitter:image" content={new URL('/og-image.png', Astro.site)} />
 	</head>
 	<body>
 		{/* The stats panel wears `.glass`; the filter it bends its backdrop with
@@ -208,8 +218,8 @@ const linkedInHref = links.linkedin;
 		   positioned sibling regardless of DOM order — same reasoning as
 		   `index.astro`'s `.hero`. Without this, the headline, tags and prose
 		   render invisibly underneath the water field; only `.about__card`
-		   would show, because its `.glass` backdrop-filter happens to create a
-		   stacking context of its own. Load-bearing, not precautionary. */
+		   would show, because its `.glass` backdrop-filter happens to create
+		   a stacking context of its own. Load-bearing, not precautionary. */
 		position: relative;
 
 		/* What the nav occupies at the top of the viewport, plus a little
