@@ -1,0 +1,14 @@
+# The repo's formatting, stated for every editor rather than for one tool.
+# Prettier is deliberately not this project's formatter — see .prettierignore.
+root = true
+
+[*]
+indent_style = tab
+end_of_line = lf
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Prose wraps by hand here, and trailing spaces are a Markdown line break.
+[*.{md,mdx}]
+trim_trailing_whitespace = false

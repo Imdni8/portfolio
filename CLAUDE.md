@@ -645,6 +645,32 @@ npm run build-storybook  # → storybook-static/ (gitignored)
 There is no test runner and no linter configured. `npm run check` is the only
 gate; run it before calling work done.
 
+**There is also no formatter, and that is enforced rather than assumed.** This
+codebase is hand-formatted; Prettier arrives transitively via
+`@astrojs/language-server` and Storybook, and if it runs it does damage:
+
+- On **MDX** it is destructive. An editor that treats `.mdx` as Markdown — VS
+  Code's default without the MDX extension — normalises `*` emphasis to `_`,
+  rewriting `{/* … */}` comment blocks to `{/_ … _/}`. MDX then reads that as a
+  JSX expression holding an unterminated regular expression, and the build dies
+  with `Unterminated regular expression` pointing at the delimiter rather than
+  at the formatter. This is the same genre of misdirection as the indented
+  closing tag under "Case studies", and it has already happened once. Even the
+  correct `mdx` parser is unsafe, because reindenting a closing tag after a
+  list is exactly the failure that section warns about.
+- On **everything else** it is churn. Prettier's config-less defaults rewrite
+  all 42 `src` TS/TSX files, and a config tuned to match the house style
+  (tabs, single quotes, `printWidth` 110) still restructures 20 of them.
+
+Three files hold the line, and all three are committed so they travel:
+`.prettierignore` (ignores `*`, and says why — there is deliberately no
+`.prettierrc`, since one would imply Prettier owns this formatting),
+`.editorconfig` (tabs, LF, and no trailing-whitespace trimming in Markdown),
+and `.vscode/settings.json` (format-on-save off, plus `*.mdx` pinned to the
+`mdx` language so it is never parsed as Markdown). `.gitignore` was narrowed
+from `.vscode/` to `.vscode/*` with negations for `settings.json` and
+`extensions.json` to make that possible.
+
 **Never run `npm run build` (or a bare `astro build`/`astro check`) while
 `npm run dev` is also running against this working tree.** A build
 re-optimizes Vite's on-disk dependency cache (`node_modules/.vite`), which

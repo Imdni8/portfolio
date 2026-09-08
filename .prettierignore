@@ -1,0 +1,33 @@
+# Everything. This project is hand-formatted, and Prettier is not its
+# formatter — this file is what makes that true rather than merely intended.
+#
+# Two reasons, one of them load-bearing:
+#
+# 1. MDX. Prettier's *markdown* parser normalises `*` emphasis to `_`, and an
+#    editor that treats `.mdx` as Markdown (VS Code's default, without an MDX
+#    extension) will rewrite `{/* … */}` comment blocks to `{/_ … _/}`. That is
+#    not a comment to MDX: it parses as a JSX expression holding `/_ … _/`,
+#    which oxc reads as an unterminated regular expression. The build dies with
+#    a message pointing at the delimiter instead of at the formatter that moved
+#    it. This has already happened once, to agent-versioning.mdx.
+#
+#    Even with the correct `mdx` parser it is unsafe here. Case studies have a
+#    hard rule that a closing tag must sit flush left (see CLAUDE.md), because
+#    an indented `</Section>` after a numbered list reads to CommonMark as a
+#    list continuation and the element never closes. Reindentation is exactly
+#    what a formatter does.
+#
+# 2. Everything else. Prettier has never run on this repo. Measured against the
+#    codebase, its config-less defaults rewrite all 42 src TS/TSX files, and
+#    even a config tuned to match (tabs, single quotes, printWidth 110) still
+#    restructures 20 of them — Prettier's line-breaking decisions are its own
+#    and no setting makes them agree with hand-authored code. So there is no
+#    .prettierrc: a config would imply Prettier owns this formatting, and it
+#    does not.
+#
+# `.editorconfig` beside this is what actually keeps indentation consistent,
+# and it applies to every editor rather than to one tool.
+#
+# To opt a path back in, delete its line — or narrow the `*` below. Do that
+# deliberately, and never for src/content.
+*

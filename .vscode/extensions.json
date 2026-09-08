@@ -1,0 +1,6 @@
+{
+  // The MDX extension is the one that matters: it supplies the `mdx` language
+  // id that settings.json associates `.mdx` with, so case studies stop being
+  // parsed as Markdown. Astro's extension provides .astro language support.
+  "recommendations": ["unifiedjs.vscode-mdx", "astro-build.astro-vscode"]
+}
