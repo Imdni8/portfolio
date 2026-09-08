@@ -212,13 +212,13 @@ hour.
 
 </StorySection>
 
-{/_ Everything inside <ReadInDetail> is clipped to a 344px peek and buried
+{/* Everything inside <ReadInDetail> is clipped to a 344px peek and buried
 under a wash until the reader opens it. It is real content, not a teaser —
 so every closing tag below must sit flush left, including the nested ones.
 Several blocks end on a numbered list, and an indented closing tag after a
 list reads to CommonMark as a continuation of the last list item; the MDX
 compiler then fails with a RolldownError pointing nowhere near the cause.
-See CLAUDE.md's case-studies section. _/}
+See CLAUDE.md's case-studies section. */}
 
 <ReadInDetail>
 
@@ -299,9 +299,9 @@ Therefore, the experience of versioning boils down to helping the user:
     alt="Three iterations of the dependency card, from a simple accept/dismiss affordance to the selected version-aware design"
 />
 
-{/_ `open` because this note was plain always-visible prose before NoteBox
+{/* `open` because this note was plain always-visible prose before NoteBox
 became a collapsible <details>; leaving it closed would silently hide
-copy this published page had always shown. _/}
+copy this published page had always shown. */}
 
 <NoteBox slot="visual" title="Note on user testing" open>
 
