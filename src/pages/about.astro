@@ -13,7 +13,6 @@ import Tag from '../components/ui/Tag.astro';
 import Icon from '../components/ui/Icon.astro';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
-import FontPreload from '../components/FontPreload.astro';
 import portrait from '../assets/about/BLR_portrait_B_Tousif Rahaman.jpg';
 import { links } from '../data/links';
 
@@ -51,7 +50,10 @@ const linkedInHref = links.linkedin;
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<FontPreload />
+		<ClientRouter />
+		<Analytics />
+		{import.meta.env.DEV && <ThemePreview />}
+		{import.meta.env.DEV && <DevOutline />}
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
 		<title>About — Tousif's portfolio</title>
 		<meta
@@ -74,16 +76,6 @@ const linkedInHref = links.linkedin;
 		<meta name="twitter:title" content="About — Tousif Rahaman" />
 		<meta name="twitter:description" content="Product designer and design engineer, turning messy workflows and data into usable interfaces." />
 		<meta name="twitter:image" content={new URL('/og-image.png', Astro.site)} />
-
-		{/* Last in `<head>`, after everything that decides how the page looks.
-		    Neither the router nor the analytics module is needed for first
-		    paint, and putting their fetches ahead of the title, the preloads and
-		    the social meta only gives them a head start over the things that
-		    are. */}
-		<ClientRouter />
-		<Analytics />
-		{import.meta.env.DEV && <ThemePreview />}
-		{import.meta.env.DEV && <DevOutline />}
 	</head>
 	<body>
 		{/* The stats panel wears `.glass`; the filter it bends its backdrop with
@@ -226,8 +218,8 @@ const linkedInHref = links.linkedin;
 		   positioned sibling regardless of DOM order — same reasoning as
 		   `index.astro`'s `.hero`. Without this, the headline, tags and prose
 		   render invisibly underneath the water field; only `.about__card`
-		   would show, because its `.glass` backdrop-filter happens to create a
-		   stacking context of its own. Load-bearing, not precautionary. */
+		   would show, because its `.glass` backdrop-filter happens to create
+		   a stacking context of its own. Load-bearing, not precautionary. */
 		position: relative;
 
 		/* What the nav occupies at the top of the viewport, plus a little

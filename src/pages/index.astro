@@ -141,8 +141,8 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 				</p>
 				<div class="work__inner">
 					{/* `priority` on the first two only: the grid is two columns above
-					    40rem and one below it, so those are the only cards that can be
-					    in the initial viewport at any width — the rest stay lazy. */}
+						40rem and one below it, so those are the only cards that can be
+						in the initial viewport at any width — the rest stay lazy. */}
 					{
 						studies.map((entry, i) => (
 							<WorkCard
