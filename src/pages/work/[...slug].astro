@@ -20,6 +20,6 @@ const { title, facts, hero, heroShot, actions } = entry.data;
 const subtitle = entry.data.subtitle!;
 ---
 
-<CaseStudyLayout title={title} subtitle={subtitle} facts={facts} hero={hero} heroShot={heroShot} actions={actions}>
+<CaseStudyLayout title={title} subtitle={subtitle} thumbnail={entry.data.thumbnail} facts={facts} hero={hero} heroShot={heroShot} actions={actions}>
 	<Content />
 </CaseStudyLayout>

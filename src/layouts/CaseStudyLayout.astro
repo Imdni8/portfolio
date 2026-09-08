@@ -16,6 +16,7 @@ import type { ImageMetadata } from 'astro';
 interface Props {
 	title: string;
 	subtitle: string;
+	thumbnail: any;
 	facts?: { label: string; value: string }[];
 	heroShot?: { src: ImageMetadata; alt: string };
 	hero?: {
@@ -34,7 +35,7 @@ interface Props {
 	};
 }
 
-const { title, subtitle, facts = [], hero, heroShot, actions = {} } = Astro.props;
+const { title, subtitle, thumbnail, facts = [], hero, heroShot, actions = {} } = Astro.props;
 ---
 
 <!doctype html>
@@ -49,9 +50,19 @@ const { title, subtitle, facts = [], hero, heroShot, actions = {} } = Astro.prop
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
 		<title>{title} — Tousif's portfolio</title>
 		<meta name="description" content={subtitle} />
+
+		{/* Open Graph */}
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={subtitle} />
 		<meta property="og:type" content="article" />
+		<meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+		<meta property="og:image" content={new URL(thumbnail.src, Astro.site)} />
+
+		{/* Twitter */}
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={subtitle} />
+		<meta name="twitter:image" content={new URL(thumbnail.src, Astro.site)} />
 	</head>
 	<body>
 		<CaseStudyHero title={title} subtitle={subtitle} facts={facts} actions={actions} hero={hero} heroShot={heroShot} />

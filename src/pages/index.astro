@@ -34,9 +34,9 @@ const ROLE_TYPED = '& builder';
 // by its own `order` field. See "Case studies" in CLAUDE.md.
 //
 // `coming-soon` entries sort after everything else, regardless of their own
-// `order` — there's nothing to look at yet, so they shouldn't crowd real work
-// out of the grid's early slots. `order` still decides their place within
-// that trailing group, and everyone else's place among themselves.
+// `order` — so they shouldn't crowd real work out of the grid's early slots.
+// `order` still decides their place within that trailing group, and everyone
+// else's place among themselves.
 const studies = (await getCollection('work', ({ data }) => data.status !== 'unlisted')).sort((a, b) => {
 	const aComingSoon = a.data.status === 'coming-soon';
 	const bComingSoon = b.data.status === 'coming-soon';
@@ -62,6 +62,19 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		{import.meta.env.DEV && <DevOutline />}
 		<title>Tousif's portfolio</title>
 		<meta name="description" content="Tousif Rahaman — product designer and design engineer." />
+
+		{/* Open Graph */}
+		<meta property="og:title" content="Tousif's portfolio" />
+		<meta property="og:description" content="Tousif Rahaman — product designer and design engineer." />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={new URL('/', Astro.site)} />
+		<meta property="og:image" content={new URL('/og-image.png', Astro.site)} />
+
+		{/* Twitter */}
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="Tousif's portfolio" />
+		<meta name="twitter:description" content="Tousif Rahaman — product designer and design engineer." />
+		<meta name="twitter:image" content={new URL('/og-image.png', Astro.site)} />
 	</head>
 	<body>
 		{/* Both the nav and the work cards wear `.glass`; the filter it bends
@@ -82,7 +95,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 				    clearance the band should not react to; about.astro marks its
 				    own content column (`.about__frame`) for the same reason.
 				    Nothing needs to mark `.work` as well: the ramp clamps at 1
-				    once the hero has passed, so the band stays on for the rest of
+				    once the hero has passed, and the band stays on for the rest of
 				    the page. See SiteNav.astro. */}
 				<div class="hero__inner" data-nav-scrim>
 					<h1 class="type-title hero__title">I&rsquo;m Tousif</h1>

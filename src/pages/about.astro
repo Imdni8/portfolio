@@ -60,12 +60,22 @@ const linkedInHref = links.linkedin;
 			name="description"
 			content="Tousif Rahaman — product designer and design engineer, turning messy workflows and data into usable interfaces."
 		/>
+
+		{/* Open Graph */}
 		<meta property="og:title" content="About — Tousif Rahaman" />
 		<meta
 			property="og:description"
 			content="Product designer and design engineer, turning messy workflows and data into usable interfaces."
 		/>
 		<meta property="og:type" content="profile" />
+		<meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+		<meta property="og:image" content={new URL('/og-image.png', Astro.site)} />
+
+		{/* Twitter */}
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="About — Tousif Rahaman" />
+		<meta name="twitter:description" content="Product designer and design engineer, turning messy workflows and data into usable interfaces." />
+		<meta name="twitter:image" content={new URL('/og-image.png', Astro.site)} />
 	</head>
 	<body>
 		{/* The stats panel wears `.glass`; the filter it bends its backdrop with
