@@ -57,8 +57,23 @@ state — `Tabs` and a dismissible `Note` need it, `Button` does not.
 Built so far: `Button` (primary / secondary / tertiary), `Tabs`, `Note`, `Icon`,
 `IconButton` (icon-only counterpart to `Button` — same three variants, plus
 `sm`/`md`/`lg` sizing), `Tag` (a non-interactive label — `default` variant
-reads the semantic layer, `coming-soon` is bound to the amber ramp instead
-since it rides on a cover image, not the page ground).
+reads the semantic layer, `coming-soon` and `ai` are bound to primitives
+instead, since they ride on a cover image, not the page ground).
+
+**`--ai-spectrum-1…4` is the one sanctioned exception to the two-hue palette**,
+and it exists for a single component: the `ai` tag variant's border, a conic
+gradient rotating once every four seconds around the chip on a work card. The
+hues are decoration and nothing else — never text, never a fill, never a
+surface anything has to be read against, which is why they carry no contrast
+measurement while every semantic pairing does. What the chip *means* is carried
+by its sparkles glyph and its fixed "AI" label, so it survives greyscale with
+the ring switched off entirely. Stop 1 is `--amber-500`, so the sweep is led by
+the system's own hue and the loop closes with no seam; the remaining three come
+from the same unmodified Tailwind palette the amber ramp does. They are not
+theme-aware and must not become so. The angle is a registered `@property`
+(`--tag-ai-angle`) because an unregistered custom property has no type and
+would jump rather than interpolate — the same reason `Solution.astro` registers
+its mask stop.
 
 **Glass** (`.glass` in `components.css`) is a material, not a component — the
 backdrop-filter pane the nav and work cards are both cut from, so they read as
@@ -314,6 +329,15 @@ of a fully published entry.
   free text, so a new design-type value (e.g. "Design concepts") is a
   content-only edit. Every entry needs a `design-type` role (enforced by the
   schema, on every status); `code` is optional.
+  **`aiFeature` is a boolean, not a role**, and the distinction is
+  load-bearing: `roles` says what kind of work the *designer* did, `aiFeature`
+  says the *product* shipped a notable AI feature. It renders a fixed chip —
+  the sparkles glyph and the literal string "AI", both hard-coded in
+  `WorkCard.astro`, never authored in content — always leftmost, and outside
+  the `roles.max(2)` cap. It is also the only chip that wears the animated
+  gradient ring (`.tag--ai`, see Components). Writing AI as a `roles` entry
+  instead gets you a chip that reads "AI" wearing the Figma mark and no ring;
+  `philips-ultrasound-gig.mdx` did exactly that until it was converted.
 - **Page content — only needed once a page actually builds:** `subtitle` (the
   standfirst; required unless `status` is `coming-soon`), `facts` (max 4, the
   hero's right rail), `chapters` (chapter nav — each `id` must match a

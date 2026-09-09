@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Icon } from './Icon';
 import type { IconName } from './icons';
 
-export type TagVariant = 'default' | 'coming-soon';
+export type TagVariant = 'default' | 'coming-soon' | 'ai';
 
 export type TagProps = {
 	/** Decorative — the label beside it carries the meaning, as everywhere else. */

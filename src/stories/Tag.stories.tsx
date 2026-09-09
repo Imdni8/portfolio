@@ -7,8 +7,8 @@ const meta = {
 	component: Tag,
 	args: { children: 'Redesign', icon: 'figma', variant: 'default' },
 	argTypes: {
-		variant: { control: 'inline-radio', options: ['default', 'coming-soon'] },
-		icon: { control: 'inline-radio', options: ['figma', 'code-xml', 'hourglass'] },
+		variant: { control: 'inline-radio', options: ['default', 'coming-soon', 'ai'] },
+		icon: { control: 'inline-radio', options: ['figma', 'code-xml', 'hourglass', 'sparkles'] },
 	},
 } satisfies Meta<typeof Tag>;
 export default meta;
@@ -64,12 +64,26 @@ export const Variants: Story = {
 				</Ground>
 			</Group>
 
-			<Group label="On media" note="Both variants over --bg-media, the surface a card's cover falls back to.">
+			<Group
+				label="AI"
+				note="Driven by a card's `aiFeature` boolean, never by a role label — the chip says the project shipped an AI feature. Its border is a conic gradient rotating once every four seconds, painted into the border box while the fill stays --bg, so the label's contrast is the default tag's. The four hues are --ai-spectrum-*, the system's only sanctioned exception to amber-and-grey, and like Coming soon they do not flip with the theme. Under prefers-reduced-motion the sweep stops and the static ring stands."
+			>
+				<Ground background="var(--bg)">
+					<Tag icon="sparkles" variant="ai">
+						AI
+					</Tag>
+				</Ground>
+			</Group>
+
+			<Group label="On media" note="All three variants over --bg-media, the surface a card's cover falls back to.">
 				<Ground background="var(--bg-media)">
 					<Tag icon="figma">Redesign</Tag>
 					<Tag icon="code-xml">Contributed code</Tag>
 					<Tag icon="hourglass" variant="coming-soon">
 						Coming soon
+					</Tag>
+					<Tag icon="sparkles" variant="ai">
+						AI
 					</Tag>
 				</Ground>
 			</Group>

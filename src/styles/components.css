@@ -399,11 +399,75 @@
 	color: var(--text-on-primary);
 }
 
+/* The chip for a project that shipped an AI feature. An iridescent border
+   travelling around the chip is the convention for an AI surface, and the
+   amber/grey palette has nothing that says it — hence --ai-spectrum-*, whose
+   comment in tokens.css is the whole justification for those four hues
+   existing. Like .tag--coming-soon it is bound to primitives and identical in
+   both themes, because the image is its ground, not the page.
+
+   Painted as two stacked backgrounds clipped to different boxes — a gradient
+   cannot be a border-color — the same technique the Bolt prototype's running
+   composer uses. The angle is a *registered* custom property because an
+   unregistered one has no type and would jump 0deg → 360deg instead of
+   interpolating; the `0deg` fallback in the var() keeps the declaration valid
+   where @property is unsupported, so the ring lands static rather than absent.
+
+   The state is never colour alone: this is the only tag carrying a sparkles
+   glyph, and the only one whose label is the fixed string "AI", so it survives
+   greyscale on shape and text. The label's own contrast is untouched — the
+   fill is still --bg and the text still --text, and the ring is decoration
+   outside the padding box. */
+@property --tag-ai-angle {
+	syntax: '<angle>';
+	inherits: false;
+	initial-value: 0deg;
+}
+
+.tag--ai {
+	/* The ring is 2px, and it is taken out of the chip's own padding rather
+	   than added to its outside: this chip sits in a row beside 1px-bordered
+	   ones, and a border that grew the box would stand a pixel taller than its
+	   neighbours. The calc is derived from the extra border width, not a new
+	   spacing value — the padding gives back exactly what the border takes, so
+	   the outer box is unchanged at 26px and only the gap to the label moves. */
+	border-width: 1.5px;
+	border-color: transparent;
+	padding: calc(var(--spacing-xs) - 1px);
+	padding-inline-end: calc(var(--spacing-sm) - 1px);
+	background-image:
+		linear-gradient(var(--bg), var(--bg)),
+		conic-gradient(
+			from var(--tag-ai-angle, 0deg),
+			var(--ai-spectrum-1),
+			var(--ai-spectrum-2),
+			var(--ai-spectrum-3),
+			var(--ai-spectrum-4),
+			var(--ai-spectrum-1)
+		);
+	background-origin: border-box;
+	background-clip: padding-box, border-box;
+	animation: tag-ai-spin 4s linear infinite;
+}
+
+@keyframes tag-ai-spin {
+	to {
+		--tag-ai-angle: 360deg;
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.btn,
 	.tab,
 	.icon-btn {
 		transition: none;
+	}
+
+	/* The gradient standing still is a real resting state — the ring is still
+	   there, still iridescent — so stopping the sweep is the whole opt-out and
+	   there is nothing to restore under it. */
+	.tag--ai {
+		animation: none;
 	}
 }
 
