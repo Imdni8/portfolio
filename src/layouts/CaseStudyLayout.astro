@@ -17,7 +17,7 @@ import type { ImageMetadata } from 'astro';
 interface Props {
 	title: string;
 	subtitle: string;
-	thumbnail: any;
+	thumbnail: { src: ImageMetadata; alt: string };
 	facts?: { label: string; value: string }[];
 	heroShot?: { src: ImageMetadata; alt: string };
 	hero?: {
@@ -65,18 +65,27 @@ const {
 		<title>{title} — Tousif's portfolio</title>
 		<meta name="description" content={subtitle} />
 
-		{/* Open Graph */}
+		{/* Open Graph. `thumbnail` is `{ src, alt }` where `src` is an
+		    ImageMetadata *object*, so the card image is `thumbnail.src.src` —
+		    one `.src` too few stringifies the object and every shared case-study
+		    link resolves to `/[object Object]`, which is exactly what shipped
+		    while this prop was typed `any`. */}
+		<meta property="og:site_name" content="Tousif Rahaman" />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={subtitle} />
 		<meta property="og:type" content="article" />
 		<meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
-		<meta property="og:image" content={new URL(thumbnail.src, Astro.site)} />
+		<meta property="og:image" content={new URL(thumbnail.src.src, Astro.site)} />
+		<meta property="og:image:width" content={String(thumbnail.src.width)} />
+		<meta property="og:image:height" content={String(thumbnail.src.height)} />
+		<meta property="og:image:alt" content={thumbnail.alt} />
 
 		{/* Twitter */}
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={subtitle} />
-		<meta name="twitter:image" content={new URL(thumbnail.src, Astro.site)} />
+		<meta name="twitter:image" content={new URL(thumbnail.src.src, Astro.site)} />
+		<meta name="twitter:image:alt" content={thumbnail.alt} />
 
 		{/* Last in `<head>`, after everything that decides how the page looks —
 		    the analytics module is not needed for first paint, and putting its

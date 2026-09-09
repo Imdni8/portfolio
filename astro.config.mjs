@@ -5,7 +5,13 @@ import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-	site: 'https://tousifrahaman.com',
+	// The live host, and the reason every social card was image-less: this is
+	// what `new URL(..., Astro.site)` resolves against, so `og:image` pointed at
+	// https://tousifrahaman.com/og-image.png — a domain with no DNS at all.
+	// Scrapers still read the title and description straight out of the HTML,
+	// so the failure showed up only as a missing image, never as a broken page.
+	// tousif.fyi 301s to www, so the www form is the canonical one.
+	site: 'https://www.tousif.fyi',
 	integrations: [mdx(), react()],
 	image: {
 		// Screenshots are the payload of every case study — keep them sharp.

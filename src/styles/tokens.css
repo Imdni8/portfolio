@@ -57,6 +57,30 @@
 	--gray-800: #22292b;
 	--gray-900: #161b1d;
 	--gray-950: #090b0c;
+
+	/* ---- AI spectrum -------------------------------------------------------
+	   The only hues in the system outside the amber ramp and the cool grey,
+	   and deliberately scoped to one thing: the "AI" chip's animated border on
+	   a work card (.tag--ai in components.css). An iridescent sweep is how an
+	   AI surface is marked, and a two-hue palette has nothing that says it.
+
+	   Sourced from the same unmodified Tailwind palette the amber ramp comes
+	   from — emerald-400, blue-500, fuchsia-500 — so they sit at a comparable
+	   saturation and lightness to --amber-500 rather than being eyeballed.
+
+	   Stop 1 is --amber-500 itself, so the system's own hue leads the sweep
+	   and the loop closes on itself with no seam. Not theme-aware, and must
+	   not become so: the chip rides on a cover image in both themes, not on
+	   the page ground — the same argument .tag--coming-soon makes.
+
+	   Not for text, not for a fill, not for any surface a reader reads
+	   against — a 1px decorative ring only. Nothing here is measured for
+	   contrast because nothing here carries meaning; the chip's sparkles glyph
+	   and its fixed "AI" label do. */
+	--ai-spectrum-1: var(--amber-500); /* #f59e0b */
+	--ai-spectrum-2: #34d399; /* emerald-400 */
+	--ai-spectrum-3: #3b82f6; /* blue-500 */
+	--ai-spectrum-4: #d946ef; /* fuchsia-500 */
 }
 
 /* ---- 2 · Type primitives ---------------------------------------------------
