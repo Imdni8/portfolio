@@ -5,7 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 Tousif Rahaman's personal portfolio site — case studies of design work.
-Deployed at `https://tousifrahaman.com` (set as `site` in `astro.config.mjs`).
+Deployed at `https://www.tousif.fyi` (set as `site` in `astro.config.mjs`;
+`tousif.fyi` 301s to the `www` form). `site` is not decoration — every
+absolute URL the site emits, `og:image` above all, is built from it, so a
+stale value there breaks link previews without breaking a single page.
 
 ## Current direction
 

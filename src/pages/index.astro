@@ -61,16 +61,27 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		<title>Tousif's portfolio</title>
 		<meta name="description" content="Tousif Rahaman — product designer and design engineer." />
 
-		{/* Open Graph */}
-		<meta property="og:title" content="Tousif's portfolio" />
+		{/* Open Graph. The title here is what a shared link is captioned with;
+		    <title> above is the browser tab, and the two are allowed to differ —
+		    a tab says which page, a card says who this is. */}
+		<meta property="og:site_name" content="Tousif Rahaman" />
+		<meta property="og:title" content="Tousif - Product designer & Builder" />
 		<meta property="og:description" content="Tousif Rahaman — product designer and design engineer." />
 		<meta property="og:type" content="website" />
 		<meta property="og:url" content={new URL('/', Astro.site)} />
 		<meta property="og:image" content={new URL('/og-image.png', Astro.site)} />
+		{/* Stated rather than left to be discovered: LinkedIn falls back to its
+		    small square card when it has to fetch the file to learn the aspect
+		    ratio. These describe public/og-image.png (2400x1260) and have to be
+		    re-measured if that file is ever replaced. */}
+		<meta property="og:image:type" content="image/png" />
+		<meta property="og:image:width" content="2400" />
+		<meta property="og:image:height" content="1260" />
+		<meta property="og:image:alt" content="Tousif Rahaman — product designer and builder" />
 
 		{/* Twitter */}
 		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:title" content="Tousif's portfolio" />
+		<meta name="twitter:title" content="Tousif - Product designer & Builder" />
 		<meta name="twitter:description" content="Tousif Rahaman — product designer and design engineer." />
 		<meta name="twitter:image" content={new URL('/og-image.png', Astro.site)} />
 
