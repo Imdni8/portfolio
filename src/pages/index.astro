@@ -59,14 +59,16 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<FontPreload />
 		<title>Tousif's portfolio</title>
-		<meta name="description" content="Tousif Rahaman — product designer and design engineer." />
+		<meta name="description" content="Tousif Rahaman — turning messy workflows and data into usable interfaces." />
 
 		{/* Open Graph. The title here is what a shared link is captioned with;
 		    <title> above is the browser tab, and the two are allowed to differ —
-		    a tab says which page, a card says who this is. */}
+		    a tab says which page, a card says who this is. Title is the name,
+		    description is the role — kept separate rather than folded into one
+		    line, so neither restates the other. */}
 		<meta property="og:site_name" content="Tousif Rahaman" />
-		<meta property="og:title" content="Tousif - Product designer & Builder" />
-		<meta property="og:description" content="Tousif Rahaman — product designer and design engineer." />
+		<meta property="og:title" content="Tousif Rahaman" />
+		<meta property="og:description" content="Product designer & Builder" />
 		<meta property="og:type" content="website" />
 		<meta property="og:url" content={new URL('/', Astro.site)} />
 		<meta property="og:image" content={new URL('/og-image.png', Astro.site)} />
@@ -81,8 +83,8 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 
 		{/* Twitter */}
 		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:title" content="Tousif - Product designer & Builder" />
-		<meta name="twitter:description" content="Tousif Rahaman — product designer and design engineer." />
+		<meta name="twitter:title" content="Tousif Rahaman" />
+		<meta name="twitter:description" content="Product designer & Builder" />
 		<meta name="twitter:image" content={new URL('/og-image.png', Astro.site)} />
 
 		{/* Last in `<head>`, after everything that decides how the page looks.
