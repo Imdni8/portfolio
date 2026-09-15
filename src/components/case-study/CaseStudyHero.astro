@@ -55,7 +55,14 @@ const [before, after] = hero
 // 2×gutter) in resolved units, since `sizes` cannot read custom properties —
 // it is evaluated before the stylesheet that defines them is available. Errs
 // slightly wide rather than narrow, so a mismatch costs a few kB, not blur.
-const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem - 8vw), calc(100vw - 8vw)';
+//
+// The 100rem breakpoint is where --gutter's own clamp saturates at 4rem —
+// a property of the gutter, not the measure, so it doesn't move. The second
+// breakpoint has to match --measure-prose itself (62.5rem), and both resolved
+// widths are measure − 8rem/8vw (two gutters) at that measure. If the measure
+// moves, move this string too.
+const compareSizes =
+	'(min-width: 100rem) 54.5rem, (min-width: 62.5rem) calc(62.5rem - 8vw), calc(100vw - 8vw)';
 ---
 
 <header class="hero">
@@ -208,7 +215,7 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 	   of centred-in-a-wide-empty-track. Facts stay a sibling grid row rather
 	   than living inside .hero__lede since it's metadata, not lede copy. */
 	.hero__inner {
-		max-width: var(--measure-story);
+		max-width: var(--measure-prose);
 		margin: 0 auto;
 		padding: var(--spacing-9xl) var(--gutter) var(--spacing-7xl);
 		display: grid;
@@ -285,15 +292,18 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 		color: var(--text-disabled);
 	}
 
+	/* Capped narrower than .hero__inner (--measure-copy vs. --measure-prose) —
+	   the lede reads as a copy column, while the hero shot/compare beside it
+	   is free to run the full --measure-prose width and break out past it on
+	   both sides. */
 	.hero__lede {
+		max-width: var(--measure-copy);
+		margin-inline: auto;
 		display: grid;
 		justify-items: center;
 		gap: var(--spacing-2xl);
 	}
 
-	/* No measure cap: the column is already bounded by --measure-story and the
-	   facts rail beside it, and the reference sets both to the full width of
-	   that column. Capping them again left a ragged void on the right. */
 	h1 {
 		color: var(--text);
 	}
@@ -313,9 +323,14 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 	/* ---- facts ----
 	   One centred row at every width — a horizontal strip of dividers, sized
 	   to its own content (not stretched to the column) so `.hero__inner`'s
-	   `justify-items: center` centres the group as a whole under the title. */
+	   `justify-items: center` centres the group as a whole under the title.
+	   The same --measure-copy cap as .hero__lede, so the facts row stays in
+	   the copy column rather than the wider frame beside it — a safety net
+	   more than a visible change today, since the row is short enough to sit
+	   well under 752px on its own content already. */
 	.facts {
-		margin: 0;
+		max-width: var(--measure-copy);
+		margin: 0 auto;
 		display: flex;
 		justify-content: center;
 	}
@@ -339,16 +354,15 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 	}
 
 	/* ---- before / after ----
-	   Aligned to .hero__inner, the same container the lede and facts sit
-	   inside — the frame's edges match the outer column, so the hero reads as
-	   one block rather than a wide picture with a narrower page bolted on.
-	   That is edge-for-edge with .hero__lede only when there is no facts
-	   rail; with one, the lede occupies just the minmax(0,1fr) track beside
-	   it and its own right edge sits short of the frame's. The island sets
-	   its own aspect ratio, so this only has to give it the width.
+	   Capped to .hero__inner's own measure (--measure-prose), not
+	   .hero__lede's narrower --measure-copy — the frame is deliberately wider
+	   than the title/facts above it, breaking out past their edges on both
+	   sides, the same copy-vs-media split StoryChapter's `narrow` mode uses
+	   for a chapter's own heading and images. The island sets its own aspect
+	   ratio, so this only has to give it the width.
 
 	   The cap is measured off the column rather than restating a fixed number,
-	   so it holds below --measure-story too, where the column is the viewport
+	   so it holds below --measure-prose too, where the column is the viewport
 	   less its gutters.
 
 	   No background here: the island carries its own, and a sunken band exactly
@@ -358,7 +372,7 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 	   are the same frame in the same slot, so the width lives here once rather
 	   than in two rules that could drift. */
 	.hero__frame {
-		max-width: calc(min(var(--measure-story), 100%) - 2 * var(--gutter));
+		max-width: calc(min(var(--measure-prose), 100%) - 2 * var(--gutter));
 		margin-inline: auto;
 		/* The chapter rail follows immediately and is sticky, so it needs
 		   clearing rather than butting against the frame. */

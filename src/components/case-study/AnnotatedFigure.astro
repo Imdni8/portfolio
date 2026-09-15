@@ -44,7 +44,7 @@ const { src, alt, caption, notes = [] } = Astro.props;
 	</Figure>
 	{
 		notes.length > 0 && (
-			<ol class="annotated-figure__callouts type-annotation">
+			<ol class="annotated-figure__callouts">
 				{dedupeNotes(notes).map(({ marker, text }) => (
 					<li>
 						<span class="annotated-figure__marker" aria-hidden="true">
@@ -93,15 +93,32 @@ const { src, alt, caption, notes = [] } = Astro.props;
 	}
 
 	/* Below the figure, on the page ground — not the on-image tone the pins
-	   themselves use. */
+	   themselves use. Reads as running prose rather than a caption: same
+	   16/24 Inter regular as StoryChapter's own intro paragraph (storyProse's
+	   text-base/leading-6, expressed here as --size-ui/--lh-ui — CLAUDE.md
+	   notes the two are identical), same --text-body colour, and capped to
+	   the same --measure-copy (752px) column, centered the same way
+	   StoryChapter's `narrow` heading and intro are — so the markers line up
+	   with the prose above, not with the figure's own left edge. The figure
+	   itself stays at the chapter's full measure regardless — only this list
+	   narrows. The explicit inline-size matters: an auto-margined grid item
+	   shrinks to its content, so short notes would center on their own
+	   width and drift off the prose's left edge. */
 	.annotated-figure__callouts {
-		margin: 0;
+		inline-size: 100%;
+		max-width: var(--measure-copy);
+		margin-block: 0;
+		margin-inline: auto;
 		padding: 0;
 		list-style: none;
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
-		color: var(--text-muted);
+		font-family: var(--font-sans);
+		font-weight: var(--weight-regular);
+		font-size: var(--size-ui);
+		line-height: var(--lh-ui);
+		color: var(--text-body);
 	}
 
 	.annotated-figure__callouts li {

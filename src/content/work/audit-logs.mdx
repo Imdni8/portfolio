@@ -19,8 +19,8 @@ facts:
     - label: Team
       value: EPD (1 Des, 1 PM, 3 Dev)
 chapters:
-    - id: overview
-      label: Overview
+    - id: introduction
+      label: Introduction
     - id: problem
       label: Problem
     - id: goals
@@ -74,19 +74,19 @@ hero:
 
 import Chapter from "../../components/case-study/Chapter.astro";
 import StoryChapter from "../../components/case-study/StoryChapter.astro";
-import StatTile from "../../components/case-study/StatTile.astro";
+import VideoFigure from "../../components/case-study/VideoFigure.astro";
+import AnnotatedFigure from "../../components/case-study/AnnotatedFigure.astro";
 import ProblemItem from "../../components/case-study/ProblemItem.astro";
 import GoalChip from "../../components/case-study/GoalChip.astro";
-import Solution from "../../components/case-study/Solution.astro";
+import StatTile from "../../components/case-study/StatTile.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
 import SlideText from "../../components/case-study/SlideText.astro";
 
-import problem1 from "../../assets/work/audit-logs/15-problem-item-1-placeholder.png";
-import problem2 from "../../assets/work/audit-logs/16-problem-item-2-placeholder.png";
-import problem3 from "../../assets/work/audit-logs/17-problem-item-3-placeholder.png";
-import problem4 from "../../assets/work/audit-logs/18-problem-item-4-placeholder.png";
-import problem5 from "../../assets/work/audit-logs/19-problem-item-5-placeholder.png";
+import previousAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
+import problemLogEntries from "../../assets/work/audit-logs/21-problem-log-entries.png";
+import problemExpandedLogView from "../../assets/work/audit-logs/22-problem-expanded-log-view.png";
+import problemInconsistentFilters from "../../assets/work/audit-logs/23-problem-inconsistent-filters.png";
 import problem6 from "../../assets/work/audit-logs/20-problem-item-6-placeholder.png";
 
 import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.jpg";
@@ -95,25 +95,24 @@ import slideDbActions from "../../assets/work/audit-logs/slide-3-db-actions.jpg"
 import slideFilterByResource from "../../assets/work/audit-logs/slide-4-filter-by-resource.jpg";
 import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg";
 
-<Chapter id="overview">
-<StoryChapter heading="Overview">
+<Chapter id="introduction">
+<StoryChapter heading="Introduction" narrow>
 <Fragment slot="intro">
 
-I redesigned agent action logs to be more human-readable, achieving a 26%
-increase in usability and a 48% increase in weekly searches.
+Agent action is a record of changes made to agents. They are recorded because
+each change could affect the way agents behave. So when an agent behaves
+unexpectedly, these actions help track which change introduced a bug and undo
+it.
 
 </Fragment>
 
-<div class="flex flex-wrap gap-6">
-  <StatTile value="26%" label="Increase in usability (measured by SUS going from 57 to 72)" />
-  <StatTile value="48%" label="Increase in weekly searches after one week of implementation" />
-</div>
+<VideoFigure poster={previousAuditPage} src="/media/audit-logs-initial-walkthrough.mp4" alt="Walkthrough of the original, pre-redesign agent action page — a flat list mixing user and database actions with no grouping" caption="Previous version of agent actions" />
 
 </StoryChapter>
 </Chapter>
 
 <Chapter id="problem">
-<StoryChapter heading="Problem">
+<StoryChapter heading="Problem" narrow>
 <Fragment slot="intro">
 
 The first version of agent action logs (also called logs) were hard to
@@ -124,40 +123,29 @@ were:
 </Fragment>
 
 <div class="grid gap-16">
-  <ProblemItem
-    number={1}
-    statement="Scanning the list of agent actions to understand what changed and when took a lot of effort."
-    image={problem1}
-    alt="Placeholder — will show an agent action log entry with its changed fields, illustrating how much scanning was needed to understand a single change"
-    notes={[{ x: 50, y: 50, text: "Placeholder annotation — reposition once the real screenshot is supplied." }]}
+  <AnnotatedFigure
+    src={problemLogEntries}
+    alt="Two audit log entries for the same agent — an update and its creation — each identifying the agent only by its raw database key, 'Agent #55345'"
+    notes={[
+      { x: 4, y: 28, label: "1", text: "Scanning the list of agent actions to understand what changed and when took a lot of effort." },
+      { x: 17, y: 70, label: "2", text: "The agent names were not human readable because I used the database key, not the name given by a user." },
+      { x: 50, y: 45, label: "3", text: "Many database actions were also showing up as agent logs due to the backend architecture, causing confusion." },
+    ]}
   />
-  <ProblemItem
-    number={2}
-    statement="The agent names were not human readable because I used the database key, not the name given by a user."
-    image={problem2}
-    alt="Placeholder — will show a log entry identifying an agent by its raw database key rather than the name a user gave it"
-    notes={[{ x: 50, y: 50, text: "Placeholder annotation — reposition once the real screenshot is supplied." }]}
+  <AnnotatedFigure
+    src={problemExpandedLogView}
+    alt="An expanded log entry showing its full field-diff table, pushing the rest of the page down"
+    notes={[
+      { x: 9, y: 69, label: "4", text: "Expanding each action log covered the whole screen, making it difficult to view and compare the content of adjacent logs." },
+    ]}
   />
-  <ProblemItem
-    number={3}
-    statement="Many database actions were also showing up as agent logs due to the backend architecture, causing confusion."
-    image={problem3}
-    alt="Placeholder — will show database action entries mixed into the same list as user-triggered agent actions"
-    notes={[{ x: 50, y: 50, text: "Placeholder annotation — reposition once the real screenshot is supplied." }]}
-  />
-  <ProblemItem
-    number={4}
-    statement="Expanding each action log covered the whole screen, making it difficult to view and compare the content of adjacent logs."
-    image={problem4}
-    alt="Placeholder — will show an expanded log entry's full field diff, pushing adjacent logs out of view"
-    notes={[{ x: 50, y: 50, text: "Placeholder annotation — reposition once the real screenshot is supplied." }]}
-  />
-  <ProblemItem
-    number={5}
-    statement="Applying and removing filters was inconsistent."
-    image={problem5}
-    alt="Placeholder — will show the audit log filter row, illustrating inconsistent filter controls"
-    notes={[{ x: 50, y: 50, text: "Placeholder annotation — reposition once the real screenshot is supplied." }]}
+  <AnnotatedFigure
+    src={problemInconsistentFilters}
+    alt="The filter row's Clear filters link above a separate 'Filtering by resource: Agent #50635' tag"
+    notes={[
+      { x: 4, y: 54, label: "5", text: "Applying and removing filters was inconsistent." },
+      { x: 15, y: 85, label: "5", text: "Applying and removing filters was inconsistent." },
+    ]}
   />
   <ProblemItem
     number={6}
@@ -172,7 +160,7 @@ were:
 </Chapter>
 
 <Chapter id="goals">
-<StoryChapter heading="Goals">
+<StoryChapter heading="Goals" narrow>
 
 <div class="flex flex-wrap gap-4">
   <GoalChip>make it easier to search for the right agent actions</GoalChip>
@@ -186,14 +174,21 @@ were:
 </Chapter>
 
 <Chapter id="solution">
-<Solution>
+<StoryChapter heading="Solution" narrow>
 <Fragment slot="intro">
 
 I redesigned the entire module, from initiating search to visualising
-database actions differently, making agent actions easier to follow.
+database actions differently, making agent actions easier to follow. This
+led to...
 
 </Fragment>
-  <Slide>
+
+<div class="flex flex-wrap gap-6">
+  <StatTile value="26%" label="Increase in usability (measured by SUS going from 57 to 72)" />
+  <StatTile value="48%" label="Increase in weekly searches after one week of implementation" />
+</div>
+
+  <Slide static>
     <SlideVideo
       slot="media"
       src="/media/audit-logs-log-results.mp4"
@@ -208,7 +203,7 @@ database actions differently, making agent actions easier to follow.
       The search bar is shrunken to fit more logs on screen.
     </SlideText>
   </Slide>
-  <Slide>
+  <Slide static>
     <SlideVideo
       slot="media"
       src="/media/audit-logs-side-panel.mp4"
@@ -220,7 +215,7 @@ database actions differently, making agent actions easier to follow.
       Additional information that doesn't help users find the right log is stashed inside the side panel, so it's accessible without cluttering their view.
     </SlideText>
   </Slide>
-  <Slide>
+  <Slide static>
     <SlideVideo
       slot="media"
       src="/media/audit-logs-db-actions.mp4"
@@ -232,7 +227,7 @@ database actions differently, making agent actions easier to follow.
       The audit trail originally mixed user actions with database actions. I split database actions out and gave them a distinct look, so users can tell them apart from user actions at a glance.
     </SlideText>
   </Slide>
-  <Slide>
+  <Slide static>
     <SlideVideo
       slot="media"
       src="/media/audit-logs-filter-by-resource.mp4"
@@ -244,7 +239,7 @@ database actions differently, making agent actions easier to follow.
       Fixed the filtering component to make it consistent with the rest of the platform.
     </SlideText>
   </Slide>
-  <Slide>
+  <Slide static>
     <SlideVideo
       slot="media"
       src="/media/audit-logs-ai-summary.mp4"
@@ -256,7 +251,8 @@ database actions differently, making agent actions easier to follow.
       Proposed and designed a simple feature to summarise a log using AI.
     </SlideText>
   </Slide>
-</Solution>
+
+</StoryChapter>
 </Chapter>
 
 {/* Everything below is the pre-redesign body — kept for reference, not

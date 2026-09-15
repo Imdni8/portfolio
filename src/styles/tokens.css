@@ -169,6 +169,14 @@
 	   footer stays at --measure-page, so the story reads as a column inside the
 	   page rather than as the page itself. */
 	--measure-story: 75rem; /* 1200px */
+	/* Narrower still, for a chapter that is read as prose rather than scanned
+	   two-up — StoryChapter's `narrow` prop reaches for this instead of
+	   --measure-story. */
+	--measure-prose: 62.5rem; /* 1000px */
+	/* The copy column itself, narrower than --measure-prose — a chapter's own
+	   media (screenshots, stat tiles) can run the full prose measure, but its
+	   heading and paragraph text stop here, centered inside it. */
+	--measure-copy: 47rem; /* 752px */
 	--gutter: clamp(1.25rem, 4vw, 4rem);
 
 	--spacing-none: 0rem; /* 0px */
