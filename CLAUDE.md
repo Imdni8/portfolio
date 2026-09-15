@@ -339,10 +339,11 @@ of a fully published entry.
   instead gets you a chip that reads "AI" wearing the Figma mark and no ring;
   `philips-ultrasound-gig.mdx` did exactly that until it was converted.
 - **Page content — only needed once a page actually builds:** `subtitle` (the
-  standfirst; required unless `status` is `coming-soon`), `facts` (max 4, the
-  hero's right rail), `chapters` (chapter nav — each `id` must match a
-  `Section`'s `chapter` prop), `hero` (the full-bleed before/after opener —
-  genuinely optional; omit it to skip the compare), `actions` (hero CTAs).
+  standfirst; optional — the hero skips the line and meta tags fall back to
+  the title), `facts` (max 4, the row under the title), `chapters` (the
+  chapter rail — each `id` must match a `<Chapter id="…">` wrapper in the
+  body), `hero` (a before/after compare) *or* `heroShot` (a single still —
+  the schema rejects both), `actions` (hero CTAs).
 
 **`status`** decides what gets built and where it shows up. There is no
 separate "hide from homepage" flag — this one field is the whole state
@@ -370,8 +371,10 @@ a `coming-soon` entry has only a thumbnail, no hero pair.
 
 **Body** is free-form MDX assembled from `src/components/case-study/*`
 (`Section`, `Figure`, `FigureRow`, `NoteBox`, `VideoFigure`, `Reflection`,
-`Term`). This kit — along with `CaseStudyLayout`/`CaseStudyHero` and
-`agent-versioning.mdx` — is current and documented here, not prior work to
+`Term`, and for chapter-led studies `Chapter`, `AnnotatedFigure`, `GoalChip`,
+`StatTile`, `SlideCallout`). This kit — along with
+`CaseStudyLayout`/`CaseStudyHero`, `agent-versioning.mdx` and `audit-logs.mdx`
+— is current and documented here, not prior work to
 disregard; treat it as the pattern to follow when writing a new case study.
 
 **The 30-second cut** sits in front of that long form: `StorySection` (a
@@ -484,6 +487,18 @@ genuinely lacks is a *named* `.type-*` style for Inter-regular-16/24 —
     off, and while the overlay is open it stamps `data-lightbox-open` on
     `<html>` and fires a `lightbox:change` event so `updateActive()` pauses
     the slide's own copy of the clip rather than decoding it twice.
+  - **A `static` slide never autoplays; it gets a play button.** Stacked slides
+    sit outside `[data-carousel-track]`, so `updateActive()` never sees them.
+    `SlideVideo` renders a `.slide-video__play` button (the same
+    `icon-btn--primary icon-btn--lg` as `Video.astro`) as a *sibling* of the
+    zoom trigger — a button inside a button is invalid — and
+    `static-slide-video.ts` plays the clip once per press with `loop` off,
+    hiding the button while it plays and pausing on scroll-away or when the
+    lightbox opens. Carousel slides hide that button and keep looping.
+  - **`data-static={isStatic || undefined}`, never the bare boolean.** Astro
+    renders `data-static={false}` as `data-static="false"`, which
+    `[data-static]` still matches — carousel slides were silently wearing the
+    static styles until this was caught.
   - **The trigger is a `<button>`, so `updateActive()` also owns the track's
     tab stops** — it sets `tabIndex` to `-1` on every zoom trigger outside the
     active slide. Without that, Tab walks into an off-screen slide and the
@@ -543,11 +558,39 @@ genuinely lacks is a *named* `.type-*` style for Inter-regular-16/24 —
     chapter's own top step is zeroed via `:global()`, or 80px of the 344px peek
     is blank padding — scoped styles never reach slotted MDX.
 - **A case study's content column is `--measure-story` (1200px), not
-  `--measure-page`.** Hero, sections, carousel and the read-more seam all
-  read it; the footer stays at `--measure-page`, so the story reads as a
-  column inside the page rather than as the page itself. `CaseStudyHero`'s
-  `compareSizes` is a hand-resolved mirror of that formula (`sizes` cannot
-  see custom properties) — if the measure moves, move that string too.
+  `--measure-page`.** Sections, carousel and the read-more seam all read it;
+  the footer stays at `--measure-page`, so the story reads as a column inside
+  the page rather than as the page itself.
+- **Two narrower measures sit inside it.** `StoryChapter narrow` runs its
+  media at `--measure-prose` (1000px) and caps its heading and intro at
+  `--measure-copy` (752px), centred. Anything in the default slot that should
+  line up with the prose rather than the screenshots — the Goals tile grid,
+  the stat tiles, `SlideCallout`, `AnnotatedFigure`'s notes — carries its own
+  `max-w-[var(--measure-copy)] mx-auto` plus `w-full`/`inline-size: 100%`:
+  an auto-margined grid item shrinks to its content, so without the width a
+  short block centres itself off the prose's left edge. `CaseStudyHero`'s
+  opener frame matches `--measure-prose` with the gutter *outside* the cap
+  (`min(measure + 2 × gutter, 100%) − 2 × gutter`) so it is flush with those
+  screenshots; its `compareSizes` is a hand-resolved mirror of that formula
+  (`sizes` cannot see custom properties) — if the measure moves, move that
+  string too.
+- **`StoryChapter`'s inner grid is `grid-cols-[minmax(0,1fr)]`, not the
+  implicit `auto` column.** An auto track grows to its children's min-content,
+  so an `auto-fit` tile grid inside it never sees a narrow viewport and never
+  wraps — the page scrolled sideways to 724px at a 375px viewport until this
+  was pinned.
+- **Pins on `AnnotatedFigure` are `notes` `{ x, y }` percentages of the
+  image's own box**, centred on the value (the badge translates −50%/−50%).
+  Several pins sharing one `label` and `text` collapse to one line in the
+  notes list below it.
+- **The chapter rail (`ChapterNav`) only shows at 1400px and up**, and its
+  back arrow is the only way home on a study that has one — so
+  `CaseStudyHero`'s breadcrumb renders on those studies too, hidden at exactly
+  the same breakpoint (`data-rail`). The two media queries are a pair; move
+  them together. Scroll-spy is `chapter-nav.ts`, a rAF-batched scroll
+  listener against `<Chapter>`'s `data-chapter-anchor` — not an
+  IntersectionObserver, which only fires when a (very tall) chapter's edge
+  crosses the band, long after its heading did.
 
 **A closing tag (`</Section>` etc.) must be flush left — never indented.**
 If a `<Section>`'s content ends with a numbered/bulleted list, an indented
@@ -707,7 +750,10 @@ the page still server-renders fine, so it looks like content silently
 vanished (before/after compare, chapter rail, lightbox, etc. all disappear)
 rather than like a build error. Fix: stop the dev server, `rm -rf
 node_modules/.vite`, restart `npm run dev`. If a build is genuinely needed
-mid-session, stop the dev server first and restart it after.
+mid-session, stop the dev server first and restart it after. This includes
+`npm run check` — the gate itself. A second, quieter symptom: the dev server
+stops picking up frontmatter edits (the page keeps serving the old
+`thumbnail`, say) with no error in its log.
 
 **Beware browser dark-mode extensions when reviewing colour.** Dark Reader and
 similar rewrite every background with `!important`, including inline styles, so
@@ -717,7 +763,6 @@ extension leaves `--darkreader-*` properties on the element as a giveaway.
 
 ## Repo notes
 
-- Git is initialised but has **no commits yet** — nothing is tracked.
 - `agent versioning/`, `audit/`, `bolt/` and `design_system/` hold design source
   (PDFs, Figma exports, standalone HTML). They are gitignored and excluded from
   `tsconfig.json` — they are reference material, never built.
