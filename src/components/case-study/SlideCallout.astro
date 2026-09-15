@@ -6,8 +6,7 @@
  * `.annotated-figure__marker`), copied here rather than shared: Astro's
  * scoped styles don't reach slotted content, and a `Slide`'s default slot
  * only ever holds `SlideText`/`SlideCallout` children, never `AnnotatedFigure`
- * itself. Same reasoning `SlideImage`/`SlideVideo` give for duplicating their
- * own shared pin CSS instead of importing one another.
+ * itself.
  *
  * Reach for this over `SlideText` when a slide's point is a single flat
  * observation rather than a titled block of copy — `SlideText` names a

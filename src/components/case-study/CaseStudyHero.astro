@@ -76,26 +76,24 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 			    way back to the homepage on a case-study page, UNLESS the study
 			    has a ChapterNav, whose own back arrow takes over that job (see
 			    ChapterNav.astro) — rendering both would duplicate the
-			    affordance, so this one steps aside rather than stacking. The
-			    crumb carries the same word the nav uses for `/` ("Work", not
-			    "Home") rather than leaving the whole trail resting on an
-			    unlabelled glyph. "Project" is a static crumb naming the page
-			    kind, not this case study's title; the title right below it
-			    already carries that. */}
-			{
-				!hasChapterNav && (
-					<nav class="hero__breadcrumb" aria-label="Breadcrumb">
-						<a class="type-body breadcrumb__home" href="/">
-							<Icon name="home" />
-							Work
-						</a>
-						<Icon name="slash-divider" class="breadcrumb__divider" />
-						<span class="type-body breadcrumb__current" aria-current="page">
-							Project
-						</span>
-					</nav>
-				)
-			}
+			    affordance, so this one steps aside rather than stacking. It
+			    steps aside only where the rail is actually on screen, though:
+			    the rail hides below 1400px, so `data-rail` keeps the crumb
+			    there. The crumb carries the same word the nav uses for `/`
+			    ("Work", not "Home") rather than leaving the whole trail resting
+			    on an unlabelled glyph. "Project" is a static crumb naming the
+			    page kind, not this case study's title; the title right below
+			    it already carries that. */}
+			<nav class="hero__breadcrumb" aria-label="Breadcrumb" data-rail={hasChapterNav || undefined}>
+				<a class="type-body breadcrumb__home" href="/">
+					<Icon name="home" />
+					Work
+				</a>
+				<Icon name="slash-divider" class="breadcrumb__divider" />
+				<span class="type-body breadcrumb__current" aria-current="page">
+					Project
+				</span>
+			</nav>
 
 			<h1 class="type-title">{title}</h1>
 			{subtitle && <p class="type-subtitle hero__subtitle">{subtitle}</p>}
@@ -241,6 +239,14 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 		align-items: center;
 		gap: var(--spacing-md);
 		margin-block-end: calc(var(--spacing-xs) - var(--spacing-2xl));
+	}
+
+	/* Mirrors ChapterNav's own breakpoint: hide the crumb only where the
+	   rail's back arrow is on screen to replace it. */
+	@media (width >= 87.5rem) {
+		.hero__breadcrumb[data-rail] {
+			display: none;
+		}
 	}
 
 	/* A plain link, not an icon-btn: the crumb has a visible label now, so

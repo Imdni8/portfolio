@@ -72,11 +72,10 @@ const { chapters } = Astro.props;
 		}
 	}
 
-	/* No left margin left to pin into once the story column fills the
-	   viewport — hides rather than overlapping content. Revisit with a
-	   narrow-viewport treatment of its own once the rest of the page is
-	   settled against the real design. */
-	@media (max-width: 60rem) {
+	/* Below 1400px the rail crowds the story column, so it hides rather than
+	   overlapping content. CaseStudyHero shows its breadcrumb across exactly
+	   the same range so the page keeps a way home — move both together. */
+	@media (width < 87.5rem) {
 		.chapter-nav {
 			display: none;
 		}

@@ -5,7 +5,7 @@ technology: AI Agents
 year: 2026
 thumbnail:
     src: ../../assets/work/audit-logs/00-thumbnail.png
-    alt: The redesigned audit log page, showing grouped database actions and a details side panel
+    alt: The redesigned audit log page on a laptop — a colour-coded activity timeline beside a details panel showing a version change
 order: 20
 roles:
     - kind: design-type
@@ -40,7 +40,6 @@ import GoalChip from "../../components/case-study/GoalChip.astro";
 import StatTile from "../../components/case-study/StatTile.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
-import SlideImage from "../../components/case-study/SlideImage.astro";
 import SlideCallout from "../../components/case-study/SlideCallout.astro";
 
 import previousAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
@@ -49,7 +48,7 @@ import problemExpandedLogView from "../../assets/work/audit-logs/22-problem-expa
 import problemInconsistentFilters from "../../assets/work/audit-logs/23-problem-inconsistent-filters.png";
 import problemAutomaticSearch from "../../assets/work/audit-logs/24-problem-automatic-search.png";
 
-import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.png";
+import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.jpg";
 import slideDbActions from "../../assets/work/audit-logs/slide-3-db-actions.jpg";
 import slideFilterByResource from "../../assets/work/audit-logs/slide-4-filter-by-resource.jpg";
 import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg";
@@ -155,9 +154,10 @@ led to...
 </div>
 
   <Slide static>
-    <SlideImage
+    <SlideVideo
       slot="media"
-      src={slideLogResults}
+      src="/media/audit-logs-log-results.mp4"
+      poster={slideLogResults}
       alt="The audit log list showing timestamp-led rows with action-type icons, a colour-coded left border, and a shrunken search bar"
       pin="bottom-right"
     />
