@@ -1,0 +1,117 @@
+---
+import type { ImageMetadata } from 'astro';
+import Figure from './Figure.astro';
+import { dedupeNotes, type Note } from './BeforeAfter';
+
+/**
+ * A static, always-visible counterpart to BeforeAfter's drag-revealed
+ * callouts — same `Note` shape and the same `dedupeNotes` collapsing rule
+ * (several pins sharing one callout de-dupe to a single line), but with no
+ * drag gesture to reveal them against, so no opacity ramps either: every pin
+ * and every callout is simply always on.
+ *
+ * Wraps Figure.astro rather than reimplementing its zoom/lightbox wiring —
+ * the pins render into Figure's `pins` slot, inside the same zoom button
+ * that frames the image, so their x/y percentages resolve against the
+ * image's own box rather than the <figure> (which also holds the caption).
+ */
+interface Props {
+	src: ImageMetadata;
+	alt: string;
+	caption?: string;
+	notes?: Note[];
+}
+
+const { src, alt, caption, notes = [] } = Astro.props;
+---
+
+<div class="annotated-figure">
+	<Figure src={src} alt={alt} caption={caption}>
+		{
+			notes.length > 0 && (
+				<div slot="pins" class="annotated-figure__pins" aria-hidden="true">
+					{notes.map((note, i) => (
+						<span
+							class="annotated-figure__pin"
+							style={`inset-inline-start:${note.x}%;inset-block-start:${note.y}%`}
+						>
+							{note.label ?? i + 1}
+						</span>
+					))}
+				</div>
+			)
+		}
+	</Figure>
+	{
+		notes.length > 0 && (
+			<ol class="annotated-figure__callouts type-annotation">
+				{dedupeNotes(notes).map(({ marker, text }) => (
+					<li>
+						<span class="annotated-figure__marker" aria-hidden="true">
+							{marker}
+						</span>
+						{text}
+					</li>
+				))}
+			</ol>
+		)
+	}
+</div>
+
+<style>
+	.annotated-figure {
+		display: grid;
+		gap: var(--spacing-md);
+	}
+
+	.annotated-figure__pins {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+
+	/* Teardrop badge, lifted from .ba__pin in components.css (BeforeAfter's
+	   own numbered callouts) — same on-image treatment, since these sit on
+	   top of a product screenshot in both themes. --scrim is redefined here
+	   rather than shared: .ba scopes its own copy to itself the same way. */
+	.annotated-figure__pin {
+		--scrim: color-mix(in srgb, var(--gray-900) 74%, transparent);
+		position: absolute;
+		translate: -50% -50%;
+		display: grid;
+		place-items: center;
+		inline-size: clamp(1.5rem, 2vw, 2rem);
+		aspect-ratio: 1;
+		border-radius: 0 50% 50% 50%;
+		background: var(--scrim);
+		backdrop-filter: blur(2px);
+		font-family: var(--font-sans);
+		font-size: var(--size-fine);
+		font-weight: var(--weight-semibold);
+		line-height: 1;
+		color: var(--text-on-overlay);
+	}
+
+	/* Below the figure, on the page ground — not the on-image tone the pins
+	   themselves use. */
+	.annotated-figure__callouts {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		color: var(--text-muted);
+	}
+
+	.annotated-figure__callouts li {
+		display: flex;
+		gap: var(--spacing-sm);
+	}
+
+	.annotated-figure__marker {
+		flex: none;
+		inline-size: var(--spacing-3xl);
+		color: var(--primary-text);
+	}
+</style>

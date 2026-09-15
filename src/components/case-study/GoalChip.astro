@@ -1,0 +1,26 @@
+---
+/**
+ * An amber-bordered pill holding one synthesised goal (1-2 lines), for the
+ * Goals chapter. `border: 1px solid var(--primary-text)` on `--bg-raised`
+ * is already a proven "amber-bordered card" combination in this codebase —
+ * Glossary's own popover uses exactly this — reused here rather than
+ * invented fresh.
+ */
+---
+
+<span class="goal-chip type-body">
+	<slot />
+</span>
+
+<style>
+	.goal-chip {
+		display: inline-flex;
+		align-items: center;
+		border: 1px solid var(--primary-text);
+		border-radius: var(--radius-md);
+		background: var(--bg-raised);
+		color: var(--text);
+		padding: var(--spacing-lg) var(--spacing-xl);
+		max-width: 16rem;
+	}
+</style>

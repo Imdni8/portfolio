@@ -94,8 +94,9 @@ const work = defineCollection({
 				externalUrl: z.url().optional(),
 
 				/** The standfirst under the title. One sentence, states the
-				 *  outcome. Required once a page actually builds (`published` or
-				 *  `unlisted`) — optional for `coming-soon`. */
+				 *  outcome. Optional — a case study whose hero speaks for itself
+				 *  (e.g. one built around a chapter nav rather than a lede) can
+				 *  omit it and CaseStudyHero simply skips the line. */
 				subtitle: z.string().optional(),
 
 				/** Hero rail: label/value pairs. Rendered right-aligned on desktop,
@@ -103,6 +104,15 @@ const work = defineCollection({
 				facts: z
 					.array(z.object({ label: z.string(), value: z.string() }))
 					.max(4)
+					.default([]),
+
+				/** Chapter nav: a sticky rail linking to top-level sections of the
+				 *  body, active entry tracked by scroll position. Each `id` must
+				 *  match a `<Chapter id="...">` wrapper in the MDX body (see
+				 *  Chapter.astro). Omit or leave empty to skip the rail entirely —
+				 *  most case studies have no use for it. */
+				chapters: z
+					.array(z.object({ id: z.string(), label: z.string() }))
 					.default([]),
 
 				/** Full-bleed before/after opener. Omit to skip it. Separate from
@@ -140,10 +150,6 @@ const work = defineCollection({
 						secondary: z.object({ label: z.string(), href: z.string() }).optional(),
 					})
 					.default({}),
-			})
-			.refine((data) => data.status === 'coming-soon' || data.status === 'external' || Boolean(data.subtitle), {
-				message: 'subtitle is required once a page is built (status is "published" or "unlisted")',
-				path: ['subtitle'],
 			})
 			.refine((data) => data.status !== 'external' || Boolean(data.externalUrl), {
 				message: 'externalUrl is required when status is "external"',

@@ -14,10 +14,7 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { title, facts, hero, heroShot, actions } = entry.data;
-// The schema's refine guarantees `subtitle` whenever status isn't
-// `coming-soon` — which getStaticPaths above has already filtered to.
-const subtitle = entry.data.subtitle!;
+const { title, subtitle, facts, hero, heroShot, actions, chapters } = entry.data;
 
 /* Which of the layout's overlay islands this particular study actually needs.
  *
@@ -62,6 +59,7 @@ const usesVideo = /<Video(Figure)?\b/.test(body);
 	hero={hero}
 	heroShot={heroShot}
 	actions={actions}
+	chapters={chapters}
 	usesGlossary={usesGlossary}
 	usesVideo={usesVideo}
 >

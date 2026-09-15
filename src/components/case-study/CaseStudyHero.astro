@@ -6,7 +6,15 @@ import type { ImageMetadata } from 'astro';
 
 interface Props {
 	title: string;
-	subtitle: string;
+	/** Optional — a case study whose hero speaks for itself (e.g. one led by
+	 *  the chapter nav rather than a lede) can omit it; the line is skipped
+	 *  rather than rendering empty. */
+	subtitle?: string;
+	/** Whether CaseStudyLayout is rendering a ChapterNav for this study. Its
+	 *  back arrow takes over as the way home, so the breadcrumb below steps
+	 *  aside rather than duplicating it — a study with no chapter nav still
+	 *  needs the breadcrumb, since nothing else here gets you back to `/`. */
+	hasChapterNav?: boolean;
 	facts?: { label: string; value: string }[];
 	actions?: {
 		primary?: { label: string; href: string };
@@ -27,7 +35,7 @@ interface Props {
 	};
 }
 
-const { title, subtitle, facts = [], actions = {}, hero, heroShot } = Astro.props;
+const { title, subtitle, hasChapterNav = false, facts = [], actions = {}, hero, heroShot } = Astro.props;
 const beforeLabel = hero?.beforeLabel ?? 'Before';
 const afterLabel = hero?.afterLabel ?? 'After';
 const beforeNotes = hero?.beforeNotes ?? [];
@@ -53,24 +61,33 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 <header class="hero">
 	<div class="hero__inner">
 		<div class="hero__lede">
-			{/* CaseStudyLayout renders no SiteNav — this is the only way back to
-			    the homepage on a case-study page, so the crumb carries the
-			    same word the nav uses for `/` ("Work", not "Home") rather
-			    than leaving the whole trail resting on an unlabelled glyph.
-			    "Project" is a static crumb naming the page kind, not this
-			    case study's title; the title right below it already carries
-			    that. */}
-			<nav class="hero__breadcrumb" aria-label="Breadcrumb">
-				<a class="type-body breadcrumb__home" href="/">
-					<Icon name="home" />
-					Work
-				</a>
-				<Icon name="slash-divider" class="breadcrumb__divider" />
-				<span class="type-body breadcrumb__current" aria-current="page">Project</span>
-			</nav>
+			{/* CaseStudyLayout renders no SiteNav — this breadcrumb is the only
+			    way back to the homepage on a case-study page, UNLESS the study
+			    has a ChapterNav, whose own back arrow takes over that job (see
+			    ChapterNav.astro) — rendering both would duplicate the
+			    affordance, so this one steps aside rather than stacking. The
+			    crumb carries the same word the nav uses for `/` ("Work", not
+			    "Home") rather than leaving the whole trail resting on an
+			    unlabelled glyph. "Project" is a static crumb naming the page
+			    kind, not this case study's title; the title right below it
+			    already carries that. */}
+			{
+				!hasChapterNav && (
+					<nav class="hero__breadcrumb" aria-label="Breadcrumb">
+						<a class="type-body breadcrumb__home" href="/">
+							<Icon name="home" />
+							Work
+						</a>
+						<Icon name="slash-divider" class="breadcrumb__divider" />
+						<span class="type-body breadcrumb__current" aria-current="page">
+							Project
+						</span>
+					</nav>
+				)
+			}
 
 			<h1 class="type-title">{title}</h1>
-			<p class="type-subtitle hero__subtitle">{subtitle}</p>
+			{subtitle && <p class="type-subtitle hero__subtitle">{subtitle}</p>}
 
 			{
 				(actions.primary || actions.secondary) && (
@@ -184,25 +201,20 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 </header>
 
 <style>
+	/* Title, subtitle and facts read as one centred column at every width —
+	   `justify-items: center` keeps each grid row sized to its own content
+	   (the title's line width, mainly) rather than stretched full-bleed, so
+	   centring the shorter rows under it actually reads as centred instead
+	   of centred-in-a-wide-empty-track. Facts stay a sibling grid row rather
+	   than living inside .hero__lede since it's metadata, not lede copy. */
 	.hero__inner {
 		max-width: var(--measure-story);
 		margin: 0 auto;
 		padding: var(--spacing-9xl) var(--gutter) var(--spacing-7xl);
 		display: grid;
+		justify-items: center;
 		gap: var(--spacing-6xl);
-	}
-
-	/* Desktop puts the facts in a right rail; mobile drops them under the
-	   subtitle as a divided strip, which is why they are a separate grid
-	   child rather than living inside .hero__lede. */
-	@media (min-width: 60rem) {
-		.hero__inner {
-			grid-template-columns: minmax(0, 1fr) 20rem;
-			gap: var(--spacing-8xl);
-			/* Deliberately not `align-items: start`. The rail has to stretch to
-			   the row height, or its entries cannot sit flush with the top and
-			   bottom of the column beside them. */
-		}
+		text-align: center;
 	}
 
 	/* ---- breadcrumb ----
@@ -275,6 +287,7 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 
 	.hero__lede {
 		display: grid;
+		justify-items: center;
 		gap: var(--spacing-2xl);
 	}
 
@@ -292,70 +305,37 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 	.hero__actions {
 		display: flex;
 		flex-wrap: wrap;
+		justify-content: center;
 		gap: var(--spacing-lg);
 		margin-top: var(--spacing-xl);
 	}
 
-	/* ---- facts ---- */
+	/* ---- facts ----
+	   One centred row at every width — a horizontal strip of dividers, sized
+	   to its own content (not stretched to the column) so `.hero__inner`'s
+	   `justify-items: center` centres the group as a whole under the title. */
 	.facts {
 		margin: 0;
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		border-block: 1px solid var(--border);
+		display: flex;
+		justify-content: center;
 	}
 
 	.facts__item {
-		padding: var(--spacing-xl) var(--spacing-lg);
+		padding-inline: var(--spacing-3xl);
 		text-align: center;
 		border-inline-start: 1px solid var(--border);
 	}
 	.facts__item:first-child {
+		padding-inline-start: 0;
 		border-inline-start: 0;
+	}
+	.facts__item:last-child {
+		padding-inline-end: 0;
 	}
 
 	.facts__value {
 		margin: var(--spacing-xs) 0 0;
 		color: var(--text-body);
-	}
-
-	@media (min-width: 60rem) {
-		/* Equal thirds down the full height, so the dividers land on exact
-		   thirds and the block reads as one measured column rather than a
-		   stack that happens to start at the top. */
-		.facts {
-			display: flex;
-			flex-direction: column;
-			border-block: 0;
-			text-align: right;
-		}
-
-		/* No padding on the item. With border-box, a flex-basis:0 item is still
-		   floored at its own padding, and the middle one pads on both sides
-		   where the outer two pad on one — which pulled the thirds to 91/108/92
-		   and put the dividers 6px off. With the padding gone all three floor
-		   at zero and grow equally; the breathing room around each entry comes
-		   from the third being taller than its content. */
-		.facts__item {
-			flex: 1;
-			min-height: 0;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			padding: 0;
-			text-align: right;
-			border-inline-start: 0;
-			border-block-start: 1px solid var(--border);
-		}
-
-		/* First and last hug the edges so the rail is flush top and bottom with
-		   the lede column; the middle one centres in its own third. */
-		.facts__item:first-child {
-			justify-content: flex-start;
-			border-block-start: 0;
-		}
-		.facts__item:last-child {
-			justify-content: flex-end;
-		}
 	}
 
 	/* ---- before / after ----
