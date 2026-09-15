@@ -1,7 +1,8 @@
 ---
 /**
- * A borderless pill holding one synthesised goal (1-2 lines), for the Goals
- * chapter. The Goals row is a CSS grid (see audit-logs.mdx), whose
+ * A tile holding one synthesised goal (1-2 lines), for the Goals chapter.
+ * Same hairline `--border` edge as StatTile, so the two tile rows on the page
+ * read as one family. The Goals row is a CSS grid (see audit-logs.mdx), whose
  * `auto-fit`/`minmax(1fr)` columns stretch every chip to its column's full
  * width — no `max-width` here, unlike an earlier version, since capping a
  * chip's width left a gap between the last column of a full row and the
@@ -23,6 +24,7 @@
 	.goal-chip {
 		display: inline-flex;
 		align-items: flex-start;
+		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		background: var(--bg-raised);
 		color: var(--text);
