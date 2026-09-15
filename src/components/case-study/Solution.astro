@@ -1,6 +1,6 @@
 ---
 import Icon from '../ui/Icon.astro';
-import { storyHeading } from './story-type';
+import { storyHeading, storyProse } from './story-type';
 
 /**
  * The "Solution" chapter — a horizontal, scroll-snapped carousel of shipped
@@ -12,7 +12,14 @@ import { storyHeading } from './story-type';
  * Composed directly in MDX with <Slide>/<SlideText> children, the same
  * authoring convention <FigureRow>/<Figure> already use, rather than a data
  * array — one case study's whole story stays in its one MDX file.
+ *
+ * `intro` is optional prose between the heading and the track, the same
+ * copy-only-opener idea StoryChapter's own `intro` slot already covers for
+ * that component — added rather than left unsupported, since Solution's own
+ * `<h2>` is hardcoded and can't be swapped for a StoryChapter wrapper
+ * without rendering "Solution" twice.
  */
+const hasIntro = Astro.slots.has('intro');
 ---
 
 <section class="solution" data-section="solution" data-chapter="solution">
@@ -27,6 +34,13 @@ import { storyHeading } from './story-type';
 			</button>
 		</div>
 	</div>
+	{
+		hasIntro && (
+			<div class={storyProse}>
+				<slot name="intro" />
+			</div>
+		)
+	}
 	<div class="solution__track" data-carousel-track>
 		<slot />
 	</div>

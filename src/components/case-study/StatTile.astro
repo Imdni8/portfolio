@@ -1,0 +1,49 @@
+---
+/**
+ * A big number + label, for the Overview chapter's stat callouts. Built in
+ * the token-CSS idiom (own scoped style, `.type-heading`/`.type-body`)
+ * mirroring about.astro's `.about__stat-value`/`.about__stat-label` — the
+ * only other big-number pattern in the codebase — rather than a Tailwind
+ * version, so the two stay close enough to extract into one shared
+ * component later if that's ever worth doing.
+ *
+ * No `.glass`: case-study pages have no water field behind them for it to
+ * bend, so this gets its own flat bordered surface instead of that
+ * material.
+ */
+interface Props {
+	value: string;
+	label: string;
+}
+
+const { value, label } = Astro.props;
+---
+
+<div class="stat-tile">
+	<p class="type-heading stat-tile__value">{value}</p>
+	<p class="type-body stat-tile__label">{label}</p>
+</div>
+
+<style>
+	.stat-tile {
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--bg-raised);
+		padding: var(--spacing-xl);
+		display: grid;
+		gap: var(--spacing-sm);
+		min-width: 12rem;
+	}
+
+	/* A number being read, not a surface being filled — carries the contrast
+	   on both grounds, same reasoning about.astro's own stat value uses. */
+	.stat-tile__value {
+		margin: 0;
+		color: var(--primary-text);
+	}
+
+	.stat-tile__label {
+		margin: 0;
+		color: var(--text);
+	}
+</style>

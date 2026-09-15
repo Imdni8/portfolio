@@ -17,11 +17,21 @@ import vidBg from '../../assets/work/vid-bg.jpg';
  * track's mask. `data-active` (toggled by solution-carousel.ts's scroll
  * listener) is what switches the opacity — and, for a slide carrying a video,
  * what starts and stops playback; see that file.
+ *
+ * `static` opts a slide out of that carousel styling — full opacity, no
+ * `flex-basis` cropping — for a case study that stacks its highlights
+ * full-width instead of scrolling them. It skips `solution-carousel.ts`
+ * entirely just by living outside a `[data-carousel-track]`; its clip plays
+ * from the card's play button instead (`static-slide-video.ts` below) — once
+ * per press, never looping.
  */
 const hasMedia = Astro.slots.has('media');
+const isStatic = Astro.props.static ?? false;
 ---
 
-<div class="solution-slide">
+{/* `|| undefined`, not the bare boolean: Astro renders data-static={false}
+    as data-static="false", which [data-static] still matches. */}
+<div class="solution-slide" data-static={isStatic || undefined}>
 	<div class="solution-slide__media">
 		<Image
 			class="solution-slide__media-bg"
@@ -36,6 +46,12 @@ const hasMedia = Astro.slots.has('media');
 		<slot />
 	</div>
 </div>
+
+<script>
+	import { initStaticSlideVideos } from './static-slide-video';
+
+	initStaticSlideVideos([...document.querySelectorAll<HTMLElement>('.solution-slide[data-static]')]);
+</script>
 
 <style>
 	/* `align-content: start` is what keeps the step from the card to the copy
@@ -57,6 +73,16 @@ const hasMedia = Astro.slots.has('media');
 	}
 
 	.solution-slide[data-active] {
+		opacity: 1;
+	}
+
+	/* A stacked, non-carousel slide is never inside a flex track for
+	   `flex-basis` to resolve against, and is never scrolled past a
+	   `data-active` threshold either — so both the cropped width and the
+	   dimmed rest state need an explicit override rather than just falling
+	   out of the surrounding markup changing. */
+	.solution-slide[data-static] {
+		flex-basis: 100%;
 		opacity: 1;
 	}
 

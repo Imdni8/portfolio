@@ -1,0 +1,23 @@
+---
+/* A content-shape-agnostic scroll-spy anchor. Whatever a chapter's content is
+   built from — StoryChapter, Solution, a plain div, anything — wraps in this
+   so ChapterNav's IntersectionObserver has one consistent thing to watch,
+   without every content component needing its own chapter-awareness.
+
+   `data-chapter-anchor`, not `data-chapter`: Section.astro and Solution.astro
+   already stamp a dormant `data-chapter="..."` on their own root element
+   (leftover from an earlier, abandoned convention). Wrapping either of those
+   in <Chapter> would otherwise put two elements on the page answering to the
+   same attribute name — harmless when the ids happen to match, ambiguous the
+   moment they don't. The distinct name sidesteps that entirely. */
+interface Props {
+	/** Must match one of this study's `chapters` frontmatter entries. */
+	id: string;
+}
+
+const { id } = Astro.props;
+---
+
+<div id={id} data-chapter-anchor={id}>
+	<slot />
+</div>

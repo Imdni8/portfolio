@@ -17,30 +17,59 @@
  * the column's markup two authors, and any later change to how it is wrapped
  * would silently miss whichever one lives in content. Pass it from MDX as
  * `<Fragment slot="intro">`.
+ *
+ * `narrow` swaps the column to --measure-prose (1000px) instead of the usual
+ * --measure-story (1200px) — per-chapter, not per-page, so a case study can
+ * mix the two: a chapter read straight through as prose narrower than one
+ * that stacks a wide screenshot beside its copy.
+ *
+ * `narrow` also caps the heading and the intro slot to the still-narrower
+ * --measure-copy (752px), centered inside the 1000px column — the same
+ * copy-vs-media split CaseStudyHero's title/facts vs. its opener shot uses.
+ * The default slot (StoryBlocks, AnnotatedFigures, Slide cards) is
+ * deliberately left at the section's own full measure: a chapter's
+ * own media runs wider than its words, not the other way round.
  */
 import { storyProse, storyHeading } from './story-type';
 
 interface Props {
 	heading: string;
+	narrow?: boolean;
 }
-const { heading } = Astro.props;
+const { heading, narrow = false } = Astro.props;
 const hasIntro = Astro.slots.has('intro');
 ---
 
-<section class="mx-auto max-w-[var(--measure-story)] px-[var(--gutter)] pt-20">
+<section
+	class:list={[
+		'mx-auto px-[var(--gutter)] pt-20',
+		// The gutter sits outside the cap (CLAUDE.md's page-frame formula) —
+		// a bare --measure-prose cap would lose it to border-box padding and
+		// leave the media at ~885px rather than 1000px.
+		narrow
+			? 'max-w-[calc(var(--measure-prose)+2*var(--gutter))]'
+			: 'max-w-[var(--measure-story)]',
+	]}
+>
 	{/* The chapter heading sits tight to its first block's title — closer than
 	    the step between blocks — so the two read as a label and its first
 	    entry rather than as two separate headings. */}
-	<h2 class:list={['mb-4 text-3xl leading-10', storyHeading]}>
+	<h2 class:list={['mb-4 text-3xl leading-10', storyHeading, narrow && 'max-w-[var(--measure-copy)] mx-auto']}>
 		{heading}
 	</h2>
 	{/* The intro sits inside the blocks' own grid rather than above it, so it
 	    takes the same 48px step down to the first block that two blocks take
 	    between themselves — one rhythm for the chapter, not two. */}
-	<div class="grid gap-12">
+	{/* minmax(0,1fr), not the implicit auto column: an auto track grows to
+	    its children's min-content, so an auto-fit tile grid inside it never
+	    sees the narrow viewport and never wraps. */}
+	<div class="grid grid-cols-[minmax(0,1fr)] gap-12">
 		{
 			hasIntro && (
-				<div class={storyProse}>
+				// w-full: a grid item with auto margins shrink-wraps to its
+				// content, so a short intro would otherwise centre itself
+				// inside the measure instead of sharing the heading's edges.
+				<div class:list={[storyProse, narrow && 'w-full max-w-[var(--measure-copy)] mx-auto']}>
 					<slot name="intro" />
 				</div>
 			)

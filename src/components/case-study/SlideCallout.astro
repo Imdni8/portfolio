@@ -1,0 +1,50 @@
+---
+/**
+ * A single numbered callout line under a Solution slide's media card — the
+ * same marker + prose row `AnnotatedFigure` uses for the notes under a
+ * Problem-chapter screenshot (`.annotated-figure__callouts li` /
+ * `.annotated-figure__marker`), copied here rather than shared: Astro's
+ * scoped styles don't reach slotted content, and a `Slide`'s default slot
+ * only ever holds `SlideText`/`SlideCallout` children, never `AnnotatedFigure`
+ * itself.
+ *
+ * Reach for this over `SlideText` when a slide's point is a single flat
+ * observation rather than a titled block of copy — `SlideText` names a
+ * finding with a heading, this just marks a line the way the Problem
+ * chapter's own screenshots do.
+ */
+interface Props {
+	marker: string | number;
+}
+const { marker } = Astro.props;
+---
+
+<p class="slide-callout">
+	<span class="slide-callout__marker" aria-hidden="true">{marker}</span>
+	<slot />
+</p>
+
+<style>
+	/* Capped and centred like AnnotatedFigure's callout list, so the marker
+	   sits on the prose's left edge rather than the card's. inline-size is
+	   load-bearing: an auto-margined grid item shrinks to its content. */
+	.slide-callout {
+		inline-size: 100%;
+		max-width: var(--measure-copy);
+		margin-block: 0;
+		margin-inline: auto;
+		display: flex;
+		gap: var(--spacing-sm);
+		font-family: var(--font-sans);
+		font-weight: var(--weight-regular);
+		font-size: var(--size-ui);
+		line-height: var(--lh-ui);
+		color: var(--text-body);
+	}
+
+	.slide-callout__marker {
+		flex: none;
+		inline-size: var(--spacing-3xl);
+		color: var(--primary-text);
+	}
+</style>

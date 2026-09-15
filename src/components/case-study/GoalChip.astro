@@ -1,0 +1,33 @@
+---
+/**
+ * A tile holding one synthesised goal (1-2 lines), for the Goals chapter.
+ * Same hairline `--border` edge as StatTile, so the two tile rows on the page
+ * read as one family. The Goals row is a CSS grid (see audit-logs.mdx), whose
+ * `auto-fit`/`minmax(1fr)` columns stretch every chip to its column's full
+ * width — no `max-width` here, unlike an earlier version, since capping a
+ * chip's width left a gap between the last column of a full row and the
+ * page edge instead of letting it fill the column like `StatTile` does.
+ *
+ * Grid also blockifies this element's `inline-flex`, which is why
+ * `align-items: flex-start` still does its job: a grid/flex item's own
+ * default cross-axis stretch would otherwise match every chip in a row to
+ * the tallest one's height, and flex-start keeps a shorter chip's text
+ * pinned to its own top edge instead of centering into that borrowed space.
+ */
+---
+
+<span class="goal-chip type-body">
+	<slot />
+</span>
+
+<style>
+	.goal-chip {
+		display: inline-flex;
+		align-items: flex-start;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		background: var(--bg-raised);
+		color: var(--text);
+		padding: var(--spacing-lg) var(--spacing-xl);
+	}
+</style>

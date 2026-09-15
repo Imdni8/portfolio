@@ -32,6 +32,7 @@ const isWide = src.width / src.height >= 3.5;
 		aria-label={`Enlarge: ${alt}`}
 	>
 		<Image src={src} alt={alt} widths={[480, 760, 1120]} sizes="(min-width: 60rem) 46vw, 92vw" />
+		<slot name="pins" />
 	</button>
 	{caption && <figcaption class="type-annotation">{caption}</figcaption>}
 </figure>
@@ -56,6 +57,10 @@ const isWide = src.width / src.height >= 3.5;
 		cursor: zoom-in;
 		display: block;
 		width: 100%;
+		/* Positioning context for the optional `pins` slot (AnnotatedFigure) —
+		   pin x/y percentages need to resolve against the image's own box,
+		   not the <figure>, which also includes the caption below it. */
+		position: relative;
 	}
 
 	.figure__zoom:focus-visible {

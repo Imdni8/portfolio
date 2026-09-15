@@ -1,0 +1,126 @@
+---
+import Icon from '../ui/Icon.astro';
+
+/**
+ * Sticky rail: a back arrow to the homepage, then this study's chapter
+ * labels, scroll-spied by chapter-nav.ts. Opt-in per case study — see
+ * `chapters` in content.config.ts — and rendered only when CaseStudyLayout
+ * has a non-empty list to give it.
+ *
+ * Labels wear `.type-nav-link` (Inter, the ui rung, 16/24) — the same class
+ * the site nav and Tabs use, per tokens.css's own note that a chapter tab
+ * and a nav link are the same kind of control. Active state still follows
+ * that convention: `[aria-current]` bumps weight (medium → bold), plus full
+ * opacity rather than a colour swap, since the design dims inactive entries
+ * via opacity, not a dimmer token.
+ */
+interface Props {
+	chapters: { id: string; label: string }[];
+}
+
+const { chapters } = Astro.props;
+---
+
+<nav class="chapter-nav" aria-label="Chapters" data-chapter-nav>
+	<a class="chapter-nav__back" href="/" aria-label="Back to work">
+		<Icon name="arrow-left" />
+	</a>
+	<ul class="chapter-nav__list">
+		{
+			chapters.map((chapter) => (
+				<li>
+					<a class="type-nav-link chapter-nav__link" href={`#${chapter.id}`} data-chapter-link={chapter.id}>
+						{chapter.label}
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</nav>
+
+<script>
+	import { initChapterNav } from './chapter-nav';
+
+	const nav = document.querySelector<HTMLElement>('[data-chapter-nav]');
+	if (nav) initChapterNav(nav);
+</script>
+
+<style>
+	/* `top` matches `.hero__inner`'s own top padding (--spacing-9xl), so the
+	   rail's first entry lands level with the page title rather than
+	   floating at the vertical centre of the viewport. */
+	.chapter-nav {
+		position: fixed;
+		inset-inline-start: clamp(1rem, 3vw, 3rem);
+		top: var(--spacing-9xl);
+		z-index: 20; /* below Glossary's fixed z-index: 90 */
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xl);
+		opacity: 1;
+		transition: opacity 200ms ease;
+	}
+
+	.chapter-nav[data-hidden] {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.chapter-nav {
+			transition-duration: 0.01ms;
+		}
+	}
+
+	/* Below 1400px the rail crowds the story column, so it hides rather than
+	   overlapping content. CaseStudyHero shows its breadcrumb across exactly
+	   the same range so the page keeps a way home — move both together. */
+	@media (width < 87.5rem) {
+		.chapter-nav {
+			display: none;
+		}
+	}
+
+	.chapter-nav__back {
+		display: inline-flex;
+		color: var(--primary-text);
+	}
+
+	.chapter-nav__back .icon {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	.chapter-nav__back:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-xs);
+	}
+
+	.chapter-nav__list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
+	}
+
+	.chapter-nav__link {
+		display: inline-block;
+		color: var(--text);
+		opacity: 0.8;
+		text-decoration: none;
+	}
+
+	.chapter-nav__link[aria-current] {
+		font-weight: var(--weight-bold);
+		opacity: 1;
+	}
+
+	.chapter-nav__link:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-xs);
+	}
+</style>

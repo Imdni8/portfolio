@@ -1,100 +1,217 @@
 ---
-title: Improved agent audit trail's usability by 26%
+title: Made agent actions easier to follow
 industry: Clinical trials
 technology: AI Agents
 year: 2026
 thumbnail:
     src: ../../assets/work/audit-logs/00-thumbnail.png
-    alt: The redesigned audit log page, showing grouped database actions and a details side panel
+    alt: The redesigned audit log page on a laptop — a colour-coded activity timeline beside a details panel showing a version change
 order: 20
 roles:
     - kind: design-type
       label: Redesign
 aiFeature: true
-subtitle: Redesigned the developer POC of audit logs to be more comprehensible, increasing usability (measured by SUS) from 57 to 72.
 facts:
     - label: Duration
       value: 3 weeks
     - label: Role
-      value: Sole product designer
+      value: Lead product designer
     - label: Team
-      value: EPD trio (1 Des, 1 PM, 1 Dev)
-hero:
-    before: ../../assets/work/audit-logs/00-hero-before.png
-    after: ../../assets/work/audit-logs/00-hero-after.png
-    beforeAlt: The initial audit log page — a flat table mixing user actions and database actions with no grouping
-    afterAlt: The redesigned audit log page — search converted to tags, database actions grouped and collapsed, a side panel showing the version change
-    beforeNotes:
-        - x: 51.3
-          y: 20
-          text: The entire screen scrolled, causing the search section to go out of screen.
-        - x: 25.5
-          y: 35
-          text: Clearing search filters would affect resource filter as well. They shouldn't be apart. It also takes additional space needlessly.
-        - x: 22
-          y: 42.5
-          text: Human-readable names were not used due to changing version.
-        - x: 10.9
-          y: 63.6
-          text: Horizontally expanding logs took the entire screen space, preventing comparison with adjacent logs.
-    afterNotes:
-        - x: 97
-          y: 6.9
-          text: Search section is pinned and always on screen.
-        - x: 44
-          y: 7
-          text: Filter UX is consistent.
-        - x: 38.1
-          y: 20.6
-          text: By introducing version tags, human-readable names could be used.
-        - x: 73.2
-          y: 35.1
-          text: Using sidepanel keeps adjacent logs on screen, allowing comparison.
-        - x: 86.2
-          y: 15
-          label: "★"
-          text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
-        - x: 47.7
-          y: 24.9
-          label: "★"
-          text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
-        - x: 14.1
-          y: 32.9
-          label: "★"
-          text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
+      value: EPD (1 Des, 1 PM, 3 Dev)
+chapters:
+    - id: introduction
+      label: Introduction
+    - id: problem
+      label: Problem
+    - id: goals
+      label: Goals
+    - id: solution
+      label: Solution
+heroShot:
+    src: ../../assets/work/audit-logs/00-hero.png
+    alt: The redesigned audit log page — a version-change side panel next to the activity timeline, with search converted to filter tags
 ---
 
-import Figure from "../../components/case-study/Figure.astro";
-import NoteBox from "../../components/case-study/NoteBox.astro";
+import Chapter from "../../components/case-study/Chapter.astro";
+import StoryChapter from "../../components/case-study/StoryChapter.astro";
 import VideoFigure from "../../components/case-study/VideoFigure.astro";
-import Term from "../../components/case-study/Term.astro";
-import Solution from "../../components/case-study/Solution.astro";
+import AnnotatedFigure from "../../components/case-study/AnnotatedFigure.astro";
+import GoalChip from "../../components/case-study/GoalChip.astro";
+import StatTile from "../../components/case-study/StatTile.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
-import SlideText from "../../components/case-study/SlideText.astro";
-import StorySection from "../../components/case-study/StorySection.astro";
-import ReadInDetail from "../../components/case-study/ReadInDetail.astro";
-import StoryChapter from "../../components/case-study/StoryChapter.astro";
-import StoryBlock from "../../components/case-study/StoryBlock.astro";
+import SlideCallout from "../../components/case-study/SlideCallout.astro";
+
+import previousAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
+import problemLogEntries from "../../assets/work/audit-logs/21-problem-log-entries.png";
+import problemExpandedLogView from "../../assets/work/audit-logs/22-problem-expanded-log-view.png";
+import problemInconsistentFilters from "../../assets/work/audit-logs/23-problem-inconsistent-filters.png";
+import problemAutomaticSearch from "../../assets/work/audit-logs/24-problem-automatic-search.png";
 
 import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.jpg";
-import slideSidePanel from "../../assets/work/audit-logs/slide-2-side-panel.jpg";
 import slideDbActions from "../../assets/work/audit-logs/slide-3-db-actions.jpg";
 import slideFilterByResource from "../../assets/work/audit-logs/slide-4-filter-by-resource.jpg";
 import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg";
 
-import initialAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
-import verticallyExpandingLogs from "../../assets/work/audit-logs/03-problem-vertically-expanding-logs.png";
-import inconsistentSearchFilters from "../../assets/work/audit-logs/04-problem-inconsistent-search-filters.png";
-import participantWorkflow from "../../assets/work/audit-logs/05-research-participant-workflow.png";
-import grafanaDashboard from "../../assets/work/audit-logs/06-ideation-grafana-log-dashboard.png";
-import earlierSearchConcept from "../../assets/work/audit-logs/07-ideation-earlier-search-concept.png";
-import dbActionsExpanding from "../../assets/work/audit-logs/08-ideation-db-actions.png";
-import explicitSearchAction from "../../assets/work/audit-logs/09-ideation-explicit-search-action.png";
-import searchTags from "../../assets/work/audit-logs/10-ideation-search-tags.png";
-import aiChatConcept from "../../assets/work/audit-logs/11-ideation-ai-chat-concept.png";
-import aiSummarisationConcept from "../../assets/work/audit-logs/12-ideation-ai-summarisation-concept.png";
-import versionChips from "../../assets/work/audit-logs/13-testing-version-chips.png";
+<Chapter id="introduction">
+<StoryChapter heading="Introduction" narrow>
+<Fragment slot="intro">
+
+Agent action is a record of changes made to agents. They are recorded because
+each change could affect the way agents behave. So when an agent behaves
+unexpectedly, these actions help track which change introduced a bug and undo
+it.
+
+</Fragment>
+
+<VideoFigure poster={previousAuditPage} src="/media/audit-logs-initial-walkthrough.mp4" alt="Walkthrough of the original, pre-redesign agent action page — a flat list mixing user and database actions with no grouping" caption="Previous version of agent actions" />
+
+</StoryChapter>
+</Chapter>
+
+<Chapter id="problem">
+<StoryChapter heading="Problem" narrow>
+<Fragment slot="intro">
+
+The first version of agent action logs (also called logs) were hard to
+understand, causing compliance risk because it took longer to troubleshoot
+agents. The core issues contributing to this, in the order of severity,
+were:
+
+</Fragment>
+
+<div class="grid gap-16">
+  <AnnotatedFigure
+    src={problemLogEntries}
+    alt="Two audit log entries for the same agent — an update and its creation — each identifying the agent only by its raw database key, 'Agent #55345'"
+    notes={[
+      { x: 4, y: 28, label: "1", text: "Scanning the list of agent actions to understand what changed and when took a lot of effort." },
+      { x: 23, y: 77, label: "2", text: "The agent names were not human readable because I used the database key, not the name given by a user." },
+      { x: 51.5, y: 49, label: "3", text: "Many database actions were also showing up as agent logs due to the backend architecture, causing confusion." },
+    ]}
+  />
+  <AnnotatedFigure
+    src={problemExpandedLogView}
+    alt="An expanded log entry showing its full field-diff table, pushing the rest of the page down"
+    notes={[
+	  { x: 4.7, y: 19.3, label: "4", text: "Expanding each action log covered the whole screen, making it difficult to view and compare the content of adjacent logs." },
+      { x: 10.8, y: 74, label: "4", text: "Expanding each action log covered the whole screen, making it difficult to view and compare the content of adjacent logs." }
+    ]}
+  />
+  <AnnotatedFigure
+    src={problemInconsistentFilters}
+    alt="The filter row's Clear filters link above a separate 'Filtering by resource: Agent #50635' tag"
+    notes={[
+      { x: 9.3, y: 60.5, label: "5", text: "Applying and removing filters was inconsistent." },
+      { x: 25, y: 92, label: "5", text: "Applying and removing filters was inconsistent." },
+    ]}
+  />
+  <AnnotatedFigure
+    src={problemAutomaticSearch}
+    alt="The Audit page on arrival — From, To, User, Action, Resource and Show filters already filled with defaults, and a spinner in the empty results table while the automatic search runs"
+    notes={[
+      { x: 96.9, y: 37.7, label: "6", text: "Page was set to automatic search. This made the initial load laggy and wasted user's time because they had to wait for the previous search to finish before initiating another." },
+    ]}
+  />
+</div>
+
+</StoryChapter>
+</Chapter>
+
+<Chapter id="goals">
+<StoryChapter heading="Goals" narrow>
+<Fragment slot="intro">
+
+Based on the research, I arrived at the following goals for the redesign
+project. How might we...
+
+</Fragment>
+
+{/* -mt-8 claws StoryChapter's 48px intro step back to 16px: the tiles finish the "How might we..." sentence. */}
+<div class="mx-auto -mt-8 grid w-full max-w-[var(--measure-copy)] gap-4 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
+  <GoalChip>Make it easier to search for the right agent actions</GoalChip>
+  <GoalChip>Make the data change easy to understand</GoalChip>
+  <GoalChip>Make it easy to compare with adjacent logs</GoalChip>
+  <GoalChip>Help differentiate database actions from agent actions</GoalChip>
+  <GoalChip>Eliminate initial lag from automated searching</GoalChip>
+</div>
+
+</StoryChapter>
+</Chapter>
+
+<Chapter id="solution">
+<StoryChapter heading="Solution" narrow>
+<Fragment slot="intro">
+
+I redesigned the entire module, from initiating search to visualising
+database actions differently, making agent actions easier to follow. This
+led to...
+
+</Fragment>
+
+<div class="mx-auto grid w-full max-w-[var(--measure-copy)] gap-6 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
+  <StatTile value="26%" label="Increase in usability (measured by SUS going from 57 to 72)" />
+  <StatTile value="48%" label="Increase in weekly searches after one week of implementation" />
+</div>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/audit-logs-log-results.mp4"
+      poster={slideLogResults}
+      alt="The audit log list showing timestamp-led rows with action-type icons, a colour-coded left border, and a shrunken search bar"
+      pin="bottom-right"
+    />
+    <SlideCallout marker="1">Easier to find the right agent action due to colour coded logs and leading with time</SlideCallout>
+  </Slide>
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/audit-logs-ai-summary.mp4"
+      poster={slideAiSummary}
+      alt="Generating an AI summary of a log's data change inside the details side panel"
+      pin="bottom-left"
+    />
+    <SlideCallout marker="2">Informative side panel with AI summarisation</SlideCallout>
+  </Slide>
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/audit-logs-db-actions.mp4"
+      poster={slideDbActions}
+      alt="Expanding a 'Show db actions' divider to reveal the grouped database action entries it was hiding"
+      pin="bottom-right"
+    />
+    <SlideCallout marker="3">Suppressed database actions to declutter agent logs list</SlideCallout>
+  </Slide>
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/audit-logs-filter-by-resource.mp4"
+      poster={slideFilterByResource}
+      alt="Filtering the audit trail by resource using a control consistent with the rest of the platform"
+      pin="bottom-right"
+    />
+    <SlideCallout marker="4">Consistent filtering experience</SlideCallout>
+  </Slide>
+
+</StoryChapter>
+</Chapter>
+
+{/* Everything below is the pre-redesign body — kept for reference, not
+    deleted, while the new cut above replaces it on the page. Same
+    convention the Outcome/Reflection block already used further down in
+    this file before this change.
+
+    Restoring any of this means putting its imports back at the top of the
+    file: StorySection, ReadInDetail, StoryBlock, Figure, NoteBox,
+    VideoFigure, Term, plus every named image import only these blocks
+    reference (initialAuditPage, verticallyExpandingLogs,
+    inconsistentSearchFilters, participantWorkflow, grafanaDashboard,
+    earlierSearchConcept, dbActionsExpanding, explicitSearchAction,
+    searchTags, aiChatConcept, aiSummarisationConcept, versionChips) — all
+    stripped from the live import list above since nothing the compiler sees
+    is referencing them once this comment wraps them.
 
 <StorySection heading="Problem" divider split="even">
 
@@ -105,72 +222,6 @@ Audit logs are a regulated artifact. When a sponsor or auditor asks what an agen
 <VideoFigure slot="visual" poster={initialAuditPage} src="/media/audit-logs-initial-walkthrough.mp4" alt="Walkthrough of the initial version of the audit log page, listing raw entries per agent with no grouping or visual hierarchy" caption="Initial version of the audit logs" />
 
 </StorySection>
-
-<Solution>
-  <Slide>
-    <SlideVideo
-      slot="media"
-      src="/media/audit-logs-log-results.mp4"
-      poster={slideLogResults}
-      alt="The audit log list showing timestamp-led rows with action-type icons, a colour-coded left border, and a shrunken search bar"
-      pin="bottom-right"
-    />
-    <SlideText title="Comprehensive and scannable audit trail">
-      Each log leads with a timestamp and is easier to scan thanks to icons and a colour-coded left border per action type.
-    </SlideText>
-    <SlideText title="Optimised vertical space">
-      The search bar is shrunken to fit more logs on screen.
-    </SlideText>
-  </Slide>
-  <Slide>
-    <SlideVideo
-      slot="media"
-      src="/media/audit-logs-side-panel.mp4"
-      poster={slideSidePanel}
-      alt="A log's details opening in a side panel, showing the version change, event ID and affected fields"
-      pin="bottom-left"
-    />
-    <SlideText title="Informative side panel">
-      Additional information that doesn't help users find the right log is stashed inside the side panel, so it's accessible without cluttering their view.
-    </SlideText>
-  </Slide>
-  <Slide>
-    <SlideVideo
-      slot="media"
-      src="/media/audit-logs-db-actions.mp4"
-      poster={slideDbActions}
-      alt="Expanding a 'Show db actions' divider to reveal the grouped database action entries it was hiding"
-      pin="bottom-right"
-    />
-    <SlideText title="Database actions">
-      The audit trail originally mixed user actions with database actions. I split database actions out and gave them a distinct look, so users can tell them apart from user actions at a glance.
-    </SlideText>
-  </Slide>
-  <Slide>
-    <SlideVideo
-      slot="media"
-      src="/media/audit-logs-filter-by-resource.mp4"
-      poster={slideFilterByResource}
-      alt="Filtering the audit trail by resource using a control consistent with the rest of the platform"
-      pin="bottom-right"
-    />
-    <SlideText title="Audit trail filtering">
-      Fixed the filtering component to make it consistent with the rest of the platform.
-    </SlideText>
-  </Slide>
-  <Slide>
-    <SlideVideo
-      slot="media"
-      src="/media/audit-logs-ai-summary.mp4"
-      poster={slideAiSummary}
-      alt="Generating an AI summary of a log's data change inside the details panel"
-      pin="bottom-left"
-    />
-    <SlideText title="AI Summary">
-      Proposed and designed a simple feature to summarise a log using AI.
-    </SlideText>
-  </Slide>
-</Solution>
 
 <StorySection heading="Refining based on user testing" split="even">
 
@@ -187,14 +238,6 @@ Because the turnaround cycles were fast (1-week sprints), I couldn't get feedbac
 <Figure slot="visual" src={versionChips} alt="The log list with a version chip such as v1 or v2 shown beside each resource name" caption="Appending version to agent helps user follow changes easily" />
 
 </StorySection>
-
-{/* Everything inside <ReadInDetail> is clipped to a 344px peek and buried
-    under a wash until the reader opens it. It is real content, not a teaser —
-    so every closing tag below must sit flush left, including the nested ones.
-    Several blocks end on a numbered list, and an indented closing tag after a
-    list reads to CommonMark as a continuation of the last list item; the MDX
-    compiler then fails with a RolldownError pointing nowhere near the cause.
-    See CLAUDE.md's case-studies section. */}
 
 <ReadInDetail>
 
@@ -302,11 +345,16 @@ Concept 2 was selected because we weren't sure if follow-up chats were necessary
 
 </StoryChapter>
 
-{/* Outcome and Reflection are dropped from the page for now, matching
+Outcome and Reflection are dropped from the page for now, matching
     agent-versioning's current WIP state — neither appears in the latest
-    design reference for this page. Kept below, commented out, in their old
-    pre-redesign <Section> shape so the content isn't lost; restore once
-    there's a design for how they fit the new cut.
+    design reference for this page. Kept below, in their old pre-redesign
+    Section shape so the content isn't lost; restore once there's a design
+    for how they fit the new cut. (This note used to be its own separate
+    comment block before the rest of this file's body joined it inside one
+    outer comment — left unmarked here rather than nested, since MDX
+    comments cannot nest: a second closing delimiter would end the outer
+    comment early and the remaining old content below would render as live,
+    broken JSX.)
 
     Restoring one also means putting its imports back at the top of this file:
     Section, Reflection, finalDesignThumbnail and reflectionAuditFlow were
@@ -330,6 +378,6 @@ Also, since the workflow predominantly focuses on auditing one agent at a time, 
 
   <Figure src={reflectionAuditFlow} alt="An agent's overflow menu open with a new 'Audit' entry alongside Edit, Share and Setup monitor, pointing to the resulting audit logs modal scoped to that agent" caption="Audit logs open in a modal window from the agent's overflow menu" />
 </Reflection>
-*/}
 
 </ReadInDetail>
+*/}

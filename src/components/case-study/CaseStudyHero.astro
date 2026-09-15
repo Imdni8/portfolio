@@ -6,7 +6,15 @@ import type { ImageMetadata } from 'astro';
 
 interface Props {
 	title: string;
-	subtitle: string;
+	/** Optional — a case study whose hero speaks for itself (e.g. one led by
+	 *  the chapter nav rather than a lede) can omit it; the line is skipped
+	 *  rather than rendering empty. */
+	subtitle?: string;
+	/** Whether CaseStudyLayout is rendering a ChapterNav for this study. Its
+	 *  back arrow takes over as the way home, so the breadcrumb below steps
+	 *  aside rather than duplicating it — a study with no chapter nav still
+	 *  needs the breadcrumb, since nothing else here gets you back to `/`. */
+	hasChapterNav?: boolean;
 	facts?: { label: string; value: string }[];
 	actions?: {
 		primary?: { label: string; href: string };
@@ -27,7 +35,7 @@ interface Props {
 	};
 }
 
-const { title, subtitle, facts = [], actions = {}, hero, heroShot } = Astro.props;
+const { title, subtitle, hasChapterNav = false, facts = [], actions = {}, hero, heroShot } = Astro.props;
 const beforeLabel = hero?.beforeLabel ?? 'Before';
 const afterLabel = hero?.afterLabel ?? 'After';
 const beforeNotes = hero?.beforeNotes ?? [];
@@ -43,34 +51,52 @@ const [before, after] = hero
 		])
 	: [];
 
-// Mirrors .hero__compare's own max-width formula below (min(measure, 100%) −
-// 2×gutter) in resolved units, since `sizes` cannot read custom properties —
-// it is evaluated before the stylesheet that defines them is available. Errs
+// Mirrors .hero__frame's own max-width formula below — measure-prose plus
+// two gutters, capped by the viewport, minus those same two gutters handed
+// back — in resolved units, since `sizes` cannot read custom properties. Errs
 // slightly wide rather than narrow, so a mismatch costs a few kB, not blur.
-const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem - 8vw), calc(100vw - 8vw)';
+//
+// Because the formula adds a gutter back before subtracting it, the frame is
+// flat at --measure-prose (62.5rem) once the viewport is wide enough to hold
+// measure-prose + 2×gutter — the same net width StoryChapter's `narrow` mode
+// gives its own images (see that file's own comment on the same trick), which
+// is why the hero shot now lines up with the rest of the page's screenshots
+// instead of running ~120px narrower than them. That crossover works out to
+// ~67.9rem (62.5rem / 0.92, since --gutter is 4vw below its 4rem cap); 68rem
+// is a safe round threshold above it. Below the threshold the frame tracks
+// ~92vw (the viewport less two ~4vw gutters). If the measure moves, move this
+// string too.
+const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 ---
 
 <header class="hero">
 	<div class="hero__inner">
 		<div class="hero__lede">
-			{/* CaseStudyLayout renders no SiteNav — this is the only way back to
-			    the homepage on a case-study page, so the crumb carries the
-			    same word the nav uses for `/` ("Work", not "Home") rather
-			    than leaving the whole trail resting on an unlabelled glyph.
-			    "Project" is a static crumb naming the page kind, not this
-			    case study's title; the title right below it already carries
-			    that. */}
-			<nav class="hero__breadcrumb" aria-label="Breadcrumb">
+			{/* CaseStudyLayout renders no SiteNav — this breadcrumb is the only
+			    way back to the homepage on a case-study page, UNLESS the study
+			    has a ChapterNav, whose own back arrow takes over that job (see
+			    ChapterNav.astro) — rendering both would duplicate the
+			    affordance, so this one steps aside rather than stacking. It
+			    steps aside only where the rail is actually on screen, though:
+			    the rail hides below 1400px, so `data-rail` keeps the crumb
+			    there. The crumb carries the same word the nav uses for `/`
+			    ("Work", not "Home") rather than leaving the whole trail resting
+			    on an unlabelled glyph. "Project" is a static crumb naming the
+			    page kind, not this case study's title; the title right below
+			    it already carries that. */}
+			<nav class="hero__breadcrumb" aria-label="Breadcrumb" data-rail={hasChapterNav || undefined}>
 				<a class="type-body breadcrumb__home" href="/">
 					<Icon name="home" />
 					Work
 				</a>
 				<Icon name="slash-divider" class="breadcrumb__divider" />
-				<span class="type-body breadcrumb__current" aria-current="page">Project</span>
+				<span class="type-body breadcrumb__current" aria-current="page">
+					Project
+				</span>
 			</nav>
 
 			<h1 class="type-title">{title}</h1>
-			<p class="type-subtitle hero__subtitle">{subtitle}</p>
+			{subtitle && <p class="type-subtitle hero__subtitle">{subtitle}</p>}
 
 			{
 				(actions.primary || actions.secondary) && (
@@ -184,25 +210,20 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 </header>
 
 <style>
+	/* Title, subtitle and facts read as one centred column at every width —
+	   `justify-items: center` keeps each grid row sized to its own content
+	   (the title's line width, mainly) rather than stretched full-bleed, so
+	   centring the shorter rows under it actually reads as centred instead
+	   of centred-in-a-wide-empty-track. Facts stay a sibling grid row rather
+	   than living inside .hero__lede since it's metadata, not lede copy. */
 	.hero__inner {
-		max-width: var(--measure-story);
+		max-width: var(--measure-prose);
 		margin: 0 auto;
 		padding: var(--spacing-9xl) var(--gutter) var(--spacing-7xl);
 		display: grid;
+		justify-items: center;
 		gap: var(--spacing-6xl);
-	}
-
-	/* Desktop puts the facts in a right rail; mobile drops them under the
-	   subtitle as a divided strip, which is why they are a separate grid
-	   child rather than living inside .hero__lede. */
-	@media (min-width: 60rem) {
-		.hero__inner {
-			grid-template-columns: minmax(0, 1fr) 20rem;
-			gap: var(--spacing-8xl);
-			/* Deliberately not `align-items: start`. The rail has to stretch to
-			   the row height, or its entries cannot sit flush with the top and
-			   bottom of the column beside them. */
-		}
+		text-align: center;
 	}
 
 	/* ---- breadcrumb ----
@@ -218,6 +239,14 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 		align-items: center;
 		gap: var(--spacing-md);
 		margin-block-end: calc(var(--spacing-xs) - var(--spacing-2xl));
+	}
+
+	/* Mirrors ChapterNav's own breakpoint: hide the crumb only where the
+	   rail's back arrow is on screen to replace it. */
+	@media (width >= 87.5rem) {
+		.hero__breadcrumb[data-rail] {
+			display: none;
+		}
 	}
 
 	/* A plain link, not an icon-btn: the crumb has a visible label now, so
@@ -273,14 +302,18 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 		color: var(--text-disabled);
 	}
 
+	/* Capped narrower than .hero__inner (--measure-copy vs. --measure-prose) —
+	   the lede reads as a copy column, while the hero shot/compare beside it
+	   is free to run the full --measure-prose width and break out past it on
+	   both sides. */
 	.hero__lede {
+		max-width: var(--measure-copy);
+		margin-inline: auto;
 		display: grid;
+		justify-items: center;
 		gap: var(--spacing-2xl);
 	}
 
-	/* No measure cap: the column is already bounded by --measure-story and the
-	   facts rail beside it, and the reference sets both to the full width of
-	   that column. Capping them again left a ragged void on the right. */
 	h1 {
 		color: var(--text);
 	}
@@ -292,25 +325,45 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 	.hero__actions {
 		display: flex;
 		flex-wrap: wrap;
+		justify-content: center;
 		gap: var(--spacing-lg);
 		margin-top: var(--spacing-xl);
 	}
 
-	/* ---- facts ---- */
+	/* ---- facts ----
+	   One centred row at every width — a horizontal strip of dividers, sized
+	   to its own content (not stretched to the column) so `.hero__inner`'s
+	   `justify-items: center` centres the group as a whole under the title.
+	   The same --measure-copy cap as .hero__lede, so the facts row stays in
+	   the copy column rather than the wider frame beside it — a safety net
+	   more than a visible change today, since the row is short enough to sit
+	   well under 752px on its own content already.
+
+	   `grid-auto-columns: 1fr` rather than `display: flex`, so every item is
+	   the same width regardless of label/value length — flex's `flex: 1` would
+	   need a definite container width to divide evenly, which this row
+	   deliberately doesn't have (it hugs its content, see above); a `1fr`
+	   auto-column grid still hugs its content under intrinsic sizing, but
+	   every column resolves to the widest item's own width instead of its own. */
 	.facts {
-		margin: 0;
+		max-width: var(--measure-copy);
+		margin: 0 auto;
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		border-block: 1px solid var(--border);
+		grid-auto-flow: column;
+		grid-auto-columns: 1fr;
 	}
 
 	.facts__item {
-		padding: var(--spacing-xl) var(--spacing-lg);
+		padding-inline: var(--spacing-3xl);
 		text-align: center;
 		border-inline-start: 1px solid var(--border);
 	}
 	.facts__item:first-child {
+		padding-inline-start: 0;
 		border-inline-start: 0;
+	}
+	.facts__item:last-child {
+		padding-inline-end: 0;
 	}
 
 	.facts__value {
@@ -318,58 +371,28 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 		color: var(--text-body);
 	}
 
-	@media (min-width: 60rem) {
-		/* Equal thirds down the full height, so the dividers land on exact
-		   thirds and the block reads as one measured column rather than a
-		   stack that happens to start at the top. */
-		.facts {
-			display: flex;
-			flex-direction: column;
-			border-block: 0;
-			text-align: right;
-		}
-
-		/* No padding on the item. With border-box, a flex-basis:0 item is still
-		   floored at its own padding, and the middle one pads on both sides
-		   where the outer two pad on one — which pulled the thirds to 91/108/92
-		   and put the dividers 6px off. With the padding gone all three floor
-		   at zero and grow equally; the breathing room around each entry comes
-		   from the third being taller than its content. */
-		.facts__item {
-			flex: 1;
-			min-height: 0;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			padding: 0;
-			text-align: right;
-			border-inline-start: 0;
-			border-block-start: 1px solid var(--border);
-		}
-
-		/* First and last hug the edges so the rail is flush top and bottom with
-		   the lede column; the middle one centres in its own third. */
-		.facts__item:first-child {
-			justify-content: flex-start;
-			border-block-start: 0;
-		}
-		.facts__item:last-child {
-			justify-content: flex-end;
-		}
-	}
-
 	/* ---- before / after ----
-	   Aligned to .hero__inner, the same container the lede and facts sit
-	   inside — the frame's edges match the outer column, so the hero reads as
-	   one block rather than a wide picture with a narrower page bolted on.
-	   That is edge-for-edge with .hero__lede only when there is no facts
-	   rail; with one, the lede occupies just the minmax(0,1fr) track beside
-	   it and its own right edge sits short of the frame's. The island sets
-	   its own aspect ratio, so this only has to give it the width.
+	   Capped to --measure-prose, not .hero__lede's narrower --measure-copy —
+	   the frame is deliberately wider than the title/facts above it, breaking
+	   out past their edges on both sides, the same copy-vs-media split
+	   StoryChapter's `narrow` mode uses for a chapter's own heading and
+	   images — and it's --measure-prose rather than the wider --measure-story
+	   precisely because that's the measure narrow-mode chapters render their
+	   own screenshots at. The hero shot is the reader's first look at the
+	   product, so it needs to read as the same width as those, not as wide as
+	   a plain `Section`'s own --measure-story column. The island sets its own
+	   aspect ratio, so this only has to give it the width.
 
-	   The cap is measured off the column rather than restating a fixed number,
-	   so it holds below --measure-story too, where the column is the viewport
-	   less its gutters.
+	   The `+ 2 * var(--gutter)` inside the min() is the same compensation
+	   StoryChapter's `narrow` mode applies to its own container (see that
+	   file's comment on the identical trick): the gutter is meant to sit
+	   *outside* the --measure-prose cap, not be carved out of it, so a bare
+	   `min(var(--measure-prose), 100%) - 2 * var(--gutter)` would leave the
+	   frame ~120px narrower than --measure-prose (and than every narrow-mode
+	   screenshot below it) instead of flush with it. Adding the gutter back
+	   before subtracting it nets out to exactly --measure-prose once the
+	   viewport is wide enough, and still falls back to "100% minus two
+	   gutters" below that, same as before.
 
 	   No background here: the island carries its own, and a sunken band exactly
 	   the width of the frame would do nothing but show square corners behind
@@ -378,7 +401,7 @@ const compareSizes = '(min-width: 100rem) 67rem, (min-width: 75rem) calc(75rem -
 	   are the same frame in the same slot, so the width lives here once rather
 	   than in two rules that could drift. */
 	.hero__frame {
-		max-width: calc(min(var(--measure-story), 100%) - 2 * var(--gutter));
+		max-width: calc(min(var(--measure-prose) + 2 * var(--gutter), 100%) - 2 * var(--gutter));
 		margin-inline: auto;
 		/* The chapter rail follows immediately and is sticky, so it needs
 		   clearing rather than butting against the frame. */
