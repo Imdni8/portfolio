@@ -60,7 +60,10 @@ const hasIntro = Astro.slots.has('intro');
 	{/* The intro sits inside the blocks' own grid rather than above it, so it
 	    takes the same 48px step down to the first block that two blocks take
 	    between themselves — one rhythm for the chapter, not two. */}
-	<div class="grid gap-12">
+	{/* minmax(0,1fr), not the implicit auto column: an auto track grows to
+	    its children's min-content, so an auto-fit tile grid inside it never
+	    sees the narrow viewport and never wraps. */}
+	<div class="grid grid-cols-[minmax(0,1fr)] gap-12">
 		{
 			hasIntro && (
 				// w-full: a grid item with auto margins shrink-wraps to its

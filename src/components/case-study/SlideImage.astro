@@ -1,0 +1,135 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+/**
+ * A still counterpart to `SlideVideo` — same pinned-corner card, same
+ * click-to-enlarge trigger, for a Solution slide whose highlight is a single
+ * screenshot rather than a recording. See `SlideVideo`'s own header comment
+ * for the pinning rationale (`pin` names the corner the image hugs and runs
+ * past, not the visible one) and the `--pin-inset`/`--pin-bleed` tuning
+ * surface — both copied here rather than shared, since Astro's scoped styles
+ * do not reach slotted content and a `Slide`'s `media` slot only ever holds
+ * one of these two components, never both at once.
+ *
+ * Wired to the same global Lightbox as `Figure` (`data-zoom`/`data-zoom-alt`),
+ * not `SlideVideo`'s `data-zoom-video` — this is a static image, so it needs
+ * no poster and no play/pause wiring from solution-carousel.ts.
+ *
+ * Unlike `SlideVideo`, the trigger carries no `border`, `background` or
+ * `border-radius` of its own. Every image this component has been handed so
+ * far is a Figma export of the card itself — rounded corners and a hairline
+ * stroke already baked into the file as alpha transparency (confirmed by
+ * sampling the PNG: fully transparent outside a rounded-rect mask, a few
+ * grey antialiased pixels at the curve). A CSS radius on the trigger on top
+ * of that clips a *second*, differently-curved corner around the image's own
+ * — the mismatch this file used to have when it carried `--radius-md` here,
+ * which read as a double corner rather than one clean curve. Letting the
+ * asset's own mask be the only rounding means the vid-bg backdrop shows
+ * through its transparent corner exactly where the design intends, with
+ * nothing here to fall out of sync with whatever radius the export used.
+ */
+interface Props {
+	src: ImageMetadata;
+	alt: string;
+	pin: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+}
+const { src, alt, pin } = Astro.props;
+---
+
+<button
+	type="button"
+	class="slide-image__trigger"
+	data-pin={pin}
+	data-zoom={src.src}
+	data-zoom-alt={alt}
+	aria-label={`Enlarge: ${alt}`}
+>
+	<Image class="slide-image" src={src} alt={alt} widths={[480, 760, 1120]} sizes="(min-width: 60rem) 46vw, 92vw" />
+</button>
+
+<style>
+	.slide-image__trigger {
+		--pin-inset: var(--spacing-6xl);
+		--pin-bleed: var(--spacing-6xl);
+
+		appearance: none;
+		padding: 0;
+		position: absolute;
+		z-index: 1;
+		display: block;
+		cursor: zoom-in;
+		overflow: hidden;
+	}
+
+	.slide-image__trigger:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	.slide-image {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	@media (max-width: 40rem) {
+		.slide-image__trigger {
+			--pin-inset: var(--spacing-3xl);
+			--pin-bleed: var(--spacing-3xl);
+		}
+	}
+
+	/* Hugs bottom + right; top-left corner visible. */
+	.slide-image__trigger[data-pin='bottom-right'] {
+		inset-block-start: var(--pin-inset);
+		inset-inline-start: var(--pin-inset);
+		inset-block-end: calc(-1 * var(--pin-bleed));
+		inset-inline-end: calc(-1 * var(--pin-bleed));
+	}
+	.slide-image__trigger[data-pin='bottom-right'] .slide-image {
+		object-position: left top;
+	}
+
+	/* Hugs bottom + left; top-right corner visible. */
+	.slide-image__trigger[data-pin='bottom-left'] {
+		inset-block-start: var(--pin-inset);
+		inset-inline-end: var(--pin-inset);
+		inset-block-end: calc(-1 * var(--pin-bleed));
+		inset-inline-start: calc(-1 * var(--pin-bleed));
+	}
+	.slide-image__trigger[data-pin='bottom-left'] .slide-image {
+		object-position: right top;
+	}
+
+	/* Hugs top + right; bottom-left corner visible. */
+	.slide-image__trigger[data-pin='top-right'] {
+		inset-block-end: var(--pin-inset);
+		inset-inline-start: var(--pin-inset);
+		inset-block-start: calc(-1 * var(--pin-bleed));
+		inset-inline-end: calc(-1 * var(--pin-bleed));
+	}
+	.slide-image__trigger[data-pin='top-right'] .slide-image {
+		object-position: left bottom;
+	}
+
+	/* Hugs top + left; bottom-right corner visible. */
+	.slide-image__trigger[data-pin='top-left'] {
+		inset-block-end: var(--pin-inset);
+		inset-inline-end: var(--pin-inset);
+		inset-block-start: calc(-1 * var(--pin-bleed));
+		inset-inline-start: calc(-1 * var(--pin-bleed));
+	}
+	.slide-image__trigger[data-pin='top-left'] .slide-image {
+		object-position: right bottom;
+	}
+
+	/* No corner to hug — see SlideVideo's own comment on this variant. */
+	.slide-image__trigger[data-pin='center'] {
+		inset: var(--pin-inset);
+	}
+	.slide-image__trigger[data-pin='center'] .slide-image {
+		object-position: center;
+	}
+</style>

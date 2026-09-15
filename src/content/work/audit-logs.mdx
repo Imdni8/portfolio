@@ -40,7 +40,8 @@ import GoalChip from "../../components/case-study/GoalChip.astro";
 import StatTile from "../../components/case-study/StatTile.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
-import SlideText from "../../components/case-study/SlideText.astro";
+import SlideImage from "../../components/case-study/SlideImage.astro";
+import SlideCallout from "../../components/case-study/SlideCallout.astro";
 
 import previousAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
 import problemLogEntries from "../../assets/work/audit-logs/21-problem-log-entries.png";
@@ -48,8 +49,7 @@ import problemExpandedLogView from "../../assets/work/audit-logs/22-problem-expa
 import problemInconsistentFilters from "../../assets/work/audit-logs/23-problem-inconsistent-filters.png";
 import problemAutomaticSearch from "../../assets/work/audit-logs/24-problem-automatic-search.png";
 
-import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.jpg";
-import slideSidePanel from "../../assets/work/audit-logs/slide-2-side-panel.jpg";
+import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.png";
 import slideDbActions from "../../assets/work/audit-logs/slide-3-db-actions.jpg";
 import slideFilterByResource from "../../assets/work/audit-logs/slide-4-filter-by-resource.jpg";
 import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg";
@@ -129,7 +129,7 @@ project. How might we...
 
 {/* -mt-8 claws StoryChapter's 48px intro step back to 16px: the tiles finish the "How might we..." sentence. */}
 <div class="mx-auto -mt-8 grid w-full max-w-[var(--measure-copy)] gap-4 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
-  <GoalChip>make it easier to search for the right agent actions</GoalChip>
+  <GoalChip>Make it easier to search for the right agent actions</GoalChip>
   <GoalChip>Make the data change easy to understand</GoalChip>
   <GoalChip>Make it easy to compare with adjacent logs</GoalChip>
   <GoalChip>Help differentiate database actions from agent actions</GoalChip>
@@ -149,37 +149,29 @@ led to...
 
 </Fragment>
 
-<div class="flex flex-wrap gap-6">
+<div class="mx-auto grid w-full max-w-[var(--measure-copy)] gap-6 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
   <StatTile value="26%" label="Increase in usability (measured by SUS going from 57 to 72)" />
   <StatTile value="48%" label="Increase in weekly searches after one week of implementation" />
 </div>
 
   <Slide static>
-    <SlideVideo
+    <SlideImage
       slot="media"
-      src="/media/audit-logs-log-results.mp4"
-      poster={slideLogResults}
+      src={slideLogResults}
       alt="The audit log list showing timestamp-led rows with action-type icons, a colour-coded left border, and a shrunken search bar"
       pin="bottom-right"
     />
-    <SlideText title="Scannable list helps find the right agent log quickly">
-      Each log leads with a timestamp and is easier to scan thanks to icons and a colour-coded left border per action type.
-    </SlideText>
-    <SlideText title="Optimised vertical space">
-      The search bar is shrunken to fit more logs on screen.
-    </SlideText>
+    <SlideCallout marker="1">Easier to find the right agent action due to colour coded logs and leading with time</SlideCallout>
   </Slide>
   <Slide static>
     <SlideVideo
       slot="media"
-      src="/media/audit-logs-side-panel.mp4"
-      poster={slideSidePanel}
-      alt="A log's details opening in a side panel, showing the version change, event ID and affected fields"
+      src="/media/audit-logs-ai-summary.mp4"
+      poster={slideAiSummary}
+      alt="Generating an AI summary of a log's data change inside the details side panel"
       pin="bottom-left"
     />
-    <SlideText title="Informative side panel with AI summarisation">
-      Additional information that doesn't help users find the right log is stashed inside the side panel, so it's accessible without cluttering their view.
-    </SlideText>
+    <SlideCallout marker="2">Informative side panel with AI summarisation</SlideCallout>
   </Slide>
   <Slide static>
     <SlideVideo
@@ -189,9 +181,7 @@ led to...
       alt="Expanding a 'Show db actions' divider to reveal the grouped database action entries it was hiding"
       pin="bottom-right"
     />
-    <SlideText title="Suppressed database actions to declutter agent logs list">
-      The audit trail originally mixed user actions with database actions. I split database actions out and gave them a distinct look, so users can tell them apart from user actions at a glance.
-    </SlideText>
+    <SlideCallout marker="3">Suppressed database actions to declutter agent logs list</SlideCallout>
   </Slide>
   <Slide static>
     <SlideVideo
@@ -201,21 +191,7 @@ led to...
       alt="Filtering the audit trail by resource using a control consistent with the rest of the platform"
       pin="bottom-right"
     />
-    <SlideText title="Consistent filtering experience">
-      Fixed the filtering component to make it consistent with the rest of the platform.
-    </SlideText>
-  </Slide>
-  <Slide static>
-    <SlideVideo
-      slot="media"
-      src="/media/audit-logs-ai-summary.mp4"
-      poster={slideAiSummary}
-      alt="Generating an AI summary of a log's data change inside the details panel"
-      pin="bottom-left"
-    />
-    <SlideText title="AI Summary">
-      Proposed and designed a simple feature to summarise a log using AI.
-    </SlideText>
+    <SlideCallout marker="4">Consistent filtering experience</SlideCallout>
   </Slide>
 
 </StoryChapter>
