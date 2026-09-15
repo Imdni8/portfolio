@@ -21,15 +21,17 @@ import vidBg from '../../assets/work/vid-bg.jpg';
  * `static` opts a slide out of that carousel styling — full opacity, no
  * `flex-basis` cropping — for a case study that stacks its highlights
  * full-width instead of scrolling them. It skips `solution-carousel.ts`
- * entirely just by living outside a `[data-carousel-track]`, so a static
- * slide's video never autoplays on scroll; the poster stands until the
- * reader opens it in the lightbox, same as any other zoomable figure.
+ * entirely just by living outside a `[data-carousel-track]`; its clip plays
+ * from the card's play button instead (`static-slide-video.ts` below) — once
+ * per press, never looping.
  */
 const hasMedia = Astro.slots.has('media');
 const isStatic = Astro.props.static ?? false;
 ---
 
-<div class="solution-slide" data-static={isStatic}>
+{/* `|| undefined`, not the bare boolean: Astro renders data-static={false}
+    as data-static="false", which [data-static] still matches. */}
+<div class="solution-slide" data-static={isStatic || undefined}>
 	<div class="solution-slide__media">
 		<Image
 			class="solution-slide__media-bg"
@@ -44,6 +46,12 @@ const isStatic = Astro.props.static ?? false;
 		<slot />
 	</div>
 </div>
+
+<script>
+	import { initStaticSlideVideos } from './static-slide-video';
+
+	initStaticSlideVideos([...document.querySelectorAll<HTMLElement>('.solution-slide[data-static]')]);
+</script>
 
 <style>
 	/* `align-content: start` is what keeps the step from the card to the copy
