@@ -51,18 +51,22 @@ const [before, after] = hero
 		])
 	: [];
 
-// Mirrors .hero__compare's own max-width formula below (min(measure, 100%) −
-// 2×gutter) in resolved units, since `sizes` cannot read custom properties —
-// it is evaluated before the stylesheet that defines them is available. Errs
+// Mirrors .hero__frame's own max-width formula below — measure-prose plus
+// two gutters, capped by the viewport, minus those same two gutters handed
+// back — in resolved units, since `sizes` cannot read custom properties. Errs
 // slightly wide rather than narrow, so a mismatch costs a few kB, not blur.
 //
-// The 100rem breakpoint is where --gutter's own clamp saturates at 4rem —
-// a property of the gutter, not the measure, so it doesn't move. The second
-// breakpoint has to match --measure-prose itself (62.5rem), and both resolved
-// widths are measure − 8rem/8vw (two gutters) at that measure. If the measure
-// moves, move this string too.
-const compareSizes =
-	'(min-width: 100rem) 54.5rem, (min-width: 62.5rem) calc(62.5rem - 8vw), calc(100vw - 8vw)';
+// Because the formula adds a gutter back before subtracting it, the frame is
+// flat at --measure-prose (62.5rem) once the viewport is wide enough to hold
+// measure-prose + 2×gutter — the same net width StoryChapter's `narrow` mode
+// gives its own images (see that file's own comment on the same trick), which
+// is why the hero shot now lines up with the rest of the page's screenshots
+// instead of running ~120px narrower than them. That crossover works out to
+// ~67.9rem (62.5rem / 0.92, since --gutter is 4vw below its 4rem cap); 68rem
+// is a safe round threshold above it. Below the threshold the frame tracks
+// ~92vw (the viewport less two ~4vw gutters). If the measure moves, move this
+// string too.
+const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 ---
 
 <header class="hero">
@@ -327,12 +331,20 @@ const compareSizes =
 	   The same --measure-copy cap as .hero__lede, so the facts row stays in
 	   the copy column rather than the wider frame beside it — a safety net
 	   more than a visible change today, since the row is short enough to sit
-	   well under 752px on its own content already. */
+	   well under 752px on its own content already.
+
+	   `grid-auto-columns: 1fr` rather than `display: flex`, so every item is
+	   the same width regardless of label/value length — flex's `flex: 1` would
+	   need a definite container width to divide evenly, which this row
+	   deliberately doesn't have (it hugs its content, see above); a `1fr`
+	   auto-column grid still hugs its content under intrinsic sizing, but
+	   every column resolves to the widest item's own width instead of its own. */
 	.facts {
 		max-width: var(--measure-copy);
 		margin: 0 auto;
-		display: flex;
-		justify-content: center;
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: 1fr;
 	}
 
 	.facts__item {
@@ -354,16 +366,27 @@ const compareSizes =
 	}
 
 	/* ---- before / after ----
-	   Capped to .hero__inner's own measure (--measure-prose), not
-	   .hero__lede's narrower --measure-copy — the frame is deliberately wider
-	   than the title/facts above it, breaking out past their edges on both
-	   sides, the same copy-vs-media split StoryChapter's `narrow` mode uses
-	   for a chapter's own heading and images. The island sets its own aspect
-	   ratio, so this only has to give it the width.
+	   Capped to --measure-prose, not .hero__lede's narrower --measure-copy —
+	   the frame is deliberately wider than the title/facts above it, breaking
+	   out past their edges on both sides, the same copy-vs-media split
+	   StoryChapter's `narrow` mode uses for a chapter's own heading and
+	   images — and it's --measure-prose rather than the wider --measure-story
+	   precisely because that's the measure narrow-mode chapters render their
+	   own screenshots at. The hero shot is the reader's first look at the
+	   product, so it needs to read as the same width as those, not as wide as
+	   a plain `Section`'s own --measure-story column. The island sets its own
+	   aspect ratio, so this only has to give it the width.
 
-	   The cap is measured off the column rather than restating a fixed number,
-	   so it holds below --measure-prose too, where the column is the viewport
-	   less its gutters.
+	   The `+ 2 * var(--gutter)` inside the min() is the same compensation
+	   StoryChapter's `narrow` mode applies to its own container (see that
+	   file's comment on the identical trick): the gutter is meant to sit
+	   *outside* the --measure-prose cap, not be carved out of it, so a bare
+	   `min(var(--measure-prose), 100%) - 2 * var(--gutter)` would leave the
+	   frame ~120px narrower than --measure-prose (and than every narrow-mode
+	   screenshot below it) instead of flush with it. Adding the gutter back
+	   before subtracting it nets out to exactly --measure-prose once the
+	   viewport is wide enough, and still falls back to "100% minus two
+	   gutters" below that, same as before.
 
 	   No background here: the island carries its own, and a sunken band exactly
 	   the width of the frame would do nothing but show square corners behind
@@ -372,7 +395,7 @@ const compareSizes =
 	   are the same frame in the same slot, so the width lives here once rather
 	   than in two rules that could drift. */
 	.hero__frame {
-		max-width: calc(min(var(--measure-prose), 100%) - 2 * var(--gutter));
+		max-width: calc(min(var(--measure-prose) + 2 * var(--gutter), 100%) - 2 * var(--gutter));
 		margin-inline: auto;
 		/* The chapter rail follows immediately and is sticky, so it needs
 		   clearing rather than butting against the frame. */

@@ -27,56 +27,15 @@ chapters:
       label: Goals
     - id: solution
       label: Solution
-hero:
-    before: ../../assets/work/audit-logs/00-hero-before.png
-    after: ../../assets/work/audit-logs/00-hero-after.png
-    beforeAlt: The initial audit log page — a flat table mixing user actions and database actions with no grouping
-    afterAlt: The redesigned audit log page — search converted to tags, database actions grouped and collapsed, a side panel showing the version change
-    beforeNotes:
-        - x: 51.3
-          y: 20
-          text: The entire screen scrolled, causing the search section to go out of screen.
-        - x: 25.5
-          y: 35
-          text: Clearing search filters would affect resource filter as well. They shouldn't be apart. It also takes additional space needlessly.
-        - x: 22
-          y: 42.5
-          text: Human-readable names were not used due to changing version.
-        - x: 10.9
-          y: 63.6
-          text: Horizontally expanding logs took the entire screen space, preventing comparison with adjacent logs.
-    afterNotes:
-        - x: 97
-          y: 6.9
-          text: Search section is pinned and always on screen.
-        - x: 44
-          y: 7
-          text: Filter UX is consistent.
-        - x: 38.1
-          y: 20.6
-          text: By introducing version tags, human-readable names could be used.
-        - x: 73.2
-          y: 35.1
-          text: Using sidepanel keeps adjacent logs on screen, allowing comparison.
-        - x: 86.2
-          y: 15
-          label: "★"
-          text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
-        - x: 47.7
-          y: 24.9
-          label: "★"
-          text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
-        - x: 14.1
-          y: 32.9
-          label: "★"
-          text: Additionally, database actions, AI summary and change descriptions were introduced to make the audit trail more comprehensible.
+heroShot:
+    src: ../../assets/work/audit-logs/00-hero.png
+    alt: The redesigned audit log page — a version-change side panel next to the activity timeline, with search converted to filter tags
 ---
 
 import Chapter from "../../components/case-study/Chapter.astro";
 import StoryChapter from "../../components/case-study/StoryChapter.astro";
 import VideoFigure from "../../components/case-study/VideoFigure.astro";
 import AnnotatedFigure from "../../components/case-study/AnnotatedFigure.astro";
-import ProblemItem from "../../components/case-study/ProblemItem.astro";
 import GoalChip from "../../components/case-study/GoalChip.astro";
 import StatTile from "../../components/case-study/StatTile.astro";
 import Slide from "../../components/case-study/Slide.astro";
@@ -87,7 +46,7 @@ import previousAuditPage from "../../assets/work/audit-logs/01-problem-initial-a
 import problemLogEntries from "../../assets/work/audit-logs/21-problem-log-entries.png";
 import problemExpandedLogView from "../../assets/work/audit-logs/22-problem-expanded-log-view.png";
 import problemInconsistentFilters from "../../assets/work/audit-logs/23-problem-inconsistent-filters.png";
-import problem6 from "../../assets/work/audit-logs/20-problem-item-6-placeholder.png";
+import problemAutomaticSearch from "../../assets/work/audit-logs/24-problem-automatic-search.png";
 
 import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.jpg";
 import slideSidePanel from "../../assets/work/audit-logs/slide-2-side-panel.jpg";
@@ -147,12 +106,12 @@ were:
       { x: 15, y: 85, label: "5", text: "Applying and removing filters was inconsistent." },
     ]}
   />
-  <ProblemItem
-    number={6}
-    statement="Page was set to automatic search. This made the initial load laggy and wasted user's time because they had to wait for the previous search to finish before initiating the search they want."
-    image={problem6}
-    alt="Placeholder — will show the audit log page mid-load, illustrating the lag from automatic search on page load"
-    notes={[{ x: 50, y: 50, text: "Placeholder annotation — reposition once the real screenshot is supplied." }]}
+  <AnnotatedFigure
+    src={problemAutomaticSearch}
+    alt="The Audit page on arrival — From, To, User, Action, Resource and Show filters already filled with defaults, and a spinner in the empty results table while the automatic search runs"
+    notes={[
+      { x: 96.9, y: 37.7, label: "6", text: "Page was set to automatic search. This made the initial load laggy and wasted user's time because they had to wait for the previous search to finish before initiating another." },
+    ]}
   />
 </div>
 
