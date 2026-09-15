@@ -120,8 +120,15 @@ were:
 
 <Chapter id="goals">
 <StoryChapter heading="Goals" narrow>
+<Fragment slot="intro">
 
-<div class="flex flex-wrap gap-4">
+Based on the research, I arrived at the following goals for the redesign
+project. How might we...
+
+</Fragment>
+
+{/* -mt-8 claws StoryChapter's 48px intro step back to 16px: the tiles finish the "How might we..." sentence. */}
+<div class="mx-auto -mt-8 grid w-full max-w-[var(--measure-copy)] gap-4 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
   <GoalChip>make it easier to search for the right agent actions</GoalChip>
   <GoalChip>Make the data change easy to understand</GoalChip>
   <GoalChip>Make it easy to compare with adjacent logs</GoalChip>

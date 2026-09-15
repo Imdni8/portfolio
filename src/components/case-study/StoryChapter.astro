@@ -63,7 +63,10 @@ const hasIntro = Astro.slots.has('intro');
 	<div class="grid gap-12">
 		{
 			hasIntro && (
-				<div class:list={[storyProse, narrow && 'max-w-[var(--measure-copy)] mx-auto']}>
+				// w-full: a grid item with auto margins shrink-wraps to its
+				// content, so a short intro would otherwise centre itself
+				// inside the measure instead of sharing the heading's edges.
+				<div class:list={[storyProse, narrow && 'w-full max-w-[var(--measure-copy)] mx-auto']}>
 					<slot name="intro" />
 				</div>
 			)
