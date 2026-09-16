@@ -1,7 +1,9 @@
 /**
- * Spotlight for the homepage's work list: the card at the middle of the
- * viewport stays at full strength and every other card dims, so the reader
- * is looking at one piece of work at a time. The look is WorkCard.astro's
+ * Spotlight for the homepage's work list when it is a plain column — below
+ * the reel's breakpoint, or under reduced motion (home-reel.ts decides which,
+ * and the reel lights its own cards). The card at the middle of the viewport
+ * stays at full strength and every other card dims, so the reader is looking
+ * at one piece of work at a time. The look is WorkCard.astro's
  * `[data-dimmed]` rule; this file only decides which cards wear it.
  *
  * "At the middle" is the card whose box spans the midline — the horizontal
@@ -59,5 +61,6 @@ export function initWorkSpotlight(list: HTMLElement): () => void {
 	return () => {
 		window.removeEventListener('scroll', onScroll);
 		window.removeEventListener('resize', onScroll);
+		for (const card of cards) card.removeAttribute('data-dimmed');
 	};
 }

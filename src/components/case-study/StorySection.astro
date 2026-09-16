@@ -32,7 +32,7 @@ const COLUMNS = {
 
 <section class="mx-auto max-w-[var(--measure-story)] px-[var(--gutter)] py-20">
 	{divider && <hr class="mb-20 border-t border-border" />}
-	<h2 class:list={['mb-6 text-3xl leading-10', storyHeading]}>
+	<h2 class:list={['mb-6 text-[length:var(--size-heading)] leading-[var(--lh-heading)]', storyHeading]}>
 		{heading}
 	</h2>
 	{/* With a visual the copy takes the narrower of two columns and the shot

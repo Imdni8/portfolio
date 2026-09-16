@@ -87,16 +87,16 @@ const { src, alt, caption, notes = [] } = Astro.props;
 		backdrop-filter: blur(2px);
 		font-family: var(--font-sans);
 		font-size: var(--size-fine);
-		font-weight: var(--weight-semibold);
+		font-weight: var(--weight-medium);
 		line-height: 1;
 		color: var(--text-on-overlay);
 	}
 
 	/* Below the figure, on the page ground — not the on-image tone the pins
-	   themselves use. Reads as running prose rather than a caption: same
-	   16/24 Inter regular as StoryChapter's own intro paragraph (storyProse's
-	   text-base/leading-6, expressed here as --size-ui/--lh-ui — CLAUDE.md
-	   notes the two are identical), same --text-body colour, and capped to
+	   themselves use. Reads as running prose rather than a caption: the same
+	   --size-body/--lh-body (16/27) regular sans as StoryChapter's own intro
+	   paragraph (storyProse reads the same two tokens), same --text-body
+	   colour, and capped to
 	   the same --measure-copy (752px) column, centered the same way
 	   StoryChapter's `narrow` heading and intro are — so the markers line up
 	   with the prose above, not with the figure's own left edge. The figure
@@ -116,8 +116,8 @@ const { src, alt, caption, notes = [] } = Astro.props;
 		gap: var(--spacing-sm);
 		font-family: var(--font-sans);
 		font-weight: var(--weight-regular);
-		font-size: var(--size-ui);
-		line-height: var(--lh-ui);
+		font-size: var(--size-body);
+		line-height: var(--lh-body);
 		color: var(--text-body);
 	}
 

@@ -91,20 +91,18 @@ const isExternal = status === 'external';
 				</p>
 			</div>
 		</div>
-		{/* `sizes` follows the image, not the card. The cover is sized off the
-		    card's height at 16:10, which makes it ~0.87× the card's width (the
-		    part past the panel is clipped, but it is still decoded). The card is
-		    two-thirds of the homepage frame above 64rem: a flat 784px once the
-		    frame caps at 85.5rem (so ~686px of image, 43rem), ~0.61 × the
-		    viewport below that (~55vw of image). Under 64rem it runs the full
-		    frame (92vw) — side by side (~82vw of image) until the card itself
-		    drops under 40rem, stacked (the full 92vw) below that. */}
+		{/* `sizes` follows the host, which sets the card's width: on the
+		    homepage reel that is 71.2vw, capped at 1230px (77rem, reached at a
+		    1728px viewport) and held down further on short screens; in the
+		    stacked layout below 64rem it is the frame, ~92vw. The cover runs
+		    the card's full width less its 4px inset, so the card's width is
+		    the image's. */}
 		<div class="card__media">
 			<Image
 				src={thumbnail.src}
 				alt={thumbnail.alt}
-				widths={[480, 720, 1080, 1440]}
-				sizes="(min-width: 85.5rem) 43rem, (min-width: 64rem) 55vw, (min-width: 39rem) 82vw, 92vw"
+				widths={[480, 720, 1080, 1440, 2000]}
+				sizes="(min-width: 108rem) 77rem, (min-width: 64rem) 71vw, 92vw"
 				loading={priority ? 'eager' : 'lazy'}
 				fetchpriority={priority ? 'high' : 'auto'}
 			/>
@@ -127,42 +125,54 @@ const isExternal = status === 'external';
 </Wrapper>
 
 <style>
-	/* One solid panel: the text on the left third, the cover on the right two.
-	   The card is the query container, not the grid — a container query can't
-	   restyle the element it measures — so `.card__inner` is what switches
-	   between side by side and stacked. `overflow: clip` plus the radius is
-	   what crops the cover where it runs past the card's right edge. */
+	/* One solid panel, cover on top and the text beneath it. The card has no
+	   width of its own — whatever hosts it decides that (the homepage reel
+	   sizes each slot; the stacked fallback runs the frame) — and takes its
+	   height from the spec's 1230×709 frame. `overflow: clip` plus the radius
+	   rounds the whole panel, cover corners included.
+
+	   --bg-sunken, not --bg: the reference fills the card black so it reads
+	   as a pane cut out of the glow behind it, and --bg-sunken is the
+	   system's nearest value to that. The 1px --border is what keeps its edge
+	   against the dark ground where the glow does not reach. */
 	.card {
 		position: relative;
 		display: block;
 		container-type: inline-size;
 		overflow: clip;
+		border: 1px solid var(--border);
 		border-radius: var(--radius-2xl);
-		background: var(--bg);
+		background: var(--bg-sunken);
 		color: inherit;
 		text-decoration: none;
 	}
 
-	/* Every card but the one at the middle of the viewport, while the reader
-	   scrolls the list — set by work-spotlight.ts, never in the markup, so
-	   with no JS nothing is dimmed. 0.6 is the floor the card's text allows:
-	   composited over the dark ground it leaves the title at 6.7:1 and the
-	   16px meta rows at 5.8:1, both still clear of AA. (The light theme,
-	   a dev preview on the homepage, would take the meta to 3.9:1.) A card
-	   that takes keyboard focus comes back to full strength, so the ring is
-	   never drawn round something the reader is being told to ignore.
+	/* Every card but the lit one — set by home-reel.ts (or, in the stacked
+	   layout, work-spotlight.ts), never in the markup, so with no JS nothing
+	   is dimmed. 0.6 is the floor the card's text allows, and it is kept
+	   deliberately above the reference's 0.3: composited over the homepage's
+	   ground — anywhere from its darkest to the glow's measured peak — it
+	   leaves the title at 7.1:1 or better and the 14px meta rows at 6.1:1,
+	   where 0.3 would take them to 2.6:1 and 2.4:1 while the card is still a
+	   link a reader can read and follow. A card that takes keyboard focus comes back
+	   to full strength, so the ring is never drawn round something the reader
+	   is being told to ignore.
 
 	   The blur pushes the dimmed cards further back without taking the
 	   opacity any lower, which the floor above rules out. Contrast ratios
 	   don't account for blur, so it is the value that has to stay small:
 	   --spacing-xxs (2px) reads as out of focus while a dimmed title is still
-	   legible. */
+	   legible. It is toggled rather than scrubbed with the scroll — a blur
+	   recomputed every frame on a card this size is the most expensive thing
+	   the reel could ask for — so the transition below does the easing. It is
+	   a state change the reader sees many times a visit, so it is kept short:
+	   200ms, on --ease-out, so the handover starts the moment it is due. */
 	.card {
 		--card-dimmed-opacity: 0.6;
 		--card-dimmed-blur: var(--spacing-xxs);
 		transition:
-			opacity 250ms ease-out,
-			filter 250ms ease-out;
+			opacity 200ms var(--ease-out),
+			filter 200ms var(--ease-out);
 	}
 
 	.card[data-dimmed]:not(:focus-visible) {
@@ -170,15 +180,35 @@ const isExternal = status === 'external';
 		filter: blur(var(--card-dimmed-blur));
 	}
 
+	/* A lift on hover, and a press that gives a little under the pointer or
+	   finger — the one response every input gets, since touch has no hover.
+	   The two use different properties (`transform`, `scale`) so a press on a
+	   lifted card composes rather than replacing the lift. 0.98 is the
+	   subtlest press the guidance allows; on a card this large, a deeper one
+	   reads as the page shrinking.
+
+	   The lift is gated to a precise pointer that can hover: on touch, a tap
+	   fakes a hover and leaves it stuck until the next tap elsewhere.
+
+	   No tap highlight: the press is the feedback, and the browser's grey
+	   flash would fight it. */
 	a.card {
+		-webkit-tap-highlight-color: transparent;
 		transition:
-			opacity 250ms ease-out,
-			filter 250ms ease-out,
-			transform 0.15s ease;
+			opacity 200ms var(--ease-out),
+			filter 200ms var(--ease-out),
+			transform 160ms var(--ease-out),
+			scale 160ms var(--ease-out);
 	}
 
-	a.card:hover {
-		transform: translateY(-2px);
+	@media (hover: hover) and (pointer: fine) {
+		a.card:hover {
+			transform: translateY(-2px);
+		}
+	}
+
+	a.card:active {
+		scale: 0.98;
 	}
 
 	/* `alias` rather than the browser's default pointer — the nearest native
@@ -194,26 +224,27 @@ const isExternal = status === 'external';
 		outline-offset: 2px;
 	}
 
-	/* The ratio is the card spec's own frame (800×446), and it is a preferred
+	/* The ratio is the card spec's own frame (1230×709), and it is a preferred
 	   height, not a fixed one: an element with an aspect-ratio that isn't a
-	   scroll container still grows to its min-content height, so a title long
-	   enough to need the room makes its card taller rather than overflowing.
-	   The cover never pushes back — it is out of flow — so the text panel is
-	   the only thing that can. */
+	   scroll container still grows to its min-content height. The text panel
+	   takes its natural height and the cover takes whatever is left, so a
+	   title that wraps to a second line shortens the cover rather than
+	   pushing the card taller — the cover is cropped at the bottom anyway,
+	   and a strip less of it costs nothing.
+
+	   The cover is second in the DOM and first on screen — see the markup. */
 	.card__inner {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-		aspect-ratio: 800 / 446;
+		display: flex;
+		flex-direction: column;
+		aspect-ratio: 1230 / 709;
 	}
 
-	/* Tags at the top, the title and its meta below; `.card__main` takes the
-	   rest of the height and pushes the meta to the bottom edge, so the rule
-	   sits on the same line on every card of the same height. */
+	/* Tags, then the title, then the meta row, 24px apart. */
 	.card__body {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-3xl);
-		padding: var(--spacing-xl);
+		padding: var(--spacing-xl) var(--spacing-3xl);
 	}
 
 	.card__roles {
@@ -227,9 +258,7 @@ const isExternal = status === 'external';
 
 	.card__main {
 		display: flex;
-		flex: 1;
 		flex-direction: column;
-		justify-content: space-between;
 		gap: var(--spacing-3xl);
 	}
 
@@ -242,15 +271,18 @@ const isExternal = status === 'external';
 	   back behind them. Mixing toward transparent rather than stepping down
 	   the ramp keeps it relative to whatever the card's fill is in either
 	   theme. Decorative, so it carries no contrast requirement — the meta
-	   rows read as separate from the title on position alone.
+	   row reads as separate from the title on position alone.
 
-	   The spec's rows are 20px on a 36px pitch; .type-card-meta's 24px
-	   leading with a 12px gap keeps the pitch. */
+	   The rows sit side by side, 40px apart, indented 16px from the rule's
+	   start — the reference's own offset, which sets the facts under the
+	   title rather than flush with it. */
 	.card__meta {
 		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-lg);
+		flex-wrap: wrap;
+		column-gap: var(--spacing-5xl);
+		row-gap: var(--spacing-md);
 		padding-block-start: var(--spacing-xl);
+		padding-inline-start: var(--spacing-xl);
 		border-block-start: 1px solid color-mix(in srgb, var(--border-strong) 50%, transparent);
 		color: var(--text-body);
 	}
@@ -263,13 +295,22 @@ const isExternal = status === 'external';
 		gap: var(--spacing-md);
 	}
 
+	/* Takes the height the text panel leaves, and moves above it on screen.
+	   `min-block-size: 0` lets it give that height up to a long title instead
+	   of holding its content's size. The clip is what crops the cover: the
+	   image is taller than this box and positioned, so unclipped it would
+	   paint straight over the text panel below. */
 	.card__media {
 		position: relative;
+		order: -1;
+		flex: 1;
+		min-block-size: 0;
+		overflow: clip;
 	}
 
-	/* Sized off the panel's height at 16:10, and anchored to its top-left
-	   corner — which makes it wider than the panel on any card, so it runs off
-	   the right edge and the card's own clip and radius finish it. Inset by
+	/* Sized off the card's width at 16:10 and anchored to the top — which on
+	   the spec's frame makes it taller than its box (770 against 521), so it
+	   runs off the bottom and the box's clip finishes it. Inset by
 	   --spacing-xs on the other three sides, and the inset shows the card's
 	   own fill: --bg-media goes on the image, not the panel, so it marks the
 	   cover's box while the file loads without framing it once it has.
@@ -278,11 +319,11 @@ const isExternal = status === 'external';
 	   ancestor of its own. */
 	.card__media :global(img) {
 		position: absolute;
-		inset-block: var(--spacing-xs);
-		inset-inline-start: var(--spacing-xs);
+		inset-block-start: var(--spacing-xs);
+		inset-inline: var(--spacing-xs);
 		display: block;
-		block-size: calc(100% - 2 * var(--spacing-xs));
-		inline-size: auto;
+		inline-size: calc(100% - 2 * var(--spacing-xs));
+		block-size: auto;
 		max-inline-size: none;
 		aspect-ratio: 16 / 10;
 		object-fit: cover;
@@ -306,7 +347,7 @@ const isExternal = status === 'external';
 	   like the scrim it sits on, so its label can't reach for --text either. */
 	.card__overlay-label {
 		font-family: var(--font-display);
-		font-weight: var(--weight-medium);
+		font-weight: var(--weight-regular);
 		font-size: var(--size-ui);
 		line-height: 1.25;
 		color: var(--secondary);
@@ -338,49 +379,56 @@ const isExternal = status === 'external';
 		height: 1.625rem;
 	}
 
-	/* A third of a narrow card is no room for a heading-rung title, so under
-	   40rem the card stacks: cover on top at its own 16:10, inset on all four
-	   sides now that there is no edge for it to run off, text below. `order`
-	   moves the cover visually only — the DOM, and so the link's name, still
-	   reads title first. The meta rows go inline: the stacked card has the
-	   width for them, and two short rows only add height to a card that is
-	   already tall. */
+	/* A narrow card has too little height at the spec's ratio for the text
+	   panel and a cover both — at 390px wide the frame is 225px tall, and the
+	   text alone needs more than that. So under 40rem the card drops the
+	   ratio and gives the cover one of its own, and the card grows to fit
+	   both. The meta rows stack, since two short rows side by side at this
+	   width start to wrap into each other. */
 	@container (max-width: 40rem) {
 		.card__inner {
-			grid-template-columns: minmax(0, 1fr);
 			aspect-ratio: auto;
 		}
 
-		.card__meta {
-			flex-direction: row;
-			flex-wrap: wrap;
-			gap: var(--spacing-xl);
+		.card__body {
+			padding: var(--spacing-xl);
 		}
 
 		.card__media {
-			order: -1;
+			flex: none;
 			aspect-ratio: 16 / 10;
 		}
 
 		.card__media :global(img) {
-			inset: var(--spacing-xs);
-			inline-size: calc(100% - 2 * var(--spacing-xs));
+			inset-block-end: var(--spacing-xs);
+			block-size: calc(100% - 2 * var(--spacing-xs));
 			aspect-ratio: auto;
+		}
+
+		.card__meta {
+			flex-direction: column;
+			padding-inline-start: 0;
 		}
 	}
 
 	/* The global guard in components.css covers .btn, .tab and .icon-btn; the
-	   card's lift is scoped here, so its opt-out has to be too. The dimming
-	   itself stays — it is emphasis, not motion — it just switches instead of
-	   fading. */
+	   card's lift and press are scoped here, so their opt-out has to be too.
+	   The dimming stays, and keeps its fade — it is emphasis, not movement,
+	   and reduced motion means gentler, not none. */
 	@media (prefers-reduced-motion: reduce) {
 		.card,
 		a.card {
-			transition: none;
+			transition:
+				opacity 200ms ease,
+				filter 200ms ease;
 		}
 
 		a.card:hover {
 			transform: none;
+		}
+
+		a.card:active {
+			scale: none;
 		}
 	}
 </style>

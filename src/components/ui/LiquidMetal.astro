@@ -1,0 +1,49 @@
+---
+/**
+ * The homepage's amber glow, sitting behind whatever you put in front of it.
+ *
+ * Absolutely positioned and inert to the pointer, so it fills its nearest
+ * positioned ancestor and never intercepts a click. That ancestor has to be
+ * painted in `--home-ground` for the glow to come out amber — see
+ * liquid-metal.ts. Paper's ShaderMount prepends its own canvas into this div.
+ */
+interface Props {
+	/** Playback rate. 0 holds a single frame. */
+	speed?: number;
+	/** Size of the shape relative to the host. */
+	scale?: number;
+	class?: string;
+}
+
+/* Defaults are stated once, in liquid-metal.ts. */
+const { speed, scale, class: className } = Astro.props;
+---
+
+<div
+	class:list={['liquid-metal', className]}
+	data-liquid-metal
+	data-speed={speed}
+	data-scale={scale}
+	aria-hidden="true">
+</div>
+
+<script>
+	import { createLiquidMetal, type LiquidMetal } from './liquid-metal';
+
+	/* Registered on `astro:page-load`, and the outgoing page's instances torn
+	   down first, for the reasons WaterField.astro gives: this host is not
+	   persisted, so a soft nav back to the homepage brings a fresh one, and a
+	   detached host does not release its WebGL context on its own. */
+	let shaders: LiquidMetal[] = [];
+
+	const num = (v: string | undefined) => (v === undefined || v === '' ? undefined : Number(v));
+
+	document.addEventListener('astro:page-load', () => {
+		for (const shader of shaders) shader.destroy();
+		shaders = [];
+
+		for (const host of document.querySelectorAll<HTMLElement>('[data-liquid-metal]')) {
+			shaders.push(createLiquidMetal(host, { speed: num(host.dataset.speed), scale: num(host.dataset.scale) }));
+		}
+	});
+</script>

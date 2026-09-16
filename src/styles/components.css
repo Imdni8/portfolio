@@ -88,7 +88,7 @@
 	gap: var(--spacing-md);
 
 	font-family: var(--font-sans);
-	font-weight: var(--weight-semibold);
+	font-weight: var(--weight-medium);
 	font-size: var(--size-ui);
 	line-height: var(--lh-ui);
 
@@ -253,14 +253,13 @@
    Chapter navigation, and the generic design-system Tabs component — both a
    tab list, so both wear `.type-nav-link` for typography (applied alongside
    `.tab` in the markup) rather than this class hand-rolling its own font
-   rules. That is the same style the site nav's Work/About switcher uses,
-   which is deliberate: a chapter tab and a nav link are the same kind of
-   control. `.tab` itself only supplies layout and interaction.
+   rules. That is the same style the site nav's links use, which is
+   deliberate: a chapter tab and a nav link are the same kind of control.
+   `.tab` itself only supplies layout and interaction.
 
-   The state is carried by weight (500 → 700, `.type-nav-link`'s own medium
-   bumped to bold below) as well as colour and the underline, so it survives
-   greyscale and does not depend on colour vision — the reason the inactive
-   weight was lifted off 400.
+   The state is carried by weight (400 → 500, `.type-nav-link`'s own regular
+   bumped to medium below — DM Mono's heaviest cut) as well as colour and the
+   underline, so it survives greyscale and does not depend on colour vision.
 
    The rail is a border on the list; the active marker is a box-shadow inset
    on the button, so the two never fight over the same pixel row.
@@ -296,7 +295,7 @@
 }
 
 .tab[aria-selected='true'] {
-	font-weight: var(--weight-bold);
+	font-weight: var(--weight-medium);
 	color: var(--primary-text);
 	box-shadow: inset 0 -2px 0 0 var(--primary);
 }
@@ -364,18 +363,27 @@
    legible over whatever is behind it.
 
    Declares its own type off the tokens, the same way .btn does, rather than
-   naming a .type-* class. The 12px rung has no class, and this is a component
-   label, not prose.
+   naming a .type-* class: the 10px tag rung has no class, and this is a
+   component label, not prose. Set like the mono labels — uppercase, tracked
+   open — one rung smaller and tracked a little less, since the smaller size
+   already carries more air.
+
+   The text stays --text rather than dropping to --text-muted with the other
+   mono labels. A card that is not the one in focus sits at
+   --card-dimmed-opacity (WorkCard.astro), and --text-muted under that lands
+   near 3.4:1 on the dark ground.
    -------------------------------------------------------------------------- */
 .tag {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--spacing-xs);
 
-	font-family: var(--font-sans);
-	font-weight: var(--weight-medium);
-	font-size: var(--size-micro);
-	line-height: var(--lh-micro);
+	font-family: var(--font-mono);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-tag);
+	line-height: var(--lh-tag);
+	letter-spacing: var(--track-tag);
+	text-transform: uppercase;
 
 	padding: var(--spacing-xs);
 	padding-inline-end: var(--spacing-sm);
@@ -384,6 +392,14 @@
 	background: var(--bg);
 	color: var(--text);
 	white-space: nowrap;
+}
+
+/* Pinned rather than left at `.icon`'s 1em: at the 10px tag rung that would
+   draw the Figma mark and the sparkles at 10px, where a 2px Lucide stroke
+   starts closing up its own counters. 12px is the micro rung. */
+.tag .icon {
+	width: var(--size-micro);
+	height: var(--size-micro);
 }
 
 /* Bound to the amber ramp rather than to the semantic layer, and so identical
@@ -492,9 +508,12 @@
 
 /* ---- Smoke ring ------------------------------------------------------------
    Not currently on the page. `<SmokeRing>` is built and kept (see
-   smoke-ring.ts) but nothing mounts it; the homepage ships the water field
-   alone. Everything below describes what it does when it is put back, and the
-   contrast note at the end is the condition of putting it back.
+   smoke-ring.ts) but nothing mounts it. It was drawn for the water field,
+   which is now the about page's background only — the homepage runs liquid
+   metal (below) instead. Everything here describes what it does when it is
+   put back, and the contrast note at the end is the condition of putting it
+   back; the intro it measures against has since been replaced, so those
+   numbers are history until they are re-taken.
 
    The layer above the water field, and the only thing on the page that blends.
    No background of its own — the shader draws on transparency (`colorBack` is
@@ -544,6 +563,30 @@
 	pointer-events: none;
 	opacity: 0.25;
 	mix-blend-mode: screen;
+}
+
+/* ---- Liquid metal ----------------------------------------------------------
+   The homepage background (liquid-metal.ts). The shader draws a colourless
+   shape; this layer is what makes it amber. It carries its own
+   `--home-shader-ground` fill, isolates so the canvas composites onto that
+   fill first, and then the pair is soft-lit onto whatever is behind it —
+   which has to be `--home-ground` (index.astro's `.home-ground`) for the
+   result to come out warm. Soft-light over a dark base can only lift it a
+   little, which is the ceiling the headline's contrast is measured against;
+   see liquid-metal.ts.
+
+   `position` and `isolation` restate what ShaderMount's injected
+   `@layer paper-shaders` rule sets, for the reason given under Smoke ring
+   above — and so the layer is already right before the shader has mounted,
+   or if it never does.
+   -------------------------------------------------------------------------- */
+.liquid-metal {
+	position: absolute;
+	inset: 0;
+	isolation: isolate;
+	pointer-events: none;
+	background: var(--home-shader-ground);
+	mix-blend-mode: soft-light;
 }
 
 /* ---- Case-study islands ----------------------------------------------------
@@ -719,7 +762,7 @@
 	background: var(--scrim);
 	backdrop-filter: blur(2px);
 	font-family: var(--font-display);
-	font-weight: var(--weight-bold);
+	font-weight: var(--weight-regular);
 	font-size: var(--size-subtitle);
 	line-height: var(--lh-subtitle);
 	color: var(--text-on-overlay);
@@ -748,7 +791,7 @@
 	backdrop-filter: blur(2px);
 	font-family: var(--font-sans);
 	font-size: var(--size-fine);
-	font-weight: var(--weight-semibold);
+	font-weight: var(--weight-medium);
 	line-height: 1;
 	color: var(--text-on-overlay);
 }

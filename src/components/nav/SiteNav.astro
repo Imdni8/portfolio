@@ -20,7 +20,7 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 				    the shared declaration in src/data/links.ts, so the footer and this
 				    cannot drift onto different résumé URLs. */}
 				<a
-					class="nav__link nav__link--external text-sm"
+					class="nav__link nav__link--external type-nav-link"
 					href={links.resume}
 					target="_blank"
 					rel="noopener noreferrer"
@@ -30,7 +30,7 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 					    hides it at rest. Same arrangement as a Side-projects row, and the
 					    same code drives both — see nav-dropdown.ts. .icon inside is
 					    already 1em square (components.css), so the glyph tracks the link's
-					    `text-sm` and inherits its muted -> full hover colour. */}
+					    12px label rung and inherits its muted -> full hover colour. */}
 					<span class="nav__link-arrow"><Icon name="arrow-up-right" /></span>
 				</a>
 			</nav>
@@ -48,41 +48,39 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 </header>
 
 <style>
-	/* Floats over both the water-field hero and the plain-background cards
-	   section below, so it's fixed rather than scoped to either. No pane, no
-	   glass, no card — brand mark on the left, everything else clustered on
-	   the right, all sitting directly on the page.
+	/* Floats over the page on every route, so it's fixed rather than scoped
+	   to any one section. No pane, no glass, no card — brand mark on the
+	   left, the links on the right, all sitting directly on the page.
 
 	   Full-bleed, unlike the row it holds: the band that fades in behind it
 	   (::before) has to reach both viewport edges, so the shell spans the
-	   viewport and `.nav-shell__inner` carries the gutter and the content cap
-	   the header used to hold itself. The `--spacing-3xl` inset became
-	   `--spacing-lg` of padding, mirrored below the row so the band is even
-	   on both sides — 12 + 36 + 12, which puts the band's bottom edge at 60px,
-	   exactly where the row's own bottom edge used to sit. That's why
-	   `--nav-footprint` (index.astro, about.astro) is untouched: the nav takes
-	   up the same room as before, it just fills it now. */
+	   viewport and `.nav-shell__inner` carries the gutter and the cap.
+	   --spacing-xl above and below a 40px row puts the brand 16px from the top
+	   of the viewport, where the reference draws it, and the band's bottom
+	   edge at 72px — still inside `--nav-footprint` (78px, about.astro), and
+	   above the 96px a case study's hero and chapter rail start at. */
 	.nav-shell {
 		position: fixed;
 		inset-block-start: 0;
 		inset-inline: 0;
 		z-index: 20;
-		padding-block: var(--spacing-sm);
+		padding-block: var(--spacing-xl);
 		padding-inline: var(--gutter);
 	}
 
-	/* Brand, Resume and Side projects read as one left cluster now rather than
-	   as a mark on one edge and a group on the other — the row is short enough
-	   that splitting it across 1240px left the right-hand pair looking stranded.
-	   `--spacing-6xl` sets the mark apart from the links; the links keep the
-	   tighter `--spacing-3xl` between themselves, so the grouping reads. */
+	/* Brand on one edge, Resume and Side projects on the other, across a
+	   1000px row. The row is narrower than the 1240px the page frames used to
+	   share, which is what keeps the pair from looking stranded at the far
+	   end of it — the reference sets the nav to the prose measure rather than
+	   to the content one. `gap` only matters once the viewport is too narrow
+	   for `space-between` to leave any room. */
 	.nav-shell__inner {
-		max-width: var(--measure-content);
+		max-width: var(--measure-prose);
 		margin-inline: auto;
 		display: flex;
 		align-items: center;
-		justify-content: flex-start;
-		gap: var(--spacing-6xl);
+		justify-content: space-between;
+		gap: var(--spacing-3xl);
 	}
 
 	/* The band. A pseudo-element rather than a background on `.nav-shell`
@@ -93,13 +91,18 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 	   `--nav-scrim` is written every scroll frame by the script below. Unset
 	   — no JS, or a page with nothing marked `data-nav-scrim` — it falls back
-	   to 0 and the nav stays exactly as transparent as it is today. */
+	   to 0 and the nav stays exactly as transparent as it is today.
+
+	   The band is the page's own ground, so it reads as the page continuing
+	   behind the links rather than as a bar laid over it. That is --bg on
+	   every page but one: the homepage sits on a warm ground of its own, and
+	   says so through `--nav-band` on its body (index.astro). */
 	.nav-shell::before {
 		content: '';
 		position: absolute;
 		inset: 0;
 		z-index: -1;
-		background: var(--bg);
+		background: var(--nav-band, var(--bg));
 		border-bottom: 1px solid var(--border);
 		opacity: var(--nav-scrim, 0);
 	}
@@ -116,18 +119,19 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 	/* :global() on both of these: the <svg> arrives via set:html, so it has
 	   no scope attribute for an unqualified `svg` to match. */
+	/* 2.5rem is the reference's 40px — and the size the homepage headline's
+	   mark shrinks to on its way up here (home-reel.ts measures this box). */
 	.nav__brand :global(svg) {
 		display: block;
-		height: 1.75rem;
+		height: 2.5rem;
 		width: auto;
 	}
 
-	/* Work/About and the Side-projects trigger cluster together on the right
-	   as one visual group, with the same gap between all three items —
-	   .nav__links and NavMenu stay two separate elements underneath (Base
-	   UI's NavigationMenu owns only the dropdown; Work/About have nowhere to
-	   open and stay plain anchors), but this wrapper is what makes them read
-	   as one row instead of two. */
+	/* Resume and the Side-projects trigger cluster together on the right as
+	   one visual group, 24px apart — .nav__links and NavMenu stay two
+	   separate elements underneath (Base UI's NavigationMenu owns only the
+	   dropdown; Resume has nowhere to open and stays a plain anchor), but this
+	   wrapper is what makes them read as one group instead of two. */
 	.nav__group {
 		display: flex;
 		align-items: center;
@@ -140,25 +144,28 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		gap: var(--spacing-3xl);
 	}
 
-	/* text-sm (Tailwind) replaces .type-nav-link's --size-ui (16px) here —
-	   font-family/weight still come from tokens.css, since dropping them
-	   would silently fall back to Tailwind's system-font stack. .type-nav-link
-	   itself is untouched (the chapter rail and Tabs still wear it at 16px);
-	   this is the nav opting into the smaller Tailwind scale on its own. */
+	/* Type comes from `.type-nav-link` in the markup — the same uppercase mono
+	   label the chapter rail and Tabs wear; this rule is layout and colour
+	   only. */
+	/* The hover is a colour change, so it eases on plain `ease`, and it is
+	   gated to a pointer that can really hover — a tap on touch fakes a hover
+	   and leaves the link lit until the next tap elsewhere. */
 	.nav__link {
 		display: inline-flex;
 		align-items: center;
 		gap: var(--spacing-xs);
-		font-family: var(--font-sans);
-		font-weight: var(--weight-medium);
 		padding-block: var(--spacing-md);
 		padding-inline: var(--spacing-xs);
 		color: var(--text-muted);
 		text-decoration: none;
+		-webkit-tap-highlight-color: transparent;
+		transition: color 150ms ease;
 	}
 
-	.nav__link:hover {
-		color: var(--text);
+	@media (hover: hover) and (pointer: fine) {
+		.nav__link:hover {
+			color: var(--text);
+		}
 	}
 
 	/* The arrow flies in diagonally on hover and back out on leave, exactly as
@@ -216,20 +223,27 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		align-items: center;
 		gap: var(--spacing-xs);
 		height: auto;
-		font-family: var(--font-sans);
-		font-weight: var(--weight-medium);
 		padding-block: var(--spacing-md);
 		padding-inline: var(--spacing-xs);
 		color: var(--text-muted);
 		background-color: transparent;
 		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+		transition: color 150ms ease;
 	}
 
 	/* data-popup-open is Base UI's own attribute on the trigger button
-	   itself (see NavigationMenuTrigger in navigation-menu.tsx). */
-	:global(.nav-dropdown__trigger:hover),
+	   itself (see NavigationMenuTrigger in navigation-menu.tsx). Open is
+	   state, so it lights the trigger on every input; hover is gated like
+	   `.nav__link`'s. */
 	:global(.nav-dropdown__trigger[data-popup-open]) {
 		color: var(--text);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		:global(.nav-dropdown__trigger:hover) {
+			color: var(--text);
+		}
 	}
 
 	/* :global() because the chevron span is rendered by navigation-menu.tsx's
@@ -289,7 +303,13 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		opacity: 0.6;
 		background-color: transparent;
 		border-bottom: 1px solid var(--border);
-		transition: 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+		/* Opacity only — the one property the hover changes on the row
+		   itself (the label's nudge has its own rule). A bare duration here
+		   meant `all`. The 0.8s expo-out is not a UI-budget slip: it is the
+		   curve nav-dropdown.ts's GSAP hover runs on, so the row brightens in
+		   step with its hoverline and arrow, and expo-out does nearly all of
+		   its moving in the first 150ms of that. */
+		transition: opacity 0.8s cubic-bezier(0.19, 1, 0.22, 1);
 	}
 
 	:global(.nav-dropdown__item:last-child) {
@@ -316,9 +336,9 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	/* The label takes the row's leftover width instead of sitting at its own
 	   max-content size. That extra width is never *used* — the text is the
 	   same length either way — but a flex item sized to max-content lands a
-	   fraction of a pixel short of the line it is supposed to hold (Inter is
-	   a variable font; the intrinsic measurement rounds down where the line
-	   box rounds up), which is enough to wrap a label that visibly fits.
+	   fraction of a pixel short of the line it is supposed to hold (the
+	   intrinsic measurement rounds down where the line box rounds up), which
+	   is enough to wrap a label that visibly fits.
 	   Growing into the free space the popup's min-width above provides puts
 	   real slack between the label's box and its text, so the break point no
 	   longer sits on a rounding boundary. Nothing moves: the arrow is already
@@ -353,9 +373,10 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	   recreating these nodes on interaction — a freshly swapped-in arrow
 	   has never been touched by GSAP and must already look "at rest". */
 	/* align-self: flex-start (overriding the item's own align-items: center
-	   just for this child) + a top margin sized to centre a 1rem icon inside
-	   one line of .type-ui-label (line-height 1.5 × 16px = 24px, so (24-16)/2
-	   = 4px) — aligns the arrow with the label's *first* line specifically.
+	   just for this child) + a top margin sized to centre the 1rem box inside
+	   one line of .type-nav-link (--size-micro × --lh-micro = 18px, so
+	   (18-16)/2 = 1px, written out from the tokens so it follows them) —
+	   aligns the arrow with the label's *first* line specifically.
 	   Centring against the item's full height instead (the item's own
 	   align-items) puts the arrow in the gap between lines the moment a
 	   label wraps, e.g. "Amplitude taxonomy exporter" — floating disconnected
@@ -368,7 +389,7 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		justify-content: center;
 		flex-shrink: 0;
 		align-self: flex-start;
-		margin-block-start: 0.25rem;
+		margin-block-start: calc((var(--size-micro) * var(--lh-micro) - 1rem) / 2);
 		transform: translate(-6rem, 6rem);
 	}
 
@@ -388,6 +409,58 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		:global(.nav-dropdown__item),
 		:global(.nav-dropdown__item-label) {
 			transition-duration: 0.01ms;
+		}
+	}
+
+	/* ---- Homepage: the nav arrives with the scroll ------------------------
+	   On the homepage, while the reel is running (the same query as
+	   home-reel.ts's REEL_QUERY), the nav is not there on the first screen:
+	   the headline is. home-reel.ts fades it in as the headline hands over,
+	   through `--reel-nav` on the shell, and shows the brand through
+	   `--reel-brand` only once the headline's own T mark has flown up and
+	   landed on top of it.
+
+	   Scoped by `:has([data-reel])` on the body, so on any other page none of
+	   this matches — the shell is persisted across navigations and keeps
+	   whatever the homepage last wrote to it, but nothing here reads it.
+
+	   Registered so the initial value is 0 (hidden, matching the headline's
+	   first frame before the script has run) and so a write to the shell
+	   restyles the shell alone, not everything that would inherit it.
+
+	   While hidden it keeps its place in the accessibility tree and in the tab
+	   order — a reader who tabs into it gets it back at full strength — but
+	   drops the pointer (`data-reel-hidden`, set by the script), so nothing
+	   invisible sits over the top of the headline. */
+	@property --reel-nav {
+		syntax: '<number>';
+		inherits: false;
+		initial-value: 0;
+	}
+
+	@property --reel-brand {
+		syntax: '<number>';
+		inherits: false;
+		initial-value: 0;
+	}
+
+	@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+		:global(body:has([data-reel])) .nav-shell {
+			opacity: var(--reel-nav);
+		}
+
+		:global(body:has([data-reel])) .nav__brand {
+			opacity: var(--reel-brand);
+		}
+
+		:global(body:has([data-reel])) .nav-shell[data-reel-hidden] {
+			pointer-events: none;
+		}
+
+		:global(body:has([data-reel])) .nav-shell:focus-within,
+		:global(body:has([data-reel])) .nav-shell:focus-within .nav__brand {
+			opacity: 1;
+			pointer-events: auto;
 		}
 	}
 
@@ -423,7 +496,9 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	   Opt-in per page, via `data-nav-scrim` on the first thing that scrolls up
 	   under the nav — each page's own content column, so the ramp starts at the
 	   top of the content rather than at the top of the padding above it
-	   (index.astro's `.home`, about.astro's `.about__frame`). The nav
+	   (about.astro's `.about__frame`; on the homepage, a marker at the end of
+	   the reel, since nothing inside the pinned reel ever passes under the
+	   nav and the footer is the first thing that does). The nav
 	   can't know that on its own, and a page with nothing marked just never
 	   paints a band. One target per page is enough: progress clamps at 1, so
 	   once that column has passed under the nav the band stays on for

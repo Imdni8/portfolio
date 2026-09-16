@@ -216,16 +216,16 @@ const linkedInHref = links.linkedin;
 	.about {
 		/* `.site-field` is fixed and unpositioned content paints behind any
 		   positioned sibling regardless of DOM order — same reasoning as
-		   `index.astro`'s `.home`. Without this, the headline, tags and prose
+		   `.site-footer`'s. Without this, the headline, tags and prose
 		   render invisibly underneath the water field; only `.about__card`
 		   would show, because its `.glass` backdrop-filter happens to create
 		   a stacking context of its own. Load-bearing, not precautionary. */
 		position: relative;
 
 		/* What the nav occupies at the top of the viewport, plus a little
-		   clearance: the band it paints is 60px (12px of padding, a 36px row,
-		   12px more), and this leaves 18px under it. Same value as the
-		   homepage. */
+		   clearance: the band it paints is 72px (16px of padding, a 40px row,
+		   16px more), and this leaves 6px under it before the frame's own
+		   --spacing-xl. */
 		--nav-footprint: 4.875rem;
 		/* 355px, from the 1512×982 reference frame. No matching token — a
 		   bespoke composition measurement, shared between the row's grid track

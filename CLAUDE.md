@@ -29,10 +29,34 @@ The foundations, all settled with the user:
   the system. Dark is the default theme, light is fully specified. The two themes
   use opposite ends of the amber ramp with no overlap, because `amber-500` is
   8.09:1 on the dark ground and 2.07:1 on the light one.
-- **Type** — Playfair Display for voice, Inter for information, IBM Plex Mono for
-  eyebrows. Ten styles, exposed as `.type-*` classes. The families meet at one
-  size (30/38) and do different jobs there — `.type-heading` states a finding,
-  `.type-reflection` is the author speaking.
+- **Type** — ported from carlthomasiv.com
+  (`scratch/carlthomasiv-typography-notes.md`). DM Serif Display is what a
+  reader stops on (titles, headlines — always 400, tracked −1%), DM Sans is
+  what is read in full (copy at 16/1.7, deks, captions, controls), DM Mono is
+  apparatus (nav, tabs, tags, eyebrows — 10–12px, uppercase, tracked +6–8%).
+  Sixteen styles, exposed as `.type-*` classes. **There is no bold**: the
+  loaded cuts are serif 400; sans 400/500; mono 300 (the footer wordmark
+  only)/400/500, and `--weight-semibold`/`--weight-bold` no longer exist.
+  A fourth family, **Delicious Handrawn** (`--font-hand`, `.type-hand`), sets
+  the homepage headline's "try to" and nothing else — an aside written into
+  the sentence. Do not reach for it anywhere else. The headline is the only
+  text above the title rung: `.type-display` (serif italic, "Thoughtful
+  software") and `.type-display-sans` ("I … design") share
+  `--size-display` (36→48) and `--lh-display` (1.2); `.type-hand` runs at
+  5:8 of that (`--size-hand`, 22.5→30).
+  Importance comes from the family and the colour token, never a heavier cut.
+  `.type-heading`, `.type-reflection` and `.type-card-title` now share one
+  rule (serif 400, 26/31) — the names stay because they say what the text is
+  for. Colour was deliberately *not* ported: the reference's 50%-opacity ink
+  fails AA for body copy, so every element kept its existing colour token.
+- **Motion** — two curves in tokens.css, `--ease-out` (arrivals, exits,
+  press responses) and `--ease-in-out` (on-screen movement), from Emil
+  Kowalski's guidance in the installed `.claude/skills/` (`emil-design-eng`,
+  `animate`, `review-animations`). They share their names with Tailwind's
+  weaker defaults and override them — see the comment there. Never `ease-in`
+  on UI, never `transition: all`, gate hover styles behind
+  `(hover: hover) and (pointer: fine)`, and treat reduced motion as "gentler",
+  not "none".
 - **Space and radius** — Untitled UI's scales, unmodified. They share their first
   five rungs and then diverge (`radius-lg` is 10px, `spacing-lg` is 12px), so
   they are two scales and not interchangeable above `md`. Neither has a semantic
@@ -103,7 +127,8 @@ Three conventions worth keeping:
   note/tooltip copy"). A component that assembles a style by hand has somewhere
   to drift from; one that names the style cannot.
 - **Never let state rest on colour alone.** The active tab changes weight
-  (500 → 700) as well as hue, so it survives greyscale and colour blindness.
+  (400 → 500, DM Mono's heaviest cut) as well as hue, so it survives greyscale
+  and colour blindness.
 - **Disabled drops to an outline**, not a dimmed fill — a greyed-out solid
   reads as a loading state.
 - **Only cap prose measure (a `ch` max-width) where it actually narrows
@@ -194,11 +219,28 @@ that is ever wanted.
 
 ## Site nav
 
-Brand mark, **Resume** (off-site, `links.resume` from `src/data/links.ts`, with
-the `arrow-up-right` glyph) and the **Side projects** dropdown — all three
-clustered on the *left*, in that order. There is no Work link (the homepage grid
-is the work) and no About link; nothing in the nav can ever be the current page,
-so `SiteNav.astro` carries no `aria-current` and no URL-reading frontmatter.
+Brand mark on the *left*; **Resume** (off-site, `links.resume` from
+`src/data/links.ts`, with the `arrow-up-right` glyph) and the **Side projects**
+dropdown together on the *right* — `space-between` across a `--measure-prose`
+(1000px) row, sitewide. The brand is 40px tall and sits 16px from the top
+(`--spacing-xl` of block padding), so the band is 72px. The dropdown is
+`align="end"` because its trigger is the row's last item. There is no Work link
+(the homepage reel is the work) and no About link; nothing in the nav can ever
+be the current page, so `SiteNav.astro` carries no `aria-current` and no
+URL-reading frontmatter.
+
+- **On the homepage the nav arrives with the scroll.** Under the reel's media
+  query, rules scoped by `body:has([data-reel])` put the shell at
+  `opacity: var(--reel-nav)` and the brand at `var(--reel-brand)` — registered,
+  non-inheriting `@property`s with an initial value of 0, so the first paint
+  already hides it. `home-reel.ts` writes both. Hidden, the nav stays in the
+  accessibility tree and the tab order (`:focus-within` brings it back at full
+  strength) but drops the pointer via `data-reel-hidden`. On any other page the
+  `:has()` doesn't match, which is why the persisted shell needs no cleanup on
+  swap.
+- **The scrim band paints `var(--nav-band, var(--bg))`.** The homepage sets
+  `--nav-band` to its warm `--home-ground` on `<body>`; everywhere else the band
+  is `--bg`.
 
 **`/about` is deliberately unlinked.** The page still builds and still answers at
 `/about`, but nothing on the site points at it — not the nav, not the footer.
@@ -217,7 +259,9 @@ padding-inline: var(--gutter);
 ```
 
 or its equivalent — the gutter *outside* the cap, on a full-bleed parent, which
-is what `.nav-shell`/`.nav-shell__inner` and `about.astro` do. The two are the
+is what `about.astro` does (and `.nav-shell`/`.nav-shell__inner`, though the
+nav now caps at `--measure-prose` rather than `--measure-content` — see Site
+nav — and the homepage has no frame at all; see Homepage). The two are the
 same geometry; a bare `max-width: var(--measure-content)` with padding inside it
 is **not**, and that is the trap. It was equivalent while the pages were
 content-box, but Tailwind's preflight (`src/styles/tailwind.css`) makes
@@ -228,41 +272,101 @@ carries the measurements.
 
 ## Homepage
 
-`index.astro` is one frame, `.home`, wearing the formula above and split
-`minmax(0, 1fr) minmax(0, 2fr)` — the intro (`.hero`: headline, typed role line,
-client logos) on the left third, "Selected works" and a single-column stack of
-`WorkCard`s on the right two. At the cap that is a 376px intro and 784px cards.
+`index.astro` is a headline and a reel, rebuilt from the Paper file's frames
+`1RC-0` (first screen) and `1I9-0` (the reel). Everything is driven by vertical
+scroll; there is no horizontal scrolling anywhere.
 
-- **The intro is `position: sticky`**, with a `top` equal to `.home`'s own top
-  clearance, so it sits still from the first frame and the cards scroll past
-  it. Under 64rem the frame collapses to one column and the intro goes back in
-  flow.
-- **`.home` is the nav's `data-nav-scrim` target, which is why its top
-  clearance is a `margin`, not padding.** The nav reads the target's top edge
-  as "where the content starts"; with padding that edge is the top of the page
-  and the band is on before anything has scrolled. The sticky intro cannot be
-  the target either — it never scrolls up under the nav.
-- **`WorkCard`** is a solid `--bg` panel at the card spec's 800×446 ratio:
-  text on the left third (tags, `.type-card-title`, a half-strength
-  `--border-strong` rule,
-  then industry and year as `.type-card-meta` rows), cover on the right two.
-  The cover is sized off the panel's height at 16:10, so it is always wider
-  than the panel and runs off the right edge, where the card's `overflow: clip`
-  and radius finish it. The ratio is a preferred height — a long title makes
-  its card taller instead of overflowing, which `philips-MVC` does at full
-  width. The card is its own query container (the inner grid is what
-  switches, since a container can't restyle itself): under 40rem of card width
-  it stacks, cover on top.
-- **One card is lit at a time.** `work-spotlight.ts` (started from
-  `index.astro`'s `astro:page-load`, torn down before each re-run) stamps
-  `data-dimmed` on every card except the one spanning the viewport's midline,
-  and `WorkCard` drops those to `--card-dimmed-opacity` (0.6) and blurs them
-  by `--card-dimmed-blur` (2px — keep it small, contrast ratios don't account
-  for blur and the dimmed cards are still links to read). The opacity is
-  the contrast floor, not a taste call: it keeps the dimmed meta rows at
-  5.8:1 on the dark ground — go lower and the off-centre cards fail AA while
-  still being readable links. A focused card is never dimmed, and without JS
-  nothing is.
+- **The structure.** `.reel` (`data-reel`) is a tall section whose height is
+  `(1 + reelLength(n)) × 100svh`, from `reelLength()` in `home-reel.ts`, so the
+  CSS and the script can't disagree about where the sequence ends. Inside it,
+  `.reel__pin` is sticky and viewport-sized, and holds `HomeHero` plus an `<ol>`
+  of `WorkCard`s, all absolutely positioned. The script turns how far the section
+  has scrolled into where everything inside the pin should be:
+  - **intro** (`INTRO`, 1 viewport): the words fade, the T mark flies into the
+    nav, the nav fades in, and the cards rise 58svh into place, staggered from
+    the centre outwards;
+  - **reel** (`STEP`, 0.9 per card): cards slide along a 10° diagonal, one
+    position per step. Neighbours sit 0.6707 card-widths across and are 83% of
+    the lit card's size, overlapping its edges as drawn;
+  - **tail** (`TAIL`, 0.4): the last card holds, then the pin scrolls away and
+    the footer follows.
+
+  All the tunables sit in one block at the top of `home-reel.ts`. A
+  rAF-driven scroll listener drives it, not ScrollTrigger (GSAP stays scoped
+  to the nav).
+  - The reel doesn't sit on the scroll position; it follows it through an
+    exponential lag (`SMOOTHING`, a 90ms time constant). A wheel notch
+    otherwise teleports the cards by 100px. The follower stops once it's
+    within half a pixel, so an idle page runs no frames.
+  - It snaps instead of gliding on the first frame, on resize, and on
+    keyboard focus.
+- **One media query gates the reel**, in `index.astro`, `SiteNav.astro` and as
+  `REEL_QUERY`: `(min-width: 64rem) and (prefers-reduced-motion:
+  no-preference) and (scripting: enabled)`. Move them together.
+  - The CSS default inside it is the reel's first frame (each `.reel__slot`
+    reads `--i`), so nothing jumps when the script arrives.
+  - Outside it (narrow, reduced motion, no JS), the page stacks: the headline
+    gets 78svh, the cards follow as a plain column, and `work-spotlight.ts`
+    lights the middle one.
+  - `initHomeReel()` switches between the two modes live on `matchMedia`
+    change, and its teardown hands every inline style back.
+- **The headline** (`HomeHero.astro`) is read from an `.sr-only` copy. The
+  drawing is `aria-hidden`, because the T is an SVG and the grid's whitespace
+  never reaches the accessibility tree.
+  - Its entrance is CSS only: the two lines arrive 80ms apart
+    (`--ease-out`), then the middle grid track animates `0fr → 1fr`
+    (`--ease-in-out`), so "I" and "design" part symmetrically, and "try to"
+    is written into the gap, rising from `scale(0.9)`.
+  - The track animation is a deliberate layout-property exception. The
+    transform version would have to measure the aside after its font loads
+    and hide the line until then.
+  - The card track then settles up 6svh, 80ms after the second line. It uses
+    `translate` only, because an opacity fade would delay the LCP (the first
+    card's cover).
+  - Under reduced motion all of this becomes one 200ms fade of the finished
+    sentence.
+  - The animations fill `backwards`, never `both`. A filled opacity animation
+    would leave `.hero__visual` a stacking context and trap the flying mark
+    (z-index 1) behind the card track (a stacking context at 0).
+  - The scroll script writes only to `[data-reel-fade]` and `[data-reel-mark]`,
+    never to an animated element, because a running animation outranks inline
+    styles.
+- **The T mark's flight** is measured with `offsetLeft/Top` against the pin
+  (so the entrance transform can't skew it) and aimed at the nav glyph's rect.
+  It lands at the same size as the nav's own mark. There the page swaps: the
+  hero mark hides and `--reel-brand` shows the nav's.
+- **`WorkCard`** is a solid `--bg-sunken` panel, 1px `--border`, at the
+  reference's 1230×709 ratio: cover on top, then tags, `.type-card-title`, and
+  a half-strength `--border-strong` rule over industry and year side by side.
+  - The text panel takes its natural height and the cover gets the rest.
+  - The cover image is width-fitted at 16:10 and cropped at the bottom by
+    `.card__media`'s own `overflow: clip`. Without that clip, the positioned
+    image paints straight over the text.
+  - The card has no width of its own. The reel sets `min(71.2vw, 110svh,
+    76.875rem)`; the stacked layout uses the frame. Under 40rem of card width
+    it drops the ratio and gives the cover its own 16:10.
+- **One card is lit at a time**, `round(k)` in the reel.
+  - Every other card gets `data-dimmed`: `--card-dimmed-opacity` (0.6) and a
+    2px blur, toggled with a transition rather than scrubbed, since a
+    per-frame blur is the most expensive thing the reel could ask for.
+  - 0.6 is a contrast floor, kept deliberately above the reference's 0.3. Over
+    the homepage ground (darkest to glow peak) it leaves titles at ≥7.1:1 and
+    meta rows at ≥6.1:1; 0.3 would be 2.6:1.
+  - A focused card is never dimmed. Focusing a card scrolls the window to its
+    step, so Tab walks the reel. The scroll is instant, with the follower
+    snapped: Tab is a repeated keyboard action and shouldn't animate.
+  - Cards lift 2px on hover (gated to mouse and trackpad) and press to
+    `scale: 0.98` on `:active` for every input. They're separate properties,
+    so a press composes with the lift.
+  - Coming-soon cards aren't links, so Tab skips them.
+- **The nav's scrim target is `.reel__scrim-line`**, placed at the lit card's
+  resting top edge. While the pin holds, nothing passes under the nav. Once the
+  pin scrolls away with the last card, that line is what meets the nav first.
+- **The ground is `--home-ground`**, and `.home-ground` (fixed) holds the
+  liquid-metal glow. See Liquid metal.
+- **What Frame 2 shows is mid-reel, not the opening.** The reference draws a
+  card to the left of the lit one; with a finite list starting on the first
+  study, nothing is there until the second is centred.
 
 ## Footer
 
@@ -302,48 +406,54 @@ on the semantic layer, but this one starts on the amber ramp and has nowhere
 to move without leaving it.
 
 Structure, top to bottom: the mascot mark, a full-width rule, then a row —
-brand mark + name (left) · tagline (centre) · social links (right).
+brand mark + name (left) · tagline (centre) · social links (right). The name
+wears `.type-wordmark` (DM Mono 300, 15/15, −3%) at full `--text` — the one
+light cut in the system.
 
 - **`position: relative` on `.site-footer` is load-bearing, not decorative.**
-  On `index.astro`/`about.astro` the fixed `.site-field` water-field
-  background (`position: fixed`, `z-index: auto`) paints *after* static
-  in-flow content per the CSS stacking spec, regardless of DOM order — so
-  without this the footer lays out correctly but is invisible, hidden under
-  that layer. Same fix `.home` already uses for the same reason.
+  On `index.astro` (`.home-ground`, the liquid-metal glow) and `about.astro`
+  (`.site-field`, the water field) a fixed background (`position: fixed`,
+  `z-index: auto`) paints *after* static in-flow content per the CSS stacking
+  spec, regardless of DOM order — so without this the footer lays out
+  correctly but is invisible, hidden under that layer. Same fix `.home` uses
+  for the same reason.
 - **`margin-block-start: 75px` is a literal, not a token** — deliberate, per
   spec; it doesn't land on `--spacing-7xl` (64px) or `--spacing-8xl` (80px).
 - **The mascot mark** is sized with `aspect-ratio: 123 / 96` (the source
   viewBox) rather than a fixed width, so the rest and hover poses can share
-  one box at identical scale. `transform: translate(132px, 12px)` on
+  one box at identical scale. `transform: translate(124px, 12px)` on
   `.site-footer__brand` does two independent things — worth knowing if either
   needs retuning:
   - **Y (12px)** drops the torso rectangle's own bottom edge (y=78 of the
     96-tall viewBox) onto the rule, so the mark reads as standing on it with
     its legs dangling past the line — not the whole viewBox's empty bottom
     margin floating above it.
-  - **X (132px)** shifts the mark right so it sits above the word "together"
-    in the tagline below, instead of centred on the row. It's a fixed pixel
-    value tuned against the tagline's measured position at the design's
-    reference desktop width (`--measure-page`, 1470px); it will drift
+  - **X (124px)** shifts the mark right so it sits above the word "together"
+    in the tagline below, instead of centred on the row — the brand box's
+    centre on the word's centre. It's a fixed pixel value tuned against the
+    tagline's measured position at the design's reference desktop width (`--measure-page`, 1470px); it will drift
     slightly at narrower-than-full-bleed desktop widths, before the row
     collapses to a stacked column at the 40rem breakpoint, where the
-    alignment intent no longer applies anyway.
+    alignment intent no longer applies anyway. It moves whenever the
+    tagline's type does: it was 132px against the old 14px Plex Mono.
 - **Hover animation**: `Tousif&clawd-hover.svg` (arms and legs raised) sits
   absolutely-positioned directly on top of the resting `Tousif&clawd.svg`,
   both sharing the same 123×96 viewBox so they line up without any extra
   maths. `:hover` on the `.site-footer__brand` wrapper cross-fades between
-  them via `opacity` + `transition: 250ms ease-in-out` — pure CSS, so both
-  mouseenter and mouseleave animate for free with no JS. Guarded by
-  `prefers-reduced-motion`, same as `.site-footer__social`'s hover transition.
+  them via `opacity` + `filter` over 200ms `ease` — pure CSS, so both
+  mouseenter and mouseleave animate for free with no JS. The outgoing pose
+  blurs by 2px as it fades, which blends the two sets of arms into one
+  movement instead of a double exposure. The hover is gated to
+  `(hover: hover) and (pointer: fine)` so a tap on touch doesn't leave the
+  arms up, and guarded by `prefers-reduced-motion`, same as
+  `.site-footer__social`'s hover transition.
 - **The tagline** ("Designed *solo* · Developed *together*") reuses
   `.type-meta` with a local `color: var(--primary-text)` override — the
-  shared style itself carries no colour, since its other use (`WorkCard`
-  meta) sits on a card, not the page ground. The italic on "solo"/"together"
-  needs the real IBM Plex Mono italic face, which is why `tokens.css` now
-  also imports `500.css` and `500-italic.css` for that family (previously
-  only `700.css` was loaded) — this incidentally also fixed `.type-meta`'s
-  pre-existing sitewide use, which was silently falling back to the system
-  monospace font before.
+  shared style itself carries no colour, since its other use (the toast
+  message) sits on a different ground. The italic on "solo"/"together" needs
+  the real DM Mono italic face, which is why `tokens.css` imports
+  `@fontsource/dm-mono/400-italic.css` — without it the browser synthesises a
+  slant.
 
 ## Case studies
 
@@ -437,19 +547,20 @@ bare arbitrary value is that bug waiting to happen again.
 
 Two shared strings live in `src/components/case-study/story-type.ts` and are
 imported by every component in the cut: `storyProse` (the copy column) and
-`storyHeading` (family, weight and colour for the two heading rungs). Sizes
-stay at the call site, since they differ by rung.
+`storyHeading` (family, weight, tracking and colour for the two heading
+rungs). Sizes stay at the call site, since they differ by rung.
 
-Its type is four rungs, and none of them is a `.type-*` class — the cut was
-specced independently of the design system's scale, and the nearest Tailwind
-step is what each one landed on:
+Its type is four rungs. None of them is a `.type-*` class, but all of them read
+the type scale's size and leading tokens through arbitrary values rather than
+Tailwind's stock steps, so the cut moves when the scale does (it was
+originally specced on its own fixed 30/40, 24/32, 18/24 and 16/24 rungs):
 
-| Role | Spec | Tailwind |
+| Role | Resolves to | Tailwind |
 | --- | --- | --- |
-| Section/chapter heading (`StorySection`, `Solution`, `StoryChapter`) | Playfair semibold 30/40 | `text-3xl leading-10` + `storyHeading` |
-| Blockquote highlight | Inter medium 24/32 | `text-2xl leading-8 font-medium text-foreground` |
-| Slide/block title (`SlideText`, `StoryBlock`) | Playfair semibold 18/24 | `text-lg leading-6` + `storyHeading` |
-| Running copy | Inter regular 16/24, `#EAEAEA` | `text-base leading-6 text-body` |
+| Section/chapter heading (`StorySection`, `Solution`, `StoryChapter`) | DM Serif 400, 22→26 / 1.2 | `text-[length:var(--size-heading)] leading-[var(--lh-heading)]` + `storyHeading` |
+| Blockquote highlight | DM Sans 500, 18→20 / 1.4 | `text-[length:var(--size-subtitle)] leading-[var(--lh-subtitle)] font-medium text-foreground` |
+| Slide/block title (`SlideText`, `StoryBlock`) | DM Serif 400, 18→20 / 1.4 | `text-[length:var(--size-subtitle)] leading-[var(--lh-subtitle)]` + `storyHeading` |
+| Running copy | DM Sans 400, 16 / 1.7 | `text-[length:var(--size-body)] leading-[var(--lh-body)] text-body` |
 
 Colour goes through four bridge slots: `text-foreground` (`--text`, headings,
 `<strong>` and the blockquote), `text-body` (`--text-body`, running copy —
@@ -461,19 +572,14 @@ is the exception that proves the rule: it takes `border-foreground`, not
 structural edge — `--border` is `--gray-700` on the dark ground and would
 render it as a hairline. Families go through
 `font-[family-name:var(--font-sans|--font-display)]`, never
-`font-['Inter_Variable']`: the quoted form compiles to a single-family
+`font-['DM_Sans_Variable']`: the quoted form compiles to a single-family
 declaration and throws away the fallback stack, dropping the whole column to
 Times whenever the webfont is slow or blocked.
 
-Every one of those sizes and leadings *is* expressible in tokens, which is
-worth knowing before anyone concludes the cut needs new ones: `--lh-subtitle`
-(1.333) yields 40px against `--size-heading`, 32px against `--size-subtitle`
-and 24px against `--size-body`, and 16/24 is `--size-ui`/`--lh-ui` exactly.
-The one real difference is that the token sizes clamp and Tailwind's don't, so
-the token version is fluid below ~937px where Tailwind's is fixed. `#EAEAEA`
-is within a shade of `--text-body` (`gray-200`, `#e3e7e8`). What tokens.css
-genuinely lacks is a *named* `.type-*` style for Inter-regular-16/24 —
-`.type-ui-label` and `.type-nav-link` sit on that size at semibold and medium.
+The running-copy rung is `.type-body`'s values exactly, and the blockquote is
+the same rung `Section`'s pull-quote uses — `AnnotatedFigure`'s and
+`SlideCallout`'s note lists read `--size-body`/`--lh-body` too, so the prose
+and the notes under a figure stay one column of type.
 
 - **`StorySection` splits into two columns only when it is given a `visual`
   slot** — `split="5-7"` (the default, `minmax(0,5fr) minmax(0,7fr)` at `lg`)
@@ -646,8 +752,8 @@ indented closing tags right after a list before looking anywhere else.
 
 ## Water field
 
-`src/components/ui/water-field.ts` is the background on `index.astro` and
-`about.astro` — one WebGL pass drawing a domain-warped fBm fluid, a grid that
+`src/components/ui/water-field.ts` is the background on `about.astro` (the
+homepage used to run it too; it now runs liquid metal, below) — one WebGL pass drawing a domain-warped fBm fluid, a grid that
 refracts through the same displacement, and pointer-driven wave packets. The
 palette is read out of `tokens.css` at run time, so it follows `[data-theme]`
 without restating a colour.
@@ -672,6 +778,33 @@ that budget the same way, and the numbers have to be re-measured after (sample
 the canvas over a pointer sweep, both themes; Playwright is already a dev
 dependency for exactly this kind of check).
 
+## Liquid metal
+
+`src/components/ui/liquid-metal.ts` is the homepage background: Paper's
+`LiquidMetal` shader (diamond shape), mounted through the framework-free
+`ShaderMount` the same way `smoke-ring.ts` is. Its values are the Paper file's,
+unmodified, in one `PAPER` constant, except `frame`: 2000 opens the loop on a
+soft-edged phase, since t=0 is its hardest-edged one. That frame matters most
+under reduced motion, where it is the only one shown. `LiquidMetal.astro` mounts
+it on `astro:page-load` and tears down the previous one; `LiquidMetal.tsx` and
+`src/stories/LiquidMetal.stories.tsx` are the tuning surface.
+
+**The shader draws in greys; the amber is the blend.**
+- `.liquid-metal` (components.css) fills itself with `--home-shader-ground`,
+  isolates, and soft-lights onto `.home-ground`'s `--home-ground`.
+- Soft-light can only push each channel toward where its base already is, and
+  the warm ground has no blue, so the glow can only come up amber. On a
+  grey-ramp ground it renders grey.
+- That is why the two grounds are literals in the semantic layer (next to
+  `--brand-mark`), not ramp steps, and are not redefined per theme.
+
+**Contrast is bounded by the blend, and measured.** Every pixel under the
+headline, over a 60s sweep of the loop at 1728/1440/1024 wide, peaks at
+rgb(61, 40, 0), which puts `--text` at 13.5:1. Re-measure (Playwright: hide
+the text, `paperShaderMount.setFrame()` across the loop, read the
+screenshot) if `contour`, `softness` or `scale` change, or either ground
+does.
+
 ## Performance
 
 Four things on the critical path are deliberate and easy to undo by accident.
@@ -690,9 +823,9 @@ Four things on the critical path are deliberate and easy to undo by accident.
 - **Above-the-fold images have to opt out of lazy loading.** Astro's image
   service defaults every `<Image>` to `loading="lazy"`, which is wrong for
   exactly the images that are the LCP candidate. `WorkCard` takes a `priority`
-  prop (`index.astro` passes it to the first two cards — the list is one
-  column, but a card is ~440px tall at full width, so the second one's cover
-  is already on screen at common desktop heights), `CaseStudyHero`'s
+  prop (`index.astro` passes it to the first two cards — on the reel's first
+  screen the first card peeks in at the bottom centre and the second at the
+  bottom right), `CaseStudyHero`'s
   `heroShot` sets it directly, and
   `BeforeAfter`'s two shots carry `fetchPriority="high"`.
 - **`FontPreload.astro` is global chrome, like `Footer` and `Analytics`.**
@@ -701,7 +834,9 @@ Four things on the critical path are deliberate and easy to undo by accident.
   page needs it wired in there too, or that page's headline paints in a
   fallback serif and reflows. It preloads only the two `latin` faces that set
   visible text at the top of the page; the file explains why more would be
-  worse. `<ClientRouter />` and `<Analytics />` sit *last* in each `<head>`
+  worse. The homepage's hand (`--font-hand`) is deliberately not preloaded:
+  "try to" is invisible until ~1.4s into the entrance, by which time normal
+  discovery has fetched it. `<ClientRouter />` and `<Analytics />` sit *last* in each `<head>`
   for the same reason, after everything that decides how the page looks.
 - **Islands are gated on being reachable.** `NavMenu` is `client:idle`, not
   `client:load` — its trigger renders as static SSR markup and nothing it adds
@@ -718,9 +853,9 @@ Two things that look like wins and are not, so they don't get "fixed" later:
 - **The water field's `IntersectionObserver` cannot report `false` on this
   site**, because `.water-field` sits inside a `position: fixed; inset: 0`
   parent and always covers the viewport. That is not a bug to repair — the
-  field is meant to be visible the whole way down (`.home` carries no
-  background), so there is nothing to pause, and an IO cannot detect
-  occlusion anyway. It earns its place for the unpositioned uses (the
+  field is meant to be visible the whole way down (the about page's content
+  carries no background), so there is nothing to pause, and an IO cannot
+  detect occlusion anyway. It earns its place for the unpositioned uses (the
   Storybook stories), which is also why `onScroll` still re-reads the rect —
   rAF-batched, since scrolling genuinely cannot move it here.
 - **The about page's `.glass` panel repaints with the field behind it.** That
@@ -740,8 +875,12 @@ Two things that look like wins and are not, so they don't get "fixed" later:
   gradually as more components migrate, not as a one-pass rewrite — see
   "shadcn/ui" under Components for how the two systems coexist today.
 - **TypeScript** — `astro/tsconfigs/strict`, `jsx: react-jsx`.
-- **Fonts** — self-hosted via `@fontsource*` packages (Inter Variable, Playfair
-  Display Variable, IBM Plex Mono). Likely to change with the new type scale.
+- **Fonts** — self-hosted via `@fontsource*` packages: `@fontsource/dm-serif-display`,
+  `@fontsource-variable/dm-sans`, `@fontsource/dm-mono`, and
+  `@fontsource/delicious-handrawn` (the homepage's two handwritten words, 400
+  only). tokens.css imports
+  only the cuts the type styles use; `FontPreload.astro` preloads the serif
+  and the sans.
 - **Playwright** — dev dependency, used only for ad-hoc visual checks.
 
 ## Commands

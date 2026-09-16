@@ -38,7 +38,7 @@ const socials = [
 		<div class="site-footer__meta">
 			<div class="site-footer__identity">
 				<a class="site-footer__mark" href="/" aria-label="Home" set:html={logoMark} />
-				<span class="type-meta site-footer__name">Tousif Rahaman</span>
+				<span class="type-wordmark site-footer__name">Tousif Rahaman</span>
 			</div>
 
 			<p class="type-meta site-footer__tagline">Designed <em>solo</em> · Developed <em>together</em></p>
@@ -135,14 +135,24 @@ const socials = [
 		   X: shifted right so the mark sits above "together" in the tagline
 		   below, rather than centered on the row — tuned against the
 		   tagline's measured position at the design's reference desktop
-		   width, same as the Y nudge above. */
-		transform: translate(132px, 12px);
+		   width, same as the Y nudge above: the box's centre on the centre
+		   of "together". Re-measure if the tagline's type changes — it was
+		   132px against the old 14px mono, and the 12px DM Mono label rung
+		   pulled the word 8px left. */
+		transform: translate(124px, 12px);
 	}
 
+	/* The pose swap is a crossfade between two drawings of the same figure,
+	   and a plain one shows both sets of arms at once halfway through. A
+	   touch of blur on whichever pose is on its way out (and not yet in)
+	   blends the two into one movement instead. 2px — enough to soften the
+	   double exposure, small enough to stay cheap. */
 	.site-footer__brand-mark {
 		position: absolute;
 		inset: 0;
-		transition: opacity 250ms ease-in-out;
+		transition:
+			opacity 200ms ease,
+			filter 200ms ease;
 	}
 
 	.site-footer__brand-mark :global(svg) {
@@ -153,14 +163,21 @@ const socials = [
 
 	.site-footer__brand-mark--hover {
 		opacity: 0;
+		filter: blur(var(--spacing-xxs));
 	}
 
-	.site-footer__brand:hover .site-footer__brand-mark--rest {
-		opacity: 0;
-	}
+	/* Gated to a pointer that can really hover: a tap on touch fakes a hover
+	   and would leave the mascot with its arms up until the next tap. */
+	@media (hover: hover) and (pointer: fine) {
+		.site-footer__brand:hover .site-footer__brand-mark--rest {
+			opacity: 0;
+			filter: blur(var(--spacing-xxs));
+		}
 
-	.site-footer__brand:hover .site-footer__brand-mark--hover {
-		opacity: 1;
+		.site-footer__brand:hover .site-footer__brand-mark--hover {
+			opacity: 1;
+			filter: none;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -238,8 +255,10 @@ const socials = [
 		width: auto;
 	}
 
+	/* --text, not --text-muted: this is the wordmark, and a mark is set at
+	   full strength beside the glyph it names. */
 	.site-footer__name {
-		color: var(--text-muted);
+		color: var(--text);
 		white-space: nowrap;
 	}
 

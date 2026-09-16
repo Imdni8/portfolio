@@ -1,6 +1,6 @@
 ---
 /**
- * One row inside a <StoryChapter>: an optional Playfair title across the
+ * One row inside a <StoryChapter>: an optional serif title across the
  * width, then the shot on the left and the copy on the right.
  *
  * `title` is optional because a row is not always named by a heading — where
@@ -31,7 +31,7 @@ const { title } = Astro.props;
 <div>
 	{
 		title && (
-			<h3 class:list={['mb-4 text-lg leading-6', storyHeading]}>
+			<h3 class:list={['mb-4 text-[length:var(--size-subtitle)] leading-[var(--lh-subtitle)]', storyHeading]}>
 				{title}
 			</h3>
 		)

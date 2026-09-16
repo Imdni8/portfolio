@@ -24,7 +24,7 @@ const hasIntro = Astro.slots.has('intro');
 
 <section class="solution" data-section="solution" data-chapter="solution">
 	<div class="solution__head">
-		<h2 class:list={['m-0 text-3xl leading-10', storyHeading]}>Solution</h2>
+		<h2 class:list={['m-0 text-[length:var(--size-heading)] leading-[var(--lh-heading)]', storyHeading]}>Solution</h2>
 		<div class="solution__controls">
 			<button type="button" class="icon-btn icon-btn--secondary icon-btn--sm" data-carousel-prev aria-label="Previous">
 				<Icon name="chevron-left" />

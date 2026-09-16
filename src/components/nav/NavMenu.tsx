@@ -33,9 +33,10 @@ const sideProjects = [
  * own default surface (bg-popover/ring-foreground via the tailwind.css
  * token bridge), which is why NavMenu no longer needs a popupClassName.
  *
- * `align="start"`, not `end`: the whole nav row is clustered on the left
- * now, so a panel aligned to the trigger's trailing edge would open away
- * from it, out toward the middle of an otherwise empty band. The default
+ * `align="end"`: the trigger is the last item in the nav row and sits on
+ * its right edge, so the panel hangs from the trigger's trailing edge and
+ * opens back toward the middle of the page rather than out past the row's
+ * end. (It was `start` while the whole row clustered on the left.) The default
  * `sideOffset` (8px, the same as `--spacing-md`) is unchanged, and Base
  * UI's collision handling still flips it at narrow widths.
  *
@@ -58,10 +59,10 @@ export const NavMenu = () => {
 	useEffect(() => initNavDropdownHoverAnimation(), []);
 
 	return (
-		<NavigationMenu className="nav-dropdown" align="start" popupClassName="nav-dropdown__popup">
+		<NavigationMenu className="nav-dropdown" align="end" popupClassName="nav-dropdown__popup">
 			<NavigationMenuList className="nav-dropdown__list">
 				<NavigationMenuItem>
-					<NavigationMenuTrigger className="nav-dropdown__trigger text-sm">
+					<NavigationMenuTrigger className="nav-dropdown__trigger type-nav-link">
 						Side projects
 					</NavigationMenuTrigger>
 					<NavigationMenuContent className="nav-dropdown__panel" keepMounted>
@@ -71,7 +72,7 @@ export const NavMenu = () => {
 								render={<a href={href} target="_blank" rel="noopener noreferrer" />}
 								className="nav-dropdown__item"
 							>
-								<span className="nav-dropdown__item-label type-ui-label">{label}</span>
+								<span className="nav-dropdown__item-label type-nav-link">{label}</span>
 								<span className="nav-dropdown__item-arrow">
 									<Icon name="arrow-up-right" />
 								</span>

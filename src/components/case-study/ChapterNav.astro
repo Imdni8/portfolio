@@ -7,10 +7,10 @@ import Icon from '../ui/Icon.astro';
  * `chapters` in content.config.ts — and rendered only when CaseStudyLayout
  * has a non-empty list to give it.
  *
- * Labels wear `.type-nav-link` (Inter, the ui rung, 16/24) — the same class
+ * Labels wear `.type-nav-link` (DM Mono, uppercase, 12/18) — the same class
  * the site nav and Tabs use, per tokens.css's own note that a chapter tab
  * and a nav link are the same kind of control. Active state still follows
- * that convention: `[aria-current]` bumps weight (medium → bold), plus full
+ * that convention: `[aria-current]` bumps weight (regular → medium), plus full
  * opacity rather than a colour swap, since the design dims inactive entries
  * via opacity, not a dimmer token.
  */
@@ -114,7 +114,7 @@ const { chapters } = Astro.props;
 	}
 
 	.chapter-nav__link[aria-current] {
-		font-weight: var(--weight-bold);
+		font-weight: var(--weight-medium);
 		opacity: 1;
 	}
 

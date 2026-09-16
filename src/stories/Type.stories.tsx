@@ -5,17 +5,21 @@ type Spec = { token: string; role: string; sample: string; accent?: boolean };
 
 /** Ordered by size, which is also roughly the order a reader meets them. */
 const STYLES: Spec[] = [
+	{ token: 'type-display', role: 'Homepage headline — the spoken phrase', sample: 'Thoughtful software' },
+	{ token: 'type-display-sans', role: 'Homepage headline — the plain words', sample: 'I design' },
+	{ token: 'type-hand', role: 'Homepage headline — the aside, and nothing else', sample: 'try to' },
 	{ token: 'type-title', role: 'Case-study page title', sample: 'Introduce Agent Versioning and lifecycle management' },
 	{ token: 'type-heading', role: 'Section headline — states a finding', sample: 'There was no way to validate the changes made to an agent' },
 	{ token: 'type-reflection', role: 'Editorial heading — you, speaking', sample: 'Reflections', accent: true },
 	{ token: 'type-card-title', role: 'Work card title', sample: 'Made agent actions easier to follow' },
 	{ token: 'type-subtitle', role: 'Dek beneath the title', sample: 'Versioned agents can be validated and released in clinical trials safely because they can be rolled back.' },
-	{ token: 'type-nav-link', role: 'Tab list — site nav, chapter rail, Tabs', sample: 'Framing' },
+	{ token: 'type-wordmark', role: 'The name as a mark — footer', sample: 'Tousif Rahaman' },
+	{ token: 'type-nav-link', role: 'Mono label — site nav, dropdown, chapter rail, Tabs', sample: 'Side projects' },
 	{ token: 'type-body', role: 'Running copy and hero facts', sample: "Agent Studio's canvas is where an AI builder assembles an agentic workflow, connects it to their organisation's data sources, and puts it to work without involving engineering." },
 	{ token: 'type-ui-label', role: 'Button and control labels', sample: 'View final design' },
 	{ token: 'type-card-meta', role: 'Work card meta rows — industry and year', sample: 'Clinical trials' },
 	{ token: 'type-annotation', role: 'Figure captions, note and tooltip copy', sample: 'Because conducting user tests with end users can take significantly longer to set up, I validated these concepts with 5 internal users who use the product daily.' },
-	{ token: 'type-meta', role: 'Mono metadata — footer name and tagline, toast message', sample: 'Designed solo · Developed together' },
+	{ token: 'type-meta', role: 'Mono metadata — footer tagline, toast message', sample: 'Designed solo · Developed together' },
 	{ token: 'type-overline', role: 'Eyebrow and note title — always uppercase', sample: 'Who are AI builders?' },
 ];
 
@@ -90,11 +94,11 @@ export const Scale: StoryObj = {
 	render: () => (
 		<Page
 			title="Type"
-			lede="Ten styles across three families. The line under each specimen is what the browser actually resolved — if a font fails to load, it shows up here rather than being mistaken for a design choice."
+			lede="Sixteen styles across four families — the fourth, a hand, sets two words on the homepage and nothing else. The line under each specimen is what the browser actually resolved — if a font fails to load, it shows up here rather than being mistaken for a design choice."
 		>
 			<Group
 				label="The rule"
-				note="Playfair carries the voice; Inter carries information; Plex Mono carries apparatus. The two text families meet at exactly one size — 30/38 — where .type-heading states a finding and .type-reflection is the author stepping back to speak. That collision is the system."
+				note="DM Serif Display is what a reader stops on — titles and headlines, always 400, tracked slightly tight. DM Sans is what is read in full — copy, deks, captions, controls. DM Mono is apparatus — nav, tabs, tags, eyebrows — small, uppercase and tracked open so it recedes. Importance comes from the family and the colour, never a heavier cut: there is no bold anywhere."
 			>
 				<div style={{ display: 'grid', gap: 'var(--spacing-lg)' }}>
 					{STYLES.map((s) => (

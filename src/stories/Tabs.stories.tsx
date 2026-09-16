@@ -25,7 +25,7 @@ export const Chapters: Story = {
 	render: () => (
 		<Page
 			title="Tabs"
-			lede="Chapter navigation for a case study. Set in Playfair, because a chapter name is voice rather than information."
+			lede="Chapter navigation for a case study. Set in the uppercase mono label style, because a chapter tab and a nav link are the same kind of control."
 		>
 			<Group
 				label="Default"
