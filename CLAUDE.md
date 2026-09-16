@@ -339,14 +339,23 @@ trackpad's sideways swipe also steps through the cards.
     position on a state takes that state.
   - **Resize** keeps the page at the same place in the reel by rescaling the
     scroll offset to the new viewport height.
-- **One media query gates the reel**, in `index.astro`, `SiteNav.astro` and as
-  `REEL_QUERY`: `(min-width: 64rem) and (prefers-reduced-motion:
-  no-preference) and (scripting: enabled)`. Move them together.
+- **One media query gates the reel**, in `index.astro`, `SiteNav.astro`,
+  `HomeHero.astro` and as `REEL_QUERY`: `(min-width: 64rem) and
+  (prefers-reduced-motion: no-preference) and (scripting: enabled)`. Move
+  them together.
   - The CSS default inside it is the reel's first frame (each `.reel__slot`
     reads `--i`), so nothing jumps when the script arrives.
   - Outside it (narrow, reduced motion, no JS), the page stacks: the headline
     gets 78svh, the cards follow as a plain column, and `work-spotlight.ts`
     lights the middle one.
+    - `.reel__hero` has `padding-block-start: 22svh`, which centres the
+      headline at 47.5svh, the same place the reel puts it (just above the
+      viewport-fixed glow's centre), while the first card still starts at
+      78svh.
+    - The headline uses a plain letter T (`.hero__letter`) there, not the
+      brand mark: the mark only exists to fly into the nav, and without the
+      reel the nav shows its own mark from the start, so it would be the same
+      logo twice. `HomeHero.astro` swaps them on the same query.
   - `initHomeReel()` switches between the two modes live on `matchMedia`
     change, and its teardown hands every inline style back.
 - **The headline** (`HomeHero.astro`) is read from an `.sr-only` copy. The

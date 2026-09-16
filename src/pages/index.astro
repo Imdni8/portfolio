@@ -217,9 +217,16 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 	   motion, and without JS. The headline has most of the first screen to
 	   itself — 78svh leaves the first card's top in view, as the reel's own
 	   first frame does — and the cards follow as a plain column. */
+	/* The headline's centre lands where the reel puts it: 47.5svh down, just
+	   above the centre of the viewport-fixed glow (HomeHero's own 5svh of
+	   bottom padding is the lift). The box stays 78svh tall so the first card
+	   still starts in view; the top padding is what moves the headline down
+	   within it — (22 + 78 − 5) / 2 = 47.5. */
 	.reel__hero {
+		box-sizing: border-box;
 		display: grid;
 		min-block-size: 78svh;
+		padding-block-start: 22svh;
 	}
 
 	.reel__track {
@@ -295,6 +302,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 			position: absolute;
 			inset: 0;
 			min-block-size: 0;
+			padding-block-start: 0;
 		}
 
 		/* Its own stacking context, so the cards' z-order stays among

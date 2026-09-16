@@ -31,8 +31,12 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 				</span>
 			</span>
 			<span class="hero__spoken type-display">
+				{/* Two Ts, one shown: the brand mark where the reel runs (it flies
+				    up into the nav), a plain letter everywhere else — where the
+				    nav already shows its own mark from the start, and a second
+				    one in the headline would be the same logo twice. */}
 				<span class="hero__mark" data-reel-mark set:html={logoMark} />
-				<span class="hero__spoken-text" data-reel-fade>houghtful software</span>
+				<span class="hero__spoken-text" data-reel-fade><span class="hero__letter">T</span>houghtful software</span>
 			</span>
 		</span>
 	</h1>
@@ -111,10 +115,9 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	}
 
 	/* Row two, drawn up under row one by --spacing-xs and bottom-aligned, so
-	   the mark — taller than the line, since its swoosh runs above the cap
-	   height and below the baseline — hangs off the text the way the
-	   reference draws it. The text's own --spacing-xs of bottom padding and
-	   the matching pull-in toward the mark are the reference's offsets. */
+	   the mark (where it is shown — see below) — taller than the line, since
+	   its swoosh runs above the cap height and below the baseline — hangs off
+	   the text the way the reference draws it. */
 	.hero__spoken {
 		display: flex;
 		align-items: flex-end;
@@ -153,9 +156,32 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	}
 
 	.hero__spoken-text {
-		margin-inline-start: calc(-1 * var(--spacing-xs));
-		padding-block-end: var(--spacing-xs);
 		white-space: nowrap;
+	}
+
+	/* Which T. The query is home-reel.ts's REEL_QUERY — the mark only makes
+	   sense where the reel is there to fly it into the nav; move this with
+	   the others (index.astro, SiteNav.astro). Outside it the line is plain
+	   type. Inside it the mark stands in for the letter, and the text is
+	   pulled in toward it and lifted off the baseline by the reference's
+	   offsets. */
+	.hero__mark {
+		display: none;
+	}
+
+	@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+		.hero__mark {
+			display: block;
+		}
+
+		.hero__letter {
+			display: none;
+		}
+
+		.hero__spoken-text {
+			margin-inline-start: calc(-1 * var(--spacing-xs));
+			padding-block-end: var(--spacing-xs);
+		}
 	}
 
 	/* The entrance — seen once per visit, so it is allowed to take its time
