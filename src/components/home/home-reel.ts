@@ -56,19 +56,37 @@ export const reelLength = (cards: number) => INTRO + Math.max(cards - 1, 0) * ST
 const FADE = [0, 0.35] as const;
 /** How far the words drift up while they fade, in viewport heights. */
 const FADE_DRIFT = 0.04;
-/** The T mark's flight into the nav. */
-const GLIDE = [0.05, 0.65] as const;
-/** The nav's fade-in. */
-const NAV = [0.35, 0.75] as const;
+/** The T mark's flight into the nav. It leads: it leaves on the first bit
+ *  of scroll and lands halfway through, so it is well clear of the cards
+ *  coming up behind it. */
+const GLIDE = [0, 0.5] as const;
+/** The nav's fade-in — over the back half of the mark's flight, and done
+ *  the moment it lands. The nav's own brand is inside the faded shell, so
+ *  anything short of full strength at the hand-off would show as the mark
+ *  dimming as it arrives. */
+const NAV = [0.2, 0.5] as const;
 
 /** How far below its place a card starts, in viewport heights — the
  *  reference's first frame has the centre card's top at 77% of the screen,
  *  58% below where it comes to rest. */
 const RISE = 0.58;
+/** The centre card starts rising this far into the intro — a beat behind
+ *  the mark, so the card follows it up instead of catching it. */
+const RISE_DELAY = 0.12;
 /** Each card's rise takes this much of the intro… */
-const RISE_SPAN = 0.7;
-/** …starting this much later than the card before it. */
+const RISE_SPAN = 0.64;
+/** …starting this much later than the card before it. Two steps of stagger
+ *  at most (the cards past that are off screen), which is what keeps the last
+ *  rise inside the intro: 0.12 + 2 × 0.12 + 0.64 = 1. */
 const RISE_STAGGER = 0.12;
+const RISE_STAGGER_STEPS = 2;
+/** The closest a card's top edge may come to the flying mark, in px
+ *  (--spacing-3xl). With the timings above it never comes this close — the
+ *  mark lands before the centre card reaches its resting place, and the
+ *  narrowest gap on the way is the resting one — so this is a guard for
+ *  viewport shapes the timings were not checked against, not the thing
+ *  keeping them apart. */
+const MARK_CLEARANCE = 24;
 
 /* The diagonal. In the reference the neighbours' centres sit ~825px across
    from the lit card's at a 1230px card width, and ~10° down to the right
@@ -104,7 +122,6 @@ const within = ([from, to]: readonly [number, number], t: number) => clamp01((t 
    they are gentler than the CSS --ease-out/--ease-in-out tokens. A curve as
    steep as those would spend most of a card's rise inside the first notch. */
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
 
 /** Layout offset of `el` inside `ancestor` — offsetLeft/Top, so transforms
  *  (including the headline's own entrance) do not skew it. */
@@ -137,13 +154,22 @@ function startReel(reel: HTMLElement): () => void {
 	/* Measured on start and on resize, never per frame. */
 	let top = 0; // the section's top, in document coordinates
 	let vh = 0; // the pin's height — the viewport, as the CSS sizes it
+	let pinWidth = 0;
 	let cardWidth = 0;
+	let cardHeight = 0;
+	let cardCentreY = 0; // the lit card's centre, in the pin
+	let markBox = { x: 0, y: 0, w: 0, h: 0 }; // the mark at rest, in the pin
 	let glide = { dx: 0, dy: 0, scale: 1 };
 
 	const measure = () => {
 		top = reel.getBoundingClientRect().top + window.scrollY;
 		vh = pin.offsetHeight;
+		pinWidth = pin.offsetWidth;
 		cardWidth = slots[0].offsetWidth;
+		cardHeight = slots[0].offsetHeight;
+		/* The slot's `top` is its centre line — `translate: -50% -50%` does
+		   the centring, and offsetTop ignores it. */
+		cardCentreY = slots[0].offsetTop;
 
 		/* The mark's resting box, inside the pin, against the nav glyph's box
 		   in the viewport. While the reel is running the pin is stuck at the
@@ -152,6 +178,7 @@ function startReel(reel: HTMLElement): () => void {
 			const from = offsetWithin(mark, pin);
 			const to = brandGlyph.getBoundingClientRect();
 			const height = mark.offsetHeight;
+			markBox = { x: from.x, y: from.y, w: mark.offsetWidth, h: height };
 			glide = {
 				dx: to.left - from.x,
 				dy: to.top - from.y,
@@ -181,7 +208,7 @@ function startReel(reel: HTMLElement): () => void {
 		/* The mark, and the hand-off to the nav's own copy of it once it has
 		   landed. The two are the same SVG at the same size by then, so the
 		   swap does not show. */
-		const flight = easeInOut(within(GLIDE, intro));
+		const flight = easeOut(within(GLIDE, intro));
 		const landed = flight >= 1;
 		if (mark) {
 			mark.style.translate = `${glide.dx * flight}px ${glide.dy * flight}px`;
@@ -203,19 +230,39 @@ function startReel(reel: HTMLElement): () => void {
 			}
 		}
 
+		/* Where the mark is this frame, in the pin — the box a rising card must
+		   stay under. */
+		const markScale = lerp(1, glide.scale, flight);
+		const markLeft = markBox.x + glide.dx * flight;
+		const markRight = markLeft + markBox.w * markScale;
+		const markBottom = markBox.y + glide.dy * flight + markBox.h * markScale;
+
 		/* The cards. */
 		const stepX = cardWidth * STEP_X;
 		const stepY = stepX * Math.tan(ANGLE);
 		slots.forEach((slot, i) => {
 			const d = i - k;
 			const near = Math.min(Math.abs(d), 1);
+			const scale = lerp(1, SIDE_SCALE, near);
 			/* The stagger runs outward from the centre card, which at the
 			   intro is always the first. */
-			const riseStart = Math.max(d, 0) * RISE_STAGGER;
+			const riseStart = RISE_DELAY + Math.min(Math.max(d, 0), RISE_STAGGER_STEPS) * RISE_STAGGER;
 			const risen = easeOut(clamp01((intro - riseStart) / RISE_SPAN));
 			const x = d * stepX;
-			const y = d * stepY + (1 - risen) * RISE * vh;
-			slot.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${lerp(1, SIDE_SCALE, near)})`;
+			let y = d * stepY + (1 - risen) * RISE * vh;
+
+			/* Never over the mark while it is in the air: a card that shares
+			   its column is held under it. */
+			if (mark && !landed) {
+				const centreX = pinWidth / 2 + x;
+				const halfWidth = (cardWidth / 2) * scale;
+				const sharesColumn = centreX - halfWidth < markRight && centreX + halfWidth > markLeft;
+				const cardTop = cardCentreY + y - (cardHeight / 2) * scale;
+				const floor = markBottom + MARK_CLEARANCE;
+				if (sharesColumn && cardTop < floor) y += floor - cardTop;
+			}
+
+			slot.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
 			slot.style.zIndex = String(100 - Math.round(Math.abs(d) * 10));
 		});
 

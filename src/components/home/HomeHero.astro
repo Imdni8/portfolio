@@ -127,14 +127,15 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	   the nav's and the footer's — it *is* the nav's mark, on its way there.
 	   `transform-origin` is the corner home-reel.ts measures from.
 
-	   On its way up it crosses the centre card, which is rising at the same
-	   time, and it has to stay in front of it. The z-index does that against
-	   the reel's card track (a stacking context at 0, index.astro) — which
-	   only works while nothing between here and the reel's pin makes a
-	   stacking context of its own. That is why the entrance below fills
-	   `backwards` and not `both`: a filled opacity animation would leave
-	   `.hero__spoken` a stacking context for good, and trap the mark inside
-	   it, behind the cards. */
+	   On its way up it never meets the centre card rising behind it —
+	   home-reel.ts times the two apart and holds the card under it besides —
+	   so the z-index is a backstop, not the fix: if they ever did touch, the
+	   mark would pass in front of the reel's card track (a stacking context
+	   at 0, index.astro) rather than vanish behind it. That only works while
+	   nothing between here and the reel's pin makes a stacking context of
+	   its own, which is why the entrance below fills `backwards` and not
+	   `both`: a filled opacity animation would leave `.hero__spoken` a
+	   stacking context for good, and trap the mark inside it. */
 	.hero__mark {
 		position: relative;
 		z-index: 1;

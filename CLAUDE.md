@@ -283,8 +283,8 @@ scroll; there is no horizontal scrolling anywhere.
   of `WorkCard`s, all absolutely positioned. The script turns how far the section
   has scrolled into where everything inside the pin should be:
   - **intro** (`INTRO`, 1 viewport): the words fade, the T mark flies into the
-    nav, the nav fades in, and the cards rise 58svh into place, staggered from
-    the centre outwards;
+    nav, the nav fades in, and the cards rise 58svh into place behind the
+    mark, staggered from the centre outwards;
   - **reel** (`STEP`, 0.9 per card): cards slide along a 10° diagonal, one
     position per step. Neighbours sit 0.6707 card-widths across and are 83% of
     the lit card's size, overlapping its edges as drawn;
@@ -335,6 +335,17 @@ scroll; there is no horizontal scrolling anywhere.
   (so the entrance transform can't skew it) and aimed at the nav glyph's rect.
   It lands at the same size as the nav's own mark. There the page swaps: the
   hero mark hides and `--reel-brand` shows the nav's.
+  - The nav fades in over 20–50% of the intro, finishing exactly when the mark
+    lands, so the handoff doesn't dim.
+  - **The mark never overlaps a card.** It leads (`GLIDE` 0–50%, ease-out)
+    and the centre card follows (`RISE_DELAY` 12%, over `RISE_SPAN` 64%). The
+    narrowest gap on the way is the resting one, checked from 1024×768 to
+    1920×600.
+  - `MARK_CLEARANCE` (24px) also holds any card that shares the mark's column
+    under it while the mark is in the air, as a guard for untested viewport
+    shapes. Retune those three together and re-check the gap.
+  - The rise stagger is capped at two steps so the last visible card still
+    finishes inside the intro.
 - **`WorkCard`** is a solid `--bg-sunken` panel, 1px `--border`, at the
   reference's 1230×709 ratio: cover on top, then tags, `.type-card-title`, and
   a half-strength `--border-strong` rule over industry and year side by side.
@@ -797,6 +808,17 @@ it on `astro:page-load` and tears down the previous one; `LiquidMetal.tsx` and
   grey-ramp ground it renders grey.
 - That is why the two grounds are literals in the semantic layer (next to
   `--brand-mark`), not ramp steps, and are not redefined per theme.
+
+**It fades in; the layer doesn't.** `createLiquidMetal()` marks the host
+`data-liquid-metal="ready"` once the shader is built. It resolves the new
+canvas's hidden starting style first, so the fade has somewhere to start
+from.
+- On `ready`, the *canvas* fades in (1.4s `ease`) and grows from 94% (1.8s
+  `--ease-out`; no growth under reduced motion).
+- Never animate the host's opacity. Its own ground is half the blend: it's
+  what darkens rgb(20, 12, 0) to the near-black rgb(5, 2, 0) the reference
+  shows. Fading the host would visibly dim the whole background on load.
+- Without WebGL or JS the canvas simply stays hidden.
 
 **Contrast is bounded by the blend, and measured.** Every pixel under the
 headline, over a 60s sweep of the loop at 1728/1440/1024 wide, peaks at

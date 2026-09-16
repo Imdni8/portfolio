@@ -171,6 +171,13 @@ export function createLiquidMetal(host: HTMLElement, options: LiquidMetalOptions
 			return;
 		}
 
+		/* What `.liquid-metal`'s fade-in (components.css) waits for. The canvas
+		   was only just created, so its hidden starting style is resolved first
+		   — without that, the flag and the canvas would reach the style engine
+		   together, the canvas would start out already visible, and there
+		   would be nothing to transition from. */
+		const canvas = host.querySelector('canvas');
+		if (canvas) void getComputedStyle(canvas).opacity;
 		host.dataset.liquidMetal = 'ready';
 	})();
 

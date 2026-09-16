@@ -280,8 +280,9 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		}
 
 		/* Its own stacking context, so the cards' z-order stays among
-		   themselves and the headline's flying mark (z-index 1, HomeHero.astro)
-		   can pass in front of all of them. */
+		   themselves, and the headline's flying mark (z-index 1, HomeHero.astro)
+		   sits above all of them should the two ever meet — which the reel's
+		   timing and its clearance guard keep from happening. */
 		.reel__track {
 			position: absolute;
 			inset: 0;

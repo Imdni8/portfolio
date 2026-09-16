@@ -589,6 +589,51 @@
 	mix-blend-mode: soft-light;
 }
 
+/* The arrival. The shape waits at nothing until liquid-metal.ts marks the
+   layer `ready` — the shader is compiled and about to draw its first frame —
+   and then comes up, so the glow never pops in whenever the script happens
+   to land. Two parts, both one-off:
+
+   - The shape fades in on plain `ease` over 1.4s. It is light coming up,
+     not an object arriving, so it takes the curve a colour change does, and
+     takes it slowly: the glow is ambience behind the headline, and should
+     be noticed after the words are.
+   - It grows into place from 94% over 1.8s, on --ease-out — so it reads as
+     the glow blooming rather than a flat fade.
+
+   Both on the canvas, never on the layer. The layer's own ground is half of
+   the blend: soft-lighting --home-shader-ground onto --home-ground takes the
+   page from rgb(20, 12, 0) down to the near-black the reference shows, so
+   fading the whole layer would fade that darkening in too, and the entire
+   background would visibly dim behind the headline. With the layer left
+   alone, the ground is right from the first paint and only the shape
+   arrives. Scaling the layer would also show its edges.
+
+   A layer that never becomes ready (no WebGL, no JS) keeps its canvas hidden
+   and the ground as it is. Reduced motion keeps the fade and drops the
+   growth. */
+.liquid-metal canvas {
+	opacity: 0;
+	transition: opacity 1400ms ease;
+}
+
+.liquid-metal[data-liquid-metal='ready'] canvas {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.liquid-metal canvas {
+		scale: 0.94;
+		transition:
+			opacity 1400ms ease,
+			scale 1800ms var(--ease-out);
+	}
+
+	.liquid-metal[data-liquid-metal='ready'] canvas {
+		scale: 1;
+	}
+}
+
 /* ---- Case-study islands ----------------------------------------------------
    Styles for the three hydrated components. They live here rather than in
    the .tsx files so the whole system stays inspectable in one stylesheet.
