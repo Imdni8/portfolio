@@ -9,6 +9,7 @@ import {
 	NavigationMenuList,
 	NavigationMenuTrigger,
 } from '../ui/navigation-menu';
+import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '../ui/drawer';
 
 const sideProjects = [
 	{ label: 'Goalaris', href: 'https://goalaris-beta.vercel.app/' },
@@ -58,30 +59,82 @@ const sideProjects = [
 export const NavMenu = () => {
 	useEffect(() => initNavDropdownHoverAnimation(), []);
 
+	/* Two triggers, one shown: the dropdown above 40rem, the bottom sheet
+	   below it (SiteNav.astro switches them). Both are always rendered, so
+	   the server markup and the hydrated markup agree whatever the width —
+	   no media query in React to disagree with the one in CSS. */
 	return (
-		<NavigationMenu className="nav-dropdown" align="end" popupClassName="nav-dropdown__popup">
-			<NavigationMenuList className="nav-dropdown__list">
-				<NavigationMenuItem>
-					<NavigationMenuTrigger className="nav-dropdown__trigger type-nav-link">
-						Side projects
-					</NavigationMenuTrigger>
-					<NavigationMenuContent className="nav-dropdown__panel" keepMounted>
-						{sideProjects.map(({ label, href }) => (
-							<NavigationMenuLink
-								key={href}
-								render={<a href={href} target="_blank" rel="noopener noreferrer" />}
-								className="nav-dropdown__item"
-							>
-								<span className="nav-dropdown__item-label type-nav-link">{label}</span>
-								<span className="nav-dropdown__item-arrow">
-									<Icon name="arrow-up-right" />
-								</span>
-								<span className="nav-dropdown__item-hoverline" />
-							</NavigationMenuLink>
-						))}
-					</NavigationMenuContent>
-				</NavigationMenuItem>
-			</NavigationMenuList>
-		</NavigationMenu>
+		<>
+			<SideProjectsDropdown />
+			<SideProjectsSheet />
+		</>
 	);
 };
+
+const SideProjectsDropdown = () => (
+	<NavigationMenu className="nav-dropdown" align="end" popupClassName="nav-dropdown__popup">
+		<NavigationMenuList className="nav-dropdown__list">
+			<NavigationMenuItem>
+				<NavigationMenuTrigger className="nav-dropdown__trigger type-nav-link">
+					Side projects
+				</NavigationMenuTrigger>
+				<NavigationMenuContent className="nav-dropdown__panel" keepMounted>
+					{sideProjects.map(({ label, href }) => (
+						<NavigationMenuLink
+							key={href}
+							render={<a href={href} target="_blank" rel="noopener noreferrer" />}
+							className="nav-dropdown__item"
+						>
+							<span className="nav-dropdown__item-label type-nav-link">{label}</span>
+							<span className="nav-dropdown__item-arrow">
+								<Icon name="arrow-up-right" />
+							</span>
+							<span className="nav-dropdown__item-hoverline" />
+						</NavigationMenuLink>
+					))}
+				</NavigationMenuContent>
+			</NavigationMenuItem>
+		</NavigationMenuList>
+	</NavigationMenu>
+);
+
+/**
+ * The same links on a phone, in a bottom sheet — shadcn's base-nova Drawer
+ * (ui/drawer.tsx), which is Base UI's Drawer: it slides up from the bottom
+ * edge, follows the finger and closes on a downward swipe, and brings the
+ * dialog's focus trap, Escape and backdrop dismissal with it. A dropdown
+ * hanging off the corner of a 390px screen is a small target far from the
+ * thumb; a sheet is the phone's own answer to "a short list of choices".
+ *
+ * The close button is there for anyone who is not swiping — a screen reader,
+ * a keyboard — and the handle says the sheet can be swiped at all.
+ */
+const SideProjectsSheet = () => (
+	<Drawer showSwipeHandle>
+		<DrawerTrigger className="nav-dropdown__trigger nav-sheet__trigger type-nav-link">
+			Side projects
+			<Icon name="chevron-down" />
+		</DrawerTrigger>
+		<DrawerContent className="nav-sheet">
+			<DrawerHeader className="nav-sheet__header">
+				<DrawerTitle className="type-overline">Side projects</DrawerTitle>
+				<DrawerClose className="icon-btn icon-btn--tertiary icon-btn--md" aria-label="Close">
+					<Icon name="close" />
+				</DrawerClose>
+			</DrawerHeader>
+			<ul className="nav-sheet__list">
+				{sideProjects.map(({ label, href }) => (
+					<li key={href}>
+						<a className="nav-sheet__item" href={href} target="_blank" rel="noopener noreferrer">
+							<span className="type-nav-link">
+								{label}
+								<span className="sr-only"> (opens in new tab)</span>
+							</span>
+							<Icon name="arrow-up-right" />
+						</a>
+					</li>
+				))}
+			</ul>
+		</DrawerContent>
+	</Drawer>
+);

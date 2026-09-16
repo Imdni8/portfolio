@@ -194,11 +194,22 @@ coexist for a while, not race each other.
   with the "Side projects" links (the popup surface wears shadcn's own
   default `bg-popover` look via the tailwind.css token bridge, not `.glass`
   — the simplified nav has no glass material anywhere).
-  `SiteNav.astro` renders it as a `client:load` island for just that one
+  `SiteNav.astro` renders it as a `client:idle` island for just that one
   dropdown; the Resume link beside it is off-site, has nowhere to open, and
   stays a plain Astro-rendered anchor, untouched by any of this. Its popup is
   `align="start"`, not `end` — the whole nav row clusters on the left, so a
   trailing-edge alignment would open the panel away from its trigger.
+- **`ui/drawer.tsx`** is the second vendored primitive (`npx shadcn add
+  drawer`). It's shadcn's base-nova Drawer, which wraps Base UI's `Drawer`,
+  so it added no dependency. `NavMenu.tsx` uses it for the Side projects
+  bottom sheet on phones (see Site nav). Two project edits, both noted in the
+  file's header for `shadcn diff`:
+  - `cn` is imported from `@/lib/utils`. **The base-nova registry imports it
+    from a standalone `cn` npm package, and `shadcn add` installs that
+    package.** It was uninstalled again: this project already has the helper.
+    Expect the same on every future `shadcn add`. Fix the import and
+    `npm uninstall cn` each time.
+  - The backdrop is `bg-(--overlay)` rather than the stock `bg-black/10`.
 - **`gsap` stays**, but scoped to one job: the per-item hover choreography
   (hoverline draw + arrow diagonal entrance/exit) in
   `src/components/nav/nav-dropdown.ts`. The hand-rolled `<details>`
@@ -241,6 +252,28 @@ URL-reading frontmatter.
 - **The scrim band paints `var(--nav-band, var(--bg))`.** The homepage sets
   `--nav-band` to its warm `--home-ground` on `<body>`; everywhere else the band
   is `--bg`.
+
+- **On phones (below 40rem) Side projects opens a bottom sheet**, not the
+  dropdown.
+  - `NavMenu.tsx` always renders both the dropdown and a `DrawerTrigger`
+    (`.nav-sheet__trigger`, which also wears `.nav-dropdown__trigger` so the
+    two look identical). `SiteNav.astro` shows one or the other at 40rem, the
+    footer's breakpoint. Server and client markup never disagree because
+    there's no media query in React.
+  - The sheet (`ui/drawer.tsx`, Base UI Drawer) slides up, follows the
+    finger, and closes on a downward swipe, on backdrop tap, on Escape, or
+    via its close button (there for anyone not swiping). It carries a swipe
+    handle.
+  - Its content is `.type-overline` "Side projects" and one ≥48px row per
+    project: `.type-nav-link` label, arrow icon, and an sr-only "(opens in
+    new tab)". Rows dip to 60% opacity on press, with no tap flash and
+    `touch-action: manipulation`.
+  - It's portalled to `<body>`, so its styles in `SiteNav.astro` are all
+    `:global()`. They set the top edge to `--border` (there's no base layer
+    giving borders a colour, so it would otherwise be the text colour) and
+    add `env(safe-area-inset-bottom)` to its bottom padding.
+  - The viewport meta has no `viewport-fit=cover`, so that inset is 0 today.
+    Add it (and pad the fixed nav's top) if the site ever goes edge-to-edge.
 
 **`/about` is deliberately unlinked.** The page still builds and still answers at
 `/about`, but nothing on the site points at it — not the nav, not the footer.
@@ -1023,7 +1056,13 @@ node_modules/.vite`, restart `npm run dev`. If a build is genuinely needed
 mid-session, stop the dev server first and restart it after. This includes
 `npm run check` — the gate itself. A second, quieter symptom: the dev server
 stops picking up frontmatter edits (the page keeps serving the old
-`thumbnail`, say) with no error in its log.
+`thumbnail`, say) with no error in its log. Scoped `<style>` edits can go
+stale the same way. A third: after clearing `node_modules/.vite`, the first
+page load makes Vite re-bundle dependencies it hadn't seen yet (Astro's
+view-transition modules, a newly imported Base UI part). From then on the
+running server can 504 with "Outdated Optimize Dep" on every load, most
+visibly on the dev toolbar's script. Restart it once more *without* clearing
+the cache and it serves cleanly.
 
 **Beware browser dark-mode extensions when reviewing colour.** Dark Reader and
 similar rewrite every background with `!important`, including inline styles, so

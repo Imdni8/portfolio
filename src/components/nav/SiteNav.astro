@@ -412,6 +412,92 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		}
 	}
 
+	/* ---- Side projects on a phone: a bottom sheet -------------------------
+	   NavMenu.tsx renders both the dropdown and the sheet's trigger; which one
+	   shows is decided here, at the same 40rem the footer stacks at. The
+	   trigger wears `.nav-dropdown__trigger` too, so the two read as the
+	   same control.
+
+	   The sheet itself is portalled to the end of <body>, outside this
+	   component, so everything about it is :global(). Its surface, radius,
+	   slide and swipe come from ui/drawer.tsx; what is set here is the
+	   project's: the edge colour (the drawer's `border-t` has no colour of its
+	   own here — there is no base layer setting one — and would otherwise take
+	   the text's), the content, and a bottom inset that clears a phone's home
+	   indicator where the browser reports one. */
+	:global(.nav-sheet__trigger) {
+		display: none;
+	}
+
+	@media (max-width: 40rem) {
+		:global(.nav-dropdown) {
+			display: none;
+		}
+
+		:global(.nav-sheet__trigger) {
+			display: inline-flex;
+		}
+	}
+
+	:global(.nav-sheet) {
+		border-color: var(--border);
+		padding-block-end: calc(var(--spacing-xl) + env(safe-area-inset-bottom, 0px));
+	}
+
+	/* The drawer's header is a centred column by default; here it is a row,
+	   the title on the left and the close button on the right. */
+	:global(.nav-sheet__header) {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) var(--spacing-xl);
+		text-align: start;
+	}
+
+	:global(.nav-sheet__list) {
+		margin: 0;
+		padding: 0 var(--spacing-xl);
+		list-style: none;
+	}
+
+	/* A full-width row per project, at least 48px tall — a thumb-sized
+	   target. The press is an opacity dip on touch-down (100ms, --ease-out),
+	   the tap flash is off since that press replaces it, and
+	   `touch-action: manipulation` drops the double-tap wait so the link
+	   opens on the tap itself. */
+	:global(.nav-sheet__item) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-md);
+		min-block-size: var(--spacing-6xl);
+		padding-block: var(--spacing-lg);
+		border-block-end: 1px solid var(--border);
+		color: var(--text);
+		text-decoration: none;
+		-webkit-tap-highlight-color: transparent;
+		touch-action: manipulation;
+		transition: opacity 100ms var(--ease-out);
+	}
+
+	:global(.nav-sheet__list li:last-child .nav-sheet__item) {
+		border-block-end: none;
+	}
+
+	:global(.nav-sheet__item:active) {
+		opacity: 0.6;
+	}
+
+	:global(.nav-sheet__item:focus-visible) {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: -2px;
+	}
+
+	:global(.nav-sheet__item .icon) {
+		flex-shrink: 0;
+		color: var(--primary-text);
+	}
+
 	/* ---- Homepage: the nav arrives with the scroll ------------------------
 	   On the homepage, while the reel is running (the same query as
 	   home-reel.ts's REEL_QUERY), the nav is not there on the first screen:
