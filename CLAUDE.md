@@ -273,33 +273,69 @@ carries the measurements.
 ## Homepage
 
 `index.astro` is a headline and a reel, rebuilt from the Paper file's frames
-`1RC-0` (first screen) and `1I9-0` (the reel). Everything is driven by vertical
-scroll; there is no horizontal scrolling anywhere.
+`1RC-0` (first screen) and `1I9-0` (the reel). The page scrolls vertically; a
+trackpad's sideways swipe also steps through the cards.
 
 - **The structure.** `.reel` (`data-reel`) is a tall section whose height is
   `(1 + reelLength(n)) × 100svh`, from `reelLength()` in `home-reel.ts`, so the
   CSS and the script can't disagree about where the sequence ends. Inside it,
   `.reel__pin` is sticky and viewport-sized, and holds `HomeHero` plus an `<ol>`
-  of `WorkCard`s, all absolutely positioned. The script turns how far the section
-  has scrolled into where everything inside the pin should be:
-  - **intro** (`INTRO`, 1 viewport): the words fade, the T mark flies into the
-    nav, the nav fades in, and the cards rise 58svh into place behind the
-    mark, staggered from the centre outwards;
+  of `WorkCard`s, all absolutely positioned. The script decides where
+  everything inside the pin should be:
+  - **intro**: two states and a *played* transition, never anything in
+    between.
+    - State 1 is the first screen. State 2 has the headline gone, the T mark
+      in the nav, the nav in, and the first card centred.
+    - The transition (`INTRO_DURATION`, 1s) fades the words, flies the mark
+      into the nav, fades the nav in, and raises the cards 58svh behind the
+      mark, staggered from the centre outwards.
+    - The two states sit `INTRO` (1 viewport) apart in the scroll, so the
+      scroll position always says which one the page is in. Nothing is drawn
+      from positions in between;
   - **reel** (`STEP`, 0.9 per card): cards slide along a 10° diagonal, one
     position per step. Neighbours sit 0.6707 card-widths across and are 83% of
     the lit card's size, overlapping its edges as drawn;
   - **tail** (`TAIL`, 0.4): the last card holds, then the pin scrolls away and
     the footer follows.
 
-  All the tunables sit in one block at the top of `home-reel.ts`. A
-  rAF-driven scroll listener drives it, not ScrollTrigger (GSAP stays scoped
-  to the nav).
+  All the tunables sit in one block at the top of `home-reel.ts`. A single
+  rAF loop drives it, not ScrollTrigger (GSAP stays scoped to the nav).
   - The reel doesn't sit on the scroll position; it follows it through an
     exponential lag (`SMOOTHING`, a 90ms time constant). A wheel notch
     otherwise teleports the cards by 100px. The follower stops once it's
     within half a pixel, so an idle page runs no frames.
   - It snaps instead of gliding on the first frame, on resize, and on
     keyboard focus.
+- **How input moves between the states** (all in `home-reel.ts`):
+  - **Wheel/trackpad** (a non-passive `wheel` listener on the window):
+    - Any forward gesture on state 1, however small, plays the transition.
+      Any backward gesture on the first card plays it in reverse.
+    - The scroll jumps to that state's position at once, and the timeline
+      runs on the clock using the token curves (a JS `cubicBezier` that
+      mirrors `--ease-out`/`--ease-in-out`).
+    - The rest of that gesture, trackpad momentum included, is swallowed until
+      the wheel has been quiet for `GESTURE_IDLE` (200ms). An opposite-direction
+      event is a new gesture, so reversing mid-transition turns it around.
+    - Scrolling back through the reel **stops at the first card** instead of
+      carrying on into the intro. The next backward gesture plays the reverse.
+  - **Horizontal**: a gesture that mostly moves sideways counts as that axis.
+    Inside the reel it's converted to the scroll it stands for, at
+    `STEP·vh / (STEP_X·cardWidth)` so a card stays under the fingers, and
+    clamped to the first and last card. `html` gets `overscroll-behavior-x:
+    none` in reel mode so the swipe isn't also the browser's back gesture.
+  - **Touch** (reel-width touch screens): a swipe plays the intro the same
+    way. Moves in the intro's direction are `preventDefault`ed from the first
+    pixel, because Chrome won't let a touch be cancelled once it has started
+    scrolling.
+  - **Keys**: ArrowDown/PageDown/Space on state 1, and ArrowUp/PageUp/Shift+Space
+    on the first card, jump between the states *instantly* (keyboard actions
+    don't animate). Elsewhere keys scroll natively.
+  - **Anything else that moves the scroll** (scrollbar, Home/End,
+    find-in-page, a link back to the top, a restored position) is reconciled
+    in `tick`: a position between the states snaps to the other one, and a
+    position on a state takes that state.
+  - **Resize** keeps the page at the same place in the reel by rescaling the
+    scroll offset to the new viewport height.
 - **One media query gates the reel**, in `index.astro`, `SiteNav.astro` and as
   `REEL_QUERY`: `(min-width: 64rem) and (prefers-reduced-motion:
   no-preference) and (scripting: enabled)`. Move them together.
@@ -335,12 +371,12 @@ scroll; there is no horizontal scrolling anywhere.
   (so the entrance transform can't skew it) and aimed at the nav glyph's rect.
   It lands at the same size as the nav's own mark. There the page swaps: the
   hero mark hides and `--reel-brand` shows the nav's.
-  - The nav fades in over 20–50% of the intro, finishing exactly when the mark
-    lands, so the handoff doesn't dim.
-  - **The mark never overlaps a card.** It leads (`GLIDE` 0–50%, ease-out)
-    and the centre card follows (`RISE_DELAY` 12%, over `RISE_SPAN` 64%). The
-    narrowest gap on the way is the resting one, checked from 1024×768 to
-    1920×600.
+  - The nav fades in over 30–60% of the transition, finishing exactly when the
+    mark lands, so the handoff doesn't dim.
+  - **The mark never overlaps a card.** It leads (`GLIDE` 0–60%,
+    `--ease-in-out`) and the centre card follows (`RISE_DELAY` 20%, over
+    `RISE_SPAN` 60%, `--ease-out`). The narrowest gap during playback is the
+    resting one (≥125px at 1440×900), checked from 1024×768 to 1920×600.
   - `MARK_CLEARANCE` (24px) also holds any card that shares the mark's column
     under it while the mark is in the air, as a guard for untested viewport
     shapes. Retune those three together and re-check the gap.
@@ -363,9 +399,10 @@ scroll; there is no horizontal scrolling anywhere.
   - 0.6 is a contrast floor, kept deliberately above the reference's 0.3. Over
     the homepage ground (darkest to glow peak) it leaves titles at ≥7.1:1 and
     meta rows at ≥6.1:1; 0.3 would be 2.6:1.
-  - A focused card is never dimmed. Focusing a card scrolls the window to its
-    step, so Tab walks the reel. The scroll is instant, with the follower
-    snapped: Tab is a repeated keyboard action and shouldn't animate.
+  - A focused card is never dimmed. Focusing a card finishes the intro and
+    scrolls the window to its step, so Tab walks the reel. Both happen
+    instantly, with the follower snapped: Tab is a repeated keyboard action
+    and shouldn't animate.
   - Cards lift 2px on hover (gated to mouse and trackpad) and press to
     `scale: 0.98` on `:active` for every input. They're separate properties,
     so a press composes with the lift.

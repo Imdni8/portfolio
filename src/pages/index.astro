@@ -259,6 +259,12 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 	   matters, because a scroll container would let focus drag the cards
 	   sideways (see the script's focus handling). */
 	@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+		/* Sideways trackpad swipes step through the reel (home-reel.ts), so
+		   they must not also be read as the browser's back/forward swipe. */
+		html {
+			overscroll-behavior-x: none;
+		}
+
 		.reel {
 			block-size: calc((1 + var(--reel-length)) * 100svh);
 		}
