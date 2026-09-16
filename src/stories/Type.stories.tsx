@@ -13,7 +13,7 @@ const STYLES: Spec[] = [
 	{ token: 'type-reflection', role: 'Editorial heading — you, speaking', sample: 'Reflections', accent: true },
 	{ token: 'type-card-title', role: 'Work card title', sample: 'Made agent actions easier to follow' },
 	{ token: 'type-subtitle', role: 'Dek beneath the title', sample: 'Versioned agents can be validated and released in clinical trials safely because they can be rolled back.' },
-	{ token: 'type-wordmark', role: 'The name as a mark — footer', sample: 'Tousif Rahaman' },
+	{ token: 'type-wordmark', role: 'The name as a mark — not currently used (the footer sets its name in .type-nav-link)', sample: 'Tousif Rahaman' },
 	{ token: 'type-nav-link', role: 'Mono label — site nav, dropdown, chapter rail, Tabs', sample: 'Side projects' },
 	{ token: 'type-body', role: 'Running copy and hero facts', sample: "Agent Studio's canvas is where an AI builder assembles an agentic workflow, connects it to their organisation's data sources, and puts it to work without involving engineering." },
 	{ token: 'type-ui-label', role: 'Button and control labels', sample: 'View final design' },

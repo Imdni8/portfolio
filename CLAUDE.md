@@ -295,8 +295,11 @@ trackpad's sideways swipe also steps through the cards.
   - **reel** (`STEP`, 0.9 per card): cards slide along a 10° diagonal, one
     position per step. Neighbours sit 0.6707 card-widths across and are 83% of
     the lit card's size, overlapping its edges as drawn;
-  - **tail** (`TAIL`, 0.4): the last card holds, then the pin scrolls away and
-    the footer follows.
+  - **end**: the page ends on the last card (`TAIL` is 0). Where the screen
+    has room under the lit card, the footer is laid over the bottom of the
+    reel and rises into view as the last card arrives, so there's nothing
+    left to scroll. Where it doesn't, the footer stays in flow and scrolls in
+    after. See "The footer at the end" below.
 
   All the tunables sit in one block at the top of `home-reel.ts`. A single
   rAF loop drives it, not ScrollTrigger (GSAP stays scoped to the nav).
@@ -407,9 +410,31 @@ trackpad's sideways swipe also steps through the cards.
     `scale: 0.98` on `:active` for every input. They're separate properties,
     so a press composes with the lift.
   - Coming-soon cards aren't links, so Tab skips them.
+- **The footer at the end.** `index.astro` wraps `<Footer />` in
+  `.home-footer`, outside `<main>` so the `<footer>` keeps its contentinfo
+  role.
+  - `home-reel.ts`'s `measure()` checks whether the footer (115px) plus
+    `FOOTER_CLEARANCE` (24px) fits under the lit card. The reel may rise by up
+    to the lit card's distance from the nav minus `NAV_CLEARANCE` to make room.
+  - If it fits, the script sets `data-footer-overlay` on `<body>`. The wrapper
+    is then absolutely pinned to the body's bottom edge (the body is
+    `position: relative`, and its height is the reel's). Over the last
+    footer-height of scroll, the cards rise by just the missing amount, in
+    step with the footer.
+  - Measured: it fits at 1115×930, 1440×900, 1280×800, 1024×768 and 1728×1117,
+    with a gap of ≥24px everywhere. It doesn't fit at 1280×640 or 1920×600,
+    which scroll the footer in as before.
+  - The footer sits *under* the reel (`.home` is z-index 1), so a card
+    passing through covers it rather than footer text crossing a card. The
+    viewport-sized pin would then swallow the pointer over the footer (the
+    mascot's hover pose), so in reel mode
+    `.home` is `pointer-events: none` and only `.reel__slot` and the
+    headline's `.hero__visual` take the pointer back.
 - **The nav's scrim target is `.reel__scrim-line`**, placed at the lit card's
-  resting top edge. While the pin holds, nothing passes under the nav. Once the
-  pin scrolls away with the last card, that line is what meets the nav first.
+  resting top edge. While the pin holds, nothing passes under the nav. In
+  flow mode, once the pin scrolls away with the last card, that line is what
+  meets the nav first. In overlay mode the pin never scrolls away, so the
+  band never shows.
 - **The ground is `--home-ground`**, and `.home-ground` (fixed) holds the
   liquid-metal glow. See Liquid metal.
 - **What Frame 2 shows is mid-reel, not the opening.** The reference draws a
@@ -428,35 +453,28 @@ there too. `Analytics.astro` and `FontPreload.astro` are copied across the same
 three heads for the same reason — see Performance.
 
 Assets live in `src/assets/footer/`, imported via Vite's `?raw` suffix and
-rendered with `set:html` — the same pattern the homepage uses for its client
-logos, not through `src/components/ui/icons.ts` (that registry is scoped to
-Lucide UI glyphs plus one vendored exception, not one-off brand marks).
-`Instagram.svg`/`Github.svg`/`Linkedin.svg` were edited to `stroke="currentColor"`
-(originally a hardcoded `#1E1E1E`, invisible against the dark ground) so they
-can be styled — muted (`--text-muted`) at rest, full (`--text`) on hover/focus,
-same resting→hover contrast as `.nav__link`. The mascot mark is deliberately
-multi-colour and stays untouched.
+rendered with `set:html`, not through `src/components/ui/icons.ts` (that
+registry is scoped to Lucide UI glyphs plus one vendored exception, not
+one-off brand marks). The mascot mark is deliberately multi-colour and stays
+untouched. `Instagram.svg`, `Github.svg` and `Linkedin.svg` are still in the
+folder but nothing renders them any more (the social links were removed).
 
-The brand mark beside the name is the one asset the footer does *not* own — it
-imports `src/assets/nav/logo.svg`, the same file `SiteNav.astro` renders, so
-the mark at the bottom of the page cannot drift from the one at the top. Its
-`fill` is `currentColor`, coloured with `--brand-mark` in both places (not
-`--primary-text` — it is the logo). It is sized by height with `width: auto`,
-since the glyph is 21×40 and not square. It replaced an India flag, whose
-`India-circle.svg` is deleted.
+Structure, top to bottom: the mascot mark (at the right end, over the
+tagline), a full-width rule, then a row with the copyright line on the left
+and the tagline on the right. There are no social links and no brand mark:
+the footer holds no links at all, so the nav's mark is the only route home.
 
-It is an `<a href="/">`, not a span — the mark goes home from both ends of
-the page, matching `.nav__brand`. That makes it interactive, so it takes an
-`aria-label` (never `aria-hidden`, which would strip the accessible name off
-a focusable element) and a `:focus-visible` ring. Its hover is `opacity`, not
-a colour swap: `.site-footer__social` can go muted → full because it starts
-on the semantic layer, but this one starts on the amber ramp and has nowhere
-to move without leaving it.
-
-Structure, top to bottom: the mascot mark, a full-width rule, then a row —
-brand mark + name (left) · tagline (centre) · social links (right). The name
-wears `.type-wordmark` (DM Mono 300, 15/15, −3%) at full `--text` — the one
-light cut in the system.
+- **The copyright line** is `<p class="type-nav-link">© Tousif Rahaman</p>`,
+  in the same 12px uppercase mono label the nav links use. The © is text, not
+  an icon, so it's read aloud as "copyright". (`.type-wordmark`, the
+  DM Mono 300 cut it used to wear, is now used only by its Storybook
+  specimen.)
+  - It's `--text` at `opacity: var(--footer-name-opacity)` (0.5): the
+    wordmark's own colour receding behind the tagline.
+  - Measured: 5.2:1 on the homepage's ground and 4.9:1 on a case study's
+    `--bg`, both clear of AA for 12px text. Don't take it lower.
+  - The about page's water field can brighten the ground past that. The page
+    is parked, so re-check it when re-linking.
 
 - **`position: relative` on `.site-footer` is load-bearing, not decorative.**
   On `index.astro` (`.home-ground`, the liquid-metal glow) and `about.astro`
@@ -469,21 +487,23 @@ light cut in the system.
   spec; it doesn't land on `--spacing-7xl` (64px) or `--spacing-8xl` (80px).
 - **The mascot mark** is sized with `aspect-ratio: 123 / 96` (the source
   viewBox) rather than a fixed width, so the rest and hover poses can share
-  one box at identical scale. `transform: translate(124px, 12px)` on
-  `.site-footer__brand` does two independent things — worth knowing if either
-  needs retuning:
+  one box at identical scale. It's `align-self: flex-end`, and
+  `transform: translate(-6px, 12px)` on `.site-footer__brand` does two
+  independent things — worth knowing if either needs retuning:
   - **Y (12px)** drops the torso rectangle's own bottom edge (y=78 of the
     96-tall viewBox) onto the rule, so the mark reads as standing on it with
     its legs dangling past the line — not the whole viewBox's empty bottom
     margin floating above it.
-  - **X (124px)** shifts the mark right so it sits above the word "together"
-    in the tagline below, instead of centred on the row — the brand box's
-    centre on the word's centre. It's a fixed pixel value tuned against the
-    tagline's measured position at the design's reference desktop width (`--measure-page`, 1470px); it will drift
-    slightly at narrower-than-full-bleed desktop widths, before the row
-    collapses to a stacked column at the 40rem breakpoint, where the
-    alignment intent no longer applies anyway. It moves whenever the
-    tagline's type does: it was 132px against the old 14px Plex Mono.
+  - **X (−6px)** moves the right-aligned box so its centre sits on the centre
+    of "together", the tagline's last word. Because both are right-aligned,
+    it doesn't drift with width. Re-measure if the tagline's type or the
+    row's `--spacing-xl` inset changes. Below 40rem the tagline is hidden,
+    the copyright line centres on its own, and so does the mascot (X is 0
+    there).
+- **Spacing**: the row sits `--spacing-xl` under the rule and `--spacing-xl`
+  above the footer's bottom edge, and is inset `--spacing-xl` from the rule's
+  ends (`.site-footer__meta`, border-box pinned). The footer is 115px tall;
+  the homepage reel measures it rather than assuming it.
 - **Hover animation**: `Tousif&clawd-hover.svg` (arms and legs raised) sits
   absolutely-positioned directly on top of the resting `Tousif&clawd.svg`,
   both sharing the same 123×96 viewBox so they line up without any extra
@@ -493,9 +513,9 @@ light cut in the system.
   blurs by 2px as it fades, which blends the two sets of arms into one
   movement instead of a double exposure. The hover is gated to
   `(hover: hover) and (pointer: fine)` so a tap on touch doesn't leave the
-  arms up, and guarded by `prefers-reduced-motion`, same as
-  `.site-footer__social`'s hover transition.
-- **The tagline** ("Designed *solo* · Developed *together*") reuses
+  arms up, and guarded by `prefers-reduced-motion`.
+- **The tagline** ("Designed *solo* · Developed *together*") is set at the
+  row's end (`text-align: end`) and hidden below 40rem. It reuses
   `.type-meta` with a local `color: var(--primary-text)` override — the
   shared style itself carries no colour, since its other use (the toast
   message) sits on a different ground. The italic on "solo"/"together" needs

@@ -1,12 +1,6 @@
 ---
 import mascotMark from '../../assets/footer/Tousif&clawd.svg?raw';
 import mascotHoverMark from '../../assets/footer/Tousif&clawd-hover.svg?raw';
-import logoMark from '../../assets/nav/logo.svg?raw';
-import instagramIcon from '../../assets/footer/Instagram.svg?raw';
-import githubIcon from '../../assets/footer/Github.svg?raw';
-import linkedinIcon from '../../assets/footer/Linkedin.svg?raw';
-
-import { links } from '../../data/links';
 
 interface Props {
 	/* Which page cap to line up with. The footer is chrome shared by hosts
@@ -18,12 +12,6 @@ interface Props {
 }
 
 const { measure = 'content' } = Astro.props;
-
-const socials = [
-	{ name: 'Instagram', href: links.instagram, svg: instagramIcon },
-	{ name: 'GitHub', href: links.github, svg: githubIcon },
-	{ name: 'LinkedIn', href: links.linkedin, svg: linkedinIcon },
-];
 ---
 
 <footer class="site-footer" data-measure={measure}>
@@ -36,28 +24,12 @@ const socials = [
 		<hr class="site-footer__rule" />
 
 		<div class="site-footer__meta">
-			<div class="site-footer__identity">
-				<a class="site-footer__mark" href="/" aria-label="Home" set:html={logoMark} />
-				<span class="type-wordmark site-footer__name">Tousif Rahaman</span>
-			</div>
+			{/* The © is text, not a glyph from the icon registry: it is part of
+			    the notice, set in the same mono label rung as the nav's links,
+			    and read aloud as "copyright". */}
+			<p class="type-nav-link site-footer__name">© Tousif Rahaman</p>
 
 			<p class="type-meta site-footer__tagline">Designed <em>solo</em> · Developed <em>together</em></p>
-
-			<div class="site-footer__socials">
-				{
-					socials.map(({ name, href, svg }) => (
-						<a
-							class="site-footer__social"
-							href={href}
-							data-social={name}
-							target="_blank"
-							rel="noopener noreferrer"
-							aria-label={name}
-							set:html={svg}
-						/>
-					))
-				}
-			</div>
 		</div>
 	</div>
 </footer>
@@ -106,7 +78,7 @@ const socials = [
 		max-width: calc(var(--measure-content) + 2 * var(--gutter));
 		margin-inline: auto;
 		padding-inline: var(--gutter);
-		padding-block-end: var(--spacing-3xl);
+		padding-block-end: var(--spacing-xl);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -132,14 +104,13 @@ const socials = [
 		   the whole mark is nudged down by that much rather than trimming
 		   the source file (which would clip the swoosh tail — it dips close
 		   to the same bottom edge).
-		   X: shifted right so the mark sits above "together" in the tagline
-		   below, rather than centered on the row — tuned against the
-		   tagline's measured position at the design's reference desktop
-		   width, same as the Y nudge above: the box's centre on the centre
-		   of "together". Re-measure if the tagline's type changes — it was
-		   132px against the old 14px mono, and the 12px DM Mono label rung
-		   pulled the word 8px left. */
-		transform: translate(124px, 12px);
+		   X: the mark stands over the tagline, which is set at the row's right
+		   end, so the box is aligned to that end and then nudged so its
+		   centre sits on the centre of "together" — the last word, and the
+		   one the mascot is doing. Measured, not derived: re-measure if the
+		   tagline's type or the row's inset changes. */
+		align-self: flex-end;
+		transform: translate(-6px, 12px);
 	}
 
 	/* The pose swap is a crossfade between two drawings of the same figure,
@@ -192,136 +163,69 @@ const socials = [
 		/* No top margin: the mascot's own artwork already runs close to its
 		   viewBox's bottom edge, so butting the rule straight up against it
 		   reads as the mascot standing on the line, not floating above it. */
-		margin: 0 0 var(--spacing-3xl);
+		margin: 0 0 var(--spacing-xl);
 		border: none;
 		border-block-start: 1px solid var(--border);
 	}
 
+	/* The row sits --spacing-xl under the rule and --spacing-xl above the
+	   footer's bottom edge, and is inset --spacing-xl from the rule's ends,
+	   so the text reads as sitting inside the line rather than hanging off
+	   its tips. Border-box pinned: the hosts disagree about the reset, and
+	   `width: 100%` plus padding would otherwise overhang on the homepage. */
 	.site-footer__meta {
+		box-sizing: border-box;
 		width: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--spacing-3xl);
+		padding-inline: var(--spacing-xl);
 	}
 
-	.site-footer__identity {
-		flex-shrink: 0;
-		display: inline-flex;
-		align-items: center;
-		gap: var(--spacing-md);
-	}
+	/* The copyright line, in the nav links' type (`.type-nav-link` — the
+	   12px uppercase mono label), set back behind the tagline: --text at
+	   half strength. An opacity rather than a step down the ramp, because it
+	   is the line's own colour receding, not a different one.
 
-	.site-footer__mark {
-		flex-shrink: 0;
-		display: inline-flex;
-		/* The mark's fill is currentColor, so the colour is named here rather
-		   than baked into the path — same token the nav brand uses, since it
-		   is the same mark doing the same job at the other end of the page.
-		   Not --primary/--primary-text: this is the logo. */
-		color: var(--brand-mark);
-		text-decoration: none;
-		transition: opacity 0.15s ease;
-	}
-
-	/* The mark is the one link in the footer that carries brand colour, so it
-	   cannot signal hover the way `.site-footer__social` does (muted → full)
-	   without leaving the ramp. Opacity keeps the hue and still reads as an
-	   affordance in greyscale. */
-	.site-footer__mark:hover {
-		opacity: 0.7;
-	}
-
-	.site-footer__mark:focus-visible {
-		opacity: 1;
-		outline: 2px solid var(--focus-ring);
-		outline-offset: 2px;
-		border-radius: var(--radius-xs);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.site-footer__mark {
-			transition-duration: 0.01ms;
-		}
-	}
-
-	/* :global(): the <svg> arrives via set:html, so it carries no scope
-	   attribute for an unqualified `svg` to match. Height-driven with
-	   `width: auto` — the mark is 21x40, so pinning both axes to the square
-	   the flag used to occupy would squash it. */
-	.site-footer__mark :global(svg) {
-		display: block;
-		height: 1.5rem;
-		width: auto;
-	}
-
-	/* --text, not --text-muted: this is the wordmark, and a mark is set at
-	   full strength beside the glyph it names. */
+	   Half is still legible, and measured: over the homepage's ground it
+	   leaves the line at 5.2:1, over a case study's --bg at 4.9:1 — both
+	   clear of AA for 12px text. Don't take it lower. The about page's water
+	   field can brighten the ground behind it past that; the page is parked
+	   and unlinked, so this is a note for whoever re-links it. */
 	.site-footer__name {
+		--footer-name-opacity: 0.5;
+		flex-shrink: 0;
 		color: var(--text);
+		opacity: var(--footer-name-opacity);
 		white-space: nowrap;
 	}
 
-
 	.site-footer__tagline {
 		color: var(--primary-text);
-		text-align: center;
+		text-align: end;
 	}
 
 	.site-footer__tagline em {
 		font-style: italic;
 	}
 
-	.site-footer__socials {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xl);
-	}
-
-	.site-footer__social {
-		display: inline-flex;
-		color: var(--text-muted);
-		text-decoration: none;
-		transition: color 0.15s ease;
-	}
-
-	.site-footer__social:hover {
-		color: var(--text);
-	}
-
-	.site-footer__social:focus-visible {
-		color: var(--text);
-		outline: 2px solid var(--focus-ring);
-		outline-offset: 2px;
-		border-radius: var(--radius-xs);
-	}
-
-	.site-footer__social :global(svg) {
-		display: block;
-		width: 1.25rem;
-		height: 1.25rem;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.site-footer__social {
-			transition-duration: 0.01ms;
-		}
-	}
-
+	/* Narrow: the tagline is dropped and the copyright line stands alone,
+	   centred, with the mascot centred over it. The X nudge exists to park
+	   the mark over the tagline's last word; with no tagline there is
+	   nothing to park it over. The Y nudge stays: the mark still stands on
+	   the rule. */
 	@media (max-width: 40rem) {
 		.site-footer__meta {
-			flex-direction: column;
-			gap: var(--spacing-xl);
+			justify-content: center;
 		}
 
-		/* The X shift exists to park the mark over one word of a three-part
-		   row; the row is a stacked column here, so there is nothing to park
-		   it over. Left in place it pushed the mark hard against the right
-		   edge — and off the page below ~346px, where a transform still
-		   counts toward scrollable overflow. The Y nudge stays: the mark
-		   still stands on the rule. */
+		.site-footer__tagline {
+			display: none;
+		}
+
 		.site-footer__brand {
+			align-self: center;
 			transform: translate(0, 12px);
 		}
 	}

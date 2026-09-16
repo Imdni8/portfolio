@@ -18,8 +18,11 @@
  *   reel    (STEP per card) — the cards slide along a diagonal, one position
  *             per STEP of scroll, and the one at the centre is lit. Driven by
  *             the scroll position, vertical or — on a trackpad — horizontal.
- *   tail    (TAIL) — the last card holds, then the pin's section ends, the
- *             pin scrolls away with it, and the footer follows in normal flow.
+ *   end     — the page ends on the last card. Where the screen has room
+ *             under it, the footer is laid over the bottom of the reel
+ *             (`data-footer-overlay` on the body) and rises into view as the
+ *             last card arrives, so there is nothing further to scroll. Where
+ *             it has not, the footer stays in flow and scrolls in after.
  *
  * A plain rAF loop, like chapter-nav.ts, work-spotlight.ts and the nav's
  * scrim — not GSAP's ScrollTrigger, which is scoped to the nav's hover
@@ -47,8 +50,9 @@ export const REEL_QUERY =
 const INTRO = 1;
 /** Scroll spent moving one card along. */
 const STEP = 0.9;
-/** Scroll the last card holds for before the page moves on. */
-const TAIL = 0.4;
+/** Scroll the last card holds for before the page moves on. None: the
+ *  footer arrives with the last card instead (see `end` above). */
+const TAIL = 0;
 
 /** Total scroll the pinned section takes, in viewport heights. index.astro
  *  sets the section's height from this, so the two cannot drift. */
@@ -91,6 +95,12 @@ const RISE_STAGGER_STEPS = 2;
  *  1920×600 — so this is a guard for viewport shapes the timings were not
  *  checked against, not the thing keeping them apart. */
 const MARK_CLEARANCE = 24;
+
+/** The gap kept between the lit card and the footer laid over the reel, and
+ *  between the lit card and the nav when the reel lifts to make that gap —
+ *  --spacing-3xl, in px. */
+const FOOTER_CLEARANCE = 24;
+const NAV_CLEARANCE = 24;
 
 /* The diagonal. In the reference the neighbours' centres sit ~825px across
    from the lit card's at a 1230px card width, and ~10° down to the right
@@ -182,6 +192,7 @@ function startReel(reel: HTMLElement): () => void {
 	const shell = document.querySelector<HTMLElement>('.nav-shell');
 	const brand = shell?.querySelector<HTMLElement>('.nav__brand') ?? null;
 	const brandGlyph = brand?.querySelector<SVGElement>('svg') ?? null;
+	const footer = document.querySelector<HTMLElement>('.site-footer');
 
 	if (!pin || slots.length === 0) return () => {};
 
@@ -194,6 +205,8 @@ function startReel(reel: HTMLElement): () => void {
 	let cardCentreY = 0; // the lit card's centre, in the pin
 	let markBox = { x: 0, y: 0, w: 0, h: 0 }; // the mark at rest, in the pin
 	let glide = { dx: 0, dy: 0, scale: 1 };
+	let footerHeight = 0;
+	let footerLift = 0; // how far the reel rises to clear the footer, in px
 
 	const measure = () => {
 		top = reel.getBoundingClientRect().top + window.scrollY;
@@ -204,6 +217,20 @@ function startReel(reel: HTMLElement): () => void {
 		/* The slot's `top` is its centre line — `translate: -50% -50%` does
 		   the centring, and offsetTop ignores it. */
 		cardCentreY = slots[0].offsetTop;
+
+		/* Whether the footer fits under the lit card. It needs its own height
+		   plus FOOTER_CLEARANCE below the card; the reel may rise to make that
+		   room, but not so far that the card meets the nav. If it cannot fit,
+		   the footer stays in flow. */
+		footerHeight = footer?.offsetHeight ?? 0;
+		const cardTop = cardCentreY - cardHeight / 2;
+		const cardBottom = cardCentreY + cardHeight / 2;
+		const navBottom = shell?.getBoundingClientRect().bottom ?? 0;
+		const needed = Math.max(0, footerHeight + FOOTER_CLEARANCE - (vh - cardBottom));
+		const available = cardTop - (navBottom + NAV_CLEARANCE);
+		const overlay = footer !== null && needed <= available;
+		footerLift = overlay ? needed : 0;
+		document.body.toggleAttribute('data-footer-overlay', overlay);
 
 		/* The mark's resting box, inside the pin, against the nav glyph's box
 		   in the viewport. While the reel is running the pin is stuck at the
@@ -278,6 +305,11 @@ function startReel(reel: HTMLElement): () => void {
 		const markRight = markLeft + markBox.w * markScale;
 		const markBottom = markBox.y + glide.dy * flight + markBox.h * markScale;
 
+		/* The rise that clears the footer, in step with the footer coming up:
+		   it enters over the last `footerHeight` of scroll before the end. */
+		const footerIn = footerLift > 0 ? clamp01((position * vh - (lastCardAt() - footerHeight)) / footerHeight) : 0;
+		const lift = footerLift * footerIn;
+
 		/* The cards. */
 		const stepX = cardWidth * STEP_X;
 		const stepY = stepX * Math.tan(ANGLE);
@@ -290,7 +322,7 @@ function startReel(reel: HTMLElement): () => void {
 			const riseStart = RISE_DELAY + Math.min(Math.max(d, 0), RISE_STAGGER_STEPS) * RISE_STAGGER;
 			const risen = easeOut(clamp01((p - riseStart) / RISE_SPAN));
 			const x = d * stepX;
-			let y = d * stepY + (1 - risen) * RISE * vh;
+			let y = d * stepY + (1 - risen) * RISE * vh - lift;
 
 			/* Never over the mark while it is in the air: a card that shares
 			   its column is held under it. */
@@ -639,6 +671,7 @@ function startReel(reel: HTMLElement): () => void {
 		brand?.style.removeProperty('--reel-brand');
 		shell?.style.removeProperty('--reel-nav');
 		shell?.removeAttribute('data-reel-hidden');
+		document.body.removeAttribute('data-footer-overlay');
 		for (const slot of slots) {
 			slot.style.removeProperty('transform');
 			slot.style.removeProperty('z-index');

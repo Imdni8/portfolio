@@ -141,7 +141,13 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 				</div>
 			</section>
 		</main>
-		<Footer />
+		{/* A wrapper, not the footer itself, so the reel can lay it over its
+		    own bottom edge (see `.home-footer`) without Footer.astro knowing.
+		    Outside <main> either way, so the <footer> keeps its contentinfo
+		    role. */}
+		<div class="home-footer">
+			<Footer />
+		</div>
 	</body>
 </html>
 
@@ -188,6 +194,12 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		inset: 0;
 		isolation: isolate;
 		background: var(--home-ground);
+	}
+
+	/* The positioning context for `.home-footer` when it is laid over the
+	   reel — the page's own height, which the reel's section sets. */
+	body {
+		position: relative;
 	}
 
 	/* `position: relative` plus a `z-index` is load-bearing: `.home-ground` is
@@ -295,6 +307,33 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 			z-index: 0;
 			display: block;
 			padding: 0;
+		}
+
+		/* The page ends on the last card, and where the screen has room under
+		   it (home-reel.ts decides, and sets `data-footer-overlay`), the footer
+		   is laid over the bottom of the reel rather than after it — so it
+		   rises into view as the last card arrives and there is nothing left to
+		   scroll. Pinned to the bottom of the body, whose height is the reel's.
+
+		   It sits under the reel (`.home` is at z-index 1), so a card passing
+		   through covers it rather than the footer's text crossing the card.
+		   That puts the whole viewport-sized pin above the footer, so the reel
+		   stops taking the pointer and only the cards and the headline take it
+		   back; otherwise the footer's mascot would never see the pointer, and
+		   its hover pose would never play. */
+		:global(body[data-footer-overlay]) .home-footer {
+			position: absolute;
+			inset-inline: 0;
+			inset-block-end: 0;
+		}
+
+		.home {
+			pointer-events: none;
+		}
+
+		.reel__slot,
+		.reel__hero :global(.hero__visual) {
+			pointer-events: auto;
 		}
 
 		/* The lit card's resting top edge — the slot rule below, solved for

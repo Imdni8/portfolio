@@ -353,12 +353,6 @@ export function initInteractionTracking(): void {
 			trackNow('Opened Resume');
 			return;
 		}
-
-		const social = target.closest<HTMLAnchorElement>('.site-footer__social');
-		if (social) {
-			trackNow('Visited Social Link', { network: social.dataset.social });
-			return;
-		}
 	});
 
 	/* `pointerenter` does not bubble, so delegation has to use `pointerover`
