@@ -69,7 +69,7 @@ const socials = [
 	   tokens.css. */
 	.site-footer {
 		/* `position: relative` (not the default static) promotes this into
-		   the same paint step as `.hero`/`.work` on the homepage — the
+		   the same paint step as `.home` on the homepage — the
 		   homepage and about page both have a `position: fixed` water-field
 		   background with z-index:auto, which paints *after* (on top of)
 		   static in-flow content per the CSS stacking spec, regardless of
@@ -84,9 +84,8 @@ const socials = [
 		   It is a top-up on the trailing space each host reserves, not the
 		   whole gap, so it only reads the same on every page while those
 		   agree: about's --spacing-9xl and a case study's reflection padding
-		   are both 96px. index was carrying 152px (128px of its own plus the
-		   cards' 24px) and sat 56px lower than the other two as a result —
-		   see the note on `.work`'s padding-block-end in index.astro. */
+		   are both 96px, and so is index's — see the note on `.home`'s
+		   padding-block-end in index.astro. */
 		margin-block-start: 75px;
 	}
 

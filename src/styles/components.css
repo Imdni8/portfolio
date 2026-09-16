@@ -11,14 +11,14 @@
    ============================================================================ */
 
 /* ---- Glass -----------------------------------------------------------------
-   A material, not a component: the pane the work cards and the about page's
-   stats panel are cut from, so they read as one surface treatment. The nav
-   wore this too until it dropped the material entirely for a plain text
+   A material, not a component: the pane the about page's stats panel is cut
+   from. The work cards wore it until they became solid panels (WorkCard.astro),
+   and the nav wore it until it dropped the material entirely for a plain text
    treatment (SiteNav.astro) — along with the scroll-triggered heavier tint
    it used to swap in as pale covers scrolled underneath it
    (`--glass-tint-scroll`, `nav-tint.ts`, both now gone). Whatever wears
-   `.glass` needs something painted behind it to bend — on the homepage that
-   is the fixed water field.
+   `.glass` needs something painted behind it to bend — on the about page
+   that is the fixed water field.
 
    It brings its own border and radius, since the edge is part of the material:
    a rim, not a line drawn round a fill. Every value below reads a token
@@ -358,9 +358,10 @@
 
 /* ---- Tag -------------------------------------------------------------------
    A label, not a control: nothing here is clickable, focusable or stateful.
-   It rides on top of a cover image rather than on the page ground, which is
-   what decides most of the rest — it needs an opaque fill and its own border
-   to stay legible over whatever is behind it.
+   It sits on something other than the bare page ground — a work card's text
+   panel today, a cover image when it was first drawn — which is what decides
+   most of the rest: it needs an opaque fill and its own border to stay
+   legible over whatever is behind it.
 
    Declares its own type off the tokens, the same way .btn does, rather than
    naming a .type-* class. The 12px rung has no class, and this is a component
@@ -403,8 +404,8 @@
    travelling around the chip is the convention for an AI surface, and the
    amber/grey palette has nothing that says it — hence --ai-spectrum-*, whose
    comment in tokens.css is the whole justification for those four hues
-   existing. Like .tag--coming-soon it is bound to primitives and identical in
-   both themes, because the image is its ground, not the page.
+   existing. The ring is bound to primitives and identical in both themes:
+   it is decoration, not a surface anything is read against.
 
    Painted as two stacked backgrounds clipped to different boxes — a gradient
    cannot be a border-color — the same technique the Bolt prototype's running

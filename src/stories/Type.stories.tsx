@@ -8,12 +8,14 @@ const STYLES: Spec[] = [
 	{ token: 'type-title', role: 'Case-study page title', sample: 'Introduce Agent Versioning and lifecycle management' },
 	{ token: 'type-heading', role: 'Section headline — states a finding', sample: 'There was no way to validate the changes made to an agent' },
 	{ token: 'type-reflection', role: 'Editorial heading — you, speaking', sample: 'Reflections', accent: true },
+	{ token: 'type-card-title', role: 'Work card title', sample: 'Made agent actions easier to follow' },
 	{ token: 'type-subtitle', role: 'Dek beneath the title', sample: 'Versioned agents can be validated and released in clinical trials safely because they can be rolled back.' },
 	{ token: 'type-nav-link', role: 'Tab list — site nav, chapter rail, Tabs', sample: 'Framing' },
 	{ token: 'type-body', role: 'Running copy and hero facts', sample: "Agent Studio's canvas is where an AI builder assembles an agentic workflow, connects it to their organisation's data sources, and puts it to work without involving engineering." },
 	{ token: 'type-ui-label', role: 'Button and control labels', sample: 'View final design' },
+	{ token: 'type-card-meta', role: 'Work card meta rows — industry and year', sample: 'Clinical trials' },
 	{ token: 'type-annotation', role: 'Figure captions, note and tooltip copy', sample: 'Because conducting user tests with end users can take significantly longer to set up, I validated these concepts with 5 internal users who use the product daily.' },
-	{ token: 'type-meta', role: 'Work card meta — industry, technology and year', sample: 'Clinical trials · Figma · 2026' },
+	{ token: 'type-meta', role: 'Mono metadata — footer name and tagline, toast message', sample: 'Designed solo · Developed together' },
 	{ token: 'type-overline', role: 'Eyebrow and note title — always uppercase', sample: 'Who are AI builders?' },
 ];
 

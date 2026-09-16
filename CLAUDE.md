@@ -58,7 +58,8 @@ Built so far: `Button` (primary / secondary / tertiary), `Tabs`, `Note`, `Icon`,
 `IconButton` (icon-only counterpart to `Button` — same three variants, plus
 `sm`/`md`/`lg` sizing), `Tag` (a non-interactive label — `default` variant
 reads the semantic layer, `coming-soon` and `ai` are bound to primitives
-instead, since they ride on a cover image, not the page ground).
+instead — `coming-soon` because it is written for a cover image rather than the
+page ground, `ai` because its ring is decoration; see below).
 
 **`--ai-spectrum-1…4` is the one sanctioned exception to the two-hue palette**,
 and it exists for a single component: the `ai` tag variant's border, a conic
@@ -76,10 +77,12 @@ would jump rather than interpolate — the same reason `Solution.astro` register
 its mask stop.
 
 **Glass** (`.glass` in `components.css`) is a material, not a component — the
-backdrop-filter pane the nav and work cards are both cut from, so they read as
-one surface split across the page. Anything wearing it needs `<GlassDefs />`
-rendered once on the page (it defines the SVG refraction filter `.glass`
-references) and something painted behind it to bend.
+backdrop-filter pane the about page's stats panel is cut from. The nav and the
+work cards both used to wear it; neither does now (the cards are solid `--bg`
+panels), so `about.astro` is the only page that renders `<GlassDefs />`.
+Anything wearing it needs `<GlassDefs />` rendered once on the page (it defines
+the SVG refraction filter `.glass` references) and something painted behind it
+to bend.
 
 **Icons** come from `src/components/ui/icons.ts`, sourced unmodified from
 Lucide (`lucide-static`, one 24×24 grid, one 2px stroke weight) rather than
@@ -223,6 +226,34 @@ homepage's card grid silently drifted 60px right of the nav and the footer's own
 rule before this was caught. `Footer.astro`'s `.site-footer__inner` comment
 carries the measurements.
 
+## Homepage
+
+`index.astro` is one frame, `.home`, wearing the formula above and split
+`minmax(0, 1fr) minmax(0, 2fr)` — the intro (`.hero`: headline, typed role line,
+client logos) on the left third, "Selected works" and a single-column stack of
+`WorkCard`s on the right two. At the cap that is a 376px intro and 784px cards.
+
+- **The intro is `position: sticky`**, with a `top` equal to `.home`'s own top
+  clearance, so it sits still from the first frame and the cards scroll past
+  it. Under 64rem the frame collapses to one column and the intro goes back in
+  flow.
+- **`.home` is the nav's `data-nav-scrim` target, which is why its top
+  clearance is a `margin`, not padding.** The nav reads the target's top edge
+  as "where the content starts"; with padding that edge is the top of the page
+  and the band is on before anything has scrolled. The sticky intro cannot be
+  the target either — it never scrolls up under the nav.
+- **`WorkCard`** is a solid `--bg` panel at the card spec's 800×446 ratio:
+  text on the left third (tags, `.type-card-title`, a half-strength
+  `--border-strong` rule,
+  then industry and year as `.type-card-meta` rows), cover on the right two.
+  The cover is sized off the panel's height at 16:10, so it is always wider
+  than the panel and runs off the right edge, where the card's `overflow: clip`
+  and radius finish it. The ratio is a preferred height — a long title makes
+  its card taller instead of overflowing, which `philips-MVC` does at full
+  width. The card is its own query container (the inner grid is what
+  switches, since a container can't restyle itself): under 40rem of card width
+  it stacks, cover on top.
+
 ## Footer
 
 `src/components/footer/Footer.astro` is global chrome, not a `ui/` design-system
@@ -268,7 +299,7 @@ brand mark + name (left) · tagline (centre) · social links (right).
   background (`position: fixed`, `z-index: auto`) paints *after* static
   in-flow content per the CSS stacking spec, regardless of DOM order — so
   without this the footer lays out correctly but is invisible, hidden under
-  that layer. Same fix `.hero`/`.work` already use for the same reason.
+  that layer. Same fix `.home` already uses for the same reason.
 - **`margin-block-start: 75px` is a literal, not a token** — deliberate, per
   spec; it doesn't land on `--spacing-7xl` (64px) or `--spacing-8xl` (80px).
 - **The mascot mark** is sized with `aspect-ratio: 123 / 96` (the source
@@ -317,14 +348,15 @@ of a fully published entry.
 **Schema** (`src/content.config.ts`) splits into two groups:
 
 - **Card metadata — required on every entry, whatever its `status`:** `title`,
-  `industry`, `technology` (one primary tool/stack label), `year` — these
-  three render together, in that order, as the card's meta line, e.g.
-  "Clinical trials · Figma · 2026". `thumbnail` (`{ src, alt }`, the card's
+  `industry`, `technology` (one primary tool/stack label), `year` — the card
+  shows `industry` and `year` as two icon rows under its title; `technology`
+  is still required and recorded, but is not currently rendered anywhere.
+  `thumbnail` (`{ src, alt }`, the card's
   cover image), `order` (sort key — leave gaps of 10, e.g. 10/20/30, so a new
   card can be inserted without renumbering the rest). `roles` is metadata too
   — max 2 entries, each `{ kind: 'design-type' | 'code', label }` — what kind
-  of work it was, rendered as icon `Tag` chips overlapping the cover, on every
-  status including `coming-soon` (over its "Coming soon" scrim). `kind` picks
+  of work it was, rendered as icon `Tag` chips at the top of the card's text
+  panel, on every status including `coming-soon`. `kind` picks
   the icon (`design-type` → Figma mark, `code` → angle brackets); `label` is
   free text, so a new design-type value (e.g. "Design concepts") is a
   content-only edit. Every entry needs a `design-type` role (enforced by the
@@ -648,9 +680,10 @@ Four things on the critical path are deliberate and easy to undo by accident.
 - **Above-the-fold images have to opt out of lazy loading.** Astro's image
   service defaults every `<Image>` to `loading="lazy"`, which is wrong for
   exactly the images that are the LCP candidate. `WorkCard` takes a `priority`
-  prop (`index.astro` passes it to the first two cards — the grid is two
-  columns at most, so those are the only ones that can be in the initial
-  viewport), `CaseStudyHero`'s `heroShot` sets it directly, and
+  prop (`index.astro` passes it to the first two cards — the list is one
+  column, but a card is ~440px tall at full width, so the second one's cover
+  is already on screen at common desktop heights), `CaseStudyHero`'s
+  `heroShot` sets it directly, and
   `BeforeAfter`'s two shots carry `fetchPriority="high"`.
 - **`FontPreload.astro` is global chrome, like `Footer` and `Analytics`.**
   There is no shared root layout, so it is rendered in `index.astro`,
@@ -675,13 +708,13 @@ Two things that look like wins and are not, so they don't get "fixed" later:
 - **The water field's `IntersectionObserver` cannot report `false` on this
   site**, because `.water-field` sits inside a `position: fixed; inset: 0`
   parent and always covers the viewport. That is not a bug to repair — the
-  field is meant to be visible the whole way down (`.hero` and `.work` carry
-  no background), so there is nothing to pause, and an IO cannot detect
+  field is meant to be visible the whole way down (`.home` carries no
+  background), so there is nothing to pause, and an IO cannot detect
   occlusion anyway. It earns its place for the unpositioned uses (the
   Storybook stories), which is also why `onScroll` still re-reads the rect —
   rAF-batched, since scrolling genuinely cannot move it here.
-- **The `.glass` cards repaint with the field behind them.** That is what the
-  material is; the cost is the design, not a defect.
+- **The about page's `.glass` panel repaints with the field behind it.** That
+  is what the material is; the cost is the design, not a defect.
 
 ## Stack
 

@@ -7,7 +7,6 @@ import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
 import WaterField from '../components/ui/WaterField.astro';
-import GlassDefs from '../components/ui/GlassDefs.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import WorkCard from '../components/work/WorkCard.astro';
 import Footer from '../components/footer/Footer.astro';
@@ -98,53 +97,48 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		{import.meta.env.DEV && <DevOutline />}
 	</head>
 	<body>
-		{/* Both the nav and the work cards wear `.glass`; the filter it bends
-		    the field with is defined once, here. */}
-		<GlassDefs />
 		<div class="site-field">
 			<WaterField grid={72} />
 		</div>
 		<SiteNav />
-		<main>
+		{/* data-nav-scrim: what the nav watches to know when to fade its
+		    background in. The whole two-column frame, not the intro inside it:
+		    on desktop the intro is sticky and never scrolls up under the nav,
+		    so it can't be the signal — the top of the frame is where the cards
+		    start moving, and on a narrow screen, where the intro is back in
+		    flow, it is where the intro starts. Either way it is the first
+		    thing that can run through the links. Its clearance is a margin for
+		    this reason; see `.home`.
+		    about.astro marks its own content column (`.about__frame`) for the
+		    same reason. The ramp clamps at 1 once the frame's top has passed,
+		    and the band stays on for the rest of the page. See SiteNav.astro. */}
+		<main class="home" data-nav-scrim>
 			<section class="hero">
-				{/* data-nav-scrim: what the nav watches to know when to fade its
-				    background in. The hero's content column, not the work section
-				    below it — this is the first thing that scrolls up under the
-				    nav, and until the band is there the headline and the subtitle
-				    run straight through the links. `.hero__inner` rather than
-				    `.hero` because the section's top padding is exactly the
-				    clearance the band should not react to; about.astro marks its
-				    own content column (`.about__frame`) for the same reason.
-				    Nothing needs to mark `.work` as well: the ramp clamps at 1
-				    once the hero has passed, and the band stays on for the rest of
-				    the page. See SiteNav.astro. */}
-				<div class="hero__inner" data-nav-scrim>
-					<h1 class="type-title hero__title">I&rsquo;m Tousif</h1>
-					{/* One copy of the typed half, not two, and no `aria-hidden` on it.
-					    A second `.sr-only` copy would be the obvious way to keep the
-					    accessible text whole while the visible one is mid-word — but
-					    the span carries no `aria-live`, so a screen reader never
-					    announces the mutations in the first place, and it reads the
-					    line from the DOM whenever the user gets to it, by which time
-					    the word is whole. All the duplicate would buy is a
-					    ~500ms window during the type-in; what it would cost is a
-					    permanently doubled word in every copy-paste and every text
-					    extraction of the page. The single copy is also what renders
-					    with JS off, or under reduced motion, already complete. */}
-					<p class="type-subtitle hero__subtitle">
-						{ROLE_STATIC}<span class="hero__typed">{ROLE_TYPED}</span><span
-							class="hero__caret"
-							aria-hidden="true"></span>
-					</p>
-					<div class="hero__clients">
-						<p class="hero__clients-label">Previously worked at</p>
-						<div class="hero__logos">
-							{
-								clients.map((client) => (
-									<span class="hero__logo" role="img" aria-label={client.name} set:html={client.svg} />
-								))
-							}
-						</div>
+				<h1 class="type-title hero__title">I&rsquo;m Tousif</h1>
+				{/* One copy of the typed half, not two, and no `aria-hidden` on it.
+				    A second `.sr-only` copy would be the obvious way to keep the
+				    accessible text whole while the visible one is mid-word — but
+				    the span carries no `aria-live`, so a screen reader never
+				    announces the mutations in the first place, and it reads the
+				    line from the DOM whenever the user gets to it, by which time
+				    the word is whole. All the duplicate would buy is a
+				    ~500ms window during the type-in; what it would cost is a
+				    permanently doubled word in every copy-paste and every text
+				    extraction of the page. The single copy is also what renders
+				    with JS off, or under reduced motion, already complete. */}
+				<p class="type-subtitle hero__subtitle">
+					{ROLE_STATIC}<span class="hero__typed">{ROLE_TYPED}</span><span
+						class="hero__caret"
+						aria-hidden="true"></span>
+				</p>
+				<div class="hero__clients">
+					<p class="hero__clients-label">Previously worked at</p>
+					<div class="hero__logos">
+						{
+							clients.map((client) => (
+								<span class="hero__logo" role="img" aria-label={client.name} set:html={client.svg} />
+							))
+						}
 					</div>
 				</div>
 			</section>
@@ -152,16 +146,16 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 				<p class="type-overline work__eyebrow">
 					<span class="work__eyebrow-shine">Selected works</span>
 				</p>
-				<div class="work__inner">
-					{/* `priority` on the first two only: the grid is two columns above
-						40rem and one below it, so those are the only cards that can be
-						in the initial viewport at any width — the rest stay lazy. */}
+				<div class="work__list">
+					{/* `priority` on the first two only. The list is one column now,
+						but a card is only ~440px tall at full width, so at common
+						desktop heights the second card's cover is already on screen
+						when the page lands — the rest stay lazy. */}
 					{
 						studies.map((entry, i) => (
 							<WorkCard
 								title={entry.data.title}
 								industry={entry.data.industry}
-								technology={entry.data.technology}
 								year={entry.data.year}
 								roles={entry.data.roles}
 								aiFeature={entry.data.aiFeature}
@@ -239,23 +233,22 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 
 		/* What the nav occupies at the top of the viewport, plus clearance. The
 		   band it paints measures 48px (6px of padding, a 36px row, 6px more),
-		   so this leaves 30px under it. The hero reads it for its own top
-		   padding — it is the only page-level number left now that the pinned
-		   intro and its overlap choreography are gone. Kept at this value
+		   so this leaves 30px under it. `.home` reads it for its own top
+		   padding and the intro for its sticky offset. Kept at this value
 		   rather than retightened to the band: about.astro declares the same
-		   number for the same job, and the two pages should start their content
-		   on the same line. */
+		   number for the same job, and the two pages should start their
+		   content on the same line. */
 		--nav-footprint: 4.875rem;
 	}
 
 	/* Fixed behind everything, sized to the viewport rather than to any
 	   scrolling ancestor, so the field holds still while the whole page
-	   scrolls over it — `.hero` and `.work` are both left without a
-	   background so the field shows through behind the intro text and the
-	   cards alike; only the card media boxes carry their own opaque surface.
-	   Both stay at z-index:auto or above (never negative), which is what
-	   keeps the field painting behind them instead of on top. `isolate`
-	   keeps the canvas's stacking context local. */
+	   scrolls over it — `.home` is left without a background so the field
+	   shows through behind the intro text and between the cards; only the
+	   cards carry their own opaque surface. `.home` stays at z-index:auto or
+	   above (never negative), which is what keeps the field painting behind
+	   it instead of on top. `isolate` keeps the canvas's stacking context
+	   local. */
 	.site-field {
 		position: fixed;
 		inset: 0;
@@ -266,23 +259,11 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		margin: 0;
 	}
 
-	/* Plain in-flow block, top-aligned and left-aligned — no pin, no sticky
-	   runway, no scroll-driven fade. `position: relative` is the load-bearing
-	   part: `.site-field` is `position: fixed` at `z-index: auto`, so it paints
-	   after static in-flow content regardless of DOM order, and without this
-	   the hero would lay out correctly and be invisible underneath it. Same
-	   fix `.work` and `.site-footer` already carry, for the same reason. */
-	.hero {
-		position: relative;
-		z-index: 1;
-		padding-block: calc(var(--nav-footprint) + var(--spacing-5xl)) var(--spacing-7xl);
-	}
-
-	/* The page frame, stated once and shared with `.work__eyebrow` and
-	   `.work__inner` below. Putting the brand mark, the headline, the eyebrow,
-	   the cards' left edge and the footer rule on one vertical line is what the
-	   left-aligned layout is built on, so the formula has to be the one every
-	   other frame on the site resolves to.
+	/* The page frame, and the two columns inside it: the intro on the left
+	   third, the work on the right two. Putting the brand mark, the headline,
+	   the footer rule and the frame's left edge on one vertical line is what
+	   the left-aligned layout is built on, so the formula has to be the one
+	   every other frame on the site resolves to.
 
 	   That formula is the cap *plus* the gutter, under a pinned `border-box` —
 	   not a bare `max-width` with padding inside it. The nav
@@ -294,14 +275,51 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 	   above) makes it border-box, which silently ate a gutter off each side and
 	   left the grid 60px right of the nav and the footer's own rule at 1500px.
 	   Footer.astro solved the same problem the same way and measured it — see
-	   `.site-footer__inner`'s comment. */
-	.hero__inner,
-	.work__eyebrow,
-	.work__inner {
+	   `.site-footer__inner`'s comment.
+
+	   1fr / 2fr rather than a fixed card width: at the cap that is a 376px
+	   intro and a 784px card column, which is the one-third split the layout
+	   was drawn at, with no width of its own to keep in step with the measure.
+
+	   `position: relative` plus a `z-index` is the load-bearing part:
+	   `.site-field` is `position: fixed` at `z-index: auto`, so it paints after
+	   static in-flow content regardless of DOM order, and without this the
+	   whole page would lay out correctly and be invisible underneath it. Same
+	   fix `.site-footer` carries, for the same reason.
+
+	   The clearance above is a margin, not padding, because this box is also
+	   the nav's `data-nav-scrim` target: the nav reads its top edge as "where
+	   the content starts", and padding would put that edge at the top of the
+	   page, turning the band on before anything had scrolled. (The margin
+	   collapses through `<body>`, which is harmless — the body's background is
+	   the canvas's.)
+
+	   96px at the bottom: the same trailing space above the footer that the
+	   about page and a case study leave. The cards add nothing to it — the
+	   card's edge is its visual edge. */
+	.home {
+		position: relative;
+		z-index: 1;
 		box-sizing: border-box;
 		max-width: calc(var(--measure-content) + 2 * var(--gutter));
 		margin-inline: auto;
+		margin-block-start: calc(var(--nav-footprint) + var(--spacing-5xl));
 		padding-inline: var(--gutter);
+		padding-block-end: var(--spacing-9xl);
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+		column-gap: var(--spacing-7xl);
+		align-items: start;
+	}
+
+	/* Holds still while the cards scroll past it, until the end of the list
+	   carries it away. The offset is the frame's own top margin, so the intro
+	   is already at its sticky position when the page lands and never jumps —
+	   and that puts it below the nav's band, not under it. No `ch` cap: the
+	   grid track is already the measure (see CLAUDE.md on prose caps). */
+	.hero {
+		position: sticky;
+		top: calc(var(--nav-footprint) + var(--spacing-5xl));
 	}
 
 	/* Each row arrives on a short stagger. Opacity plus a small lift, the same
@@ -409,22 +427,6 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		width: auto;
 	}
 
-	/* No background: `position: relative` (so the field shows through behind
-	   the cards, same as behind the hero text — see `.site-field`'s comment)
-	   plus an explicit `z-index`, both for the same stacking reason `.hero`
-	   carries them. */
-	.work {
-		position: relative;
-		z-index: 1;
-		/* 64px at the bottom, not 128px. What has to match across pages is the
-		   trailing space above the footer, and the cards bring 24px of their own
-		   bottom padding to it — so this rung, not the one about and a case study
-		   use directly (96px, --spacing-9xl there and the reflection's own
-		   padding here). 88px total, 8px under them: 72px would be exact and is
-		   not a rung on the scale. */
-		padding-block: 0 var(--spacing-7xl);
-	}
-
 	/* Frame above; this adds only the 16px clearance over the cards. */
 	.work__eyebrow {
 		margin-block-end: var(--spacing-xl);
@@ -490,15 +492,22 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		}
 	}
 
-	.work__inner {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+	.work__list {
+		display: flex;
+		flex-direction: column;
 		gap: var(--spacing-3xl);
 	}
 
-	@media (max-width: 40rem) {
-		.work__inner {
-			grid-template-columns: 1fr;
+	/* Under 64rem a third of the frame is too narrow for the headline and the
+	   logos, so the intro goes back on top of the list, in flow. */
+	@media (max-width: 64rem) {
+		.home {
+			grid-template-columns: minmax(0, 1fr);
+			row-gap: var(--spacing-7xl);
+		}
+
+		.hero {
+			position: static;
 		}
 	}
 </style>

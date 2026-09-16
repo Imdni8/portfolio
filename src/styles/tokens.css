@@ -70,8 +70,8 @@
 
 	   Stop 1 is --amber-500 itself, so the system's own hue leads the sweep
 	   and the loop closes on itself with no seam. Not theme-aware, and must
-	   not become so: the chip rides on a cover image in both themes, not on
-	   the page ground — the same argument .tag--coming-soon makes.
+	   not become so: the ring is decoration, not a surface anything is read
+	   against, so there is nothing for a theme change to keep legible.
 
 	   Not for text, not for a fill, not for any surface a reader reads
 	   against — a 1px decorative ring only. Nothing here is measured for
@@ -341,6 +341,7 @@
 .type-reflection,
 .type-subtitle,
 .type-card-title,
+.type-card-meta,
 .type-nav-link,
 .type-body,
 .type-ui-label,
@@ -398,15 +399,29 @@
 	letter-spacing: var(--track-tight);
 }
 
-/* A work card's own title. Sits on the tab rung for size but borrows
-   subtitle's leading and tracking — a title set at body scale, not a
-   fourth heading rung. */
+/* A work card's own title. The serif on the heading rung, at regular
+   weight — the card's text panel is a third of its width, so the title is the
+   panel's whole voice and needs no bolder cut to carry it. Parts from
+   .type-reflection (same family and rung) on weight alone, which is enough:
+   the two never share a surface. The card spec reads 30/36; --lh-heading's
+   30/38 is the nearest rung and the extra 2px is not worth a new one. */
 .type-card-title {
+	font-family: var(--font-display);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-heading);
+	line-height: var(--lh-heading);
+	text-wrap: balance;
+}
+
+/* A work card's meta rows — industry and year, each an icon and a value,
+   stacked under the title's rule. The ui rung at medium weight: the same
+   family, weight and size as .type-nav-link, but named for what it labels
+   rather than borrowing the tab list's name. */
+.type-card-meta {
 	font-family: var(--font-sans);
 	font-weight: var(--weight-medium);
-	font-size: var(--size-tab);
-	line-height: var(--lh-subtitle);
-	letter-spacing: var(--track-tight);
+	font-size: var(--size-ui);
+	line-height: var(--lh-ui);
 }
 
 /* One tab style for every tab list on the site — the primary site nav
@@ -465,11 +480,12 @@
 	color: var(--primary-text);
 }
 
-/* Card meta — the category, separator and year under a work card's title.
-   Third style on the 14px rung and the second in mono, but it parts from
-   overline on weight, case, tracking and colour at once, which is the same
-   margin that already keeps overline and annotation apart. Carries no colour
-   of its own: it sits on a card, not on the page ground. */
+/* Mono metadata — the footer's name and tagline, the toast's message. Third
+   style on the 14px rung and the second in mono, but it parts from overline
+   on weight, case, tracking and colour at once, which is the same margin that
+   already keeps overline and annotation apart. Carries no colour of its own:
+   its uses sit on different grounds. (Work cards used to wear this for their
+   meta line; they now use .type-card-meta above.) */
 .type-meta {
 	font-family: var(--font-mono);
 	font-weight: var(--weight-medium);
@@ -490,14 +506,14 @@
 
 /* ---- 6 · Surface — glass ----------------------------------------------------
    The backdrop-filter material `.glass` (components.css) is built from — one
-   set of values, so the work cards and the about page's stats panel can't
-   drift into slightly different glass. The nav used to wear this too (and
-   had a second, heavier tint it swapped in via a scroll listener as pale
-   case-study covers scrolled underneath it — `--glass-tint-scroll`,
-   `.glass--tinted`, `nav-tint.ts`) before the nav dropped the material
-   entirely; that machinery is gone with it; --glass-tint-rest is the only
-   mix left, mid grey at 5%, enough to sit on the page ground without going
-   opaque.
+   set of values, for the about page's stats panel, the one surface still cut
+   from it. The work cards wore it until they became solid panels. The nav
+   used to wear it too (and had a second, heavier tint it swapped in via a
+   scroll listener as pale case-study covers scrolled underneath it —
+   `--glass-tint-scroll`, `.glass--tinted`, `nav-tint.ts`) before the nav
+   dropped the material entirely; that machinery is gone with it;
+   --glass-tint-rest is the only mix left, mid grey at 5%, enough to sit on
+   the page ground without going opaque.
    -------------------------------------------------------------------------- */
 :root {
 	--glass-blur: 8px;
