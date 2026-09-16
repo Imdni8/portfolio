@@ -253,6 +253,16 @@ client logos) on the left third, "Selected works" and a single-column stack of
   width. The card is its own query container (the inner grid is what
   switches, since a container can't restyle itself): under 40rem of card width
   it stacks, cover on top.
+- **One card is lit at a time.** `work-spotlight.ts` (started from
+  `index.astro`'s `astro:page-load`, torn down before each re-run) stamps
+  `data-dimmed` on every card except the one spanning the viewport's midline,
+  and `WorkCard` drops those to `--card-dimmed-opacity` (0.6) and blurs them
+  by `--card-dimmed-blur` (2px — keep it small, contrast ratios don't account
+  for blur and the dimmed cards are still links to read). The opacity is
+  the contrast floor, not a taste call: it keeps the dimmed meta rows at
+  5.8:1 on the dark ground — go lower and the off-centre cards fail AA while
+  still being readable links. A focused card is never dimmed, and without JS
+  nothing is.
 
 ## Footer
 

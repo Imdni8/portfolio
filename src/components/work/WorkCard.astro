@@ -143,8 +143,38 @@ const isExternal = status === 'external';
 		text-decoration: none;
 	}
 
+	/* Every card but the one at the middle of the viewport, while the reader
+	   scrolls the list — set by work-spotlight.ts, never in the markup, so
+	   with no JS nothing is dimmed. 0.6 is the floor the card's text allows:
+	   composited over the dark ground it leaves the title at 6.7:1 and the
+	   16px meta rows at 5.8:1, both still clear of AA. (The light theme,
+	   a dev preview on the homepage, would take the meta to 3.9:1.) A card
+	   that takes keyboard focus comes back to full strength, so the ring is
+	   never drawn round something the reader is being told to ignore.
+
+	   The blur pushes the dimmed cards further back without taking the
+	   opacity any lower, which the floor above rules out. Contrast ratios
+	   don't account for blur, so it is the value that has to stay small:
+	   --spacing-xxs (2px) reads as out of focus while a dimmed title is still
+	   legible. */
+	.card {
+		--card-dimmed-opacity: 0.6;
+		--card-dimmed-blur: var(--spacing-xxs);
+		transition:
+			opacity 250ms ease-out,
+			filter 250ms ease-out;
+	}
+
+	.card[data-dimmed]:not(:focus-visible) {
+		opacity: var(--card-dimmed-opacity);
+		filter: blur(var(--card-dimmed-blur));
+	}
+
 	a.card {
-		transition: transform 0.15s ease;
+		transition:
+			opacity 250ms ease-out,
+			filter 250ms ease-out,
+			transform 0.15s ease;
 	}
 
 	a.card:hover {
@@ -340,8 +370,11 @@ const isExternal = status === 'external';
 	}
 
 	/* The global guard in components.css covers .btn, .tab and .icon-btn; the
-	   card's lift is scoped here, so its opt-out has to be too. */
+	   card's lift is scoped here, so its opt-out has to be too. The dimming
+	   itself stays — it is emphasis, not motion — it just switches instead of
+	   fading. */
 	@media (prefers-reduced-motion: reduce) {
+		.card,
 		a.card {
 			transition: none;
 		}

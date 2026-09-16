@@ -180,6 +180,8 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 </html>
 
 <script>
+	import { initWorkSpotlight } from '../components/work/work-spotlight';
+
 	/* The subtitle types its second half in once the hero has finished
 	   arriving, then leaves the caret blinking for good.
 
@@ -220,6 +222,21 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		};
 
 		typeTimer = window.setTimeout(step, START_DELAY);
+	});
+
+	/* One card lit at a time — see work-spotlight.ts. Registered on
+	   `astro:page-load` for the same reason as the typing above, and the
+	   previous page's listeners are dropped first: this module outlives the
+	   page it was loaded on, so after a soft nav to /about and back, a stale
+	   listener would still be measuring the cards that were swapped out. */
+	let stopSpotlight: (() => void) | undefined;
+
+	document.addEventListener('astro:page-load', () => {
+		stopSpotlight?.();
+		stopSpotlight = undefined;
+
+		const list = document.querySelector<HTMLElement>('.work__list');
+		if (list) stopSpotlight = initWorkSpotlight(list);
 	});
 </script>
 
