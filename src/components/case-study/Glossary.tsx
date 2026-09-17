@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AlertDescription, AlertTitle } from '../ui/alert';
 
 type Open = { title: string; body: string; x: number; y: number } | null;
 
@@ -66,8 +67,8 @@ export const Glossary = () => {
 			style={{ '--x': `${open.x}px`, '--y': `${open.y}px` } as React.CSSProperties}
 			onClick={(e) => e.stopPropagation()}
 		>
-			<p className="note__title type-overline">{open.title}</p>
-			<div className="note__body type-annotation">{open.body}</div>
+			<AlertTitle>{open.title}</AlertTitle>
+			<AlertDescription>{open.body}</AlertDescription>
 		</div>
 	);
 };

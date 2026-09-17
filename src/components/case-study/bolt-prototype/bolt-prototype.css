@@ -692,14 +692,14 @@
 
 /* The card is a light surface whatever the page theme is, so these controls
    pin themselves to the dark end rather than following --text. */
-.bolt-proto__controls .icon-btn {
+.bolt-proto__controls [data-slot='button'] {
 	background: color-mix(in srgb, var(--gray-950) 72%, transparent);
 	border-color: color-mix(in srgb, var(--gray-50) 24%, transparent);
 	color: var(--gray-50);
 	backdrop-filter: blur(6px);
 }
 
-.bolt-proto__controls .icon-btn:hover {
+.bolt-proto__controls [data-slot='button']:hover {
 	background: color-mix(in srgb, var(--gray-950) 84%, transparent);
 	border-color: color-mix(in srgb, var(--gray-50) 40%, transparent);
 }

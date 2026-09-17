@@ -22,7 +22,8 @@
    drawn at 400 alone, so it has nothing else to load; its italic is the one
    .type-heading--claim and .type-display set. DM Sans is variable, and its
    italic is what MDX *emphasis* renders in. DM Mono: 300 is the wordmark, 400
-   every label, 400 italic the footer tagline's <em>, 500 the active tab.
+   every label, 400 italic the footer tagline's <em>, 500 the chapter rail's
+   active entry.
    Delicious Handrawn is drawn at 400 alone, and sets two words on the whole
    site — see --font-hand. */
 @import '@fontsource/dm-serif-display/400.css';
@@ -70,7 +71,7 @@
 	/* ---- AI spectrum -------------------------------------------------------
 	   The only hues in the system outside the amber ramp and the cool grey,
 	   and deliberately scoped to one thing: the "AI" chip's animated border on
-	   a work card (.tag--ai in components.css). An iridescent sweep is how an
+	   a work card (.badge-ai in components.css). An iridescent sweep is how an
 	   AI surface is marked, and a two-hue palette has nothing that says it.
 
 	   Sourced from the same unmodified Tailwind palette the amber ramp comes
@@ -100,9 +101,9 @@
      always tracked slightly tight.
    - DM Sans is copy meant to be read in full — paragraphs, deks, captions,
      control labels. Normal tracking and generous leading.
-   - DM Mono is apparatus — nav links, tabs, tags, eyebrows, meta. Small,
-     uppercase where it labels something, tracked open so it recedes behind
-     the serif and the sans.
+   - DM Mono is apparatus — nav links, the chapter rail, badges, eyebrows,
+     meta. Small, uppercase where it labels something, tracked open so it
+     recedes behind the serif and the sans.
 
    Importance is carried by that choice of family, and by colour, never by a
    heavier cut: there is no bold anywhere. Two weights per family at most —
@@ -501,15 +502,15 @@
 
 /* Small uppercase mono, under two names:
 
-   - .type-nav-link is every tab list and nav on the site — the primary site
-     nav and its Side projects dropdown, the case-study chapter rail, the
-     generic Tabs component (paired with `.tab` in components.css, which adds
-     only layout/interaction). A chapter tab and a nav link are the same kind
-     of control. Weight starts at regular so the active tab's own bump to
-     medium (applied via `[aria-current]`/`[aria-selected]` in the component,
-     not a modifier class here) is what signals state — never colour alone.
-   - .type-overline is eyebrows and note titles. It alone carries a colour:
-     amber, the one place the label rung is lit rather than receding. */
+   - .type-nav-link is every nav on the site — the primary site nav and its
+     Side projects dropdown, and the case-study chapter rail. A chapter entry
+     and a nav link are the same kind of control. Weight starts at regular so
+     the active entry's own bump to medium (applied via `[aria-current]` in
+     the component, not a modifier class here) is what signals state — never
+     colour alone.
+   - .type-overline is eyebrows and note titles (AlertTitle). It alone
+     carries a colour: amber, the one place the label rung is lit rather
+     than receding. */
 .type-nav-link,
 .type-overline {
 	font-family: var(--font-mono);

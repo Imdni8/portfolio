@@ -77,24 +77,59 @@ both themes before shipping.
 
 ## Components
 
-`src/styles/components.css` holds the styles; `src/components/ui/*.tsx` holds
-thin React wrappers that add no styling of their own.
+The design-system controls are vendored **shadcn/ui** components in
+`src/components/ui/` (`button.tsx`, `badge.tsx`, `alert.tsx`), styled with
+Tailwind utilities that read tokens.css. Their variants were retuned so the
+site looks exactly as it did with the hand-built components they replaced. See
+"shadcn/ui" below. `src/styles/components.css` holds everything that isn't a
+shadcn component: materials, the case-study islands, `.icon`, and the AI ring.
 
-**Style components as CSS classes, not as React styles.** The site is Astro, so
-a component that is a class ships zero JavaScript when used from a `.astro`
-file; the React wrapper exists so Storybook has something to render and so
-islands can share the markup. Reach for a wrapper only where there is real
-state — `Tabs` and a dismissible `Note` need it, `Button` does not.
+**Ship zero JavaScript from `.astro` files.** Never render `<Button>` or
+`<Badge>` there. Use the exported class helper on a plain element instead:
+`<a class={buttonVariants({ variant: 'secondary' })}>`, or
+`<span data-slot="badge" class={badgeVariants()}>`. It's the same markup the
+React component renders, and it keeps working inside Astro templates, which
+can't pass a React element to a `render` prop. The React components are for
+islands and Storybook. State lives with the caller, never in the vendored file:
+the dismissible alert in `Alert.stories.tsx` holds its own `open` flag.
 
-Built so far: `Button` (primary / secondary / tertiary), `Tabs`, `Note`, `Icon`,
-`IconButton` (icon-only counterpart to `Button` — same three variants, plus
-`sm`/`md`/`lg` sizing), `Tag` (a non-interactive label — `default` variant
-reads the semantic layer, `coming-soon` and `ai` are bound to primitives
-instead — `coming-soon` because it is written for a cover image rather than the
-page ground, `ai` because its ring is decoration; see below).
+Built so far:
+
+- **`Button`**: variants `default` / `secondary` / `outline` / `ghost`, sizes
+  `default` / `icon-sm` (24px) / `icon` (40) / `icon-lg` (48). The icon sizes
+  replace the old `IconButton`, with `aria-label` in place of its `label`
+  prop. The old names map as follows:
+  - Button primary / secondary / tertiary → `default` / `secondary` / `ghost`.
+  - IconButton primary / secondary / tertiary → `default` / `outline` /
+    `ghost`.
+  - `ghost` differs by size, as tertiary did: a text button keeps a
+    `--border-strong` edge; an icon button has none and a 4px radius.
+  - `outline` has no visible edge. The old icon secondary declared one, but a
+    later rule cancelled it and it shipped borderless. Solution.astro's
+    disabled override is written around that.
+- **`Badge`**: the old `Tag`, a non-interactive label.
+  - `default` reads the semantic layer.
+  - `coming-soon` and `ai` are bound to primitives instead: `coming-soon`
+    because it's written for a cover image rather than the page ground, `ai`
+    because its ring is decoration (see below).
+  - `coming-soon`'s label is `--gray-900`. The old Tag used
+    `--text-on-primary`, which flips to gray-50 on light and left the label at
+    about 1:1.
+- **`Alert`**: the old `Note`, with `AlertTitle`, `AlertDescription` and
+  `AlertAction` (the dismiss slot).
+  - Its default `role` is `note`, not shadcn's `alert`: every use is a static
+    aside, not something that just went wrong.
+  - The glossary popover's title and copy are `AlertTitle` and
+    `AlertDescription`.
+  - `NoteBox.astro` is a native `<details>` with its own scoped styles on the
+    same tokens.
+- **`Icon`**: the project's own component.
+
+There is no Tabs component. The hand-built one was never used and was removed;
+if tabs are ever needed, add shadcn's.
 
 **`--ai-spectrum-1…4` is the one sanctioned exception to the two-hue palette**,
-and it exists for a single component: the `ai` tag variant's border, a conic
+and it exists for a single component: the `ai` badge variant's border, a conic
 gradient rotating once every four seconds around the chip on a work card. The
 hues are decoration and nothing else — never text, never a fill, never a
 surface anything has to be read against, which is why they carry no contrast
@@ -103,10 +138,11 @@ by its sparkles glyph and its fixed "AI" label, so it survives greyscale with
 the ring switched off entirely. Stop 1 is `--amber-500`, so the sweep is led by
 the system's own hue and the loop closes with no seam; the remaining three come
 from the same unmodified Tailwind palette the amber ramp does. They are not
-theme-aware and must not become so. The angle is a registered `@property`
-(`--tag-ai-angle`) because an unregistered custom property has no type and
-would jump rather than interpolate — the same reason `Solution.astro` registers
-its mask stop.
+theme-aware and must not become so. The ring is `.badge-ai` in
+`components.css`, plain CSS rather than utilities, and the variant just
+applies it. The angle is a registered `@property` (`--badge-ai-angle`) because
+an unregistered custom property has no type and would jump rather than
+interpolate — the same reason `Solution.astro` registers its mask stop.
 
 **Glass** (`.glass` in `components.css`) is a material, not a component — the
 backdrop-filter pane the about page's stats panel is cut from. The nav and the
@@ -134,9 +170,9 @@ Three conventions worth keeping:
   is "eyebrows and note titles", `.type-annotation` is "photo captions and
   note/tooltip copy"). A component that assembles a style by hand has somewhere
   to drift from; one that names the style cannot.
-- **Never let state rest on colour alone.** The active tab changes weight
-  (400 → 500, DM Mono's heaviest cut) as well as hue, so it survives greyscale
-  and colour blindness.
+- **Never let state rest on colour alone.** The chapter rail's active entry
+  changes weight (400 → 500, DM Mono's heaviest cut) as well as opacity, so it
+  survives greyscale and colour blindness.
 - **Disabled drops to an outline**, not a dimmed fill — a greyed-out solid
   reads as a loading state.
 - **Only cap prose measure (a `ch` max-width) where it actually narrows
@@ -156,12 +192,39 @@ Three conventions worth keeping:
 
 Tailwind v4 and shadcn/ui (`--base base`, i.e. Base UI primitives rather than
 Radix) were added to install `navigation-menu` for the site nav's "Side
-projects" dropdown — the first shadcn component in the repo, not the last;
-the plan is to bring more of `src/components/ui/` onto this stack over time,
-deliberately, one component at a time, rather than converting everything at
-once. Until a given component is migrated, it stays exactly as documented
-above (a CSS class plus a thin React wrapper) — the two systems are meant to
-coexist for a while, not race each other.
+projects" dropdown. `drawer` followed, and then `button`, `badge` and `alert`
+replaced the hand-built Button, IconButton, Tag and Note. New design-system
+components come from shadcn first, retuned onto the tokens the same way.
+
+- **A vendored component is retuned, not used stock.** shadcn's values
+  (`h-8`, `text-sm`, `rounded-lg`, `hover:bg-primary/80`, `opacity-50` for
+  disabled) are Tailwind's stock scale. Rewrite every variant and size against
+  tokens.css, using `(--token)` utilities such as `bg-(--primary-hover)`,
+  `size-(--spacing-6xl)` and `text-(length:--size-ui)`. Drop variants the
+  palette has no token for, such as `destructive`. List every edit in the
+  file's header comment so `shadcn diff` reads as intended.
+- **Unlayered CSS beats every utility, whatever its specificity.** Tailwind's
+  utilities live in `@layer utilities`, and `components.css`, `tokens.css`
+  and Astro's scoped styles are unlayered.
+  - That cuts one way on purpose: placement classes (`.lightbox__close`,
+    `.video-frame__play`) and local overrides (`.bolt-proto__controls
+    [data-slot='button']`, `.solution__controls button:disabled`) still win.
+  - It cuts the other way by accident. A default a shadcn component has to
+    override must sit in a layer, which is why `.icon`'s 1em lives in
+    `@layer components`. Unlayered, it pinned every button and badge glyph at
+    1em.
+  - Check for this whenever a utility "doesn't apply".
+- **`*Variants()` output must be conflict-free.** `.astro` callers use
+  `buttonVariants()`/`badgeVariants()` directly, without `cn()`, so
+  tailwind-merge never resolves two utilities that set the same property;
+  stylesheet order would. Keep each property in exactly one place per
+  variant/size pair. That's why `button.tsx` puts border colour in the
+  variants and the icon sizes' radius in `compoundVariants`.
+- **Storybook loads Tailwind too.** `.storybook/main.ts` registers
+  `@tailwindcss/vite` and the `@` alias (Astro reads both from its own config
+  and tsconfig, which Storybook doesn't), and `preview.tsx` imports
+  `tailwind.css` between tokens and components, the same order the pages use.
+  Preflight therefore applies in stories as it does on the site.
 
 - **`components.json`** points `tailwind.css` at `src/styles/tailwind.css`
   and aliases `ui`/`components`/`lib`/`hooks` to `@/components/ui` etc.
@@ -188,9 +251,11 @@ coexist for a while, not race each other.
   accordion-height keyframes), not a design decision, so it's framework
   plumbing worth keeping regardless of which components use it.
 - **Vendored primitives keep the CLI's own lowercase filenames**
-  (`src/components/ui/navigation-menu.tsx`), unlike this project's usual
-  PascalCase wrappers — that's deliberate, so `npx shadcn diff`/`update`
-  still recognizes them as CLI-owned. They're still hand-edited where the
+  (`src/components/ui/navigation-menu.tsx`, `button.tsx`), unlike this
+  project's usual PascalCase files — that's deliberate, so `npx shadcn
+  diff`/`update` still recognizes them as CLI-owned. macOS filenames ignore
+  case, so `shadcn add button` overwrote the old `Button.tsx` in place.
+  Remove a same-named PascalCase file before adding its shadcn namesake. They're still hand-edited where the
   project's own conventions require it (`navigation-menu.tsx`'s chevron was
   swapped from shadcn's default `lucide-react` import to this project's own
   `Icon`/`icons.ts` registry, since icons here are never sourced from a
@@ -603,7 +668,7 @@ of a fully published entry.
   cover image), `order` (sort key — leave gaps of 10, e.g. 10/20/30, so a new
   card can be inserted without renumbering the rest). `roles` is metadata too
   — max 2 entries, each `{ kind: 'design-type' | 'code', label }` — what kind
-  of work it was, rendered as icon `Tag` chips at the top of the card's text
+  of work it was, rendered as icon `Badge` chips at the top of the card's text
   panel, on every status including `coming-soon`. `kind` picks
   the icon (`design-type` → Figma mark, `code` → angle brackets); `label` is
   free text, so a new design-type value (e.g. "Design concepts") is a
@@ -615,7 +680,7 @@ of a fully published entry.
   the sparkles glyph and the literal string "AI", both hard-coded in
   `WorkCard.astro`, never authored in content — always leftmost, and outside
   the `roles.max(2)` cap. It is also the only chip that wears the animated
-  gradient ring (`.tag--ai`, see Components). Writing AI as a `roles` entry
+  gradient ring (`.badge-ai`, see Components). Writing AI as a `roles` entry
   instead gets you a chip that reads "AI" wearing the Figma mark and no ring;
   `philips-ultrasound-gig.mdx` did exactly that until it was converted.
 - **Page content — only needed once a page actually builds:** `subtitle` (the
@@ -766,7 +831,7 @@ and the notes under a figure stay one column of type.
   - **A `static` slide never autoplays; it gets a play button.** Stacked slides
     sit outside `[data-carousel-track]`, so `updateActive()` never sees them.
     `SlideVideo` renders a `.slide-video__play` button (the same
-    `icon-btn--primary icon-btn--lg` as `Video.astro`) as a *sibling* of the
+    `buttonVariants({ size: 'icon-lg' })` as `Video.astro`) as a *sibling* of the
     zoom trigger — a button inside a button is invalid — and
     `static-slide-video.ts` plays the clip once per press with `loop` off,
     hiding the button while it plays and pausing on scroll-away or when the

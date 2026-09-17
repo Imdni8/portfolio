@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../ui/Icon';
-import { IconButton } from '../ui/IconButton';
+import { Button } from '../ui/button';
 
 type Shot =
 	| { kind: 'image'; src: string; alt: string; caption?: string }
@@ -102,33 +102,30 @@ export const Lightbox = () => {
 
 	return (
 		<div className="lightbox" role="dialog" aria-modal="true" aria-label={shot.alt} onClick={() => setGroup(null)}>
-			<IconButton
-				variant="secondary"
-				size="md"
-				className="lightbox__close"
-				icon={<Icon name="close" />}
-				label="Close"
-				onClick={() => setGroup(null)}
-			/>
+			<Button variant="outline" size="icon" className="lightbox__close" aria-label="Close" onClick={() => setGroup(null)}>
+				<Icon name="close" />
+			</Button>
 
 			{many && (
 				<>
-					<IconButton
-						variant="secondary"
-						size="md"
+					<Button
+						variant="outline"
+						size="icon"
 						className="lightbox__nav lightbox__nav--prev"
-						icon={<Icon name="chevron-left" />}
-						label="Previous image"
+						aria-label="Previous image"
 						onClick={(e) => step(-1, e)}
-					/>
-					<IconButton
-						variant="secondary"
-						size="md"
+					>
+						<Icon name="chevron-left" />
+					</Button>
+					<Button
+						variant="outline"
+						size="icon"
 						className="lightbox__nav lightbox__nav--next"
-						icon={<Icon name="chevron-right" />}
-						label="Next image"
+						aria-label="Next image"
 						onClick={(e) => step(1, e)}
-					/>
+					>
+						<Icon name="chevron-right" />
+					</Button>
 				</>
 			)}
 

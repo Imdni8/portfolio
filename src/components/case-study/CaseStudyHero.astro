@@ -2,6 +2,7 @@
 import { Image, getImage } from 'astro:assets';
 import BeforeAfter, { dedupeNotes } from './BeforeAfter';
 import Icon from '../ui/Icon.astro';
+import { buttonVariants } from '../ui/button';
 import type { ImageMetadata } from 'astro';
 
 interface Props {
@@ -102,13 +103,13 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 				(actions.primary || actions.secondary) && (
 					<div class="hero__actions">
 						{actions.primary && (
-							<a class="btn btn--primary" href={actions.primary.href}>
+							<a class={buttonVariants()} href={actions.primary.href}>
 								<span>{actions.primary.label}</span>
 								<Icon name="play" />
 							</a>
 						)}
 						{actions.secondary && (
-							<a class="btn btn--secondary" href={actions.secondary.href}>
+							<a class={buttonVariants({ variant: 'secondary' })} href={actions.secondary.href}>
 								<span>{actions.secondary.label}</span>
 								<Icon name="arrow-down" />
 							</a>
@@ -249,8 +250,8 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 		}
 	}
 
-	/* A plain link, not an icon-btn: the crumb has a visible label now, so
-	   there is no icon-only control left to wear that component — and with
+	/* A plain link, not an icon button: the crumb has a visible label now, so
+	   there is no icon-only control left to be that component — and with
 	   it goes the negative margin that used to claw back the button's own
 	   padding so the glyph sat flush in the row. Underline on hover rather
 	   than a colour change, since amber at rest is the crumb's identity. */
@@ -264,7 +265,8 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 
 	/* :global() for the same reason as the divider below — the span is
 	   Icon.astro's, not this template's. 1.125em, not a fixed size, is the
-	   ratio `.btn .icon` already uses: the glyph tracks the label. */
+	   ratio a text button's icon already uses (ui/button.tsx): the glyph
+	   tracks the label. */
 	.breadcrumb__home :global(.icon) {
 		width: 1.125em;
 		height: 1.125em;

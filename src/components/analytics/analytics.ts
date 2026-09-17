@@ -329,7 +329,7 @@ export function initInteractionTracking(): void {
 
 		/* The curtain CTA that opens the long-form case study — keyed on
 		   `[data-read-more-expand]`, ReadInDetail's own behavioural hook, rather
-		   than on `.btn--secondary`, which is a shared style that says nothing
+		   than on the secondary button's classes, a shared style that says nothing
 		   about what the button does.
 
 		   ReadInDetail's listener calls `veil.remove()` on this same click, so

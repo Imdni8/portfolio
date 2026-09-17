@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../ui/Icon.astro';
-import Tag from '../ui/Tag.astro';
+import { badgeVariants } from '../ui/badge';
 import type { IconName } from '../ui/icons';
 
 /** `kind` is the closed set that picks the icon; `label` is free text
@@ -63,12 +63,18 @@ const isExternal = status === 'external';
 					<ul class="card__roles">
 						{aiFeature && (
 							<li>
-								<Tag icon="sparkles" variant="ai">AI</Tag>
+								<span data-slot="badge" class={badgeVariants({ variant: 'ai' })}>
+									<Icon name="sparkles" />
+									AI
+								</span>
 							</li>
 						)}
 						{roles.map((role) => (
 							<li>
-								<Tag icon={ROLE_ICONS[role.kind]}>{role.label}</Tag>
+								<span data-slot="badge" class={badgeVariants()}>
+									<Icon name={ROLE_ICONS[role.kind]} />
+									{role.label}
+								</span>
 							</li>
 						))}
 					</ul>
@@ -370,7 +376,7 @@ const isExternal = status === 'external';
 		background: var(--overlay);
 	}
 
-	/* Matches .icon-btn--lg's box-to-icon ratio (48px box / 26px icon) rather
+	/* Matches the icon-lg button's box-to-icon ratio (48px box / 26px icon) rather
 	   than a bare fraction of the box, so it reads at the same visual weight
 	   as every other circular icon surface in the system. */
 	.card__external-badge .icon {
@@ -411,8 +417,8 @@ const isExternal = status === 'external';
 		}
 	}
 
-	/* The global guard in components.css covers .btn, .tab and .icon-btn; the
-	   card's lift and press are scoped here, so their opt-out has to be too.
+	/* ui/button.tsx carries its own reduced-motion guard; the card's lift and
+	   press are scoped here, so their opt-out has to be too.
 	   The dimming stays, and keeps its fade — it is emphasis, not movement,
 	   and reduced motion means gentler, not none. */
 	@media (prefers-reduced-motion: reduce) {

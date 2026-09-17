@@ -1,5 +1,8 @@
 import type { Preview } from '@storybook/react-vite';
 import '../src/styles/tokens.css';
+// Same order as the pages: the Tailwind layers before components.css, whose
+// unlayered rules have to be able to win.
+import '../src/styles/tailwind.css';
 import '../src/styles/components.css';
 import './preview.css';
 

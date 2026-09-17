@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../ui/Icon.astro';
+import { buttonVariants } from '../ui/button';
 
 interface Props {
 	/** Shown until the video is played. */
@@ -18,7 +19,11 @@ const { poster, src, alt } = Astro.props;
     frame and play button can't drift between them. */}
 <div class="video-frame" data-video={src} data-video-label={alt}>
 	<Image src={poster} alt={alt} widths={[760, 1120, 1470]} sizes="(min-width: 60rem) 92vw, 100vw" />
-	<button type="button" class="icon-btn icon-btn--primary icon-btn--lg video-frame__play" aria-label={`Play: ${alt}`}>
+	<button
+		type="button"
+		class:list={[buttonVariants({ size: 'icon-lg' }), 'video-frame__play']}
+		aria-label={`Play: ${alt}`}
+	>
 		<Icon name="play" />
 	</button>
 </div>
@@ -39,8 +44,8 @@ const { poster, src, alt } = Astro.props;
 		height: auto;
 	}
 
-	/* Shape, colour and size come from .icon-btn--primary.icon-btn--lg; this
-	   is only the centring over the poster. */
+	/* Shape, colour and size come from buttonVariants({ size: 'icon-lg' });
+	   this is only the centring over the poster. */
 	.video-frame__play {
 		position: absolute;
 		inset-block-start: 50%;

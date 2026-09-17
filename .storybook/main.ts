@@ -1,4 +1,6 @@
+import { fileURLToPath } from 'node:url';
 import { mergeConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
@@ -26,8 +28,18 @@ const config: StorybookConfig = {
 			optimizeDeps: {
 				include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
 			},
-			// Astro and Storybook must not each resolve their own React copy.
-			resolve: { dedupe: ['react', 'react-dom'] },
+			// The vendored shadcn components (ui/button.tsx, badge.tsx,
+			// alert.tsx) are Tailwind utilities, and Astro registers this
+			// plugin in its own config, which Storybook never reads.
+			plugins: [tailwindcss()],
+			resolve: {
+				// Astro and Storybook must not each resolve their own React copy.
+				dedupe: ['react', 'react-dom'],
+				// tsconfig.json's `@/*` path, which the shadcn files import
+				// through. Astro resolves it from tsconfig; Storybook's Vite
+				// needs it spelled out.
+				alias: { '@': fileURLToPath(new URL('../src', import.meta.url)) },
+			},
 		}),
 };
 

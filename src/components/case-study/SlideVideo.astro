@@ -2,6 +2,7 @@
 import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../ui/Icon.astro';
+import { buttonVariants } from '../ui/button';
 
 /**
  * The screen recording inside a Solution slide's media card, anchored to one
@@ -86,7 +87,7 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
     Video.astro puts over a poster. */}
 <button
 	type="button"
-	class="icon-btn icon-btn--primary icon-btn--lg slide-video__play"
+	class:list={[buttonVariants({ size: 'icon-lg' }), 'slide-video__play']}
 	data-slide-video-play
 	aria-label={`Play: ${alt}`}
 >
@@ -145,8 +146,8 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		object-fit: cover;
 	}
 
-	/* Shape, colour and size come from .icon-btn--primary.icon-btn--lg; this
-	   is only the centring over the card, above the trigger's z-index. */
+	/* Shape, colour and size come from buttonVariants({ size: 'icon-lg' });
+	   this is only the centring over the card, above the trigger's z-index. */
 	.slide-video__play {
 		position: absolute;
 		z-index: 2;

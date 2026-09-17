@@ -1,4 +1,6 @@
 ---
+import { buttonVariants } from '../ui/button';
+
 /**
  * The curtain between the 30-second cut and the long-form case study.
  *
@@ -21,6 +23,7 @@ interface Props {
 }
 
 const { prompt = 'Want to know more?', label = 'Read design process', href } = Astro.props;
+const cta = buttonVariants({ variant: 'secondary' });
 ---
 
 <section class="read-more" data-collapsed>
@@ -32,11 +35,11 @@ const { prompt = 'Want to know more?', label = 'Read design process', href } = A
 		<p class="type-ui-label read-more__prompt">{prompt}</p>
 		{
 			href ? (
-				<a class="btn btn--secondary" href={href}>
+				<a class={cta} href={href}>
 					{label}
 				</a>
 			) : (
-				<button type="button" class="btn btn--secondary" aria-expanded="false" data-read-more-expand data-toast-trigger="Diving deep!">
+				<button type="button" class={cta} aria-expanded="false" data-read-more-expand data-toast-trigger="Diving deep!">
 					{label}
 				</button>
 			)
