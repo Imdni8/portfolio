@@ -150,6 +150,7 @@ export const IconOnly: Story = {
 							}}
 						>
 							<Button
+								variant="default"
 								size="icon-lg"
 								aria-label="Play"
 								style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}

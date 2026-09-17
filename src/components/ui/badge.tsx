@@ -45,8 +45,12 @@ const badgeVariants = cva(
           "border-(--amber-200) bg-(--amber-50) text-(--gray-900)",
         // The rotating spectrum ring. Its border, padding and background are
         // `.badge-ai` in components.css; that section explains why it's plain
-        // CSS. The label keeps the default badge's contrast: --text on --bg.
-        ai: "badge-ai bg-background text-foreground",
+        // CSS. No `bg-background` here: `.badge-ai`'s own background-image
+        // already paints the padding-box opaque with --bg, unlayered, so a
+        // second declaration of the same colour here would only be a second
+        // place for it to go stale against the first. The label keeps the
+        // default badge's contrast: --text on --bg.
+        ai: "badge-ai text-foreground",
       },
     },
     defaultVariants: {

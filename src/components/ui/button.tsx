@@ -33,6 +33,33 @@
 //     SVGs, so the `[&_svg]` sizing rules became `[&_.icon]`. That override
 //     only works because `.icon`'s 1em default sits in `@layer components`
 //     (components.css). An unlayered rule beats every utility.
+//   - No `select-none`: the registry's base classes carry it, but this
+//     component also renders the site's plain-text CTA links (a resume link,
+//     a hero button), and the old `.btn` never blocked selecting their label.
+//   - The colour/border transition eases on `--ease-out`, not the registry's
+//     bare `ease`, and every `hover:` utility is paired with the project's
+//     `hover-fine:` variant (tailwind.css) so it only answers to a pointer
+//     that can really hover, both per tokens.css's Motion section.
+//   - The ghost/icon-size hover fill is `.btn-ghost-icon-hover` in
+//     components.css, not a `hover:bg-[color-mix(...)]` utility: Tailwind
+//     adds an *unguarded* pre-`@supports` fallback for any arbitrary value
+//     containing `color-mix()`, and here that fallback resolves to a fully
+//     opaque `--primary-text` — a louder hover than intended for the
+//     handful of browsers without `color-mix` support. Plain CSS just drops
+//     the declaration there, same as the old `.icon-btn--tertiary:hover`.
+//   - `className` is resolved against Base UI's own button state before
+//     merging with the variant classes, not handed to `cn()` as-is: Base UI
+//     types `className` as `string | ((state) => string)` (see
+//     ButtonPrimitive.State), and `cn`/`clsx` silently drop a function value,
+//     so a caller passing the function form previously lost its classes with
+//     no error.
+//   - Every icon size still defaults to `variant="default"` (filled), not a
+//     quiet one: the two current callers that omit `variant` on an icon size
+//     (Video.astro, SlideVideo.astro's play buttons) want exactly that,
+//     matching the old `.icon-btn--primary` those buttons wore. Unlike the
+//     old IconButton, there's no separate quiet default here — every other
+//     call site sets `variant` explicitly regardless, so a future icon
+//     button should too rather than relying on this one.
 //
 // From an .astro file, use `buttonVariants()` on a plain <a> or <button>
 // instead of rendering <Button>. It's the same classes and ships no
@@ -47,24 +74,24 @@ import { cn } from "@/lib/utils"
 const ICON_SIZES = ["icon-sm", "icon", "icon-lg"] as const
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center border font-(family-name:--font-sans) text-(length:--size-ui) leading-(--lh-ui) font-(--weight-medium) whitespace-nowrap no-underline transition-[background-color,color,border-color] duration-120 ease-[ease] select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:border-border disabled:bg-transparent disabled:text-(--text-disabled) aria-disabled:cursor-not-allowed aria-disabled:border-border aria-disabled:bg-transparent aria-disabled:text-(--text-disabled) motion-reduce:transition-none",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center border font-(family-name:--font-sans) text-(length:--size-ui) leading-(--lh-ui) font-(--weight-medium) whitespace-nowrap no-underline transition-[background-color,color,border-color] duration-120 ease-(--ease-out) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:border-border disabled:bg-transparent disabled:text-(--text-disabled) aria-disabled:cursor-not-allowed aria-disabled:border-border aria-disabled:bg-transparent aria-disabled:text-(--text-disabled) motion-reduce:transition-none",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-(--primary-hover) active:bg-(--primary-active)",
+          "border-transparent bg-primary text-primary-foreground hover-fine:hover:bg-(--primary-hover) active:bg-(--primary-active)",
         // White on both grounds. On light, the fill is 1.11:1 against the page
         // and the border 1.12:1, so the label is what identifies it there.
         // --secondary in tokens.css explains the white.
         secondary:
-          "border-(--secondary-border) bg-secondary text-secondary-foreground hover:bg-(--secondary-hover)",
+          "border-(--secondary-border) bg-secondary text-secondary-foreground hover-fine:hover:bg-(--secondary-hover)",
         // The neutral, page-ground button. For icon sizes, which is its only
         // use so far, it has no visible edge. The old IconButton declared a
         // --border-strong one, but a later rule cancelled it, so it always
         // shipped borderless. Solution.astro's disabled override is written
         // around that.
         outline:
-          "border-transparent bg-background text-foreground hover:bg-card",
+          "border-transparent bg-background text-foreground hover-fine:hover:bg-card",
         // Edge, radius and hover depend on size; see compoundVariants.
         ghost: "bg-transparent text-(--primary-text)",
       },
@@ -89,13 +116,15 @@ const buttonVariants = cva(
         variant: "ghost",
         size: "default",
         class:
-          "border-(--border-strong) hover:border-(--primary-text) hover:bg-(--primary-subtle)",
+          "border-(--border-strong) hover-fine:hover:border-(--primary-text) hover-fine:hover:bg-(--primary-subtle)",
       },
       {
         variant: "ghost",
         size: [...ICON_SIZES],
+        // The hover fill itself is `.btn-ghost-icon-hover` in components.css,
+        // not a utility — see the header comment.
         class:
-          "rounded-(--radius-xs) border-transparent hover:bg-[color-mix(in_srgb,var(--primary-text)_18%,transparent)] hover:text-foreground",
+          "btn-ghost-icon-hover rounded-(--radius-xs) border-transparent hover-fine:hover:text-foreground",
       },
     ],
     defaultVariants: {
@@ -114,7 +143,17 @@ function Button({
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      // A function, not `cn(buttonVariants({ ..., className }))`: className
+      // can itself be a function of the button's state (Base UI's own
+      // render-prop convention), and resolving it here — the same way Base
+      // UI's own internals would — is what lets both forms reach `cn`
+      // as a plain string instead of one silently vanishing into it.
+      className={(state: ButtonPrimitive.State) =>
+        cn(
+          buttonVariants({ variant, size }),
+          typeof className === "function" ? className(state) : className
+        )
+      }
       {...props}
     />
   )

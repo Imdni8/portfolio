@@ -69,7 +69,12 @@ const { title, open = false } = Astro.props;
 	   margin needs clearing (:global, since scoped styles never reach slotted
 	   MDX), and the gap spaces them if there is more than one.
 	   .type-annotation carries no colour, because its two uses want different
-	   ones: a caption under a figure is muted, note copy is meant to be read. */
+	   ones: a caption under a figure is muted, note copy is meant to be read.
+	   This has to track ui/alert.tsx's AlertDescription by hand (grid,
+	   gap-(--spacing-md), text-body, p margin 0) — a native <details> can't
+	   render that React component from an .astro file (zero JS from .astro),
+	   so there's no one implementation the two can share. Re-check both
+	   whenever either changes. */
 	.note-box__body {
 		display: grid;
 		gap: var(--spacing-md);

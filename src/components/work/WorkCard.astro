@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../ui/Icon.astro';
-import { badgeVariants } from '../ui/badge';
+import Badge from '../ui/Badge.astro';
 import type { IconName } from '../ui/icons';
 
 /** `kind` is the closed set that picks the icon; `label` is free text
@@ -63,18 +63,18 @@ const isExternal = status === 'external';
 					<ul class="card__roles">
 						{aiFeature && (
 							<li>
-								<span data-slot="badge" class={badgeVariants({ variant: 'ai' })}>
+								<Badge variant="ai">
 									<Icon name="sparkles" />
 									AI
-								</span>
+								</Badge>
 							</li>
 						)}
 						{roles.map((role) => (
 							<li>
-								<span data-slot="badge" class={badgeVariants()}>
+								<Badge>
 									<Icon name={ROLE_ICONS[role.kind]} />
 									{role.label}
-								</span>
+								</Badge>
 							</li>
 						))}
 					</ul>

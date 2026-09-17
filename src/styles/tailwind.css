@@ -30,6 +30,16 @@
 @import 'shadcn/tailwind.css';
 @import 'tw-animate-css';
 
+/* A custom variant for the sitewide hover gate: every plain-CSS hover in this
+   project is written `@media (hover: hover) and (pointer: fine) { &:hover {
+   … } }` (Footer.astro, WorkCard.astro, SiteNav.astro), never a bare
+   `:hover` — Tailwind's own `hover:` only checks `(hover: hover)`, which some
+   touchscreens report true for on a tap, leaving a hover style stuck until
+   the next tap elsewhere. Stack it with Tailwind's own pseudo-class variant,
+   `hover-fine:hover:bg-…`, rather than using it alone, to get both
+   conditions. */
+@custom-variant hover-fine (@media (hover: hover) and (pointer: fine));
+
 @theme inline {
 	--color-background: var(--bg);
 	--color-foreground: var(--text);

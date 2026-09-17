@@ -72,6 +72,9 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
 
 // A div, not a p: callers hand it block-level content, so the copy can arrive
 // as paragraphs. They take the type style from here, and the gap spaces them.
+// case-study/NoteBox.astro's `.note-box__body` hand-copies this treatment
+// (zero JS from .astro means it can't render this component) — re-check it
+// too whenever this class list changes.
 function AlertDescription({
   className,
   ...props

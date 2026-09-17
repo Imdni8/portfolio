@@ -21,7 +21,7 @@ const { poster, src, alt } = Astro.props;
 	<Image src={poster} alt={alt} widths={[760, 1120, 1470]} sizes="(min-width: 60rem) 92vw, 100vw" />
 	<button
 		type="button"
-		class:list={[buttonVariants({ size: 'icon-lg' }), 'video-frame__play']}
+		class:list={[buttonVariants({ variant: 'default', size: 'icon-lg' }), 'video-frame__play']}
 		aria-label={`Play: ${alt}`}
 	>
 		<Icon name="play" />
@@ -44,7 +44,7 @@ const { poster, src, alt } = Astro.props;
 		height: auto;
 	}
 
-	/* Shape, colour and size come from buttonVariants({ size: 'icon-lg' });
+	/* Shape, colour and size come from buttonVariants({ variant: 'default', size: 'icon-lg' });
 	   this is only the centring over the poster. */
 	.video-frame__play {
 		position: absolute;

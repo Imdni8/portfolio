@@ -87,7 +87,7 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
     Video.astro puts over a poster. */}
 <button
 	type="button"
-	class:list={[buttonVariants({ size: 'icon-lg' }), 'slide-video__play']}
+	class:list={[buttonVariants({ variant: 'default', size: 'icon-lg' }), 'slide-video__play']}
 	data-slide-video-play
 	aria-label={`Play: ${alt}`}
 >
@@ -146,7 +146,7 @@ const posterUrl = (await getImage({ src: poster, width: 1200, format: 'webp' }))
 		object-fit: cover;
 	}
 
-	/* Shape, colour and size come from buttonVariants({ size: 'icon-lg' });
+	/* Shape, colour and size come from buttonVariants({ variant: 'default', size: 'icon-lg' });
 	   this is only the centring over the card, above the trigger's z-index. */
 	.slide-video__play {
 		position: absolute;

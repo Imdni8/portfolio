@@ -78,7 +78,7 @@
    `@layer utilities`. An unlayered rule beats every layered one whatever
    its specificity, so left unlayered this would pin every button and badge
    glyph at 1em. The unlayered overrides elsewhere (.ba__chev .icon, the
-   work card's meta icons) still win, as they did before.
+   work card's external-link badge) still win, as they did before.
    ------------------------------------------------------------------------- */
 @layer components {
 	.icon {
@@ -132,12 +132,17 @@
 }
 
 .badge-ai {
-	/* The ring is 1.5px, taken out of the chip's own padding rather than
-	   added outside it. The chip sits in a row beside 1px-bordered ones, and
-	   a border that grew the box would stand taller than its neighbours. The
-	   calc gives back exactly what the extra border takes, so the outer box
-	   is unchanged at 26px and only the gap to the label moves. */
-	border-width: 1.5px;
+	/* The ring is 2px, taken out of the chip's own padding rather than added
+	   outside it. The chip sits in a row beside 1px-bordered ones, and a
+	   border that grew the box would stand taller than its neighbours; the
+	   calc below gives back exactly the 1px of extra border width (2px −
+	   the default 1px), so the outer box is unchanged at 26px and only the
+	   gap to the label moves. Whole pixels on both sides of that trade
+	   deliberately — a 1.5px border here previously left the calc handing
+	   back more padding than the border actually added, since some
+	   browsers round a fractional border-width down when rasterizing,
+	   quietly shipping a chip 1–2px shorter than its neighbours. */
+	border-width: 2px;
 	border-color: transparent;
 	padding: calc(var(--spacing-xs) - 1px);
 	padding-inline-end: calc(var(--spacing-sm) - 1px);
@@ -168,6 +173,28 @@
 @media (prefers-reduced-motion: reduce) {
 	.badge-ai {
 		animation: none;
+	}
+}
+
+/* ---- Button · ghost icon hover ---------------------------------------------
+   The one other piece of the shadcn button/badge/alert trio written as plain
+   CSS (ui/button.tsx applies the class; see that file's header comment for
+   why). The ghost variant's icon sizes hover to a translucent wash of
+   --primary-text over whatever they're sitting on — a flat token like
+   --primary-subtle would just repaint the Alert dismiss button's hover the
+   same colour as the Alert it already sits on, since that's --primary-subtle
+   too.
+
+   Written here rather than as a Tailwind arbitrary value
+   (`hover:bg-[color-mix(...)]`) because Tailwind adds an unguarded fallback
+   rule ahead of its own `@supports (color: color-mix(...))` block for any
+   arbitrary value containing `color-mix()`, and that fallback resolves to a
+   fully opaque --primary-text — the wrong failure mode for a hover wash.
+   Plain CSS just drops the whole declaration on a browser without
+   color-mix, same as the old `.icon-btn--tertiary:hover` this replaces. */
+@media (hover: hover) and (pointer: fine) {
+	.btn-ghost-icon-hover:hover {
+		background: color-mix(in srgb, var(--primary-text) 18%, transparent);
 	}
 }
 

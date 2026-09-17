@@ -415,3 +415,18 @@ export function trackCompareDragged(method: 'pointer' | 'keyboard', position: nu
 		case_study_slug: caseStudySlug(),
 	});
 }
+
+/* Called from the Bolt prototype island (case-study/bolt-prototype/BoltShell.tsx)
+   — run/replay/stop are the same composer button across a rerender, so a click
+   autocapture would see identical elements and lose which action was actually
+   taken; expand is the full-screen control beside it. One event, `action`
+   telling the four apart, rather than four named events for one control. */
+export function trackPrototypeRun(action: 'run' | 'replay' | 'stop' | 'expand'): void {
+	initAnalytics();
+	if (!API_KEY) return;
+
+	trackNow('Ran Bolt Prototype', {
+		action,
+		case_study_slug: caseStudySlug(),
+	});
+}
