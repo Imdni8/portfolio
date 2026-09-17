@@ -127,8 +127,8 @@
 	--size-heading: clamp(1.375rem, 2.6vw, 1.625rem); /* 22 → 26 */
 	--size-subtitle: clamp(1.125rem, 2vw, 1.25rem); /* 18 → 20 */
 	/* The handwritten aside inside the display line. Scales with it, at the
-	   5:8 ratio the reference draws it at (30 against 48). */
-	--size-hand: clamp(1.40625rem, 1.75vw, 1.875rem); /* 22.5 → 30 */
+	   5:6 ratio the reference draws it at (40 against 48). */
+	--size-hand: clamp(1.875rem, 2.3333vw, 2.5rem); /* 30 → 40 */
 	--size-tab: 1.25rem; /* 20 */
 	--size-body: 1rem; /* 16 — running copy */
 	--size-ui: 1rem; /* 16 — controls; shares the rung with body, parts on weight and leading */
@@ -139,7 +139,7 @@
 
 	/* Leading, unitless so it survives the clamps. */
 	--lh-display: 1.2; /* 48/57.6 */
-	--lh-hand: 1.2; /* 30/36 */
+	--lh-hand: 1.2; /* 40/48 */
 	--lh-title: 1.2; /* 42/50.4 */
 	--lh-heading: 1.2; /* 26/31.2 */
 	--lh-subtitle: 1.4; /* 20/28 */
@@ -150,7 +150,8 @@
 	--lh-tag: 1.6; /* 10/16 */
 	--lh-wordmark: 1; /* 15/15 */
 
-	--weight-light: 300; /* the mono wordmark, and nothing else */
+	--weight-extralight: 200; /* the homepage headline's demoted half — "that", "makes users", "and businesses" */
+	--weight-light: 300; /* the footer's mono wordmark */
 	--weight-regular: 400;
 	--weight-medium: 500;
 
@@ -573,18 +574,26 @@
 	letter-spacing: var(--track-wordmark);
 }
 
-/* The homepage headline — "I try to design / Thoughtful software" — is
-   the one line on the site set above the title rung, and it is three
-   styles on one sentence:
+/* The homepage headline — "I try to design / Thoughtful software that /
+   makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗" — is the one line on the
+   site set above the title rung, and it is three styles on one sentence:
 
    - .type-display is the phrase spoken rather than set — "Thoughtful
      software". The one place the display face runs italic at this size.
      Needs the real italic face, same reasoning as .type-heading--claim.
-   - .type-display-sans is the plain half of the sentence — "I", "design".
-     Same size and leading as .type-display, so the two lines share one
-     rhythm; normal tracking, as all sans does.
+   - .type-display-sans is the plain half of the sentence — "I", "design",
+     "that", "makes users", "and businesses". Same size and leading as
+     .type-display, so the lines share one rhythm; normal tracking, as all
+     sans does. HomeHero.astro drops "that" and the outcome clause to
+     `--weight-extralight` and 7:8 of `--size-display` (42 against 48)
+     locally — lighter and smaller, never heavier or larger — rather than
+     forking a second `.type-*` class over two changed properties. The
+     kaomoji closing each outcome clause (`.hero__kaomoji`) are plain
+     characters set in `--font-display`, not emoji, so they aren't a fourth
+     style on the sentence — they read `color: var(--text)` like everything
+     else here, which the emoji they replaced never could.
    - .type-hand is the aside — "try to". Smaller than the words either side
-     of it, at the 5:8 the reference draws it at. See --font-hand for why it
+     of it, at the 5:6 the reference draws it at. See --font-hand for why it
      is used here and nowhere else. */
 .type-display {
 	font-family: var(--font-display);

@@ -35,15 +35,23 @@ The foundations, all settled with the user:
   what is read in full (copy at 16/1.7, deks, captions, controls), DM Mono is
   apparatus (nav, tabs, tags, eyebrows — 10–12px, uppercase, tracked +6–8%).
   Sixteen styles, exposed as `.type-*` classes. **There is no bold**: the
-  loaded cuts are serif 400; sans 400/500; mono 300 (the footer wordmark
-  only)/400/500, and `--weight-semibold`/`--weight-bold` no longer exist.
+  loaded cuts are serif 400; sans 400/500 (plus 200, on the homepage
+  headline's demoted half only — see below); mono 300 (the footer
+  wordmark)/400/500, and `--weight-semibold`/`--weight-bold` no longer exist.
   A fourth family, **Delicious Handrawn** (`--font-hand`, `.type-hand`), sets
   the homepage headline's "try to" and nothing else — an aside written into
   the sentence. Do not reach for it anywhere else. The headline is the only
-  text above the title rung: `.type-display` (serif italic, "Thoughtful
-  software") and `.type-display-sans` ("I … design") share
-  `--size-display` (36→48) and `--lh-display` (1.2); `.type-hand` runs at
-  5:8 of that (`--size-hand`, 22.5→30).
+  text above the title rung, and now reads "I try to design / Thoughtful
+  software that / makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗":
+  `.type-display` (serif italic, "Thoughtful software") and
+  `.type-display-sans` ("I … design", "that", "makes users", "and
+  businesses") share `--size-display` (36→48) and `--lh-display` (1.2);
+  `.type-hand` runs at 5:6 of that (`--size-hand`, 30→40); the closing
+  kaomoji (`.hero__kaomoji`, plain characters in `--font-display`, not
+  emoji) sit at 5:6 of it too. `.type-display-sans` drops to
+  `--weight-extralight` and 7:8 of `--size-display` locally in
+  `HomeHero.astro` for "that" and the outcome clause — lighter and smaller,
+  never heavier or larger — the sentence's one demotion.
   Importance comes from the family and the colour token, never a heavier cut.
   `.type-heading`, `.type-reflection` and `.type-card-title` now share one
   rule (serif 400, 26/31) — the names stay because they say what the text is

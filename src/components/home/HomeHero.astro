@@ -1,16 +1,19 @@
 ---
 import logoMark from '../../assets/nav/logo.svg?raw';
 
-/* The homepage headline: "I try to design / Thoughtful software", with the
-   brand mark standing in for the T. Its entrance is CSS alone — see the
-   keyframes below — and its exit is home-reel.ts, which fades the words and
-   flies the mark up into the nav. The two never touch the same element:
-   the entrance animates `.hero__lead`, `.hero__spoken` and `.hero__aside`
-   (`.hero__visual` under reduced motion, where the reel never runs), the
-   exit writes
-   to `[data-reel-fade]` and `[data-reel-mark]`, because a running CSS
-   animation outranks an inline style and would pin whatever the script
-   tried to set. */
+/* The homepage headline: "I try to design / Thoughtful software that /
+   makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗", with the brand mark
+   standing in for the T. Its entrance is CSS alone — see the keyframes
+   below — and its exit is home-reel.ts, which fades the words and flies
+   the mark up into the nav.
+   The two never touch the same element: the entrance animates
+   `.hero__lead`, `.hero__spoken`, `.hero__aside`, `.hero__word--that` and
+   `.hero__outcome-group` (`.hero__visual` under reduced motion, where the
+   reel never runs); the exit writes to `[data-reel-fade]` (on `.hero__fade`,
+   `.hero__spoken-text`, `.hero__that-fade` and `.hero__outcome` — wrapper
+   elements, never the ones an entrance animation also targets) and
+   `[data-reel-mark]`, because a running CSS animation outranks an inline
+   style and would pin whatever the script tried to set. */
 ---
 
 <div class="hero" data-reel-hero>
@@ -21,7 +24,7 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	    doubled line in a copy-paste of the headline, which is the one place it
 	    shows. */}
 	<h1 class="hero__title">
-		<span class="sr-only">I try to design thoughtful software</span>
+		<span class="sr-only">I try to design thoughtful software that makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗</span>
 		<span class="hero__visual" aria-hidden="true">
 			<span class="hero__fade" data-reel-fade>
 				<span class="hero__lead">
@@ -30,13 +33,32 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 					<span class="hero__word type-display-sans">design</span>
 				</span>
 			</span>
-			<span class="hero__spoken type-display">
+			<span class="hero__spoken">
 				{/* Two Ts, one shown: the brand mark where the reel runs (it flies
 				    up into the nav), a plain letter everywhere else — where the
 				    nav already shows its own mark from the start, and a second
 				    one in the headline would be the same logo twice. */}
 				<span class="hero__mark" data-reel-mark set:html={logoMark} />
-				<span class="hero__spoken-text" data-reel-fade><span class="hero__letter">T</span>houghtful software</span>
+				<span class="hero__spoken-text type-display" data-reel-fade
+					><span class="hero__letter">T</span>houghtful software</span
+				>
+				<span class="hero__that-fade" data-reel-fade
+					><span class="hero__word hero__word--that type-display-sans">that</span></span
+				>
+			</span>
+			{/* The line the sentence was extended by: two outcomes, both sans at
+			    --weight-light — the same demotion "that" above takes (see
+			    .hero__word--that), carried one register further so the whole
+			    explaining half of the sentence reads lighter than "I design". */}
+			<span class="hero__outcome" data-reel-fade>
+				<span class="hero__outcome-group">
+					<span class="hero__word type-display-sans">makes users</span>
+					<span class="hero__kaomoji">(˶ᵔ ᵕ ᵔ˶)</span>
+				</span>
+				<span class="hero__outcome-group">
+					<span class="hero__word type-display-sans">and businesses</span>
+					<span class="hero__kaomoji">˗ˋˏ⛀⛁ˎˊ˗</span>
+				</span>
 			</span>
 		</span>
 	</h1>
@@ -117,11 +139,18 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	/* Row two, drawn up under row one by --spacing-xs and bottom-aligned, so
 	   the mark (where it is shown — see below) — taller than the line, since
 	   its swoosh runs above the cap height and below the baseline — hangs off
-	   the text the way the reference draws it. */
+	   the text the way the reference draws it.
+
+	   `font-size` is set here, not on a `.type-*` class, because the row mixes
+	   two of them (`.hero__spoken-text` is serif italic, `.hero__word--that`
+	   is sans) that must still share one size — `.hero__mark`'s 1.625em reads
+	   this value from its ancestor chain, not from either child. */
 	.hero__spoken {
 		display: flex;
 		align-items: flex-end;
+		flex-wrap: wrap;
 		margin-block-start: calc(-1 * var(--spacing-xs));
+		font-size: var(--size-display);
 		color: var(--text);
 	}
 
@@ -155,8 +184,83 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		inline-size: auto;
 	}
 
+	/* The two words sit on one baseline; only the mark is bottom-aligned.
+	   Bottom-aligning "that" too can't level it: two faces at two sizes put
+	   their baselines at different heights in their boxes, and the reel
+	   lifts this text off the bottom by --spacing-xs besides (see the media
+	   query below), so a shared bottom edge left "that" 6–8px low.
+	   `last baseline` aligns the pair and sets them against the row's
+	   bottom as one group. The deeper of the two, "software" with its lift,
+	   is what touches the bottom, so it stays exactly where the mark
+	   expects it. */
 	.hero__spoken-text {
+		align-self: last baseline;
 		white-space: nowrap;
+	}
+
+	/* --spacing-lg is the word space the reference sets between "software"
+	   and "that" — the mark and "houghtful" carry none, since together they
+	   spell one word. The margin sits on the fade wrapper, the flex item
+	   `.hero__spoken` actually spaces, not on `.hero__word--that` itself.
+
+	   `display: flex` gives the wrapper the baseline of the word inside it
+	   and nothing else. As a plain block it would get a line box with a
+	   strut at the row's inherited 48px size and body leading. That strut
+	   reaches further below the baseline than "software" does, so it would
+	   become the group's lowest point and lift both words off the mark. */
+	.hero__that-fade {
+		display: flex;
+		align-self: last baseline;
+		margin-inline-start: var(--spacing-lg);
+	}
+
+	/* "that" steps down to --weight-extralight and 7:8 of --size-display
+	   (42 against 48) — lighter and smaller, never heavier or larger — the
+	   same demotion the outcome row below takes, so the sentence visibly
+	   downshifts register the moment it starts explaining itself. */
+	.hero__word--that {
+		font-weight: var(--weight-extralight);
+		font-size: calc(var(--size-display) * 7 / 8);
+	}
+
+	/* Row three: the sentence's outcome, one clause per audience. Wraps to
+	   its own line under the words above it if a narrow viewport can't hold
+	   both clauses on one — the reference is drawn at desktop width and
+	   doesn't say what happens below it. */
+	.hero__outcome {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-lg) var(--spacing-xl);
+		margin-block-start: var(--spacing-lg);
+	}
+
+	.hero__outcome-group {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xl);
+	}
+
+	/* A kaomoji, not an emoji: plain characters set in the display face
+	   rather than pulled from the system emoji font, so — unlike the emoji
+	   this row used to carry — it actually reads `color: var(--text)` and
+	   follows the theme. 5:6 of --size-display (40:48 in the reference), the
+	   same step down the old emoji took, and `white-space: nowrap` keeps a
+	   kaomoji's internal spaces from ever becoming a wrap point. */
+	.hero__kaomoji {
+		font-family: var(--font-display);
+		font-size: calc(var(--size-display) * 5 / 6);
+		line-height: var(--lh-display);
+		white-space: nowrap;
+	}
+
+	/* The whole outcome row takes the same demotion as `.hero__word--that`
+	   above — --weight-extralight and 7:8 of --size-display — never a
+	   heavier or larger cut than the words that came before it. */
+	.hero__outcome .hero__word {
+		font-weight: var(--weight-extralight);
+		font-size: calc(var(--size-display) * 7 / 8);
 	}
 
 	/* Which T. The query is home-reel.ts's REEL_QUERY — the mark only makes
@@ -214,6 +318,17 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 		.hero__spoken {
 			animation: hero-arrive 600ms var(--ease-out) 280ms backwards;
+		}
+
+		/* The stagger continues past the two rows above: "that" follows
+		   "software" by another 80ms, then the outcome row by 80ms again —
+		   the sentence keeps unfolding rather than landing all at once. */
+		.hero__word--that {
+			animation: hero-arrive 600ms var(--ease-out) 360ms backwards;
+		}
+
+		.hero__outcome-group {
+			animation: hero-arrive 600ms var(--ease-out) 440ms backwards;
 		}
 
 		.hero__aside {
