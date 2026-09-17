@@ -97,13 +97,16 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 					<div class="reel__hero">
 						<HomeHero />
 					</div>
-					{/* data-nav-scrim: what the nav watches to know when to fade its
-					    band in — the top edge of the work. In the stacked layout that
-					    is simply where the column of cards starts. In the reel it is
-					    where the lit card's top edge rests: while the pin holds, that
-					    line never rises past the nav, and once the reel ends and the
-					    pin scrolls away with the last card on it, this is the line
-					    that meets the nav first. See SiteNav.astro. */}
+					{/* data-nav-scrim: the reel layout's nav-scrim target — the lit
+					    card's top edge. While the pin holds, that line never rises
+					    past the nav, and once the reel ends and the pin scrolls away
+					    with the last card on it, this is the line that meets the nav
+					    first. Below the reel's breakpoint this line carries no
+					    position of its own and sits inert at the bottom of the
+					    stacked hero; the stacked layout's target is the headline
+					    itself (`data-nav-scrim-narrow`, HomeHero.astro) — the nav
+					    picks between the two by the same breakpoint. See
+					    SiteNav.astro. */}
 					<div class="reel__scrim-line" data-nav-scrim></div>
 					<h2 id="work-heading" class="sr-only">Selected work</h2>
 					<ol class="reel__track" aria-labelledby="work-heading">
@@ -174,9 +177,13 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 
 <style>
 	/* `--nav-band` is the colour the nav's scrim fades in with — the page's
-	   ground, which on this page is not --bg. See SiteNav.astro. */
+	   ground, which on this page is not --bg. `--home-ground-blend`, not the
+	   flatter `--home-ground` the body itself paints below: the scrim sits
+	   over content the liquid-metal layer has already darkened by its own
+	   blend, and matching the unblended token left a visibly lighter band
+	   where the two met. See SiteNav.astro. */
 	body {
-		--nav-band: var(--home-ground);
+		--nav-band: var(--home-ground-blend);
 		margin: 0;
 		background: var(--home-ground);
 		color: var(--text-body);

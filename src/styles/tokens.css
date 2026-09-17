@@ -350,6 +350,18 @@
 	--home-ground: #140c00;
 	--home-shader-ground: #191300;
 
+	/* The homepage's actual resting background — soft-lighting
+	   --home-shader-ground onto --home-ground (computed, not measured:
+	   the W3C soft-light formula on these two literals resolves to this),
+	   darker than --home-ground alone. Nothing paints this directly (the
+	   blend is real, done by .liquid-metal's mix-blend-mode); it exists so
+	   a flat fill elsewhere on the page — the nav's scrim band — can match
+	   what the shader actually renders instead of the brighter unblended
+	   ground. Only accurate outside the glow's own bloom, which lifts this
+	   locally toward its measured peak of rgb(61, 40, 0) — see Liquid
+	   metal in CLAUDE.md. */
+	--home-ground-blend: #050200;
+
 	/* Text and icon colour for anything sitting on --overlay, a fixed dark
 	   scrim, or a product screenshot — surfaces that are dark (or light) in
 	   both themes rather than following --bg. Deliberately not redefined per

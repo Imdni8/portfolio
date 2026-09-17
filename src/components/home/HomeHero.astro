@@ -26,7 +26,14 @@ const kaomoji = { users: '(˶ᵔ ᵕ ᵔ˶)', businesses: '˗ˋˏ⛀⛁ˎˊ˗' }
 	    accessibility tree, and the words arrive out of order. The cost is a
 	    doubled line in a copy-paste of the headline, which is the one place it
 	    shows. */}
-	<h1 class="hero__title">
+	{/* data-nav-scrim-narrow: the stacked layout's nav-scrim target — see
+	    SiteNav.astro. Below the reel's breakpoint the page is a plain scroll,
+	    so the headline itself (not a synthetic marker) is what the nav
+	    watches: the scrim ramps in behind the nav over the last band-height
+	    of scroll before this box's top would otherwise pass under it. The
+	    sr-only span above doesn't affect the box — it's absolutely
+	    positioned — so this tracks exactly where "I try to design" sits. */}
+	<h1 class="hero__title" data-nav-scrim-narrow>
 		<span class="sr-only">I try to design thoughtful software that makes users {kaomoji.users} and businesses {kaomoji.businesses}</span>
 		<span class="hero__visual" aria-hidden="true">
 			<span class="hero__fade" data-reel-fade>
