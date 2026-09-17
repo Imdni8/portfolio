@@ -3,15 +3,19 @@ import mascotMark from '../../assets/footer/Tousif&clawd.svg?raw';
 import mascotHoverMark from '../../assets/footer/Tousif&clawd-hover.svg?raw';
 
 interface Props {
-	/* Which page cap to line up with. The footer is chrome shared by hosts
-	   that do not agree on one: index and about cap their content at
-	   --measure-content (the same cap the nav uses), case studies at
-	   --measure-page. Matching the host is the whole point of the rule — one
-	   that overhangs the grid above it reads as a different page. */
-	measure?: 'content' | 'page';
+	/* Which cap to use. The footer is chrome shared by hosts that do not
+	   agree on one: index and about run the nav's own --measure-chrome
+	   (1000px, same as the nav row), case studies run --measure-page — wide
+	   enough to line up with a case study's own content grid, which is why
+	   that host still gets its own variant rather than sharing the chrome
+	   measure too. On about.astro specifically, --measure-chrome is now
+	   narrower than the page's own --measure-content (1240px) body frame —
+	   a deliberate, accepted trade-off (see the token's own comment in
+	   tokens.css), not a mismatch to fix by widening this back out. */
+	measure?: 'chrome' | 'page';
 }
 
-const { measure = 'content' } = Astro.props;
+const { measure = 'chrome' } = Astro.props;
 ---
 
 <footer class="site-footer" data-measure={measure}>
@@ -64,18 +68,20 @@ const { measure = 'content' } = Astro.props;
 	/* Both the cap and the box-sizing are stated outright, because neither
 	   can be left to the host: index ships no box-sizing reset while about
 	   and CaseStudyLayout do, so an unpinned `max-width` + `padding-inline`
-	   pair resolved up to 128px wider on the homepage than elsewhere. And
-	   the hosts disagree about the gutter too — index and about put it
-	   *outside* --measure-content (about's frame carries no padding of its
-	   own; the gutter is on its parent), while a case study's Section puts
-	   it *inside* --measure-page. Adding the gutter to the cap here is what
-	   reproduces the first case under a pinned border-box; --measure-page
-	   is used bare because that convention already counts it in. Measured:
-	   the rule lands on the content edge to the pixel on all three pages,
-	   at 1280, 1470 and 1600. */
+	   pair resolved differently on the homepage than elsewhere. And the
+	   hosts disagree about the gutter too — index and about put it *outside*
+	   the cap (about's frame carries no padding of its own; the gutter is on
+	   its parent), while a case study's Section puts it *inside*
+	   --measure-page. Adding the gutter to the cap here is what reproduces
+	   the first case under a pinned border-box; --measure-page is used bare
+	   for the `page` variant because that convention already counts it in.
+
+	   This default variant no longer tracks a page's own content measure —
+	   see --measure-chrome's comment in tokens.css and this file's `measure`
+	   prop comment for why index and about intentionally diverge here now. */
 	.site-footer__inner {
 		box-sizing: border-box;
-		max-width: calc(var(--measure-content) + 2 * var(--gutter));
+		max-width: calc(var(--measure-chrome) + 2 * var(--gutter));
 		margin-inline: auto;
 		padding-inline: var(--gutter);
 		padding-block-end: var(--spacing-xl);

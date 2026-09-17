@@ -15,9 +15,14 @@
  *             is; a gesture back from the first card plays it in reverse. The
  *             two states sit INTRO viewport-heights apart in the scroll, so
  *             the scroll position always says which one the page is in.
- *   reel    (STEP per card) — the cards slide along a diagonal, one position
- *             per STEP of scroll, and the one at the centre is lit. Driven by
- *             the scroll position, vertical or — on a trackpad — horizontal.
+ *   reel    (STEP per card) — the cards fan out in a coverflow along a
+ *             downward arc, one position per STEP of scroll: each step past
+ *             the lit card tilts around its own vertical axis and recedes
+ *             into depth (both plateauing at the immediate neighbour) and
+ *             sags further down the arc (which does not plateau — it keeps
+ *             growing, so the row curves continuously), and the one at the
+ *             centre is lit. Driven by the scroll position, vertical or —
+ *             on a trackpad — horizontal.
  *   end     — the page ends on the last card. Where the screen has room
  *             under it, the footer is laid over the bottom of the reel
  *             (`data-footer-overlay` on the body) and rises into view as the
@@ -102,15 +107,46 @@ const MARK_CLEARANCE = 24;
 const FOOTER_CLEARANCE = 24;
 const NAV_CLEARANCE = 24;
 
-/* The diagonal. In the reference the neighbours' centres sit ~825px across
-   from the lit card's at a 1230px card width, and ~10° down to the right
-   (up to the left), at 83% of its size. Expressed against the card's own
-   width so the spacing holds wherever the width is capped by the viewport's
-   height rather than its width. The neighbours overlap the lit card's edges
-   by design; it sits on top of them. */
+/* The coverflow. Neighbours still step sideways by STEP_X — unaffected by
+   the change below, and still expressed against the card's own width so the
+   spacing holds wherever the width is capped by the viewport's height rather
+   than its width. The neighbours overlap the lit card's edges by design; it
+   sits on top of them.
+
+   Past that, each step now tilts the card around its own vertical axis
+   (ROTATE_Y) and recedes it into depth (DEPTH_Z), both plateauing at the
+   immediate neighbour's distance — exactly where SIDE_SCALE already
+   plateaus, in render()'s `near` — plus a downward sag (ARC_DROP) that does
+   NOT plateau: it keeps growing the further out a card sits, same as `x`
+   does, so the row of cards reads as a continuous curve (an arc, cards
+   dipping away from the lit one on both sides) rather than a flat line with
+   a kink where the plateau starts. There is no reference frame for this
+   version, only a described screenshot (a centred, forward-facing card with
+   mirrored neighbours tilted back in depth, arranged along a downward arc),
+   so these are tuned starting points, not measured ones — retune them by
+   eye, in a real browser, before treating any of them as final:
+     - ROTATE_Y: 35°, enough tilt to read as a window turned away in depth
+       without folding the far edge down to an illegible sliver.
+     - DEPTH_Z: 0.32 card-widths of recession — enough, under the
+       `perspective` set on .reel__track in index.astro, to read as a
+       distinct depth step rather than a flat cutout sliding sideways. Keep
+       that rule's `2.2` multiplier in sync with this comment if either
+       moves: perspective alone shrinks the plateau by roughly
+       2.2 / (2.2 + 0.32) ≈ 0.87.
+     - SIDE_SCALE: 0.94, landing near today's 0.83 total once perspective's
+       own ~0.87 shrink at the plateau is compounded in (0.94 × 0.87 ≈ 0.82).
+       If neighbours look too small, adjust DEPTH_Z first — it's the newest,
+       least-validated number — and only touch SIDE_SCALE once the depth
+       itself looks right but the size still doesn't.
+     - ARC_DROP: 0.15 card-widths of sag per squared card-step (`d²`, so it's
+       symmetric left/right and accelerates outward, like a card resting on
+       the rim of a circle below the lit one's centre) — at the immediate
+       neighbour that is 0.15 of a card width, ~26% of the card's own height. */
 const STEP_X = 825 / 1230;
-const ANGLE = (10 * Math.PI) / 180;
-const SIDE_SCALE = 1022 / 1230;
+const ROTATE_Y = 35;
+const DEPTH_Z = 0.32;
+const SIDE_SCALE = 0.94;
+const ARC_DROP = 0.15;
 
 /* Smoothing. Inside the reel the cards follow the scroll position through a
    short exponential lag instead of being pinned to it — tying motion straight
@@ -312,17 +348,28 @@ function startReel(reel: HTMLElement): () => void {
 
 		/* The cards. */
 		const stepX = cardWidth * STEP_X;
-		const stepY = stepX * Math.tan(ANGLE);
 		slots.forEach((slot, i) => {
 			const d = i - k;
-			const near = Math.min(Math.abs(d), 1);
+			/* Signed plateau: same clamp as SIDE_SCALE's `near`, but keeps
+			   its sign so left-hand cards tilt the other way from right. */
+			const lean = Math.max(-1, Math.min(1, d));
+			const near = Math.abs(lean);
 			const scale = lerp(1, SIDE_SCALE, near);
+			/* A card to the right (d>0) leans away with a negative angle —
+			   its near (left) edge toward the viewer, its far edge
+			   receding — and the left-hand cards mirror it. */
+			const rotateY = lean * -ROTATE_Y;
+			const depthZ = -cardWidth * DEPTH_Z * near;
+			/* The downward arc: unlike `near`, this doesn't clamp at the
+			   immediate neighbour — it keeps growing with `d²` so the row
+			   reads as one continuous curve instead of flattening out. */
+			const arcDrop = cardWidth * ARC_DROP * d * d;
 			/* The stagger runs outward from the centre card, which at the
 			   intro is always the first. */
 			const riseStart = RISE_DELAY + Math.min(Math.max(d, 0), RISE_STAGGER_STEPS) * RISE_STAGGER;
 			const risen = easeOut(clamp01((p - riseStart) / RISE_SPAN));
 			const x = d * stepX;
-			let y = d * stepY + (1 - risen) * RISE * vh - lift;
+			let y = (1 - risen) * RISE * vh - lift + arcDrop;
 
 			/* Never over the mark while it is in the air: a card that shares
 			   its column is held under it. */
@@ -335,7 +382,7 @@ function startReel(reel: HTMLElement): () => void {
 				if (sharesColumn && cardTop < floor) y += floor - cardTop;
 			}
 
-			slot.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+			slot.style.transform = `translate3d(${x}px, ${y}px, ${depthZ}px) rotateY(${rotateY}deg) scale(${scale})`;
 			slot.style.zIndex = String(100 - Math.round(Math.abs(d) * 10));
 		});
 

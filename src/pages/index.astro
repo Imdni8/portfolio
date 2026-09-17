@@ -315,6 +315,19 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 			z-index: 0;
 			display: block;
 			padding: 0;
+
+			/* The coverflow's shared vanishing point. perspective only
+			   affects the 3D transforms of an element's own children, so it
+			   lives here rather than on .reel__pin — scoped to exactly what
+			   it affects. Static: it never depends on scroll position or
+			   card index, so home-reel.ts never touches it — keep the 2.2
+			   multiplier in sync with that file's coverflow comment. The
+			   origin sits at the lit card's own vertical centre (51.4%,
+			   matching .reel__scrim-line/.reel__slot below), not the pin's
+			   plain centre, so every card shares the one vanishing point the
+			   lit card sits on. */
+			perspective: calc(var(--reel-w) * 2.2);
+			perspective-origin: 50% 51.4%;
 		}
 
 		/* The page ends on the last card, and where the screen has room under
@@ -361,9 +374,17 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		   The `transform` here is the reel's first frame, before the script has
 		   run — the same values the script computes at the top of the page —
 		   so the page paints in place and nothing jumps when it takes over:
-		   each card one step further along the diagonal than the last (0.6707
-		   of a card width across, tan 10° of that down), 83% the size of the
-		   lit one, and all of them 58svh below where they will come to rest. */
+		   each card one step further along than the last (0.6707 of a card
+		   width across), tilted 35° around its own vertical axis and receded
+		   0.32 card-widths in depth (both plateauing past the first step,
+		   `min(var(--i), 1)`, same as the old diagonal's scale term), 94% the
+		   size of the lit one at that plateau, sagging 0.15 card-widths per
+		   squared step (unplateaued — it keeps growing with `var(--i)²`, so
+		   the row curves continuously rather than kinking where the other
+		   properties plateau), and all of them 58svh below where they will
+		   come to rest. `k = 0` here, so `d = i` is always ≥ 0 — there is no
+		   mirrored, left-hand case to render before the script runs, same as
+		   before. */
 		.reel__slot {
 			--reel-step: calc(var(--i) * var(--reel-w) * 0.6707);
 			position: absolute;
@@ -371,8 +392,13 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 			inset-inline-start: 50%;
 			inline-size: var(--reel-w);
 			translate: -50% -50%;
-			transform: translate3d(var(--reel-step), calc(var(--reel-step) * 0.1763 + 58svh), 0)
-				scale(calc(1 - min(var(--i), 1) * 0.1691));
+			transform: translate3d(
+					var(--reel-step),
+					calc(58svh + var(--reel-w) * var(--i) * var(--i) * 0.15),
+					calc(var(--reel-w) * min(var(--i), 1) * -0.32)
+				)
+				rotateY(calc(min(var(--i), 1) * -35deg))
+				scale(calc(1 - min(var(--i), 1) * 0.06));
 			z-index: calc(100 - var(--i) * 10);
 			will-change: transform;
 		}

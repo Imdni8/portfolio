@@ -69,13 +69,14 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	}
 
 	/* Brand on one edge, Resume and Side projects on the other, across a
-	   1000px row. The row is narrower than the 1240px the page frames used to
-	   share, which is what keeps the pair from looking stranded at the far
-	   end of it — the reference sets the nav to the prose measure rather than
-	   to the content one. `gap` only matters once the viewport is too narrow
-	   for `space-between` to leave any room. */
+	   1000px row — narrower than the 1240px the page frames used to share,
+	   which is what keeps the pair from looking stranded at the far end of
+	   it. `--measure-chrome` rather than a page content measure: the nav's
+	   width is its own standalone decision, not meant to track any page's
+	   body column. `gap` only matters once the viewport is too narrow for
+	   `space-between` to leave any room. */
 	.nav-shell__inner {
-		max-width: var(--measure-prose);
+		max-width: var(--measure-chrome);
 		margin-inline: auto;
 		display: flex;
 		align-items: center;

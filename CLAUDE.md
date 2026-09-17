@@ -232,7 +232,7 @@ that is ever wanted.
 
 Brand mark on the *left*; **Resume** (off-site, `links.resume` from
 `src/data/links.ts`, with the `arrow-up-right` glyph) and the **Side projects**
-dropdown together on the *right* — `space-between` across a `--measure-prose`
+dropdown together on the *right* — `space-between` across a `--measure-chrome`
 (1000px) row, sitewide. The brand is 40px tall and sits 16px from the top
 (`--spacing-xl` of block padding), so the band is 72px. The dropdown is
 `align="end"` because its trigger is the row's last item. There is no Work link
@@ -295,7 +295,7 @@ padding-inline: var(--gutter);
 
 or its equivalent — the gutter *outside* the cap, on a full-bleed parent, which
 is what `about.astro` does (and `.nav-shell`/`.nav-shell__inner`, though the
-nav now caps at `--measure-prose` rather than `--measure-content` — see Site
+nav now caps at `--measure-chrome` rather than `--measure-content` — see Site
 nav — and the homepage has no frame at all; see Homepage). The two are the
 same geometry; a bare `max-width: var(--measure-content)` with padding inside it
 is **not**, and that is the trap. It was equivalent while the pages were
@@ -327,9 +327,17 @@ trackpad's sideways swipe also steps through the cards.
     - The two states sit `INTRO` (1 viewport) apart in the scroll, so the
       scroll position always says which one the page is in. Nothing is drawn
       from positions in between;
-  - **reel** (`STEP`, 0.9 per card): cards slide along a 10° diagonal, one
-    position per step. Neighbours sit 0.6707 card-widths across and are 83% of
-    the lit card's size, overlapping its edges as drawn;
+  - **reel** (`STEP`, 0.9 per card): cards fan out in a coverflow, one
+    position per step. Neighbours still step 0.6707 card-widths across, and
+    now — instead of sliding down a 10° diagonal — tilt 35° around their own
+    vertical axis and recede 0.32 card-widths into depth under a shared
+    `perspective`, both plateauing at the immediate neighbour (as the old
+    83%-of-lit-size scale already did, now compounded with perspective's own
+    shrink), overlapping the lit card's edges as drawn. They also sag along a
+    downward arc — 0.15 card-widths per squared step, unplateaued, so the row
+    curves continuously instead of kinking where the tilt/depth/scale flatten
+    out. There is no measured reference for these numbers, only a described
+    screenshot — retune by eye;
   - **end**: the page ends on the last card (`TAIL` is 0). Where the screen
     has room under the lit card, the footer is laid over the bottom of the
     reel and rises into view as the last card arrives, so there's nothing

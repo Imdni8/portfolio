@@ -209,6 +209,17 @@
 	   media (screenshots, stat tiles) can run the full prose measure, but its
 	   heading and paragraph text stop here, centered inside it. */
 	--measure-copy: 47rem; /* 752px */
+	/* The site's persistent chrome — the nav row (sitewide) and the footer's
+	   `chrome` variant (index, about) — rather than any page's own content
+	   column. Kept as its own token rather than reused from --measure-prose
+	   even though the values happen to match right now, since the two are
+	   conceptually unrelated (one is the site's chrome width, the other a
+	   page's reading column) and have already diverged once before. On
+	   about.astro this runs narrower than the page's own --measure-content
+	   (1240px) body frame: a deliberate, accepted trade-off since that page
+	   is parked and unlinked (see "about" in CLAUDE.md), not an oversight to
+	   fix by widening this back out. */
+	--measure-chrome: 62.5rem; /* 1000px */
 	--gutter: clamp(1.25rem, 4vw, 4rem);
 
 	--spacing-none: 0rem; /* 0px */
