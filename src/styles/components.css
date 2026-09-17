@@ -488,6 +488,17 @@
 	}
 }
 
+/* ---- Decrypted text --------------------------------------------------------
+   Text that scrambles and settles (DecryptedText.tsx). It has no type or
+   colour of its own and inherits both from where it is placed. It doesn't
+   reserve width either: scrambled glyphs are wider or narrower than the real
+   ones, so a caller whose layout must not move holds the width itself (see
+   `.hero__kaomoji` in HomeHero.astro). */
+.decrypted-text {
+	display: inline-block;
+	white-space: pre-wrap;
+}
+
 /* ---- Water field -----------------------------------------------------------
    Background, not content: it fills its nearest positioned ancestor, never
    takes the pointer, and is hidden from the accessibility tree at the markup.

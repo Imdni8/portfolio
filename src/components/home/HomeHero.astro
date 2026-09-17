@@ -1,5 +1,8 @@
 ---
 import logoMark from '../../assets/nav/logo.svg?raw';
+import { DecryptedText } from '../ui/DecryptedText';
+
+const kaomoji = { users: '(˶ᵔ ᵕ ᵔ˶)', businesses: '˗ˋˏ⛀⛁ˎˊ˗' };
 
 /* The homepage headline: "I try to design / Thoughtful software that /
    makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗", with the brand mark
@@ -24,7 +27,7 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	    doubled line in a copy-paste of the headline, which is the one place it
 	    shows. */}
 	<h1 class="hero__title">
-		<span class="sr-only">I try to design thoughtful software that makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗</span>
+		<span class="sr-only">I try to design thoughtful software that makes users {kaomoji.users} and businesses {kaomoji.businesses}</span>
 		<span class="hero__visual" aria-hidden="true">
 			<span class="hero__fade" data-reel-fade>
 				<span class="hero__lead">
@@ -50,15 +53,31 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 			    --weight-light — the same demotion "that" above takes (see
 			    .hero__word--that), carried one register further so the whole
 			    explaining half of the sentence reads lighter than "I design". */}
+			{/* Each kaomoji scrambles on hover and settles back (DecryptedText).
+			    It's drawn twice: a hidden copy holds the width, and the live
+			    one sits centred over it, so the scramble never moves the line.
+			    The island only hydrates where it can be hovered. */}
 			<span class="hero__outcome" data-reel-fade>
-				<span class="hero__outcome-group">
-					<span class="hero__word type-display-sans">makes users</span>
-					<span class="hero__kaomoji">(˶ᵔ ᵕ ᵔ˶)</span>
-				</span>
-				<span class="hero__outcome-group">
-					<span class="hero__word type-display-sans">and businesses</span>
-					<span class="hero__kaomoji">˗ˋˏ⛀⛁ˎˊ˗</span>
-				</span>
+				{[
+					{ words: 'makes users', face: kaomoji.users },
+					{ words: 'and businesses', face: kaomoji.businesses },
+				].map(({ words, face }) => (
+					<span class="hero__outcome-group">
+						<span class="hero__word type-display-sans">{words}</span>
+						<span class="hero__kaomoji">
+							<span class="hero__kaomoji-rest">{face}</span>
+							<span class="hero__kaomoji-live">
+								<DecryptedText
+									client:media="(hover: hover) and (pointer: fine)"
+									text={face}
+									sequential
+									revealDirection="center"
+									speed={60}
+								/>
+							</span>
+						</span>
+					</span>
+				))}
 			</span>
 		</span>
 	</h1>
@@ -143,13 +162,31 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 	   `font-size` is set here, not on a `.type-*` class, because the row mixes
 	   two of them (`.hero__spoken-text` is serif italic, `.hero__word--that`
-	   is sans) that must still share one size — `.hero__mark`'s 1.625em reads
-	   this value from its ancestor chain, not from either child. */
+	   is sans) that must still share one size — `--mark-size`'s em reads
+	   this value from its ancestor chain, not from either child.
+
+	   `column-gap` is --spacing-lg, the word space the reference sets
+	   between "software" and "that". A gap rather than a margin on "that",
+	   because where the row is too narrow and "that" wraps (phones), a gap
+	   goes away with the wrap, and a margin would push the centred word
+	   6px right of centre.
+
+	   Only the reel shows the mark (see the media query below), and the mark
+	   is what makes this row taller than its text. Without it the row would
+	   sit 11px closer under row one than it does on desktop. So by default
+	   the row drops by the height the mark would have added, and the text
+	   sits the same distance under "I try to design" at every width. */
 	.hero__spoken {
+		--mark-size: 1.625em;
+
 		display: flex;
 		align-items: flex-end;
+		justify-content: center;
 		flex-wrap: wrap;
-		margin-block-start: calc(-1 * var(--spacing-xs));
+		column-gap: var(--spacing-lg);
+		margin-block-start: calc(
+			var(--mark-size) - var(--lh-display) * 1em - 2 * var(--spacing-xs)
+		);
 		font-size: var(--size-display);
 		color: var(--text);
 	}
@@ -173,7 +210,7 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		z-index: 1;
 		display: block;
 		flex-shrink: 0;
-		block-size: 1.625em;
+		block-size: var(--mark-size);
 		color: var(--brand-mark);
 		transform-origin: 0 0;
 	}
@@ -186,24 +223,24 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 	/* The two words sit on one baseline; only the mark is bottom-aligned.
 	   Bottom-aligning "that" too can't level it: two faces at two sizes put
-	   their baselines at different heights in their boxes, and the reel
-	   lifts this text off the bottom by --spacing-xs besides (see the media
-	   query below), so a shared bottom edge left "that" 6–8px low.
+	   their baselines at different heights in their boxes, and this text is
+	   also lifted off the bottom by --spacing-xs (its padding, below), so a
+	   shared bottom edge left "that" 6–8px low.
 	   `last baseline` aligns the pair and sets them against the row's
 	   bottom as one group. The deeper of the two, "software" with its lift,
 	   is what touches the bottom, so it stays exactly where the mark
-	   expects it. */
+	   expects it.
+
+	   The --spacing-xs of bottom padding is the reference's lift off the
+	   mark's bottom edge. It applies without the mark too, so the gap down
+	   to the outcome row is the same at every width. */
 	.hero__spoken-text {
 		align-self: last baseline;
+		padding-block-end: var(--spacing-xs);
 		white-space: nowrap;
 	}
 
-	/* --spacing-lg is the word space the reference sets between "software"
-	   and "that" — the mark and "houghtful" carry none, since together they
-	   spell one word. The margin sits on the fade wrapper, the flex item
-	   `.hero__spoken` actually spaces, not on `.hero__word--that` itself.
-
-	   `display: flex` gives the wrapper the baseline of the word inside it
+	/* `display: flex` gives the wrapper the baseline of the word inside it
 	   and nothing else. As a plain block it would get a line box with a
 	   strut at the row's inherited 48px size and body leading. That strut
 	   reaches further below the baseline than "software" does, so it would
@@ -211,7 +248,6 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	.hero__that-fade {
 		display: flex;
 		align-self: last baseline;
-		margin-inline-start: var(--spacing-lg);
 	}
 
 	/* "that" steps down to --weight-extralight and 7:8 of --size-display
@@ -249,10 +285,27 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	   same step down the old emoji took, and `white-space: nowrap` keeps a
 	   kaomoji's internal spaces from ever becoming a wrap point. */
 	.hero__kaomoji {
+		position: relative;
 		font-family: var(--font-display);
 		font-size: calc(var(--size-display) * 5 / 6);
 		line-height: var(--lh-display);
 		white-space: nowrap;
+	}
+
+	/* The hover scramble swaps in glyphs of other widths. The hidden copy
+	   keeps the kaomoji's real width, and the live copy is centred over it
+	   at its own `max-content` width. A wider scramble spills evenly past
+	   both edges, and the words beside it and the row's centring stay put. */
+	.hero__kaomoji-rest {
+		visibility: hidden;
+	}
+
+	.hero__kaomoji-live {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: 50%;
+		inline-size: max-content;
+		translate: -50% 0;
 	}
 
 	/* The whole outcome row takes the same demotion as `.hero__word--that`
@@ -266,14 +319,20 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	/* Which T. The query is home-reel.ts's REEL_QUERY — the mark only makes
 	   sense where the reel is there to fly it into the nav; move this with
 	   the others (index.astro, SiteNav.astro). Outside it the line is plain
-	   type. Inside it the mark stands in for the letter, and the text is
-	   pulled in toward it and lifted off the baseline by the reference's
-	   offsets. */
+	   type. Inside it the mark stands in for the letter and makes the row
+	   tall itself, so the row only tucks up under row one by --spacing-xs.
+	   The text is pulled in toward the mark by the reference's offset. The
+	   pull also cancels the row's word gap, because the mark and "houghtful"
+	   spell one word. */
 	.hero__mark {
 		display: none;
 	}
 
 	@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+		.hero__spoken {
+			margin-block-start: calc(-1 * var(--spacing-xs));
+		}
+
 		.hero__mark {
 			display: block;
 		}
@@ -283,8 +342,7 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		}
 
 		.hero__spoken-text {
-			margin-inline-start: calc(-1 * var(--spacing-xs));
-			padding-block-end: var(--spacing-xs);
+			margin-inline-start: calc(-1 * (var(--spacing-lg) + var(--spacing-xs)));
 		}
 	}
 
