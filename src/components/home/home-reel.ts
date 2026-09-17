@@ -22,7 +22,12 @@
  *             sags further down the arc (which does not plateau — it keeps
  *             growing, so the row curves continuously), and the one at the
  *             centre is lit. Driven by the scroll position, vertical or —
- *             on a trackpad — horizontal.
+ *             on a trackpad — horizontal. Scrolling itself is never
+ *             intercepted here (unlike the intro), so the reader can stop at
+ *             any fractional position — but once scrolling goes quiet
+ *             (SNAP_IDLE), the page settles on whichever card is nearest, the
+ *             same way the intro's own states always resolve to one or the
+ *             other. See "Settling on a card" below.
  *   end     — the page ends on the last card. Where the screen has room
  *             under it, the footer is laid over the bottom of the reel
  *             (`data-footer-overlay` on the body) and rises into view as the
@@ -176,6 +181,14 @@ const ARC_DROP = 0.15;
    Not applied to moves the reader did not make with a gesture — the first
    frame, a resize, a restored position, a keyboard jump — which snap. */
 const SMOOTHING = 90;
+/** The follower's time constant while it is correcting a snap-to-card (see
+ *  "Settling on a card") rather than chasing the reader's own scroll. A
+ *  snap's gap can be half a card-step, and closing that at SMOOTHING's pace
+ *  reads as a sudden lurch — it is motion the reader didn't ask for, arriving
+ *  right after their own scrolling stopped, so it needs to read as
+ *  deliberate rather than mechanical. Slower than SMOOTHING, not slower than
+ *  is comfortable to wait out: eyeballed, retune alongside it. */
+const SETTLE_SMOOTHING = 180;
 /** Close enough to stop the follower, in viewport heights (~half a pixel). */
 const SETTLE = 0.0005;
 
@@ -184,6 +197,23 @@ const SETTLE = 0.0005;
  *  second or more after the fingers lift; until it stops, it is the same
  *  gesture, not a request to carry on into the reel. */
 const GESTURE_IDLE = 200;
+/** A ceiling on how long a single gesture can be swallowed for, regardless of
+ *  how often GESTURE_IDLE keeps getting reset. GESTURE_IDLE alone answers
+ *  "has this gesture gone quiet" — it can't tell a flick's dying momentum
+ *  apart from a reader who simply kept scrolling, or gave up and tried again
+ *  a beat later, since both look identical: wheel events under 200ms apart.
+ *  Without a cap, either one holds the lock open indefinitely, and the very
+ *  act of trying to scroll is what keeps it stuck. A real flick's momentum
+ *  is done well within this; past it, further same-direction events are
+ *  someone trying again, not the same gesture, and must be let through. */
+const GESTURE_MAX = 1500;
+
+/** How long the scroll has to go quiet, inside the reel itself, before the
+ *  page settles on the nearest card — see "Settling on a card" below. Same
+ *  number as GESTURE_IDLE and the same reasoning: a trackpad's momentum
+ *  outlasts the fingers, and snapping mid-flick would fight it rather than
+ *  wait it out. */
+const SNAP_IDLE = 200;
 /** How far a finger has to travel before a touch counts as a gesture. */
 const TOUCH_SLOP = 6;
 /** Pixels per line, for wheels that report in lines (Firefox, some mice). */
@@ -430,6 +460,11 @@ function startReel(reel: HTMLElement): () => void {
 	/** The reel's position, chasing the scroll. */
 	let current = 0;
 	let snap = true;
+	/** True while the follower is closing a snap-to-card gap rather than
+	 *  chasing the reader's own scroll — see SETTLE_SMOOTHING and
+	 *  "Settling on a card". Cleared the moment the reader takes over again
+	 *  (a fresh gesture or key), or once the gap is fully closed. */
+	let settling = false;
 	let frame = 0;
 	let last = 0;
 
@@ -483,8 +518,11 @@ function startReel(reel: HTMLElement): () => void {
 			current = goal;
 			snap = false;
 		} else {
-			current += (goal - current) * (1 - Math.exp(-dt / SMOOTHING));
-			if (Math.abs(goal - current) < SETTLE) current = goal;
+			current += (goal - current) * (1 - Math.exp(-dt / (settling ? SETTLE_SMOOTHING : SMOOTHING)));
+			if (Math.abs(goal - current) < SETTLE) {
+				current = goal;
+				settling = false;
+			}
 		}
 
 		render(introP, current);
@@ -505,16 +543,51 @@ function startReel(reel: HTMLElement): () => void {
 	/* ---- Gestures ------------------------------------------------------------ */
 
 	/** The gesture that last played the intro (or hit the first-card stop),
-	 *  while it is still going. Its further events are swallowed. */
-	let gesture: { forward: boolean } | null = null;
+	 *  while it is still going. Its further events are swallowed. `start` is
+	 *  when this direction began (see GESTURE_MAX) — carried over while it
+	 *  keeps renewing in the same direction, reset when it reverses, since a
+	 *  reversal is already unambiguously a new gesture. */
+	let gesture: { forward: boolean; start: number } | null = null;
 	let gestureTimer = 0;
 
 	const hold = (forward: boolean) => {
-		gesture = { forward };
+		const start = gesture && gesture.forward === forward ? gesture.start : performance.now();
+		gesture = { forward, start };
 		window.clearTimeout(gestureTimer);
 		gestureTimer = window.setTimeout(() => {
 			gesture = null;
 		}, GESTURE_IDLE);
+	};
+
+	/* ---- Settling on a card ---------------------------------------------------
+
+	   Scrolling through the reel is never intercepted (unlike the intro), so a
+	   reader can stop at any fractional position — including squarely between
+	   two cards, where their transforms are symmetric mirrors of each other and
+	   neither is meant to be the lit one. Rather than fighting every input that
+	   can move the page (wheel, trackpad, touch fling, the scrollbar, Home/End)
+	   to make scrolling itself stop exactly on a card, this waits for the
+	   scroll to go quiet and then nudges `scrollY` the rest of the way — the
+	   existing smoothing follower in `tick` glides `current` there on its own,
+	   exactly as it already does for a wheel notch's 100px teleport. No
+	   separate tween — just a slower time constant (SETTLE_SMOOTHING) while it
+	   closes this particular gap, since a hard scroll can leave up to half a
+	   card-step to make up, and closing that at the follower's usual brisk
+	   pace is what read as a jerky, unrequested lurch. */
+	let snapTimer = 0;
+
+	const snapToNearestCard = () => {
+		/* Only once the reel itself is showing a card — not mid-intro, not
+		   while the intro's own transition is playing, and not with a finger
+		   still on the glass (a touch paused mid-drag has not settled). */
+		if (intro !== 1 || playing() || touch) return;
+		const offset = scrolled();
+		if (offset < secondAt() - 1 || offset > lastCardAt() + 1) return;
+		const k = Math.min(Math.max((offset / vh - INTRO) / STEP, 0), slots.length - 1);
+		const target = secondAt() + Math.round(k) * STEP * vh;
+		if (Math.abs(target - offset) < 1) return;
+		scrollToOffset(target);
+		settling = true;
 	};
 
 	/* Both axes. A trackpad sends horizontal swipes as wheel events too, so a
@@ -526,6 +599,10 @@ function startReel(reel: HTMLElement): () => void {
 	const onWheel = (event: WheelEvent) => {
 		if (event.ctrlKey) return; // a pinch-zoom
 
+		/* The reader has taken hold of the scroll again — hand it back to the
+		   brisk, responsive SMOOTHING rather than the gentler settle pace. */
+		settling = false;
+
 		const unit = event.deltaMode === 1 ? LINE_PX : event.deltaMode === 2 ? vh : 1;
 		const dx = event.deltaX * unit;
 		const dy = event.deltaY * unit;
@@ -533,6 +610,13 @@ function startReel(reel: HTMLElement): () => void {
 		const delta = horizontal ? dx : dy;
 		if (delta === 0) return;
 		const forward = delta > 0;
+
+		/* A gesture that has outlived GESTURE_MAX is no longer "the same
+		   gesture" no matter how recently its last event landed — expire it
+		   here, before GESTURE_IDLE's rolling window gets a chance to renew
+		   it again below. Only the gesture lock ages out this way; playing()
+		   is bounded by INTRO_DURATION on its own and isn't this bug. */
+		if (gesture && performance.now() - gesture.start > GESTURE_MAX) gesture = null;
 
 		/* While the intro plays, or the gesture that started it is still
 		   coasting, its events go nowhere — unless it turns round, which is a
@@ -602,6 +686,7 @@ function startReel(reel: HTMLElement): () => void {
 	const onTouchStart = (event: TouchEvent) => {
 		touchClaimed = false;
 		touch = event.touches.length === 1 ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : null;
+		settling = false;
 	};
 
 	/* A move in the intro's direction is blocked from its very first pixel,
@@ -643,6 +728,7 @@ function startReel(reel: HTMLElement): () => void {
 		if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
 		const target = event.target as HTMLElement | null;
 		if (target?.closest('input, textarea, select, [contenteditable]')) return;
+		settling = false;
 		const down = event.key === 'ArrowDown' || event.key === 'PageDown' || (event.key === ' ' && !event.shiftKey);
 		const up = event.key === 'ArrowUp' || event.key === 'PageUp' || (event.key === ' ' && event.shiftKey);
 		if (down && intro === 0) {
@@ -654,7 +740,11 @@ function startReel(reel: HTMLElement): () => void {
 		}
 	};
 
-	const onScroll = () => schedule();
+	const onScroll = () => {
+		schedule();
+		window.clearTimeout(snapTimer);
+		snapTimer = window.setTimeout(snapToNearestCard, SNAP_IDLE);
+	};
 
 	const onResize = () => {
 		/* The reel is laid out in viewport heights and the browser keeps the
@@ -681,6 +771,7 @@ function startReel(reel: HTMLElement): () => void {
 		intro = 1;
 		introP = 1;
 		snap = true;
+		settling = false;
 		scrollToOffset(secondAt() + index * STEP * vh);
 		schedule();
 	};
@@ -724,6 +815,7 @@ function startReel(reel: HTMLElement): () => void {
 		stopped = true;
 		cancelAnimationFrame(frame);
 		window.clearTimeout(gestureTimer);
+		window.clearTimeout(snapTimer);
 		window.removeEventListener('scroll', onScroll);
 		window.removeEventListener('resize', onResize);
 		window.removeEventListener('wheel', onWheel);
