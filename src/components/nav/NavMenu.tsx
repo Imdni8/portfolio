@@ -9,7 +9,7 @@ import {
 	NavigationMenuList,
 	NavigationMenuTrigger,
 } from '../ui/navigation-menu';
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '../ui/drawer';
+import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from '../ui/drawer';
 
 const sideProjects = [
 	{ label: 'Goalaris', href: 'https://goalaris-beta.vercel.app/' },
@@ -106,8 +106,13 @@ const SideProjectsDropdown = () => (
  * hanging off the corner of a 390px screen is a small target far from the
  * thumb; a sheet is the phone's own answer to "a short list of choices".
  *
- * The close button is there for anyone who is not swiping — a screen reader,
- * a keyboard — and the handle says the sheet can be swiped at all.
+ * No close button and no visible title: the swipe handle, backdrop tap and
+ * Escape already cover dismissal, and the trigger itself already reads
+ * "Side projects" a moment before the sheet opens, so repeating it as a
+ * heading added a row without adding information. `DrawerTitle` stays in
+ * the tree as `.sr-only` — Base UI's Drawer uses it to give the sheet an
+ * accessible name (`aria-labelledby`), which a screen reader still needs
+ * even though sighted readers no longer see it.
  */
 const SideProjectsSheet = () => (
 	<Drawer showSwipeHandle>
@@ -116,12 +121,7 @@ const SideProjectsSheet = () => (
 			<Icon name="chevron-down" />
 		</DrawerTrigger>
 		<DrawerContent className="nav-sheet">
-			<DrawerHeader className="nav-sheet__header">
-				<DrawerTitle className="type-overline">Side projects</DrawerTitle>
-				<DrawerClose className="icon-btn icon-btn--tertiary icon-btn--md" aria-label="Close">
-					<Icon name="close" />
-				</DrawerClose>
-			</DrawerHeader>
+			<DrawerTitle className="sr-only">Side projects</DrawerTitle>
 			<ul className="nav-sheet__list">
 				{sideProjects.map(({ label, href }) => (
 					<li key={href}>

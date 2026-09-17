@@ -261,13 +261,15 @@ URL-reading frontmatter.
     footer's breakpoint. Server and client markup never disagree because
     there's no media query in React.
   - The sheet (`ui/drawer.tsx`, Base UI Drawer) slides up, follows the
-    finger, and closes on a downward swipe, on backdrop tap, on Escape, or
-    via its close button (there for anyone not swiping). It carries a swipe
-    handle.
-  - Its content is `.type-overline` "Side projects" and one ≥48px row per
-    project: `.type-nav-link` label, arrow icon, and an sr-only "(opens in
-    new tab)". Rows dip to 60% opacity on press, with no tap flash and
-    `touch-action: manipulation`.
+    finger, and closes on a downward swipe, on backdrop tap, or on Escape.
+    It carries a swipe handle, no close button, and no visible title — the
+    trigger already reads "Side projects" right before the sheet opens, so a
+    repeated heading added a row without adding information. `DrawerTitle`
+    stays in the tree as `.sr-only`, since Base UI's Drawer uses it to give
+    the sheet an accessible name.
+  - Its content is one ≥48px row per project: `.type-nav-link` label, arrow
+    icon, and an sr-only "(opens in new tab)". Rows dip to 60% opacity on
+    press, with no tap flash and `touch-action: manipulation`.
   - It's portalled to `<body>`, so its styles in `SiteNav.astro` are all
     `:global()`. They set the top edge to `--border` (there's no base layer
     giving borders a colour, so it would otherwise be the text colour) and
