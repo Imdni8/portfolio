@@ -40,6 +40,7 @@
  * work-spotlight.ts lights them the way it did before the reel.
  */
 import { initWorkSpotlight } from '../work/work-spotlight';
+import { LIQUID_METAL_REST_SCALE, getLiquidMetal } from '../ui/liquid-metal';
 
 /** Keep in step with the `@media` blocks in index.astro and SiteNav.astro. */
 export const REEL_QUERY =
@@ -75,6 +76,22 @@ const FADE_DRIFT = 0.04;
 /** The T mark's flight into the nav — on-screen movement, so --ease-in-out.
  *  It leads, and lands well before the cards behind it come to rest. */
 const GLIDE = [0, 0.6] as const;
+/** The liquid-metal diamond's size once the intro has played, on the same
+ *  GLIDE timing and curve as the mark: it grows as the mark glides, so by the
+ *  time the mark lands, the diamond is this many times its resting size — big
+ *  enough that its corners peek out from behind the lit card and its
+ *  neighbours, per
+ *  https://app.paper.design/file/01M0JA3C4D56J49TYWHSXTMEKJ/1-0/2BP-0. No
+ *  measured reference, only that frame — eyeballed, retune by eye if it stops
+ *  clearing the cards at other viewport sizes.
+ *
+ *  Capped below 1: the shader's `fit: 'contain'` sizes the diamond against
+ *  whichever of the host's dimensions is smaller, which on every reel-width
+ *  viewport (landscape, ≥64rem) is the height — so at `scale` 1 its top and
+ *  bottom points already touch the viewport's own top and bottom edges, and
+ *  anything past that pushes them off-screen. 0.85 leaves both points a
+ *  visible margin inside the screen. */
+const DIAMOND_EXPAND_SCALE = 0.88;
 /** The nav's fade-in, done the moment the mark lands. The nav's own brand is
  *  inside the faded shell, so anything short of full strength at the
  *  hand-off would show as the mark dimming as it arrives. */
@@ -229,6 +246,13 @@ function startReel(reel: HTMLElement): () => void {
 	const brand = shell?.querySelector<HTMLElement>('.nav__brand') ?? null;
 	const brandGlyph = brand?.querySelector<SVGElement>('svg') ?? null;
 	const footer = document.querySelector<HTMLElement>('.site-footer');
+	const shaderHost = document.querySelector<HTMLElement>('[data-liquid-metal]');
+	/* Looked up fresh each time, not captured once here: LiquidMetal.astro's
+	   own `astro:page-load` handler is what registers it, and script order
+	   between the two components is not something this file should have to
+	   assume — by the time a frame actually runs (a gesture, at the earliest),
+	   both handlers have long since fired either way. */
+	const shader = () => (shaderHost ? getLiquidMetal(shaderHost) : undefined);
 
 	if (!pin || slots.length === 0) return () => {};
 
@@ -320,6 +344,10 @@ function startReel(reel: HTMLElement): () => void {
 			mark.style.opacity = landed ? '0' : '1';
 		}
 		brand?.style.setProperty('--reel-brand', landed ? '1' : '0');
+
+		/* The diamond behind it all, expanding on the same clock and curve as
+		   the mark's own flight — see DIAMOND_EXPAND_SCALE. */
+		shader()?.setScale(lerp(LIQUID_METAL_REST_SCALE, DIAMOND_EXPAND_SCALE, flight));
 
 		/* The nav. Hidden, it still takes focus — tabbing into it brings it
 		   back (SiteNav.astro) — but it stops taking the pointer, so nothing
@@ -716,6 +744,7 @@ function startReel(reel: HTMLElement): () => void {
 		mark?.style.removeProperty('scale');
 		mark?.style.removeProperty('opacity');
 		brand?.style.removeProperty('--reel-brand');
+		shader()?.setScale(LIQUID_METAL_REST_SCALE);
 		shell?.style.removeProperty('--reel-nav');
 		shell?.removeAttribute('data-reel-hidden');
 		document.body.removeAttribute('data-footer-overlay');

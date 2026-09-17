@@ -51,7 +51,14 @@ export type LiquidMetalOptions = {
 	scale?: number;
 };
 
-export type LiquidMetal = { destroy: () => void };
+export type LiquidMetal = {
+	destroy: () => void;
+	/** Resizes the shape live — the reel's intro uses this to expand the
+	 *  diamond as its mark glides into the nav, so its corners peek out from
+	 *  behind the lit card. A no-op until the shader has finished mounting;
+	 *  the value it would have applied is kept and set once it has. */
+	setScale: (value: number) => void;
+};
 
 /* The Paper file's parameters, unmodified — except `frame`, which the file
    does not have to give: it is live rather than exported, so it plays from
@@ -78,6 +85,18 @@ const PAPER = {
 	scale: 0.36,
 } as const;
 
+/** The shape's resting size, for callers that animate away from `setScale`
+ *  and need somewhere to animate back to. */
+export const LIQUID_METAL_REST_SCALE = PAPER.scale;
+
+/** Looks up the controller for a host mounted by `createLiquidMetal`, e.g. to
+ *  drive `setScale` from elsewhere on the page. */
+export function getLiquidMetal(host: HTMLElement): LiquidMetal | undefined {
+	return registry.get(host);
+}
+
+const registry = new WeakMap<HTMLElement, LiquidMetal>();
+
 /* Same trade as the smoke ring and the water field: a soft shape with no edge
    worth anti-aliasing, drawn full-viewport behind everything, so render at the
    device's own ratio (never Paper's forced 2x) and cap the pixel count well
@@ -103,12 +122,16 @@ const CONTEXT: WebGLContextAttributes = {
  */
 export function createLiquidMetal(host: HTMLElement, options: LiquidMetalOptions = {}): LiquidMetal {
 	const speed = options.speed ?? PAPER.speed;
-	const scale = options.scale ?? PAPER.scale;
 
 	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 	let mount: ShaderMount | null = null;
 	let disposed = false;
+	/* Read by the mount once it exists (below) and by `setScale` before it
+	   does, so a call that lands during the async mount (the placeholder
+	   image's decode) is not lost — it is applied the moment the mount is
+	   built rather than only on the next call. */
+	let currentScale = options.scale ?? PAPER.scale;
 
 	const onMotionChange = () => mount?.setSpeed(reduceMotion.matches ? 0 : speed);
 
@@ -148,7 +171,7 @@ export function createLiquidMetal(host: HTMLElement, options: LiquidMetalOptions
 					u_shiftBlue: PAPER.shiftBlue,
 					u_angle: PAPER.angle,
 					u_fit: ShaderFitOptions[PAPER.fit],
-					u_scale: scale,
+					u_scale: currentScale,
 					u_rotation: defaultObjectSizing.rotation,
 					u_offsetX: defaultObjectSizing.offsetX,
 					u_offsetY: defaultObjectSizing.offsetY,
@@ -183,12 +206,19 @@ export function createLiquidMetal(host: HTMLElement, options: LiquidMetalOptions
 
 	reduceMotion.addEventListener('change', onMotionChange);
 
-	return {
+	const controller: LiquidMetal = {
 		destroy() {
 			disposed = true;
 			reduceMotion.removeEventListener('change', onMotionChange);
 			mount?.dispose();
 			mount = null;
+			registry.delete(host);
+		},
+		setScale(value) {
+			currentScale = value;
+			mount?.setUniforms({ u_scale: value });
 		},
 	};
+	registry.set(host, controller);
+	return controller;
 }
