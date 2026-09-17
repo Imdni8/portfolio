@@ -1,0 +1,23 @@
+---
+// Zero-JS counterpart to `Badge` (ui/badge.tsx), for `.astro` files.
+// badge.tsx's own header comment says to reach for `badgeVariants()` on a
+// plain `<span data-slot="badge">` from Astro rather than rendering the React
+// component — this wraps that pattern so the markup has one author instead
+// of being retyped at every call site. The React component also gets
+// `data-variant` for free through `useRender`'s `state`; a hand-copied span
+// doesn't, unless it's set here too. Content is the default slot, same as
+// the React component's children.
+import { badgeVariants } from './badge';
+import type { VariantProps } from 'class-variance-authority';
+
+interface Props {
+	variant?: VariantProps<typeof badgeVariants>['variant'];
+	class?: string;
+}
+
+const { variant = 'default', class: className } = Astro.props;
+---
+
+<span data-slot="badge" data-variant={variant} class:list={[badgeVariants({ variant }), className]}>
+	<slot />
+</span>

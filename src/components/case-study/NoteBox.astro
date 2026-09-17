@@ -13,79 +13,96 @@ interface Props {
 const { title, open = false } = Astro.props;
 ---
 
-<details class="note" open={open}>
+<details class="note-box" open={open}>
 	{/* The flex row is an inner <span>, not the <summary> itself. Setting
 	    `display` on a <summary> away from list-item stops the disclosure
 	    toggling altogether on older WebKit — the note becomes a permanently
 	    closed box with no script behind it to recover, so the caveat simply
 	    cannot be read. The marker resets below are the supported way to drop
 	    the default triangle. */}
-	<summary class="note__title type-overline">
-		<span class="note__row">
+	<summary class="note-box__title type-overline">
+		<span class="note-box__row">
 			{title}
-			<Icon name="chevron-down" class="note__chevron" />
+			<Icon name="chevron-down" class="note-box__chevron" />
 		</span>
 	</summary>
-	<div class="note__body type-annotation"><slot /></div>
+	<div class="note-box__body type-annotation"><slot /></div>
 </details>
 
 <style>
-	/* Takes the glossary popover's surface rather than the design-system Note's
-	   amber fill, so the two notes a reader meets in a case study — this one in
-	   the flow, the one a term pops up — read as the same object. Same tokens as
-	   `.glossary`, so they move together.
+	/* Takes the glossary popover's surface rather than the design-system
+	   Alert's amber fill (ui/alert.tsx), so the two notes a reader meets in a
+	   case study — this one in the flow, the one a term pops up — read as the
+	   same object. Same tokens as `.glossary`, so they move together, and the
+	   same type: the glossary's title and copy are AlertTitle and
+	   AlertDescription, which are .type-overline and .type-annotation on
+	   --text-body, as here.
 	   Both pairings clear AA on the raised ground in both themes: the mono title
 	   is 6.89:1 dark / 6.83:1 light, the body 11.87:1 / 14.24:1.
 
-	   <details>/<summary> instead of the design-system Note's <aside>: unlike
-	   that one (always open, never reused), this note collapses behind its
-	   title — the native element gets open/close plus keyboard and screen-reader
-	   support for free, no script needed. Starts closed: it's a caveat on the
-	   main flow, not something every reader needs to see unprompted.
+	   <details>/<summary> rather than an Alert: this note collapses behind its
+	   title, and the native element gets open/close plus keyboard and
+	   screen-reader support for free, with no script. Starts closed: it's a
+	   caveat on the main flow, not something every reader needs to see
+	   unprompted.
 
-	   Full width of its column, too — the design-system default caps at 34rem,
-	   which is right for a tooltip but leaves an odd gap inside a section.
+	   Full width of its column, too. The Alert caps at 34rem, which is right
+	   for a tooltip but leaves an odd gap inside a section.
 
-	   display: block, not the design-system .note's grid: <details> renders
-	   its non-summary child through an internal shadow slot, and that slot
-	   still occupies a grid track — so the shared `gap` was adding a phantom
-	   row-gap under the title even while the body itself was invisible.
-	   Normal flow has no such gap to leak; .note__body's own margin-top below
-	   replaces it, and disappears along with the body when collapsed. */
-	.note {
+	   display: block, not a grid: <details> renders its non-summary child
+	   through an internal shadow slot, and that slot still occupies a grid
+	   track — so a grid `gap` adds a phantom row-gap under the title even
+	   while the body itself is invisible. Normal flow has no such gap to leak;
+	   .note-box__body's own margin-top below does the spacing, and disappears
+	   along with the body when collapsed. */
+	.note-box {
 		display: block;
+		position: relative;
 		background: var(--bg-raised);
-		border: none;
+		border-radius: var(--radius-md);
 		padding-block: var(--spacing-md);
 		padding-inline: var(--spacing-xl);
-		max-width: none;
 	}
 
-	.note__body {
+	/* A div, not a p: MDX hands the note block-level content, so the copy
+	   arrives as paragraphs. They take the type style from here; only the UA
+	   margin needs clearing (:global, since scoped styles never reach slotted
+	   MDX), and the gap spaces them if there is more than one.
+	   .type-annotation carries no colour, because its two uses want different
+	   ones: a caption under a figure is muted, note copy is meant to be read.
+	   This has to track ui/alert.tsx's AlertDescription by hand (grid,
+	   gap-(--spacing-md), text-body, p margin 0) — a native <details> can't
+	   render that React component from an .astro file (zero JS from .astro),
+	   so there's no one implementation the two can share. Re-check both
+	   whenever either changes. */
+	.note-box__body {
+		display: grid;
+		gap: var(--spacing-md);
 		margin-top: var(--spacing-xs);
+		color: var(--text-body);
 	}
 
-	/* The design-system .note__title only ever sits beside an absolutely
-	   positioned close button, hence its padding-right — this title carries the
-	   chevron inline instead, so that reserved space is cleared for a flex row. */
-	.note__title {
-		padding-right: 0;
+	.note-box__body :global(p) {
+		margin: 0;
+	}
+
+	.note-box__title {
 		cursor: pointer;
 		list-style: none;
 	}
 
-	.note__title::-webkit-details-marker {
+	.note-box__title::-webkit-details-marker {
 		display: none;
 	}
 
-	.note__row {
+	.note-box__row {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--spacing-md);
 	}
 
-	.note__title:focus-visible {
+	.note-box__title:focus-visible {
 		outline: 2px solid var(--focus-ring);
 		outline-offset: 2px;
 		border-radius: var(--radius-xxs);
@@ -93,7 +110,7 @@ const { title, open = false } = Astro.props;
 
 	/* :global() because the chevron is Icon.astro's own <span>, not markup
 	   this component wrote — Astro only stamps its scoping attribute onto a
-	   component's own template, so an unqualified .note__chevron selector
+	   component's own template, so an unqualified .note-box__chevron selector
 	   here would silently match nothing.
 
 	   Closed reads as a collapsed row (pointing at the title, right), open as
@@ -101,16 +118,16 @@ const { title, open = false } = Astro.props;
 	   so the open state needs no rotation at all).
 
 	   No width/height: .icon rides at 1em by design, so the glyph tracks the
-	   title's own font-size (.type-overline, --size-fine). The spacing scale
+	   title's own font-size (.type-overline, --size-micro). The spacing scale
 	   it used to be pinned to is not a size scale — space and radius are two
 	   scales here and neither is the third. */
-	.note :global(.note__chevron) {
+	.note-box :global(.note-box__chevron) {
 		flex-shrink: 0;
 		transform: rotate(-90deg);
 		transition: transform 150ms ease;
 	}
 
-	.note[open] :global(.note__chevron) {
+	.note-box[open] :global(.note-box__chevron) {
 		transform: rotate(0deg);
 	}
 </style>

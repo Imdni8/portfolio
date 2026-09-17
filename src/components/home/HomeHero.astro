@@ -1,0 +1,458 @@
+---
+import logoMark from '../../assets/nav/logo.svg?raw';
+import { DecryptedText } from '../ui/DecryptedText';
+
+const kaomoji = { users: '(˶ᵔ ᵕ ᵔ˶)', businesses: '˗ˋˏ⛀⛁ˎˊ˗' };
+
+/* The homepage headline: "I try to design / Thoughtful software that /
+   makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗", with the brand mark
+   standing in for the T. Its entrance is CSS alone — see the keyframes
+   below — and its exit is home-reel.ts, which fades the words and flies
+   the mark up into the nav.
+   The two never touch the same element: the entrance animates
+   `.hero__lead`, `.hero__spoken`, `.hero__aside`, `.hero__word--that` and
+   `.hero__outcome-group` (`.hero__visual` under reduced motion, where the
+   reel never runs); the exit writes to `[data-reel-fade]` (on `.hero__fade`,
+   `.hero__spoken-text`, `.hero__that-fade` and `.hero__outcome` — wrapper
+   elements, never the ones an entrance animation also targets) and
+   `[data-reel-mark]`, because a running CSS animation outranks an inline
+   style and would pin whatever the script tried to set. */
+---
+
+<div class="hero" data-reel-hero>
+	{/* The sentence is read from the `.sr-only` copy and the drawing is hidden
+	    from assistive tech. The drawing cannot carry the text itself: the T is
+	    an SVG, "try to" sits in a grid whose whitespace does not reach the
+	    accessibility tree, and the words arrive out of order. The cost is a
+	    doubled line in a copy-paste of the headline, which is the one place it
+	    shows. */}
+	{/* data-nav-scrim-narrow: the stacked layout's nav-scrim target — see
+	    SiteNav.astro. Below the reel's breakpoint the page is a plain scroll,
+	    so the headline itself (not a synthetic marker) is what the nav
+	    watches: the scrim ramps in behind the nav over the last band-height
+	    of scroll before this box's top would otherwise pass under it. The
+	    sr-only span above doesn't affect the box — it's absolutely
+	    positioned — so this tracks exactly where "I try to design" sits. */}
+	<h1 class="hero__title" data-nav-scrim-narrow>
+		<span class="sr-only">I try to design thoughtful software that makes users {kaomoji.users} and businesses {kaomoji.businesses}</span>
+		<span class="hero__visual" aria-hidden="true">
+			<span class="hero__fade" data-reel-fade>
+				<span class="hero__lead">
+					<span class="hero__word hero__word--i type-display-sans">I</span>
+					<span class="hero__aside type-hand">try&nbsp;&nbsp;to</span>
+					<span class="hero__word type-display-sans">design</span>
+				</span>
+			</span>
+			<span class="hero__spoken">
+				{/* Two Ts, one shown: the brand mark where the reel runs (it flies
+				    up into the nav), a plain letter everywhere else — where the
+				    nav already shows its own mark from the start, and a second
+				    one in the headline would be the same logo twice. */}
+				<span class="hero__mark" data-reel-mark set:html={logoMark} />
+				<span class="hero__spoken-text type-display" data-reel-fade
+					><span class="hero__letter">T</span>houghtful software</span
+				>
+				<span class="hero__that-fade" data-reel-fade
+					><span class="hero__word hero__word--that type-display-sans">that</span></span
+				>
+			</span>
+			{/* The line the sentence was extended by: two outcomes, both sans at
+			    --weight-light — the same demotion "that" above takes (see
+			    .hero__word--that), carried one register further so the whole
+			    explaining half of the sentence reads lighter than "I design". */}
+			{/* Each kaomoji scrambles on hover and settles back (DecryptedText).
+			    It's drawn twice: a hidden copy holds the width, and the live
+			    one sits centred over it, so the scramble never moves the line.
+			    The island only hydrates where it can be hovered. */}
+			<span class="hero__outcome" data-reel-fade>
+				{[
+					{ words: 'makes users', face: kaomoji.users },
+					{ words: 'and businesses', face: kaomoji.businesses },
+				].map(({ words, face }) => (
+					<span class="hero__outcome-group">
+						<span class="hero__word type-display-sans">{words}</span>
+						<span class="hero__kaomoji">
+							<span class="hero__kaomoji-rest">{face}</span>
+							<span class="hero__kaomoji-live">
+								<DecryptedText
+									client:media="(hover: hover) and (pointer: fine)"
+									text={face}
+									sequential
+									revealDirection="center"
+									speed={60}
+								/>
+							</span>
+						</span>
+					</span>
+				))}
+			</span>
+		</span>
+	</h1>
+</div>
+
+<style>
+	/* Centred in whatever box hosts it — the reel's pinned viewport, or the
+	   stacked layout's first screen — and lifted by 2.5svh off true centre,
+	   where the reference sits it (28px above the middle of a 1117px frame).
+	   The lift is padding rather than a transform so nothing here competes
+	   with the scripts that transform the pieces inside. */
+	.hero {
+		display: grid;
+		place-items: center;
+		padding-block-end: 5svh;
+		padding-inline: var(--gutter);
+		color: var(--text);
+	}
+
+	.hero__title {
+		margin: 0;
+		font: inherit;
+	}
+
+	.hero__visual {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	/* Row one. Three grid tracks, the middle one flexible, and the grid
+	   sized to its content so there is no free space for that track to take:
+	   at 0fr it contributes nothing and "I" and "design" sit a word space
+	   apart, at 1fr it contributes exactly "try to"'s width. Animating the
+	   track between the two is what pushes the outer words apart — both at
+	   once, in opposite directions, because the row is centred and grows
+	   from the middle.
+
+	   The gap grows with it: two --spacing-xs either side of an empty track
+	   plus the I's own --spacing-xs of padding make the word space the
+	   sentence starts with, and --spacing-2xl either side of the aside is the
+	   reference's 19px, to the nearest rung. */
+	.hero__lead {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		column-gap: var(--spacing-2xl);
+		align-items: center;
+		inline-size: max-content;
+	}
+
+	.hero__word {
+		color: var(--text);
+	}
+
+	.hero__word--i {
+		padding-inline-end: var(--spacing-xs);
+	}
+
+	/* Centred over its track rather than stretched into it, so while the
+	   track is still narrower than the words the overflow falls evenly on
+	   both sides and the aside grows from the middle of the gap, not its left
+	   edge. `min-inline-size: 0` is what lets the track reach 0 at all —
+	   without it the item's own width would be the track's floor. Not
+	   clipped: the rotation takes the letters outside their box, and they are
+	   invisible for as long as they overhang anyway.
+
+	   The two words are set a double space apart (non-breaking, so it
+	   survives whitespace collapsing), as the reference sets them: the hand's
+	   own word space is narrow enough that a single one reads as "tryto". */
+	.hero__aside {
+		justify-self: center;
+		min-inline-size: 0;
+		white-space: nowrap;
+		color: var(--text);
+		rotate: -3.91deg;
+	}
+
+	/* Row two, drawn up under row one by --spacing-xs and bottom-aligned, so
+	   the mark (where it is shown — see below) — taller than the line, since
+	   its swoosh runs above the cap height and below the baseline — hangs off
+	   the text the way the reference draws it.
+
+	   `font-size` is set here, not on a `.type-*` class, because the row mixes
+	   two of them (`.hero__spoken-text` is serif italic, `.hero__word--that`
+	   is sans) that must still share one size — `--mark-size`'s em reads
+	   this value from its ancestor chain, not from either child.
+
+	   `column-gap` is --spacing-lg, the word space the reference sets
+	   between "software" and "that". A gap rather than a margin on "that",
+	   because where the row is too narrow and "that" wraps (phones), a gap
+	   goes away with the wrap, and a margin would push the centred word
+	   6px right of centre.
+
+	   Only the reel shows the mark (see the media query below), and the mark
+	   is what makes this row taller than its text. Without it the row would
+	   sit 11px closer under row one than it does on desktop. So by default
+	   the row drops by the height the mark would have added, and the text
+	   sits the same distance under "I try to design" at every width. */
+	.hero__spoken {
+		--mark-size: 1.625em;
+
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+		flex-wrap: wrap;
+		column-gap: var(--spacing-lg);
+		margin-block-start: calc(
+			var(--mark-size) - var(--lh-display) * 1em - 2 * var(--spacing-xs)
+		);
+		font-size: var(--size-display);
+		color: var(--text);
+	}
+
+	/* 1.625em is the reference's ratio (78 : 48), so the mark scales with the
+	   line it replaces a letter in. Its colour is --brand-mark, the same as
+	   the nav's and the footer's — it *is* the nav's mark, on its way there.
+	   `transform-origin` is the corner home-reel.ts measures from.
+
+	   On its way up it never meets the centre card rising behind it —
+	   home-reel.ts times the two apart and holds the card under it besides —
+	   so the z-index is a backstop, not the fix: if they ever did touch, the
+	   mark would pass in front of the reel's card track (a stacking context
+	   at 0, index.astro) rather than vanish behind it. That only works while
+	   nothing between here and the reel's pin makes a stacking context of
+	   its own, which is why the entrance below fills `backwards` and not
+	   `both`: a filled opacity animation would leave `.hero__spoken` a
+	   stacking context for good, and trap the mark inside it. */
+	.hero__mark {
+		position: relative;
+		z-index: 1;
+		display: block;
+		flex-shrink: 0;
+		block-size: var(--mark-size);
+		color: var(--brand-mark);
+		transform-origin: 0 0;
+	}
+
+	.hero__mark :global(svg) {
+		display: block;
+		block-size: 100%;
+		inline-size: auto;
+	}
+
+	/* The two words sit on one baseline; only the mark is bottom-aligned.
+	   Bottom-aligning "that" too can't level it: two faces at two sizes put
+	   their baselines at different heights in their boxes, and this text is
+	   also lifted off the bottom by --spacing-xs (its padding, below), so a
+	   shared bottom edge left "that" 6–8px low.
+	   `last baseline` aligns the pair and sets them against the row's
+	   bottom as one group. The deeper of the two, "software" with its lift,
+	   is what touches the bottom, so it stays exactly where the mark
+	   expects it.
+
+	   The --spacing-xs of bottom padding is the reference's lift off the
+	   mark's bottom edge. It applies without the mark too, so the gap down
+	   to the outcome row is the same at every width. */
+	.hero__spoken-text {
+		align-self: last baseline;
+		padding-block-end: var(--spacing-xs);
+		white-space: nowrap;
+	}
+
+	/* `display: flex` gives the wrapper the baseline of the word inside it
+	   and nothing else. As a plain block it would get a line box with a
+	   strut at the row's inherited 48px size and body leading. That strut
+	   reaches further below the baseline than "software" does, so it would
+	   become the group's lowest point and lift both words off the mark. */
+	.hero__that-fade {
+		display: flex;
+		align-self: last baseline;
+	}
+
+	/* "that" steps down to --weight-extralight and 7:8 of --size-display
+	   (42 against 48) — lighter and smaller, never heavier or larger — the
+	   same demotion the outcome row below takes, so the sentence visibly
+	   downshifts register the moment it starts explaining itself. */
+	.hero__word--that {
+		font-weight: var(--weight-extralight);
+		font-size: calc(var(--size-display) * 7 / 8);
+	}
+
+	/* Row three: the sentence's outcome, one clause per audience. Wraps to
+	   its own line under the words above it if a narrow viewport can't hold
+	   both clauses on one — the reference is drawn at desktop width and
+	   doesn't say what happens below it. */
+	.hero__outcome {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-lg) var(--spacing-xl);
+		margin-block-start: var(--spacing-lg);
+	}
+
+	.hero__outcome-group {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xl);
+	}
+
+	/* A kaomoji, not an emoji: plain characters set in the display face
+	   rather than pulled from the system emoji font, so — unlike the emoji
+	   this row used to carry — it actually reads `color: var(--text)` and
+	   follows the theme. 5:6 of --size-display (40:48 in the reference), the
+	   same step down the old emoji took, and `white-space: nowrap` keeps a
+	   kaomoji's internal spaces from ever becoming a wrap point. */
+	.hero__kaomoji {
+		position: relative;
+		font-family: var(--font-display);
+		font-size: calc(var(--size-display) * 5 / 6);
+		line-height: var(--lh-display);
+		white-space: nowrap;
+	}
+
+	/* The hover scramble swaps in glyphs of other widths. The hidden copy
+	   keeps the kaomoji's real width, and the live copy is centred over it
+	   at its own `max-content` width. A wider scramble spills evenly past
+	   both edges, and the words beside it and the row's centring stay put. */
+	.hero__kaomoji-rest {
+		visibility: hidden;
+	}
+
+	.hero__kaomoji-live {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: 50%;
+		inline-size: max-content;
+		translate: -50% 0;
+	}
+
+	/* The whole outcome row takes the same demotion as `.hero__word--that`
+	   above — --weight-extralight and 7:8 of --size-display — never a
+	   heavier or larger cut than the words that came before it. */
+	.hero__outcome .hero__word {
+		font-weight: var(--weight-extralight);
+		font-size: calc(var(--size-display) * 7 / 8);
+	}
+
+	/* Which T. The query is home-reel.ts's REEL_QUERY — the mark only makes
+	   sense where the reel is there to fly it into the nav; move this with
+	   the others (index.astro, SiteNav.astro). Outside it the line is plain
+	   type. Inside it the mark stands in for the letter and makes the row
+	   tall itself, so the row only tucks up under row one by --spacing-xs.
+	   The text is pulled in toward the mark by the reference's offset. The
+	   pull also cancels the row's word gap, because the mark and "houghtful"
+	   spell one word. */
+	.hero__mark {
+		display: none;
+	}
+
+	@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+		.hero__spoken {
+			margin-block-start: calc(-1 * var(--spacing-xs));
+		}
+
+		.hero__mark {
+			display: block;
+		}
+
+		.hero__letter {
+			display: none;
+		}
+
+		.hero__spoken-text {
+			margin-inline-start: calc(-1 * (var(--spacing-lg) + var(--spacing-xs)));
+		}
+	}
+
+	/* The entrance — seen once per visit, so it is allowed to take its time
+	   and tell the sentence in order. The two lines arrive 80ms apart (a
+	   stagger, rather than both at once), the first row pauses on "I design"
+	   long enough to be read, then opens, and the aside is written into the
+	   gap as it does.
+
+	   Arrivals ease out on --ease-out (they start fast, so the reader sees
+	   movement the moment they look); the opening is on-screen movement, so
+	   it takes --ease-in-out. The aside rises from 0.9, not from nothing.
+
+	   `hero-open` animates grid tracks, which is layout rather than
+	   transform, and that is deliberate: the transform version has to measure
+	   the aside after its web font lands and hide the line until it has, so
+	   it trades a one-off 650ms reflow of a three-item row for a script the
+	   headline would depend on to be visible at all. The row is the only
+	   thing that reflows, and nothing else on the page is sized by it.
+
+	   Every keyframe ends on the element's own resting style, so filling
+	   `backwards` (holding the first frame through the delay) is all that is
+	   needed, and once each animation ends it leaves nothing behind — see
+	   `.hero__mark` for why that matters. */
+	@media (prefers-reduced-motion: no-preference) {
+		.hero__lead {
+			animation:
+				hero-arrive 600ms var(--ease-out) 200ms backwards,
+				hero-open 650ms var(--ease-in-out) 1050ms backwards;
+		}
+
+		.hero__spoken {
+			animation: hero-arrive 600ms var(--ease-out) 280ms backwards;
+		}
+
+		/* The stagger continues past the two rows above: "that" follows
+		   "software" by another 80ms, then the outcome row by 80ms again —
+		   the sentence keeps unfolding rather than landing all at once. */
+		.hero__word--that {
+			animation: hero-arrive 600ms var(--ease-out) 360ms backwards;
+		}
+
+		.hero__outcome-group {
+			animation: hero-arrive 600ms var(--ease-out) 440ms backwards;
+		}
+
+		.hero__aside {
+			animation: hero-write 400ms var(--ease-out) 1300ms backwards;
+		}
+	}
+
+	/* Reduced motion keeps the arrival and drops the movement: one short
+	   fade of the finished sentence, with nothing sliding, opening or
+	   scaling. */
+	@media (prefers-reduced-motion: reduce) {
+		.hero__visual {
+			animation: hero-fade 200ms ease backwards;
+		}
+	}
+
+	@keyframes hero-arrive {
+		from {
+			opacity: 0;
+			translate: 0 var(--spacing-md);
+		}
+
+		to {
+			opacity: 1;
+			translate: 0 0;
+		}
+	}
+
+	@keyframes hero-open {
+		from {
+			grid-template-columns: auto 0fr auto;
+			column-gap: var(--spacing-xs);
+		}
+
+		to {
+			grid-template-columns: auto 1fr auto;
+			column-gap: var(--spacing-2xl);
+		}
+	}
+
+	@keyframes hero-write {
+		from {
+			opacity: 0;
+			scale: 0.9;
+		}
+
+		to {
+			opacity: 1;
+			scale: 1;
+		}
+	}
+
+	@keyframes hero-fade {
+		from {
+			opacity: 0;
+		}
+
+		to {
+			opacity: 1;
+		}
+	}
+</style>

@@ -54,7 +54,7 @@ const hasIntro = Astro.slots.has('intro');
 	{/* The chapter heading sits tight to its first block's title — closer than
 	    the step between blocks — so the two read as a label and its first
 	    entry rather than as two separate headings. */}
-	<h2 class:list={['mb-4 text-3xl leading-10', storyHeading, narrow && 'max-w-[var(--measure-copy)] mx-auto']}>
+	<h2 class:list={['mb-4 text-[length:var(--size-heading)] leading-[var(--lh-heading)]', storyHeading, narrow && 'max-w-[var(--measure-copy)] mx-auto']}>
 		{heading}
 	</h2>
 	{/* The intro sits inside the blocks' own grid rather than above it, so it

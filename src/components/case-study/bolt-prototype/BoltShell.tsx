@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '../../ui/Icon';
-import { IconButton } from '../../ui/IconButton';
+import { Button } from '../../ui/button';
 import { trackPrototypeRun } from '../../analytics/analytics';
 import ShellView, { type Phase } from './ShellView';
 import { TYPE_MS, totalUnits, units } from './script';
@@ -215,17 +215,18 @@ export default function BoltShell() {
 				controls={
 					<>
 						<div className="bolt-proto__controls">
-							<IconButton
-								variant="secondary"
-								size="sm"
-								icon={<Icon name="maximize" />}
-								label="Open the prototype full screen"
+							<Button
+								variant="outline"
+								size="icon-sm"
+								aria-label="Open the prototype full screen"
 								data-slide-focusable=""
 								onClick={() => {
 									trackPrototypeRun('expand');
 									setExpanded(true);
 								}}
-							/>
+							>
+								<Icon name="maximize" />
+							</Button>
 						</div>
 						<p className="bolt-proto__hint type-annotation" data-hidden={phase === 'idle' ? undefined : ''}>
 							<span>Press send to run it</span>
@@ -254,14 +255,15 @@ export default function BoltShell() {
 							    control has nowhere else to go, but the modal has room around
 							    the shell, and pinning it to the picture's own top-right put it
 							    on top of the app's account avatar. */}
-							<IconButton
+							<Button
 								className="bolt-proto__close"
-								variant="secondary"
-								size="sm"
-								icon={<Icon name="minimize" />}
-								label="Close the full-screen prototype"
+								variant="outline"
+								size="icon-sm"
+								aria-label="Close the full-screen prototype"
 								onClick={() => setExpanded(false)}
-							/>
+							>
+								<Icon name="minimize" />
+							</Button>
 							{expanded && <Frame mode="contain">{view(false)}</Frame>}
 						</div>
 					</dialog>,

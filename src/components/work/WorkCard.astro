@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../ui/Icon.astro';
-import Tag from '../ui/Tag.astro';
+import Badge from '../ui/Badge.astro';
 import type { IconName } from '../ui/icons';
 
 /** `kind` is the closed set that picks the icon; `label` is free text
@@ -22,8 +22,7 @@ interface Props {
 	title: string;
 	industry: string;
 	year: number;
-	technology: string;
-	/** What kind of work this was — icon chips overlapping the cover. */
+	/** What kind of work this was — icon chips at the top of the text panel. */
 	roles?: readonly WorkRole[];
 	/** Whether this project shipped a notable AI feature — rendered as the
 	 *  first (leftmost) chip in the same row as `roles`, when true. */
@@ -33,13 +32,13 @@ interface Props {
 	status?: 'coming-soon' | 'external';
 	/** True for the cards that sit in the initial viewport. Astro's image
 	 *  service defaults every `<Image>` to `loading="lazy"`, which puts the
-	 *  first row's covers behind an intersection check instead of starting
+	 *  first covers behind an intersection check instead of starting
 	 *  them during HTML parse — on the homepage those covers *are* the LCP
 	 *  candidate, so the default costs exactly the image it should hurry. */
 	priority?: boolean;
 }
 
-const { title, industry, year, technology, roles = [], aiFeature = false, thumbnail, href, status, priority = false } = Astro.props;
+const { title, industry, year, roles = [], aiFeature = false, thumbnail, href, status, priority = false } = Astro.props;
 
 // A link when there's somewhere to go, otherwise a plain container — no
 // dead affordance for a case study that isn't published yet.
@@ -49,103 +48,178 @@ const isExternal = status === 'external';
 ---
 
 <Wrapper
-	class:list={['card', 'glass', { 'card--external': isExternal }]}
+	class:list={['card', { 'card--external': isExternal }]}
 	href={href}
 	target={isExternal ? '_blank' : undefined}
 	rel={isExternal ? 'noopener noreferrer' : undefined}
 >
-	{/* `sizes`: two columns capped at --measure-content, so above 85.5rem the
-	    card stops growing and is a flat 600px; between there and the
-	    single-column breakpoint it holds ~44vw. */}
-	<div class="card__media">
-		<Image
-			src={thumbnail.src}
-			alt={thumbnail.alt}
-			widths={[400, 620, 900]}
-			sizes="(min-width: 85.5rem) 37.5rem, (min-width: 40rem) 44vw, 92vw"
-			loading={priority ? 'eager' : 'lazy'}
-			fetchpriority={priority ? 'high' : 'auto'}
-		/>
-		{
-			status === 'coming-soon' && (
-				<div class="card__overlay">
-					<p class="card__overlay-label">Coming soon</p>
-				</div>
-			)
-		}
-		{
-			isExternal && (
-				<span class="card__external-badge">
-					<Icon name="external-link" />
-				</span>
-			)
-		}
-		{
-			(aiFeature || roles.length > 0) && (
-				<ul class="card__roles">
-					{aiFeature && (
-						<li>
-							<Tag icon="sparkles" variant="ai">AI</Tag>
-						</li>
-					)}
-					{roles.map((role) => (
-						<li>
-							<Tag icon={ROLE_ICONS[role.kind]}>{role.label}</Tag>
-						</li>
-					))}
-				</ul>
-			)
-		}
-	</div>
-	<div class="card__body">
-		<p class="card__title type-card-title">
-			{title}
-			{isExternal && <span class="sr-only"> (opens in new tab)</span>}
-		</p>
-		<p class="card__meta type-meta">
-			<span class="card__meta-item">
-				<Icon name="building-2" />
-				{industry}
-			</span>
-			<span aria-hidden="true">·</span>
-			<span class="card__meta-item">
-				<Icon name="wrench" />
-				{technology}
-			</span>
-			<span aria-hidden="true">·</span>
-			<span class="card__meta-item">
-				<Icon name="calendar" />
-				{year}
-			</span>
-		</p>
+	<div class="card__inner">
+		{/* Text first in the DOM, whatever the layout puts first on screen: the
+		    link's accessible name is read in this order, and the title should
+		    come before the cover's alt text in it. */}
+		<div class="card__body">
+			{
+				(aiFeature || roles.length > 0) && (
+					<ul class="card__roles">
+						{aiFeature && (
+							<li>
+								<Badge variant="ai">
+									<Icon name="sparkles" />
+									AI
+								</Badge>
+							</li>
+						)}
+						{roles.map((role) => (
+							<li>
+								<Badge>
+									<Icon name={ROLE_ICONS[role.kind]} />
+									{role.label}
+								</Badge>
+							</li>
+						))}
+					</ul>
+				)
+			}
+			<div class="card__main">
+				<p class="card__title type-card-title">
+					{title}
+					{isExternal && <span class="sr-only"> (opens in new tab)</span>}
+				</p>
+				<p class="card__meta type-card-meta">
+					<span class="card__meta-item">
+						<Icon name="building-2" />
+						{industry}
+					</span>
+					<span class="card__meta-item">
+						<Icon name="calendar" />
+						{year}
+					</span>
+				</p>
+			</div>
+		</div>
+		{/* `sizes` follows the host, which sets the card's width: on the
+		    homepage reel that is 71.2vw, capped at 1230px (77rem, reached at a
+		    1728px viewport) and held down further on short screens; in the
+		    stacked layout below 64rem it is the frame, ~92vw. The cover runs
+		    the card's full width less its 4px inset, so the card's width is
+		    the image's. */}
+		<div class="card__media">
+			<Image
+				src={thumbnail.src}
+				alt={thumbnail.alt}
+				widths={[480, 720, 1080, 1440, 2000]}
+				sizes="(min-width: 108rem) 77rem, (min-width: 64rem) 71vw, 92vw"
+				loading={priority ? 'eager' : 'lazy'}
+				fetchpriority={priority ? 'high' : 'auto'}
+			/>
+			{
+				status === 'coming-soon' && (
+					<div class="card__overlay">
+						<p class="card__overlay-label">Coming soon</p>
+					</div>
+				)
+			}
+			{
+				isExternal && (
+					<span class="card__external-badge">
+						<Icon name="external-link" />
+					</span>
+				)
+			}
+		</div>
 	</div>
 </Wrapper>
 
 <style>
-	/* The card is one object: a single glass pane with the cover painted over
-	   its top half, not an image with a caption beneath it. `.glass` brings the
-	   border and radius; `overflow: clip` is what rounds the cover's top
-	   corners against them. */
+	/* One solid panel, cover on top and the text beneath it. The card has no
+	   width of its own — whatever hosts it decides that (the homepage reel
+	   sizes each slot; the stacked fallback runs the frame) — and takes its
+	   height from the spec's 1230×709 frame. `overflow: clip` plus the radius
+	   rounds the whole panel, cover corners included.
+
+	   --bg-sunken, not --bg: the reference fills the card black so it reads
+	   as a pane cut out of the glow behind it, and --bg-sunken is the
+	   system's nearest value to that. The 1px --border is what keeps its edge
+	   against the dark ground where the glow does not reach. */
 	.card {
 		position: relative;
-		display: flex;
-		flex-direction: column;
+		display: block;
+		container-type: inline-size;
 		overflow: clip;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-2xl);
+		background: var(--bg-sunken);
 		color: inherit;
 		text-decoration: none;
 	}
 
-	a.card {
-		transition: transform 0.15s ease;
+	/* Every card but the lit one — set by home-reel.ts (or, in the stacked
+	   layout, work-spotlight.ts), never in the markup, so with no JS nothing
+	   is dimmed. 0.6 is the floor the card's text allows, and it is kept
+	   deliberately above the reference's 0.3: composited over the homepage's
+	   ground — anywhere from its darkest to the glow's measured peak — it
+	   leaves the title at 7.1:1 or better and the 14px meta rows at 6.1:1,
+	   where 0.3 would take them to 2.6:1 and 2.4:1 while the card is still a
+	   link a reader can read and follow. A card that takes keyboard focus comes back
+	   to full strength, so the ring is never drawn round something the reader
+	   is being told to ignore.
+
+	   The blur pushes the dimmed cards further back without taking the
+	   opacity any lower, which the floor above rules out. Contrast ratios
+	   don't account for blur, so it is the value that has to stay small:
+	   --spacing-xxs (2px) reads as out of focus while a dimmed title is still
+	   legible. It is toggled rather than scrubbed with the scroll — a blur
+	   recomputed every frame on a card this size is the most expensive thing
+	   the reel could ask for — so the transition below does the easing. It is
+	   a state change the reader sees many times a visit, so it is kept short:
+	   200ms, on --ease-out, so the handover starts the moment it is due. */
+	.card {
+		--card-dimmed-opacity: 0.6;
+		--card-dimmed-blur: var(--spacing-xxs);
+		transition:
+			opacity 200ms var(--ease-out),
+			filter 200ms var(--ease-out);
 	}
 
-	a.card:hover {
-		transform: translateY(-2px);
+	.card[data-dimmed]:not(:focus-visible) {
+		opacity: var(--card-dimmed-opacity);
+		filter: blur(var(--card-dimmed-blur));
+	}
+
+	/* A lift on hover, and a press that gives a little under the pointer or
+	   finger — the one response every input gets, since touch has no hover.
+	   The two use different properties (`transform`, `scale`) so a press on a
+	   lifted card composes rather than replacing the lift. 0.98 is the
+	   subtlest press the guidance allows; on a card this large, a deeper one
+	   reads as the page shrinking.
+
+	   The lift is gated to a precise pointer that can hover: on touch, a tap
+	   fakes a hover and leaves it stuck until the next tap elsewhere.
+
+	   No tap highlight: the press is the feedback, and the browser's grey
+	   flash would fight it. */
+	a.card {
+		-webkit-tap-highlight-color: transparent;
+		transition:
+			opacity 200ms var(--ease-out),
+			filter 200ms var(--ease-out),
+			transform 160ms var(--ease-out),
+			scale 160ms var(--ease-out);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		a.card:hover {
+			transform: translateY(-2px);
+		}
+	}
+
+	a.card:active {
+		scale: 0.98;
 	}
 
 	/* `alias` rather than the browser's default pointer — the nearest native
 	   cursor semantic to "this is a shortcut to somewhere else," which is what
-	   distinguishes this card from every other one on the grid: it doesn't
+	   distinguishes this card from every other one in the list: it doesn't
 	   navigate within the site, it leaves it. */
 	a.card--external {
 		cursor: alias;
@@ -154,34 +228,119 @@ const isExternal = status === 'external';
 	a.card:focus-visible {
 		outline: 2px solid var(--focus-ring);
 		outline-offset: 2px;
-		/* Matches .glass's own radius so the ring hugs the corner. */
-		border-radius: var(--radius-md);
 	}
 
-	/* Deliberately does NOT clip: the role-tag row hangs half of itself past
-	   this box's bottom edge, and an `overflow: hidden` here would slice it in
-	   two. The cover is cropped by object-fit on the image instead, which
-	   needs no clipping ancestor, and the card's own `overflow: clip` still
-	   rounds the corners. */
+	/* The ratio is the card spec's own frame (1230×709), and it is a preferred
+	   height, not a fixed one: an element with an aspect-ratio that isn't a
+	   scroll container still grows to its min-content height. The text panel
+	   takes its natural height and the cover takes whatever is left, so a
+	   title that wraps to a second line shortens the cover rather than
+	   pushing the card taller — the cover is cropped at the bottom anyway,
+	   and a strip less of it costs nothing.
+
+	   The cover is second in the DOM and first on screen — see the markup. */
+	.card__inner {
+		display: flex;
+		flex-direction: column;
+		aspect-ratio: 1230 / 709;
+	}
+
+	/* Tags, then the title, then the meta row, 24px apart. */
+	.card__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-3xl);
+		padding: var(--spacing-xl) var(--spacing-3xl);
+	}
+
+	.card__roles {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.card__main {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-3xl);
+	}
+
+	.card__title {
+		color: var(--text);
+	}
+
+	/* The rule is --border-strong at half strength, not --border: it divides
+	   the title from its facts rather than edging a surface, and should sit
+	   back behind them. Mixing toward transparent rather than stepping down
+	   the ramp keeps it relative to whatever the card's fill is in either
+	   theme. Decorative, so it carries no contrast requirement — the meta
+	   row reads as separate from the title on position alone.
+
+	   The rows sit side by side, 40px apart, indented 16px from the rule's
+	   start — the reference's own offset, which sets the facts under the
+	   title rather than flush with it. */
+	.card__meta {
+		display: flex;
+		flex-wrap: wrap;
+		column-gap: var(--spacing-5xl);
+		row-gap: var(--spacing-md);
+		padding-block-start: var(--spacing-xl);
+		padding-inline-start: var(--spacing-xl);
+		border-block-start: 1px solid color-mix(in srgb, var(--border-strong) 50%, transparent);
+		color: var(--text-body);
+	}
+
+	/* Icon and label as one unit, so the pair wraps together rather than the
+	   icon ever separating from the data point it precedes. */
+	.card__meta-item {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+	}
+
+	/* Takes the height the text panel leaves, and moves above it on screen.
+	   `min-block-size: 0` lets it give that height up to a long title instead
+	   of holding its content's size. The clip is what crops the cover: the
+	   image is taller than this box and positioned, so unclipped it would
+	   paint straight over the text panel below. */
 	.card__media {
 		position: relative;
+		order: -1;
+		flex: 1;
+		min-block-size: 0;
+		overflow: clip;
+	}
+
+	/* Sized off the card's width at 16:10 and anchored to the top — which on
+	   the spec's frame makes it taller than its box (770 against 521), so it
+	   runs off the bottom and the box's clip finishes it. Inset by
+	   --spacing-xs on the other three sides, and the inset shows the card's
+	   own fill: --bg-media goes on the image, not the panel, so it marks the
+	   cover's box while the file loads without framing it once it has.
+	   Absolute so it adds nothing to the card's min-content height;
+	   object-fit crops any cover that isn't 16:10 without needing a clipping
+	   ancestor of its own. */
+	.card__media :global(img) {
+		position: absolute;
+		inset-block-start: var(--spacing-xs);
+		inset-inline: var(--spacing-xs);
+		display: block;
+		inline-size: calc(100% - 2 * var(--spacing-xs));
+		block-size: auto;
+		max-inline-size: none;
 		aspect-ratio: 16 / 10;
+		object-fit: cover;
+		object-position: left top;
+		border-radius: var(--radius-md);
 		background: var(--bg-media);
 	}
 
-	.card__media :global(img) {
-		display: block;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	/* Unpublished work's whole cover, not a corner of it, so it fills the
-	   media rather than straddling its seam. Confined to `.card__media` on
-	   purpose: the seam and the body stay legible, only the cover itself
-	   reads as not-yet-real. Painted before `.card__roles` in DOM order, so
-	   any role tags on a `coming-soon` card sit on top of the scrim rather
-	   than under it. */
+	/* Unpublished work's whole cover, not a corner of it. Confined to
+	   `.card__media` on purpose: the title and meta stay legible, only the
+	   cover itself reads as not-yet-real. */
 	.card__overlay {
 		position: absolute;
 		inset: 0;
@@ -194,7 +353,7 @@ const isExternal = status === 'external';
 	   like the scrim it sits on, so its label can't reach for --text either. */
 	.card__overlay-label {
 		font-family: var(--font-display);
-		font-weight: var(--weight-medium);
+		font-weight: var(--weight-regular);
 		font-size: var(--size-ui);
 		line-height: 1.25;
 		color: var(--secondary);
@@ -217,7 +376,7 @@ const isExternal = status === 'external';
 		background: var(--overlay);
 	}
 
-	/* Matches .icon-btn--lg's box-to-icon ratio (48px box / 26px icon) rather
+	/* Matches the icon-lg button's box-to-icon ratio (48px box / 26px icon) rather
 	   than a bare fraction of the box, so it reads at the same visual weight
 	   as every other circular icon surface in the system. */
 	.card__external-badge .icon {
@@ -226,69 +385,56 @@ const isExternal = status === 'external';
 		height: 1.625rem;
 	}
 
-	/* Straddles the seam between the cover and the body, centred on it by its
-	   own half-height rather than by a measured offset, so it stays put
-	   whatever the roles are. Left edge shares the body's padding, which is
-	   what lines it up with the title below. */
-	.card__roles {
-		position: absolute;
-		inset-block-end: 0;
-		inset-inline-start: var(--spacing-3xl);
-		transform: translateY(50%);
-		display: flex;
-		gap: var(--spacing-xl);
-		margin: 0;
-		padding: 0;
-		list-style: none;
+	/* A narrow card has too little height at the spec's ratio for the text
+	   panel and a cover both — at 390px wide the frame is 225px tall, and the
+	   text alone needs more than that. So under 40rem the card drops the
+	   ratio and gives the cover one of its own, and the card grows to fit
+	   both. The meta rows stack, since two short rows side by side at this
+	   width start to wrap into each other. */
+	@container (max-width: 40rem) {
+		.card__inner {
+			aspect-ratio: auto;
+		}
+
+		.card__body {
+			padding: var(--spacing-xl);
+		}
+
+		.card__media {
+			flex: none;
+			aspect-ratio: 16 / 10;
+		}
+
+		.card__media :global(img) {
+			inset-block-end: var(--spacing-xs);
+			block-size: calc(100% - 2 * var(--spacing-xs));
+			aspect-ratio: auto;
+		}
+
+		.card__meta {
+			flex-direction: column;
+			padding-inline-start: 0;
+		}
 	}
 
-	/* `flex: 1` lets the body fill the card's full stretched height — the grid
-	   row stretches both cards to the taller one's height (CSS Grid's default
-	   `align-items: stretch`), so without this the extra height lands as
-	   invisible trailing space below the body instead of being available to
-	   push the meta line down. */
-	.card__body {
-		display: flex;
-		flex: 1;
-		flex-direction: column;
-		gap: var(--spacing-md);
-		padding: var(--spacing-3xl);
-	}
-
-	.card__title {
-		color: var(--text);
-	}
-
-	/* `margin-block-start: auto` anchors the meta line to the body's bottom
-	   edge rather than directly under the title, so it lands at the same
-	   height as its neighbour's meta line regardless of either card's title
-	   length — the two cards' bottoms are already equal via the grid row
-	   stretch above. */
-	.card__meta {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		margin-block-start: auto;
-		color: var(--text-muted);
-	}
-
-	/* Icon and label as one unit, so the pair wraps and truncates together
-	   rather than the icon ever separating from the data point it precedes. */
-	.card__meta-item {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-	}
-
-	/* The global guard in components.css covers .btn, .tab and .icon-btn; the
-	   card's lift is scoped here, so its opt-out has to be too. */
+	/* ui/button.tsx carries its own reduced-motion guard; the card's lift and
+	   press are scoped here, so their opt-out has to be too.
+	   The dimming stays, and keeps its fade — it is emphasis, not movement,
+	   and reduced motion means gentler, not none. */
 	@media (prefers-reduced-motion: reduce) {
+		.card,
 		a.card {
-			transition: none;
+			transition:
+				opacity 200ms ease,
+				filter 200ms ease;
 		}
 
 		a.card:hover {
 			transform: none;
+		}
+
+		a.card:active {
+			scale: none;
 		}
 	}
 </style>

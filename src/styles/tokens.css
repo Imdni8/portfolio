@@ -18,13 +18,23 @@
    focus rings clear 3:1. No pairing relies on colour alone.
    ============================================================================ */
 
-@import '@fontsource-variable/inter';
-@import '@fontsource-variable/inter/wght-italic.css';
-@import '@fontsource-variable/playfair-display';
-@import '@fontsource-variable/playfair-display/wght-italic.css';
-@import '@fontsource/ibm-plex-mono/500.css';
-@import '@fontsource/ibm-plex-mono/500-italic.css';
-@import '@fontsource/ibm-plex-mono/700.css';
+/* Only the cuts the type styles below actually ask for. DM Serif Display is
+   drawn at 400 alone, so it has nothing else to load; its italic is the one
+   .type-heading--claim and .type-display set. DM Sans is variable, and its
+   italic is what MDX *emphasis* renders in. DM Mono: 300 is the wordmark, 400
+   every label, 400 italic the footer tagline's <em>, 500 the chapter rail's
+   active entry.
+   Delicious Handrawn is drawn at 400 alone, and sets two words on the whole
+   site — see --font-hand. */
+@import '@fontsource/dm-serif-display/400.css';
+@import '@fontsource/dm-serif-display/400-italic.css';
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource-variable/dm-sans/wght-italic.css';
+@import '@fontsource/dm-mono/300.css';
+@import '@fontsource/dm-mono/400.css';
+@import '@fontsource/dm-mono/400-italic.css';
+@import '@fontsource/dm-mono/500.css';
+@import '@fontsource/delicious-handrawn/400.css';
 
 /* ---- 1 · Colour primitives -------------------------------------------------
    Amber is Tailwind's ramp, unmodified. Grey is custom — a cool cast that
@@ -61,7 +71,7 @@
 	/* ---- AI spectrum -------------------------------------------------------
 	   The only hues in the system outside the amber ramp and the cool grey,
 	   and deliberately scoped to one thing: the "AI" chip's animated border on
-	   a work card (.tag--ai in components.css). An iridescent sweep is how an
+	   a work card (.badge-ai in components.css). An iridescent sweep is how an
 	   AI surface is marked, and a two-hue palette has nothing that says it.
 
 	   Sourced from the same unmodified Tailwind palette the amber ramp comes
@@ -70,8 +80,8 @@
 
 	   Stop 1 is --amber-500 itself, so the system's own hue leads the sweep
 	   and the loop closes on itself with no seam. Not theme-aware, and must
-	   not become so: the chip rides on a cover image in both themes, not on
-	   the page ground — the same argument .tag--coming-soon makes.
+	   not become so: the ring is decoration, not a surface anything is read
+	   against, so there is nothing for a theme change to keep legible.
 
 	   Not for text, not for a fill, not for any surface a reader reads
 	   against — a 1px decorative ring only. Nothing here is measured for
@@ -84,54 +94,78 @@
 }
 
 /* ---- 2 · Type primitives ---------------------------------------------------
-   Playfair carries the voice — titles, reflections, chapter names.
-   Inter carries information — headings, copy, controls.
-   Plex Mono carries apparatus — eyebrows only, always uppercase, always amber.
+   Three families, each with one job, and the job is the whole rule:
 
-   The two text families meet at exactly one size (30/38) and do different
-   jobs there. That collision is the system; see --type-heading vs
-   --type-reflection below.
+   - DM Serif Display is content a reader stops on — the page title, section
+     headlines, card titles. Always 400 (the only weight it is drawn in),
+     always tracked slightly tight.
+   - DM Sans is copy meant to be read in full — paragraphs, deks, captions,
+     control labels. Normal tracking and generous leading.
+   - DM Mono is apparatus — nav links, the chapter rail, badges, eyebrows,
+     meta. Small, uppercase where it labels something, tracked open so it
+     recedes behind the serif and the sans.
+
+   Importance is carried by that choice of family, and by colour, never by a
+   heavier cut: there is no bold anywhere. Two weights per family at most —
+   serif 400; sans 400 and 500; mono 400 and 500, plus 300 for the wordmark.
+
+   A fourth family, Delicious Handrawn, is not a fourth job. It sets the
+   homepage headline's "try to" and nothing else: an aside scribbled into
+   the sentence, which is the one thing none of the three above can say.
+   Do not reach for it anywhere else — a hand that appears twice stops
+   reading as a hand.
    -------------------------------------------------------------------------- */
 :root {
-	--font-display: 'Playfair Display Variable', 'Playfair Display', Georgia, serif;
-	--font-sans: 'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif;
-	--font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+	--font-display: 'DM Serif Display', Georgia, serif;
+	--font-sans: 'DM Sans Variable', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'DM Mono', ui-monospace, SFMono-Regular, monospace;
+	--font-hand: 'Delicious Handrawn', 'Segoe Print', 'Bradley Hand', cursive;
 
-	/* Sizes. The top three rungs clamp; 20px and below are fixed, because
-	   below 20 the fluid range is narrower than the rounding error. */
-	--size-display: clamp(3.5rem, 9vw, 6.5rem); /* hero name, above the title rung */
-	--size-title: clamp(2rem, 5vw, 3rem); /* 32 → 48 */
-	--size-heading: clamp(1.5rem, 3.2vw, 1.875rem); /* 24 → 30 */
-	--size-subtitle: clamp(1.25rem, 2.4vw, 1.5rem); /* 20 → 24 */
+	/* Sizes. The top three rungs clamp; 18px and below are fixed, because
+	   below that the fluid range is narrower than the rounding error. */
+	--size-display: clamp(2.25rem, 2.8vw, 3rem); /* 36 → 48 — the homepage headline */
+	--size-title: clamp(2rem, 4.2vw, 2.625rem); /* 32 → 42 */
+	--size-heading: clamp(1.375rem, 2.6vw, 1.625rem); /* 22 → 26 */
+	--size-subtitle: clamp(1.125rem, 2vw, 1.25rem); /* 18 → 20 */
+	/* The handwritten aside inside the display line. Scales with it, at the
+	   5:6 ratio the reference draws it at (40 against 48). */
+	--size-hand: clamp(1.875rem, 2.3333vw, 2.5rem); /* 30 → 40 */
 	--size-tab: 1.25rem; /* 20 */
-	--size-body: 1.125rem; /* 18 */
-	--size-ui: 1rem; /* 16 */
+	--size-body: 1rem; /* 16 — running copy */
+	--size-ui: 1rem; /* 16 — controls; shares the rung with body, parts on weight and leading */
+	--size-wordmark: 0.9375rem; /* 15 */
 	--size-fine: 0.875rem; /* 14 */
-	--size-micro: 0.75rem; /* 12 — homepage client-logo caption */
+	--size-micro: 0.75rem; /* 12 — mono labels */
+	--size-tag: 0.625rem; /* 10 */
 
-	/* Leading, unitless so it survives the clamps. Ratios reproduce the
-	   Figma px pairs exactly at each design size. */
-	--lh-display: 1.05;
-	--lh-title: 1.25; /* 48/60 */
-	--lh-heading: 1.267; /* 30/38 */
-	--lh-subtitle: 1.333; /* 24/32 */
-	--lh-body: 1.556; /* 18/28 */
+	/* Leading, unitless so it survives the clamps. */
+	--lh-display: 1.2; /* 48/57.6 */
+	--lh-hand: 1.2; /* 40/48 */
+	--lh-title: 1.2; /* 42/50.4 */
+	--lh-heading: 1.2; /* 26/31.2 */
+	--lh-subtitle: 1.4; /* 20/28 */
+	--lh-body: 1.7; /* 16/27.2 */
 	--lh-ui: 1.5; /* 16/24 */
-	--lh-fine: 1.429; /* 14/20 */
-	--lh-micro: 1.333; /* 16/12 */
+	--lh-fine: 1.5; /* 14/21 */
+	--lh-micro: 1.5; /* 12/18 */
+	--lh-tag: 1.6; /* 10/16 */
+	--lh-wordmark: 1; /* 15/15 */
 
+	--weight-extralight: 200; /* the homepage headline's demoted half — "that", "makes users", "and businesses" */
+	--weight-light: 300; /* the footer's mono wordmark */
 	--weight-regular: 400;
 	--weight-medium: 500;
-	--weight-semibold: 600;
-	--weight-bold: 700;
 
-	/* Tracking. Large display type tightens; uppercase mono opens up —
-	   without it the eyebrows set as a solid block. */
-	--track-title: -0.02em;
-	--track-heading: -0.015em;
+	/* Tracking. The serif tightens; uppercase mono opens up — without it the
+	   labels set as a solid block — and opens less as it gets smaller, since a
+	   10px tag already has air in it that a 12px label does not. The wordmark
+	   is the one mono setting that tightens. Sans runs at normal. */
+	--track-wordmark: -0.03em;
 	--track-tight: -0.01em;
 	--track-normal: normal;
-	--track-overline: 0.09em;
+	--track-numeral: 0.04em;
+	--track-tag: 0.06em;
+	--track-label: 0.08em;
 }
 
 /* ---- 3 · Space and radius primitives ---------------------------------------
@@ -161,7 +195,7 @@
 	   wide monitor does not stretch the two-column sections past the point
 	   where the eye can track from one to the other. */
 	--measure-page: 91.875rem; /* 1470px */
-	--measure-content: 77.5rem; /* 1240px — nav and selected-work grid cap */
+	--measure-content: 77.5rem; /* 1240px — about page and footer cap */
 	/* A case study's reading column. Narrower than --measure-page because the
 	   story is read top to bottom rather than scanned as a grid: at 1470px the
 	   two-column sections put the copy and the shot beside it too far apart to
@@ -177,6 +211,17 @@
 	   media (screenshots, stat tiles) can run the full prose measure, but its
 	   heading and paragraph text stop here, centered inside it. */
 	--measure-copy: 47rem; /* 752px */
+	/* The site's persistent chrome — the nav row (sitewide) and the footer's
+	   `chrome` variant (index, about) — rather than any page's own content
+	   column. Kept as its own token rather than reused from --measure-prose
+	   even though the values happen to match right now, since the two are
+	   conceptually unrelated (one is the site's chrome width, the other a
+	   page's reading column) and have already diverged once before. On
+	   about.astro this runs narrower than the page's own --measure-content
+	   (1240px) body frame: a deliberate, accepted trade-off since that page
+	   is parked and unlinked (see "about" in CLAUDE.md), not an oversight to
+	   fix by widening this back out. */
+	--measure-chrome: 62.5rem; /* 1000px */
 	--gutter: clamp(1.25rem, 4vw, 4rem);
 
 	--spacing-none: 0rem; /* 0px */
@@ -196,6 +241,32 @@
 	--spacing-9xl: 6rem; /* 96px */
 	--spacing-10xl: 8rem; /* 128px */
 	--spacing-11xl: 10rem; /* 160px */
+}
+
+/* ---- 3a · Motion primitives -----------------------------------------------
+   Two curves, from Emil Kowalski's animation guidance (.claude/skills/
+   emil-design-eng): the built-in CSS easings are too weak to read as
+   intentional, so anything that moves reaches for one of these instead.
+
+   - --ease-out is for things arriving or leaving, and for the response to a
+     press: it starts fast, so the reader sees movement the instant they
+     look.
+   - --ease-in-out is for something already on screen moving to a new place.
+
+   Never ease-in on UI — it delays the moment the reader is watching. Hover
+   and colour changes stay on plain `ease`; constant motion stays `linear`.
+
+   The names are Tailwind's too. Its default theme declares its own, weaker
+   --ease-out and --ease-in-out inside `@layer theme`; these are unlayered, so
+   they win, and Tailwind's `ease-out`/`ease-in-out` utilities (and shadcn's
+   animations) resolve to these curves as well — one set of curves, reached
+   from either syntax. Do not map them in tailwind.css's `@theme inline`:
+   that would be the self-referencing alias it warns about for radius and
+   font.
+   -------------------------------------------------------------------------- */
+:root {
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 /* ---- 4 · Semantic colour · dark (default) ---------------------------------- */
@@ -265,6 +336,32 @@
 	   ground beneath it would fight the image instead of reading over it. */
 	--overlay: #0e0e0ebf;
 
+	/* The homepage's ground, and the ground of the liquid-metal layer on top
+	   of it (.liquid-metal in components.css). Literals, and outside both
+	   ramps, for the same reason --brand-mark is: they are shader material,
+	   not interface colour. The shader draws in greyscale and reaches the
+	   page through a soft-light blend, and soft-light can only push a channel
+	   toward where its base already is — so the amber glow is made by the
+	   warm cast of these two values, and a cool ground from the grey ramp
+	   would render it grey. Nothing is read against them directly: every card
+	   carries its own --bg-sunken surface, and the headline over them is
+	   --text on a ground no brighter than the glow's peak (measured — see
+	   liquid-metal.ts). Not redefined per theme; the homepage pins dark. */
+	--home-ground: #140c00;
+	--home-shader-ground: #191300;
+
+	/* The homepage's actual resting background — soft-lighting
+	   --home-shader-ground onto --home-ground (computed, not measured:
+	   the W3C soft-light formula on these two literals resolves to this),
+	   darker than --home-ground alone. Nothing paints this directly (the
+	   blend is real, done by .liquid-metal's mix-blend-mode); it exists so
+	   a flat fill elsewhere on the page — the nav's scrim band — can match
+	   what the shader actually renders instead of the brighter unblended
+	   ground. Only accurate outside the glow's own bloom, which lifts this
+	   locally toward its measured peak of rgb(61, 40, 0) — see Liquid
+	   metal in CLAUDE.md. */
+	--home-ground-blend: #050200;
+
 	/* Text and icon colour for anything sitting on --overlay, a fixed dark
 	   scrim, or a product screenshot — surfaces that are dark (or light) in
 	   both themes rather than following --bg. Deliberately not redefined per
@@ -331,42 +428,59 @@
 }
 
 /* ---- 5 · Type styles -------------------------------------------------------
-   Fourteen styles. Each is a complete instruction — family, weight, size,
-   leading and tracking together — so a component never has to assemble one
-   by hand and drift from the spec.
+   Each is a complete instruction — family, weight, size, leading and
+   tracking together — so a component never has to assemble one by hand and
+   drift from the spec. Several share a rule below where the values are the
+   same; the names stay separate because they say what the text is for.
    -------------------------------------------------------------------------- */
 .type-display,
+.type-display-sans,
+.type-hand,
 .type-title,
 .type-heading,
 .type-reflection,
 .type-subtitle,
 .type-card-title,
+.type-card-meta,
 .type-nav-link,
 .type-body,
 .type-ui-label,
 .type-annotation,
 .type-overline,
-.type-meta {
+.type-meta,
+.type-wordmark {
 	margin: 0;
 }
 
-/* Page title. One per case study. */
+/* Page title. One per page — the homepage greeting, a case study's name. */
 .type-title {
 	font-family: var(--font-display);
-	font-weight: var(--weight-bold);
+	font-weight: var(--weight-regular);
 	font-size: var(--size-title);
 	line-height: var(--lh-title);
-	letter-spacing: var(--track-title);
+	letter-spacing: var(--track-tight);
 	text-wrap: balance;
 }
 
-/* Section headline — states a finding. The sans half of the 30/38 pair. */
-.type-heading {
-	font-family: var(--font-sans);
-	font-weight: var(--weight-semibold);
+/* The serif on the heading rung, under three names:
+
+   - .type-heading states a finding — a section headline.
+   - .type-reflection is the author stepping back to speak.
+   - .type-card-title is a work card's own title.
+
+   They used to part on family and weight (a sans semibold heading, a serif
+   semibold reflection, a serif regular card title). Every headline is now
+   the serif at 400, so what separates them is where they sit and what colour
+   they are given, not how they are cut. The card spec reads 26/31; that is
+   this rung exactly. */
+.type-heading,
+.type-reflection,
+.type-card-title {
+	font-family: var(--font-display);
+	font-weight: var(--weight-regular);
 	font-size: var(--size-heading);
 	line-height: var(--lh-heading);
-	letter-spacing: var(--track-heading);
+	letter-spacing: var(--track-tight);
 	text-wrap: balance;
 }
 
@@ -379,52 +493,48 @@
 	font-style: italic;
 }
 
-/* Editorial heading — you, stepping back to speak. The serif half. */
-.type-reflection {
-	font-family: var(--font-display);
-	font-weight: var(--weight-semibold);
-	font-size: var(--size-heading);
-	line-height: var(--lh-heading);
-	letter-spacing: var(--track-tight);
-	text-wrap: balance;
-}
-
 /* Dek beneath the title. */
 .type-subtitle {
 	font-family: var(--font-sans);
 	font-weight: var(--weight-regular);
 	font-size: var(--size-subtitle);
 	line-height: var(--lh-subtitle);
-	letter-spacing: var(--track-tight);
+	letter-spacing: var(--track-normal);
 }
 
-/* A work card's own title. Sits on the tab rung for size but borrows
-   subtitle's leading and tracking — a title set at body scale, not a
-   fourth heading rung. */
-.type-card-title {
+/* A work card's meta rows — industry and year, each an icon and a value,
+   stacked under the title's rule. Secondary copy: the fine rung at regular
+   weight, the same values as .type-annotation, but named for what it labels. */
+.type-card-meta {
 	font-family: var(--font-sans);
-	font-weight: var(--weight-medium);
-	font-size: var(--size-tab);
-	line-height: var(--lh-subtitle);
-	letter-spacing: var(--track-tight);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-fine);
+	line-height: var(--lh-fine);
 }
 
-/* One tab style for every tab list on the site — the primary site nav
-   (Work / About), the case-study chapter rail, and the generic Tabs
-   component all wear it (paired with `.tab` in components.css, which adds
-   only layout/interaction). A chapter tab and a nav link are the same kind
-   of control, so they no longer have separate rungs — this used to split
-   into `.type-tab`/`.type-tab-active` (Playfair, the tab rung) for the
-   chapter rail and `.type-nav-link` (Inter, the ui rung) for the site nav;
-   the rail now reads Inter at the ui rung too. Weight starts at medium so
-   the active tab's own bump to bold (applied via `[aria-current]`/
-   `[aria-selected]` in components.css, not a modifier class here) is what
-   signals state — never colour alone. */
-.type-nav-link {
-	font-family: var(--font-sans);
-	font-weight: var(--weight-medium);
-	font-size: var(--size-ui);
-	line-height: var(--lh-ui);
+/* Small uppercase mono, under two names:
+
+   - .type-nav-link is every nav on the site — the primary site nav and its
+     Side projects dropdown, and the case-study chapter rail. A chapter entry
+     and a nav link are the same kind of control. Weight starts at regular so
+     the active entry's own bump to medium (applied via `[aria-current]` in
+     the component, not a modifier class here) is what signals state — never
+     colour alone.
+   - .type-overline is eyebrows and note titles (AlertTitle). It alone
+     carries a colour: amber, the one place the label rung is lit rather
+     than receding. */
+.type-nav-link,
+.type-overline {
+	font-family: var(--font-mono);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-micro);
+	line-height: var(--lh-micro);
+	letter-spacing: var(--track-label);
+	text-transform: uppercase;
+}
+
+.type-overline {
+	color: var(--primary-text);
 }
 
 /* Running copy, and hero fact values. */
@@ -435,10 +545,11 @@
 	line-height: var(--lh-body);
 }
 
-/* Buttons and control labels. */
+/* Buttons and control labels. Medium, the heaviest sans cut in the system —
+   a control needs to read as pressable against the copy around it. */
 .type-ui-label {
 	font-family: var(--font-sans);
-	font-weight: var(--weight-semibold);
+	font-weight: var(--weight-medium);
 	font-size: var(--size-ui);
 	line-height: var(--lh-ui);
 }
@@ -453,51 +564,85 @@
 	line-height: var(--lh-fine);
 }
 
-/* Eyebrows and note titles. Shares the 14px rung with annotation — no
-   collision, since family, weight and case all differ. */
-.type-overline {
-	font-family: var(--font-mono);
-	font-weight: var(--weight-bold);
-	font-size: var(--size-fine);
-	line-height: var(--lh-fine);
-	letter-spacing: var(--track-overline);
-	text-transform: uppercase;
-	color: var(--primary-text);
-}
-
-/* Card meta — the category, separator and year under a work card's title.
-   Third style on the 14px rung and the second in mono, but it parts from
-   overline on weight, case, tracking and colour at once, which is the same
-   margin that already keeps overline and annotation apart. Carries no colour
-   of its own: it sits on a card, not on the page ground. */
+/* Mono metadata — the footer tagline, the toast's message. The label rung,
+   but mixed case and tracked half as open: it is a line to read, not a label
+   to skip over. Carries no colour of its own: its uses sit on different
+   grounds. */
 .type-meta {
 	font-family: var(--font-mono);
-	font-weight: var(--weight-medium);
-	font-size: var(--size-fine);
-	line-height: var(--lh-fine);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-micro);
+	line-height: var(--lh-micro);
+	letter-spacing: var(--track-numeral);
 }
 
-/* A name, spoken rather than set — the one place the display face runs
-   italic. Needs the real italic face, same reasoning as .type-heading--claim. */
+/* The name as a mark — the footer's "Tousif Rahaman" beside the brand glyph.
+   The only light cut in the system and the only mono setting that tightens,
+   which is what sets it apart from every label around it. */
+.type-wordmark {
+	font-family: var(--font-mono);
+	font-weight: var(--weight-light);
+	font-size: var(--size-wordmark);
+	line-height: var(--lh-wordmark);
+	letter-spacing: var(--track-wordmark);
+}
+
+/* The homepage headline — "I try to design / Thoughtful software that /
+   makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗" — is the one line on the
+   site set above the title rung, and it is three styles on one sentence:
+
+   - .type-display is the phrase spoken rather than set — "Thoughtful
+     software". The one place the display face runs italic at this size.
+     Needs the real italic face, same reasoning as .type-heading--claim.
+   - .type-display-sans is the plain half of the sentence — "I", "design",
+     "that", "makes users", "and businesses". Same size and leading as
+     .type-display, so the lines share one rhythm; normal tracking, as all
+     sans does. HomeHero.astro drops "that" and the outcome clause to
+     `--weight-extralight` and 7:8 of `--size-display` (42 against 48)
+     locally — lighter and smaller, never heavier or larger — rather than
+     forking a second `.type-*` class over two changed properties. The
+     kaomoji closing each outcome clause (`.hero__kaomoji`) are plain
+     characters set in `--font-display`, not emoji, so they aren't a fourth
+     style on the sentence — they read `color: var(--text)` like everything
+     else here, which the emoji they replaced never could.
+   - .type-hand is the aside — "try to". Smaller than the words either side
+     of it, at the 5:6 the reference draws it at. See --font-hand for why it
+     is used here and nowhere else. */
 .type-display {
 	font-family: var(--font-display);
 	font-style: italic;
-	font-weight: var(--weight-semibold);
+	font-weight: var(--weight-regular);
 	font-size: var(--size-display);
 	line-height: var(--lh-display);
-	letter-spacing: var(--track-title);
+	letter-spacing: var(--track-tight);
+}
+
+.type-display-sans {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-display);
+	line-height: var(--lh-display);
+	letter-spacing: var(--track-normal);
+}
+
+.type-hand {
+	font-family: var(--font-hand);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-hand);
+	line-height: var(--lh-hand);
+	letter-spacing: var(--track-normal);
 }
 
 /* ---- 6 · Surface — glass ----------------------------------------------------
    The backdrop-filter material `.glass` (components.css) is built from — one
-   set of values, so the work cards and the about page's stats panel can't
-   drift into slightly different glass. The nav used to wear this too (and
-   had a second, heavier tint it swapped in via a scroll listener as pale
-   case-study covers scrolled underneath it — `--glass-tint-scroll`,
-   `.glass--tinted`, `nav-tint.ts`) before the nav dropped the material
-   entirely; that machinery is gone with it; --glass-tint-rest is the only
-   mix left, mid grey at 5%, enough to sit on the page ground without going
-   opaque.
+   set of values, for the about page's stats panel, the one surface still cut
+   from it. The work cards wore it until they became solid panels. The nav
+   used to wear it too (and had a second, heavier tint it swapped in via a
+   scroll listener as pale case-study covers scrolled underneath it —
+   `--glass-tint-scroll`, `.glass--tinted`, `nav-tint.ts`) before the nav
+   dropped the material entirely; that machinery is gone with it;
+   --glass-tint-rest is the only mix left, mid grey at 5%, enough to sit on
+   the page ground without going opaque.
    -------------------------------------------------------------------------- */
 :root {
 	--glass-blur: 8px;

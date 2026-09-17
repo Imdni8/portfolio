@@ -130,9 +130,14 @@ function NavigationMenuPositioner({
         )}
         {...props}
       >
+        {/* Open timing changed from shadcn's 0.35s on its own cubic-bezier to
+            200ms on the project's --ease-out token (tokens.css): a dropdown
+            reads as responsive at 150–250ms and sluggish past 300. The close
+            keeps shadcn's faster 150ms. Re-check this against upstream on
+            `shadcn diff navigation-menu`. */}
         <NavigationMenuPrimitive.Popup
           className={cn(
-            "data-[ending-style]:easing-[ease] xs:w-(--popup-width) relative h-(--popup-height) w-(--popup-width) origin-(--transform-origin) rounded-lg bg-popover text-popover-foreground shadow ring-1 ring-foreground/10 transition-[opacity,transform,width,height,scale,translate] duration-[0.35s] ease-[cubic-bezier(0.22,1,0.36,1)] outline-none data-ending-style:scale-90 data-ending-style:opacity-0 data-ending-style:duration-150 data-starting-style:scale-90 data-starting-style:opacity-0",
+            "data-[ending-style]:easing-[ease] xs:w-(--popup-width) relative h-(--popup-height) w-(--popup-width) origin-(--transform-origin) rounded-lg bg-popover text-popover-foreground shadow ring-1 ring-foreground/10 transition-[opacity,transform,width,height,scale,translate] duration-200 ease-(--ease-out) outline-none data-ending-style:scale-90 data-ending-style:opacity-0 data-ending-style:duration-150 data-starting-style:scale-90 data-starting-style:opacity-0",
             popupClassName
           )}
         >

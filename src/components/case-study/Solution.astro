@@ -1,5 +1,6 @@
 ---
 import Icon from '../ui/Icon.astro';
+import { buttonVariants } from '../ui/button';
 import { storyHeading, storyProse } from './story-type';
 
 /**
@@ -20,16 +21,17 @@ import { storyHeading, storyProse } from './story-type';
  * without rendering "Solution" twice.
  */
 const hasIntro = Astro.slots.has('intro');
+const control = buttonVariants({ variant: 'outline', size: 'icon-sm' });
 ---
 
 <section class="solution" data-section="solution" data-chapter="solution">
 	<div class="solution__head">
-		<h2 class:list={['m-0 text-3xl leading-10', storyHeading]}>Solution</h2>
+		<h2 class:list={['m-0 text-[length:var(--size-heading)] leading-[var(--lh-heading)]', storyHeading]}>Solution</h2>
 		<div class="solution__controls">
-			<button type="button" class="icon-btn icon-btn--secondary icon-btn--sm" data-carousel-prev aria-label="Previous">
+			<button type="button" class={control} data-carousel-prev aria-label="Previous">
 				<Icon name="chevron-left" />
 			</button>
-			<button type="button" class="icon-btn icon-btn--secondary icon-btn--sm" data-carousel-next aria-label="Next">
+			<button type="button" class={control} data-carousel-next aria-label="Next">
 				<Icon name="chevron-right" />
 			</button>
 		</div>
@@ -88,12 +90,12 @@ const hasIntro = Astro.slots.has('intro');
 	}
 
 	/* The system's disabled state drops a control to an outline (see
-	   components.css) — right for a button that stays in place, wrong for these:
+	   ui/button.tsx) — right for a button that stays in place, wrong for these:
 	   a ringed-but-dead chevron beside a live one reads as two controls rather
 	   than one spent end of a track. The dimmed glyph alone carries the state.
-	   Scoped here, not in components.css, so the shared rule keeps its outline
-	   for every other icon button. */
-	.solution__controls .icon-btn:disabled {
+	   Scoped here, not in button.tsx, so the shared rule keeps its outline
+	   for every other icon button. Unlayered, so it beats the utility. */
+	.solution__controls button:disabled {
 		border-color: transparent;
 	}
 

@@ -131,7 +131,7 @@ const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro
 	   The child combinator holds the rule to exactly that: the paragraphs MDX
 	   emits at the top of the body. A component nested in here brings its own
 	   type style, and a descendant selector outranks a single class — which is
-	   how the note's 14px copy was being reset to 18px running copy. */
+	   how the note's 14px copy was being reset to 16px running copy. */
 	.section__body > :global(p) {
 		font-family: var(--font-sans);
 		font-weight: var(--weight-regular);
@@ -144,7 +144,7 @@ const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro
 
 	/* `>` for the same reason as the paragraph rule above, not just symmetry:
 	   without it a list authored inside a nested component — a <NoteBox> in a
-	   <Section>, which the MDX kit allows — is reset to 18px running copy and
+	   <Section>, which the MDX kit allows — is reset to 16px running copy and
 	   stops matching the note's own 14px paragraphs directly above it. */
 	.section__body > :global(ol),
 	.section__body > :global(ul) {
@@ -165,7 +165,7 @@ const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro
 
 	.section__body :global(strong) {
 		color: var(--text);
-		font-weight: var(--weight-semibold);
+		font-weight: var(--weight-medium);
 	}
 
 	/* Pull-quote — a claim lifted out of the prose above it. Reuses
@@ -181,10 +181,10 @@ const { eyebrow, heading, chapter, claim = false, layout = 'split', id } = Astro
 		padding-inline-start: var(--spacing-2xl);
 		border-inline-start: 2px solid var(--primary-text);
 		font-family: var(--font-sans);
-		font-weight: var(--weight-semibold);
+		font-weight: var(--weight-medium);
 		font-size: var(--size-subtitle);
 		line-height: var(--lh-subtitle);
-		letter-spacing: var(--track-tight);
+		letter-spacing: var(--track-normal);
 		color: var(--text);
 	}
 

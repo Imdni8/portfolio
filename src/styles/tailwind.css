@@ -8,12 +8,13 @@
    this file after tokens.css is what makes that possible, since `@theme
    inline` resolves these at runtime, not at build time.
 
-   Loaded on every page today (nav is sitewide), but scoped in practice to
-   shadcn-vendored primitives (src/components/ui/navigation-menu.tsx and
-   whatever follows it) and the wrappers built on top of them. Existing
-   components (Button, Tabs, Note, Tag, …) stay on components.css — this
-   isn't a rewrite, just where new shadcn work lands until it's deliberately
-   extended further.
+   Loaded on every page (nav is sitewide). It styles the shadcn-vendored
+   primitives (src/components/ui/navigation-menu.tsx, drawer.tsx, button.tsx,
+   badge.tsx, alert.tsx), the wrappers built on top of them, and the
+   case-study cut. Everything else still lives in components.css, where the
+   layering rule applies: those rules are unlayered, and an unlayered rule
+   beats every utility here whatever its specificity. So a class a shadcn
+   component is meant to override has to sit in a layer (see `.icon`).
 
    `shadcn init` (run once, to scaffold components.json/lib/utils.ts) also
    dropped its own default OKLCH palette, a Geist font import, sidebar/chart
@@ -28,6 +29,16 @@
 @import 'tailwindcss';
 @import 'shadcn/tailwind.css';
 @import 'tw-animate-css';
+
+/* A custom variant for the sitewide hover gate: every plain-CSS hover in this
+   project is written `@media (hover: hover) and (pointer: fine) { &:hover {
+   … } }` (Footer.astro, WorkCard.astro, SiteNav.astro), never a bare
+   `:hover` — Tailwind's own `hover:` only checks `(hover: hover)`, which some
+   touchscreens report true for on a tap, leaving a hover style stuck until
+   the next tap elsewhere. Stack it with Tailwind's own pseudo-class variant,
+   `hover-fine:hover:bg-…`, rather than using it alone, to get both
+   conditions. */
+@custom-variant hover-fine (@media (hover: hover) and (pointer: fine));
 
 @theme inline {
 	--color-background: var(--bg);

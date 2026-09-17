@@ -9,7 +9,8 @@ import DevOutline from '../components/DevOutline.astro';
 import WaterField from '../components/ui/WaterField.astro';
 import GlassDefs from '../components/ui/GlassDefs.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
-import Tag from '../components/ui/Tag.astro';
+import Badge from '../components/ui/Badge.astro';
+import { buttonVariants } from '../components/ui/button';
 import Icon from '../components/ui/Icon.astro';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
@@ -99,13 +100,18 @@ const linkedInHref = links.linkedin;
 								</h1>
 								<h2 class="about__title">Product designer and design engineer</h2>
 								<div class="about__tags">
-									{skills.map(({ icon, label }) => <Tag icon={icon}>{label}</Tag>)}
+									{skills.map(({ icon, label }) => (
+										<Badge>
+											<Icon name={icon} />
+											{label}
+										</Badge>
+									))}
 								</div>
 							</div>
 
 							<div class="about__actions">
 								<a
-									class="btn btn--primary about__cta"
+									class:list={[buttonVariants(), 'about__cta']}
 									href={resumeHref}
 									data-analytics="resume"
 									target="_blank"
@@ -115,7 +121,7 @@ const linkedInHref = links.linkedin;
 									<Icon name="external-link" />
 								</a>
 								<a
-									class="btn btn--secondary about__cta"
+									class:list={[buttonVariants({ variant: 'secondary' }), 'about__cta']}
 									href={linkedInHref}
 									target="_blank"
 									rel="noopener noreferrer"
@@ -216,16 +222,16 @@ const linkedInHref = links.linkedin;
 	.about {
 		/* `.site-field` is fixed and unpositioned content paints behind any
 		   positioned sibling regardless of DOM order — same reasoning as
-		   `index.astro`'s `.hero`. Without this, the headline, tags and prose
+		   `.site-footer`'s. Without this, the headline, tags and prose
 		   render invisibly underneath the water field; only `.about__card`
 		   would show, because its `.glass` backdrop-filter happens to create
 		   a stacking context of its own. Load-bearing, not precautionary. */
 		position: relative;
 
 		/* What the nav occupies at the top of the viewport, plus a little
-		   clearance: the band it paints is 60px (12px of padding, a 36px row,
-		   12px more), and this leaves 18px under it. Same value as the
-		   homepage. */
+		   clearance: the band it paints is 72px (16px of padding, a 40px row,
+		   16px more), and this leaves 6px under it before the frame's own
+		   --spacing-xl. */
 		--nav-footprint: 4.875rem;
 		/* 355px, from the 1512×982 reference frame. No matching token — a
 		   bespoke composition measurement, shared between the row's grid track

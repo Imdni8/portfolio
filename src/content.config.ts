@@ -38,18 +38,19 @@ const work = defineCollection({
 			.object({
 				title: z.string(),
 
-				/** Homepage card metadata — the fields the grid needs, independent
+				/** Homepage card metadata — the fields the list needs, independent
 				 *  of whether a page has been written yet. Required even for a
-				 *  `coming-soon` entry, since the card still has to render. Together
-				 *  they're the whole card meta line: "industry · technology · year". */
+				 *  `coming-soon` entry, since the card still has to render. The card
+				 *  shows `industry` and `year` as its two meta rows; `technology` is
+				 *  still recorded but no longer rendered anywhere. */
 				industry: z.string(),
 				technology: z.string(),
 				year: z.number().int(),
 				thumbnail: z.object({ src: image(), alt: z.string() }),
 
-				/** What kind of work this was — shown as icon chips overlapping the
-				 *  card's cover, on every status including `coming-soon` (over its
-				 *  "Coming soon" scrim). `kind` picks the icon (`design-type` → the
+				/** What kind of work this was — shown as icon chips at the top of
+				 *  the card's text panel, on every status including `coming-soon`.
+				 *  `kind` picks the icon (`design-type` → the
 				 *  Figma mark, `code` → the angle-bracket icon); `label` is free
 				 *  text, so a new design-type value (e.g. "Design concepts") is a
 				 *  content-only edit — nothing in the schema or WorkCard.astro has
@@ -66,7 +67,7 @@ const work = defineCollection({
 					.default([]),
 
 				/** Whether this project shipped a notable AI feature — rendered as
-				 *  a fixed "AI" tag chip overlapping the cover, always the first
+				 *  a fixed "AI" tag chip in the same row as `roles`, always the first
 				 *  (leftmost) chip when present. Kept separate from `roles` above
 				 *  rather than added as a third `kind`: this tag's label is fixed
 				 *  ("AI"), not freeform, and it isn't subject to the

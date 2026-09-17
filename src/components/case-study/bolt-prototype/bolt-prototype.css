@@ -692,16 +692,22 @@
 
 /* The card is a light surface whatever the page theme is, so these controls
    pin themselves to the dark end rather than following --text. */
-.bolt-proto__controls .icon-btn {
+.bolt-proto__controls [data-slot='button'] {
 	background: color-mix(in srgb, var(--gray-950) 72%, transparent);
 	border-color: color-mix(in srgb, var(--gray-50) 24%, transparent);
 	color: var(--gray-50);
 	backdrop-filter: blur(6px);
 }
 
-.bolt-proto__controls .icon-btn:hover {
-	background: color-mix(in srgb, var(--gray-950) 84%, transparent);
-	border-color: color-mix(in srgb, var(--gray-50) 40%, transparent);
+/* Gated to a pointer that can really hover, like every other hover in the
+   project (Footer.astro, WorkCard.astro, SiteNav.astro) — a tap on touch
+   fakes a hover on some browsers, and this control has no press state of its
+   own to fall back to once that hover sticks. */
+@media (hover: hover) and (pointer: fine) {
+	.bolt-proto__controls [data-slot='button']:hover {
+		background: color-mix(in srgb, var(--gray-950) 84%, transparent);
+		border-color: color-mix(in srgb, var(--gray-50) 40%, transparent);
+	}
 }
 
 /* A "press to run" invitation, centred in the card. It is a label, not a

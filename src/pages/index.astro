@@ -6,36 +6,21 @@ import '../styles/tailwind.css';
 import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
-import WaterField from '../components/ui/WaterField.astro';
-import GlassDefs from '../components/ui/GlassDefs.astro';
+import LiquidMetal from '../components/ui/LiquidMetal.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
+import HomeHero from '../components/home/HomeHero.astro';
 import WorkCard from '../components/work/WorkCard.astro';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
 import FontPreload from '../components/FontPreload.astro';
-import philipsLogo from '../assets/homepage/philips_logo.svg?raw';
-import jjLogo from '../assets/homepage/J&J_logo.svg?raw';
-import medableLogo from '../assets/homepage/medable_logo.svg?raw';
+import { reelLength } from '../components/home/home-reel';
 
-const clients = [
-	{ name: 'Johnson & Johnson', svg: jjLogo },
-	{ name: 'Philips', svg: philipsLogo },
-	{ name: 'Medable', svg: medableLogo },
-];
-
-/* The two halves of the subtitle. The second is the one that types itself in,
-   and it is written out here rather than in the script so the line is complete
-   before any JS runs — with JS off, or under reduced motion, that is what
-   ships. */
-const ROLE_STATIC = 'Product designer ';
-const ROLE_TYPED = '& builder';
-
-// The grid is the collection, not a hand-maintained list — a new case study
+// The reel is the collection, not a hand-maintained list — a new case study
 // (including a `coming-soon` stub) shows up here purely by existing, ordered
 // by its own `order` field. See "Case studies" in CLAUDE.md.
 //
 // `coming-soon` entries sort after everything else, regardless of their own
-// `order` — so they shouldn't crowd real work out of the grid's early slots.
+// `order` — so they shouldn't crowd real work out of the reel's early slots.
 // `order` still decides their place within that trailing group, and everyone
 // else's place among themselves.
 const studies = (await getCollection('work', ({ data }) => data.status !== 'unlisted')).sort((a, b) => {
@@ -47,11 +32,9 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 ---
 
 <!doctype html>
-{/* Off: Work<->About is the only soft navigation on the site, and the only
-    thing that should animate across it is the nav's active-tab indicator
-    (SiteNav.astro, transition:persist). Everything else should cut instantly,
-    same as a hard navigation, rather than picking up the router's default
-    crossfade. */}
+{/* Off: Work<->About is the only soft navigation on the site, and nothing
+    should animate across it. Everything should cut instantly, same as a hard
+    navigation, rather than picking up the router's default crossfade. */}
 <html lang="en" data-theme="dark" transition:animate="none">
 	<head>
 		<meta charset="utf-8" />
@@ -98,407 +81,333 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		{import.meta.env.DEV && <DevOutline />}
 	</head>
 	<body>
-		{/* Both the nav and the work cards wear `.glass`; the filter it bends
-		    the field with is defined once, here. */}
-		<GlassDefs />
-		<div class="site-field">
-			<WaterField grid={72} />
+		<div class="home-ground">
+			<LiquidMetal />
 		</div>
 		<SiteNav />
-		<main>
-			<section class="hero">
-				{/* data-nav-scrim: what the nav watches to know when to fade its
-				    background in. The hero's content column, not the work section
-				    below it — this is the first thing that scrolls up under the
-				    nav, and until the band is there the headline and the subtitle
-				    run straight through the links. `.hero__inner` rather than
-				    `.hero` because the section's top padding is exactly the
-				    clearance the band should not react to; about.astro marks its
-				    own content column (`.about__frame`) for the same reason.
-				    Nothing needs to mark `.work` as well: the ramp clamps at 1
-				    once the hero has passed, and the band stays on for the rest of
-				    the page. See SiteNav.astro. */}
-				<div class="hero__inner" data-nav-scrim>
-					<h1 class="type-title hero__title">I&rsquo;m Tousif</h1>
-					{/* One copy of the typed half, not two, and no `aria-hidden` on it.
-					    A second `.sr-only` copy would be the obvious way to keep the
-					    accessible text whole while the visible one is mid-word — but
-					    the span carries no `aria-live`, so a screen reader never
-					    announces the mutations in the first place, and it reads the
-					    line from the DOM whenever the user gets to it, by which time
-					    the word is whole. All the duplicate would buy is a
-					    ~500ms window during the type-in; what it would cost is a
-					    permanently doubled word in every copy-paste and every text
-					    extraction of the page. The single copy is also what renders
-					    with JS off, or under reduced motion, already complete. */}
-					<p class="type-subtitle hero__subtitle">
-						{ROLE_STATIC}<span class="hero__typed">{ROLE_TYPED}</span><span
-							class="hero__caret"
-							aria-hidden="true"></span>
-					</p>
-					<div class="hero__clients">
-						<p class="hero__clients-label">Previously worked at</p>
-						<div class="hero__logos">
-							{
-								clients.map((client) => (
-									<span class="hero__logo" role="img" aria-label={client.name} set:html={client.svg} />
-								))
-							}
-						</div>
+		<main class="home">
+			{/* The reel: a tall section whose pinned, viewport-sized child holds
+			    the headline and every card, positioned by home-reel.ts as the
+			    section scrolls. Its height is the scroll the sequence takes —
+			    stated from the same function the script reads, so the two cannot
+			    disagree about where the sequence ends. See home-reel.ts, and
+			    "Homepage" in CLAUDE.md. */}
+			<section class="reel" data-reel style={`--reel-length: ${reelLength(studies.length)}`}>
+				<div class="reel__pin">
+					<div class="reel__hero">
+						<HomeHero />
 					</div>
-				</div>
-			</section>
-			<section class="work">
-				<p class="type-overline work__eyebrow">
-					<span class="work__eyebrow-shine">Selected works</span>
-				</p>
-				<div class="work__inner">
-					{/* `priority` on the first two only: the grid is two columns above
-						40rem and one below it, so those are the only cards that can be
-						in the initial viewport at any width — the rest stay lazy. */}
-					{
-						studies.map((entry, i) => (
-							<WorkCard
-								title={entry.data.title}
-								industry={entry.data.industry}
-								technology={entry.data.technology}
-								year={entry.data.year}
-								roles={entry.data.roles}
-								aiFeature={entry.data.aiFeature}
-								thumbnail={entry.data.thumbnail}
-								href={
-									entry.data.status === 'coming-soon'
-										? undefined
-										: entry.data.status === 'external'
-											? entry.data.externalUrl
-											: `/work/${entry.id}`
-								}
-								status={entry.data.status === 'coming-soon' || entry.data.status === 'external' ? entry.data.status : undefined}
-								priority={i < 2}
-							/>
-						))
-					}
+					{/* data-nav-scrim: the reel layout's nav-scrim target — the lit
+					    card's top edge. While the pin holds, that line never rises
+					    past the nav, and once the reel ends and the pin scrolls away
+					    with the last card on it, this is the line that meets the nav
+					    first. Below the reel's breakpoint this line carries no
+					    position of its own and sits inert at the bottom of the
+					    stacked hero; the stacked layout's target is the headline
+					    itself (`data-nav-scrim-narrow`, HomeHero.astro) — the nav
+					    picks between the two by the same breakpoint. See
+					    SiteNav.astro. */}
+					<div class="reel__scrim-line" data-nav-scrim></div>
+					<h2 id="work-heading" class="sr-only">Selected work</h2>
+					<ol class="reel__track" aria-labelledby="work-heading">
+						{/* `priority` on the first two only: on the first screen the
+						    first card peeks in at the bottom centre and the second at
+						    the bottom right, and the rest are off to the side. */}
+						{
+							studies.map((entry, i) => (
+								<li class="reel__slot" style={`--i: ${i}`}>
+									<WorkCard
+										title={entry.data.title}
+										industry={entry.data.industry}
+										year={entry.data.year}
+										roles={entry.data.roles}
+										aiFeature={entry.data.aiFeature}
+										thumbnail={entry.data.thumbnail}
+										href={
+											entry.data.status === 'coming-soon'
+												? undefined
+												: entry.data.status === 'external'
+													? entry.data.externalUrl
+													: `/work/${entry.id}`
+										}
+										status={
+											entry.data.status === 'coming-soon' || entry.data.status === 'external'
+												? entry.data.status
+												: undefined
+										}
+										priority={i < 2}
+									/>
+								</li>
+							))
+						}
+					</ol>
 				</div>
 			</section>
 		</main>
-		<Footer />
+		{/* A wrapper, not the footer itself, so the reel can lay it over its
+		    own bottom edge (see `.home-footer`) without Footer.astro knowing.
+		    Outside <main> either way, so the <footer> keeps its contentinfo
+		    role. */}
+		<div class="home-footer">
+			<Footer />
+		</div>
 	</body>
 </html>
 
 <script>
-	/* The subtitle types its second half in once the hero has finished
-	   arriving, then leaves the caret blinking for good.
+	import { initHomeReel } from '../components/home/home-reel';
 
-	   `.hero__typed` is the only node touched, and it is deliberately not in a
-	   live region — see its comment in the markup for why that means one copy
-	   of the word is enough.
-
-	   Registered on `astro:page-load` rather than run inline: this is a
+	/* Registered on `astro:page-load` rather than run inline: this is a
 	   bundled module script, so its body executes once, while `<ClientRouter />`
-	   swaps in a fresh hero every time someone navigates back to `/`. The
-	   pending timer from the outgoing page is cleared first, or a soft nav
-	   away mid-type leaves a callback writing into a detached node. */
-	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-	/* Matches `.hero__subtitle`'s own animation-delay plus its duration, so the
-	   first character lands as the line settles rather than during its fade. */
-	const START_DELAY = 1150;
-	const CHAR_DELAY = 55;
-
-	let typeTimer: number | undefined;
+	   swaps in a fresh page every time someone navigates back to `/`. The
+	   previous page's reel is torn down first — this module outlives the page
+	   it was loaded on, so after a soft nav to /about and back, a stale
+	   listener would still be positioning the cards that were swapped out, and
+	   the persisted nav would keep whatever the last frame wrote to it. */
+	let stopHome: (() => void) | undefined;
 
 	document.addEventListener('astro:page-load', () => {
-		window.clearTimeout(typeTimer);
+		stopHome?.();
+		stopHome = undefined;
 
-		const typedWord = document.querySelector<HTMLElement>('.hero__typed');
-		/* Reduced motion keeps the word as rendered — whole, from the first
-		   frame. The caret still shows, it just stops blinking (CSS). */
-		if (!typedWord || reduceMotion.matches) return;
-
-		const full = typedWord.textContent ?? '';
-		typedWord.textContent = '';
-		let typed = 0;
-
-		const step = () => {
-			typed += 1;
-			typedWord.textContent = full.slice(0, typed);
-			if (typed < full.length) typeTimer = window.setTimeout(step, CHAR_DELAY);
-		};
-
-		typeTimer = window.setTimeout(step, START_DELAY);
+		const reel = document.querySelector<HTMLElement>('[data-reel]');
+		if (reel) stopHome = initHomeReel(reel);
 	});
 </script>
 
 <style>
+	/* `--nav-band` is the colour the nav's scrim fades in with — the page's
+	   ground, which on this page is not --bg. `--home-ground-blend`, not the
+	   flatter `--home-ground` the body itself paints below: the scrim sits
+	   over content the liquid-metal layer has already darkened by its own
+	   blend, and matching the unblended token left a visibly lighter band
+	   where the two met. See SiteNav.astro. */
 	body {
+		--nav-band: var(--home-ground-blend);
 		margin: 0;
-		background: var(--bg);
+		background: var(--home-ground);
 		color: var(--text-body);
 		font-family: var(--font-sans);
 		-webkit-font-smoothing: antialiased;
-
-		/* What the nav occupies at the top of the viewport, plus clearance. The
-		   band it paints measures 48px (6px of padding, a 36px row, 6px more),
-		   so this leaves 30px under it. The hero reads it for its own top
-		   padding — it is the only page-level number left now that the pinned
-		   intro and its overlap choreography are gone. Kept at this value
-		   rather than retightened to the band: about.astro declares the same
-		   number for the same job, and the two pages should start their content
-		   on the same line. */
-		--nav-footprint: 4.875rem;
 	}
 
-	/* Fixed behind everything, sized to the viewport rather than to any
-	   scrolling ancestor, so the field holds still while the whole page
-	   scrolls over it — `.hero` and `.work` are both left without a
-	   background so the field shows through behind the intro text and the
-	   cards alike; only the card media boxes carry their own opaque surface.
-	   Both stay at z-index:auto or above (never negative), which is what
-	   keeps the field painting behind them instead of on top. `isolate`
-	   keeps the canvas's stacking context local. */
-	.site-field {
+	/* Fixed behind everything and sized to the viewport, so the glow holds
+	   still while the page scrolls over it. It paints the warm ground itself,
+	   and isolates, so the liquid-metal layer inside has exactly that ground
+	   to soft-light onto and nothing else — see .liquid-metal in
+	   components.css for why the ground is what makes the glow amber. */
+	.home-ground {
 		position: fixed;
 		inset: 0;
 		isolation: isolate;
+		background: var(--home-ground);
 	}
 
-	p {
-		margin: 0;
+	/* The positioning context for `.home-footer` when it is laid over the
+	   reel — the page's own height, which the reel's section sets. */
+	body {
+		position: relative;
 	}
 
-	/* Plain in-flow block, top-aligned and left-aligned — no pin, no sticky
-	   runway, no scroll-driven fade. `position: relative` is the load-bearing
-	   part: `.site-field` is `position: fixed` at `z-index: auto`, so it paints
-	   after static in-flow content regardless of DOM order, and without this
-	   the hero would lay out correctly and be invisible underneath it. Same
-	   fix `.work` and `.site-footer` already carry, for the same reason. */
-	.hero {
+	/* `position: relative` plus a `z-index` is load-bearing: `.home-ground` is
+	   `position: fixed` at `z-index: auto`, so it paints after static in-flow
+	   content regardless of DOM order, and without this the whole page would
+	   lay out correctly and be invisible underneath it. `.site-footer`
+	   carries the same fix for the same reason. */
+	.home {
 		position: relative;
 		z-index: 1;
-		padding-block: calc(var(--nav-footprint) + var(--spacing-5xl)) var(--spacing-7xl);
 	}
 
-	/* The page frame, stated once and shared with `.work__eyebrow` and
-	   `.work__inner` below. Putting the brand mark, the headline, the eyebrow,
-	   the cards' left edge and the footer rule on one vertical line is what the
-	   left-aligned layout is built on, so the formula has to be the one every
-	   other frame on the site resolves to.
-
-	   That formula is the cap *plus* the gutter, under a pinned `border-box` —
-	   not a bare `max-width` with padding inside it. The nav
-	   (`.nav-shell__inner`) and the about page both put the gutter outside the
-	   cap, on a full-bleed parent, so their content column is a full
-	   --measure-content wide. A bare `max-width: var(--measure-content)` with
-	   `padding-inline` was equivalent to that only while this page was
-	   content-box; Tailwind's preflight (`src/styles/tailwind.css`, imported
-	   above) makes it border-box, which silently ate a gutter off each side and
-	   left the grid 60px right of the nav and the footer's own rule at 1500px.
-	   Footer.astro solved the same problem the same way and measured it — see
-	   `.site-footer__inner`'s comment. */
-	.hero__inner,
-	.work__eyebrow,
-	.work__inner {
+	/* ---- Stacked ---------------------------------------------------------------
+	   The layout everywhere the reel does not run: below 64rem, under reduced
+	   motion, and without JS. The headline has most of the first screen to
+	   itself — 78svh leaves the first card's top in view, as the reel's own
+	   first frame does — and the cards follow as a plain column. */
+	/* The headline's centre lands where the reel puts it: 47.5svh down, just
+	   above the centre of the viewport-fixed glow (HomeHero's own 5svh of
+	   bottom padding is the lift). The box stays 78svh tall so the first card
+	   still starts in view; the top padding is what moves the headline down
+	   within it — (22 + 78 − 5) / 2 = 47.5. */
+	.reel__hero {
 		box-sizing: border-box;
-		max-width: calc(var(--measure-content) + 2 * var(--gutter));
-		margin-inline: auto;
-		padding-inline: var(--gutter);
+		display: grid;
+		min-block-size: 78svh;
+		padding-block-start: 22svh;
 	}
 
-	/* Each row arrives on a short stagger. Opacity plus a small lift, the same
-	   shape the wordmark's entrance used to have — the difference is that
-	   nothing fades back out on scroll now, so this is the hero's only motion. */
-	@keyframes hero-in {
+	.reel__track {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-7xl);
+		margin: 0;
+		padding-block: 0 var(--spacing-9xl);
+		padding-inline: var(--gutter);
+		list-style: none;
+	}
+
+	.reel__slot {
+		inline-size: min(100%, 76.875rem);
+	}
+
+	/* The cards settle in just behind the headline — 80ms after its second
+	   line, so the first screen assembles in one order rather than all at
+	   once. Movement only, no fade: the first card's cover is the page's
+	   largest paint, and an element held at opacity 0 does not count as
+	   painted until it shows, so a fade here would push the LCP back by the
+	   length of the delay. `translate`, because the reel's script owns each
+	   slot's `transform` and the track is the one element nothing else
+	   moves. */
+	@media (prefers-reduced-motion: no-preference) {
+		.reel__track {
+			animation: reel-settle 800ms var(--ease-out) 360ms backwards;
+		}
+	}
+
+	@keyframes reel-settle {
 		from {
-			opacity: 0;
-			translate: 0 calc(-1 * var(--spacing-md));
+			translate: 0 6svh;
 		}
 
 		to {
-			opacity: 1;
 			translate: 0 0;
 		}
 	}
 
-	.hero__title {
-		color: var(--text);
-		animation: hero-in 700ms ease-out 0.2s both;
-	}
+	/* ---- Reel ------------------------------------------------------------------
+	   Everything below is what home-reel.ts drives, and only applies where it
+	   runs. The query is REEL_QUERY's; move them together.
 
-	.hero__subtitle {
-		margin-block-start: var(--spacing-lg);
-		color: var(--text-body);
-		animation: hero-in 700ms ease-out 0.35s both;
-	}
-
-	/* The mono half of the subtitle. Only the family changes — size, leading
-	   and colour all stay `.type-subtitle`'s, so the two halves sit on one
-	   baseline and there is no second copy of the scale to keep in sync. */
-	.hero__typed {
-		font-family: var(--font-mono);
-	}
-
-	/* A caret, not a character: zero-width with a border for the stroke, so it
-	   occupies no advance of its own and the word's spacing is unaffected by
-	   its presence. It blinks before, during and after typing. */
-	.hero__caret {
-		display: inline-block;
-		inline-size: 0;
-		block-size: 1.05em;
-		vertical-align: -0.18em;
-		margin-inline-start: 0.1em;
-		border-inline-start: 2px solid var(--text);
-		animation: hero-caret 1s step-end infinite;
-	}
-
-	@keyframes hero-caret {
-		50% {
-			opacity: 0;
-		}
-	}
-
-	.hero__clients {
-		margin-block-start: var(--spacing-4xl);
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		animation: hero-in 700ms ease-out 0.5s both;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.hero__title,
-		.hero__subtitle,
-		.hero__clients {
-			animation: none;
+	   The section is one viewport tall plus the scroll the sequence takes, and
+	   the pin sticks for all of it. `overflow: clip` crops the cards that sit
+	   off to the side without making the pin a scroll container — which
+	   matters, because a scroll container would let focus drag the cards
+	   sideways (see the script's focus handling). */
+	@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+		/* Sideways trackpad swipes step through the reel (home-reel.ts), so
+		   they must not also be read as the browser's back/forward swipe. */
+		html {
+			overscroll-behavior-x: none;
 		}
 
-		/* The caret stays — it is part of the sentence's shape — it just holds
-		   still. The word is already whole here; the script never runs. */
-		.hero__caret {
-			animation: none;
-		}
-	}
-
-	/* --text-body, not --text-muted. This label sits directly on the water
-	   field with no ground of its own, and water-field.ts's measured budget
-	   (see its RIBBON_MAX comment) only covers --text-body and above —
-	   --text-muted lands near 2.7:1 on a bright wisp. */
-	.hero__clients-label {
-		margin-block-end: var(--spacing-lg);
-		font-family: var(--font-sans);
-		font-weight: var(--weight-regular);
-		font-size: var(--size-micro);
-		line-height: var(--lh-micro);
-		color: var(--text-body);
-	}
-
-	.hero__logos {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: var(--spacing-4xl);
-	}
-
-	.hero__logo {
-		display: block;
-		height: 1.25rem;
-	}
-
-	.hero__logo :global(svg) {
-		display: block;
-		height: 100%;
-		width: auto;
-	}
-
-	/* No background: `position: relative` (so the field shows through behind
-	   the cards, same as behind the hero text — see `.site-field`'s comment)
-	   plus an explicit `z-index`, both for the same stacking reason `.hero`
-	   carries them. */
-	.work {
-		position: relative;
-		z-index: 1;
-		/* 64px at the bottom, not 128px. What has to match across pages is the
-		   trailing space above the footer, and the cards bring 24px of their own
-		   bottom padding to it — so this rung, not the one about and a case study
-		   use directly (96px, --spacing-9xl there and the reflection's own
-		   padding here). 88px total, 8px under them: 72px would be exact and is
-		   not a rung on the scale. */
-		padding-block: 0 var(--spacing-7xl);
-	}
-
-	/* Frame above; this adds only the 16px clearance over the cards. */
-	.work__eyebrow {
-		margin-block-end: var(--spacing-xl);
-		text-align: start;
-	}
-
-	/* A light band sweeping across the label, cut to the text with
-	   background-clip — pure CSS keyframes rather than the React island this
-	   effect shipped as initially: a two-second linear sweep with no delay or
-	   direction change is exactly what a background-position animation
-	   expresses, without shipping a component (and an animation library) to
-	   the client for it. The gradient carries the resting colour itself, so
-	   the text reads as plain --primary-text whenever the band is off-frame —
-	   which is the whole animation, and the whole reduced-motion fallback
-	   with it. */
-	.work__eyebrow-shine {
-		display: inline-block;
-		background-image: linear-gradient(
-			120deg,
-			var(--primary-text) 0%,
-			var(--primary-text) 35%,
-			var(--amber-100) 50%,
-			var(--primary-text) 65%,
-			var(--primary-text) 100%
-		);
-		background-size: 200% auto;
-		/* Tiled, not `no-repeat`: the gradient is only twice the element's
-		   width, so a single copy slides off as it travels and leaves the
-		   trailing text with no paint behind it — and unpainted text, under
-		   background-clip: text, is invisible rather than plain. That reads as
-		   a wipe eating the word, not a band crossing it. Repeating keeps the
-		   text painted edge to edge at every frame; the seam is invisible
-		   because the ramp's first and last stops are the same colour. */
-		background-position: 150% center;
-		background-clip: text;
-		-webkit-background-clip: text;
-		color: transparent;
-		-webkit-text-fill-color: transparent;
-		animation: work-eyebrow-shine 2s linear infinite;
-	}
-
-	/* 150% → -50% shifts the background by exactly one tile width, so the
-	   band crosses the word once per cycle and the loop closes on itself —
-	   the frame after the last is identical to the first, with no jump. */
-	@keyframes work-eyebrow-shine {
-		from {
-			background-position: 150% center;
+		.reel {
+			block-size: calc((1 + var(--reel-length)) * 100svh);
 		}
 
-		to {
-			background-position: -50% center;
+		/* --reel-w is the lit card's width, declared here so the scrim line and
+		   the slots below read the same value — see `.reel__slot`. */
+		.reel__pin {
+			--reel-w: min(71.2vw, 110svh, 76.875rem);
+			position: sticky;
+			inset-block-start: 0;
+			block-size: 100svh;
+			overflow: clip;
 		}
-	}
 
-	@media (prefers-reduced-motion: reduce) {
-		.work__eyebrow-shine {
-			animation: none;
-			background-image: none;
-			/* -webkit-text-fill-color has to be restated, not just `color` —
-			   it overrides `color` in WebKit, so transparent would stick. */
-			color: var(--primary-text);
-			-webkit-text-fill-color: var(--primary-text);
+		.reel__hero {
+			position: absolute;
+			inset: 0;
+			min-block-size: 0;
+			padding-block-start: 0;
 		}
-	}
 
-	.work__inner {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--spacing-3xl);
-	}
+		/* Its own stacking context, so the cards' z-order stays among
+		   themselves, and the headline's flying mark (z-index 1, HomeHero.astro)
+		   sits above all of them should the two ever meet — which the reel's
+		   timing and its clearance guard keep from happening. */
+		.reel__track {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			display: block;
+			padding: 0;
 
-	@media (max-width: 40rem) {
-		.work__inner {
-			grid-template-columns: 1fr;
+			/* The coverflow's shared vanishing point. perspective only
+			   affects the 3D transforms of an element's own children, so it
+			   lives here rather than on .reel__pin — scoped to exactly what
+			   it affects. Static: it never depends on scroll position or
+			   card index, so home-reel.ts never touches it — keep the 2.2
+			   multiplier in sync with that file's coverflow comment. The
+			   origin sits at the lit card's own vertical centre (51.4%,
+			   matching .reel__scrim-line/.reel__slot below), not the pin's
+			   plain centre, so every card shares the one vanishing point the
+			   lit card sits on. */
+			perspective: calc(var(--reel-w) * 2.2);
+			perspective-origin: 50% 51.4%;
+		}
+
+		/* The page ends on the last card, and where the screen has room under
+		   it (home-reel.ts decides, and sets `data-footer-overlay`), the footer
+		   is laid over the bottom of the reel rather than after it — so it
+		   rises into view as the last card arrives and there is nothing left to
+		   scroll. Pinned to the bottom of the body, whose height is the reel's.
+
+		   It sits under the reel (`.home` is at z-index 1), so a card passing
+		   through covers it rather than the footer's text crossing the card.
+		   That puts the whole viewport-sized pin above the footer, so the reel
+		   stops taking the pointer and only the cards and the headline take it
+		   back; otherwise the footer's mascot would never see the pointer, and
+		   its hover pose would never play. */
+		:global(body[data-footer-overlay]) .home-footer {
+			position: absolute;
+			inset-inline: 0;
+			inset-block-end: 0;
+		}
+
+		.home {
+			pointer-events: none;
+		}
+
+		.reel__slot,
+		.reel__hero :global(.hero__visual) {
+			pointer-events: auto;
+		}
+
+		/* The lit card's resting top edge — the slot rule below, solved for
+		   its top rather than its centre. */
+		.reel__scrim-line {
+			position: absolute;
+			inset-inline: 0;
+			inset-block-start: calc(51.4% - var(--reel-w) * 709 / 1230 / 2);
+		}
+
+		/* Every card starts centred on the lit card's spot: 71.2% of the
+		   viewport wide (the reference's 1230 of 1728), capped by height on
+		   short screens and at 1230px on wide ones, and centred 51.4% of the
+		   way down (574.5 of 1117). `translate` does the centring; the script
+		   owns `transform`, and the two compose.
+
+		   The `transform` here is the reel's first frame, before the script has
+		   run — the same values the script computes at the top of the page —
+		   so the page paints in place and nothing jumps when it takes over:
+		   each card one step further along than the last (0.6707 of a card
+		   width across), tilted 35° around its own vertical axis and receded
+		   0.32 card-widths in depth (both plateauing past the first step,
+		   `min(var(--i), 1)`, same as the old diagonal's scale term), 94% the
+		   size of the lit one at that plateau, sagging 0.15 card-widths per
+		   squared step (unplateaued — it keeps growing with `var(--i)²`, so
+		   the row curves continuously rather than kinking where the other
+		   properties plateau), and all of them 58svh below where they will
+		   come to rest. `k = 0` here, so `d = i` is always ≥ 0 — there is no
+		   mirrored, left-hand case to render before the script runs, same as
+		   before. */
+		.reel__slot {
+			--reel-step: calc(var(--i) * var(--reel-w) * 0.6707);
+			position: absolute;
+			inset-block-start: 51.4%;
+			inset-inline-start: 50%;
+			inline-size: var(--reel-w);
+			translate: -50% -50%;
+			transform: translate3d(
+					var(--reel-step),
+					calc(58svh + var(--reel-w) * var(--i) * var(--i) * 0.15),
+					calc(var(--reel-w) * min(var(--i), 1) * -0.32)
+				)
+				rotateY(calc(min(var(--i), 1) * -35deg))
+				scale(calc(1 - min(var(--i), 1) * 0.06));
+			z-index: calc(100 - var(--i) * 10);
+			will-change: transform;
 		}
 	}
 </style>

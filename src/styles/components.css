@@ -2,23 +2,26 @@
    Components — Amber & Slate
 
    Authored as plain classes, not as React styles, for one reason: the site is
-   Astro. A button that is a class ships zero JavaScript when used from a
-   .astro file. The React wrappers in src/components/ui exist so Storybook has
-   something to render and so islands can use the same markup — they add no
-   styling of their own.
+   Astro. A class ships zero JavaScript when used from a .astro file.
+
+   Button, Badge and Alert aren't here. They're vendored shadcn components
+   (src/components/ui/button.tsx, badge.tsx, alert.tsx) styled with Tailwind
+   utilities against the same tokens, and .astro files reach them through
+   their exported `*Variants()` class helpers, which ships no JavaScript
+   either.
 
    Everything here reads semantic tokens. No hex, no raw px.
    ============================================================================ */
 
 /* ---- Glass -----------------------------------------------------------------
-   A material, not a component: the pane the work cards and the about page's
-   stats panel are cut from, so they read as one surface treatment. The nav
-   wore this too until it dropped the material entirely for a plain text
+   A material, not a component: the pane the about page's stats panel is cut
+   from. The work cards wore it until they became solid panels (WorkCard.astro),
+   and the nav wore it until it dropped the material entirely for a plain text
    treatment (SiteNav.astro) — along with the scroll-triggered heavier tint
    it used to swap in as pale covers scrolled underneath it
    (`--glass-tint-scroll`, `nav-tint.ts`, both now gone). Whatever wears
-   `.glass` needs something painted behind it to bend — on the homepage that
-   is the fixed water field.
+   `.glass` needs something painted behind it to bend — on the about page
+   that is the fixed water field.
 
    It brings its own border and radius, since the edge is part of the material:
    a rim, not a line drawn round a fill. Every value below reads a token
@@ -63,382 +66,90 @@
 	}
 }
 
-/* ---- Button ----------------------------------------------------------------
-   Three variants. Primary is the brand action; secondary is its equal-weight
-   neutral counterpart; tertiary recedes.
-
-   Focus is the outline, not a border swap — swapping a border reflows the
-   text by a pixel, which reads as a jitter when tabbing through a row.
-   -------------------------------------------------------------------------- */
-/* Shared with IconButton below: same interaction feedback for both controls,
-   stated once so the two cannot drift out of step with each other. */
-.btn,
-.icon-btn {
-	transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-.btn:focus-visible,
-.icon-btn:focus-visible {
-	outline: 2px solid var(--focus-ring);
-	outline-offset: 2px;
-}
-
-.btn {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--spacing-md);
-
-	font-family: var(--font-sans);
-	font-weight: var(--weight-semibold);
-	font-size: var(--size-ui);
-	line-height: var(--lh-ui);
-
-	padding: var(--spacing-lg) var(--spacing-xl);
-	border: 1px solid transparent;
-	border-radius: var(--radius-md);
-
-	cursor: pointer;
-	text-decoration: none;
-	white-space: nowrap;
-}
-
-/* Icons ride at the text's own size and inherit its colour, so a variant
-   never has to restate the icon colour. */
-.btn .icon {
-	width: 1.125em;
-	height: 1.125em;
-	flex-shrink: 0;
-}
-
-.btn--primary,
-.icon-btn--primary {
-	background: var(--primary);
-	color: var(--text-on-primary);
-}
-.btn--primary:hover:not(:disabled),
-.icon-btn--primary:hover:not(:disabled) {
-	background: var(--primary-hover);
-}
-.btn--primary:active:not(:disabled),
-.icon-btn--primary:active:not(:disabled) {
-	background: var(--primary-active);
-}
-
-/* White on both grounds. On the dark theme the fill alone delimits the button
-   (17.38:1); on the light theme it sits on gray-100 at 1.11:1, so the border
-   is the only edge — and at gray-200 that border is 1.12:1 against the page.
-   The label is therefore what identifies this control on light. Bumping
-   --secondary-border to --gray-500 would carry the edge at 4.14:1 if that is
-   ever wanted. */
-.btn--secondary {
-	background: var(--secondary);
-	color: var(--text-on-secondary);
-	border-color: var(--secondary-border);
-}
-.btn--secondary:hover:not(:disabled) {
-	background: var(--secondary-hover);
-}
-
-/* icon-btn's secondary sits on a raised or floating surface (a lightbox),
-   never the page ground, so it reads against --bg rather than --secondary's
-   near-white fill. */
-.icon-btn--secondary {
-	background: var(--bg);
-	color: var(--text);
-	border-color: var(--border-strong);
-}
-.icon-btn--secondary:hover:not(:disabled) {
-	background: var(--bg-raised);
-}
-
-.btn--tertiary,
-.icon-btn--tertiary {
-	background: transparent;
-	color: var(--primary-text);
-}
-.btn--tertiary {
-	border-color: var(--border-strong);
-}
-.btn--tertiary:hover:not(:disabled) {
-	background: var(--primary-subtle);
-	border-color: var(--primary-text);
-}
-.icon-btn--tertiary:hover:not(:disabled) {
-	color: var(--text);
-	background: color-mix(in srgb, var(--primary-text) 18%, transparent);
-}
-
-.btn:disabled,
-.btn[aria-disabled='true'],
-.icon-btn:disabled,
-.icon-btn[aria-disabled='true'] {
-	background: transparent;
-	color: var(--text-disabled);
-	border-color: var(--border);
-	cursor: not-allowed;
-}
-
 /* ---- Icon -------------------------------------------------------------
    Sourced unmodified from Lucide: one stroke weight, one grid, no mixing
    filled and outlined marks. Bare .icon rides at 1em so it tracks whatever
-   text sits beside it (see .btn above); IconButton below is the icon-only
-   control built on the same three variants as Button.
+   text sits beside it.
+
+   The one rule in this file that sits in a layer, and deliberately the
+   lowest one a component can use. 1em is a default for whatever the icon
+   sits in to override, and the shadcn components (ui/button.tsx,
+   ui/badge.tsx) do that with Tailwind utilities, which live in
+   `@layer utilities`. An unlayered rule beats every layered one whatever
+   its specificity, so left unlayered this would pin every button and badge
+   glyph at 1em. The unlayered overrides elsewhere (.ba__chev .icon, the
+   work card's external-link badge) still win, as they did before.
    ------------------------------------------------------------------------- */
-.icon {
-	display: inline-flex;
-	width: 1em;
-	height: 1em;
-	flex-shrink: 0;
-}
-.icon svg {
-	width: 100%;
-	height: 100%;
-}
-
-/* ---- IconButton ---------------------------------------------------------
-   Icon-only, so shape is either a circle (a control that floats over
-   content — video play, a lightbox close) or tertiary (sits inline in flow —
-   a note's dismiss, a breadcrumb's home link). Same primary/secondary/
-   tertiary vocabulary as Button; only shape and sizing are IconButton's own.
-   -------------------------------------------------------------------------- */
-.icon-btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-
-	border: 1px solid transparent;
-	border-radius: var(--radius-full);
-	cursor: pointer;
-	/* Same reset .btn carries, and for the same reason: either can be worn
-	   by an anchor, and the UA paints its underline straight across an
-	   inline-flex box — under the glyph, in the variant's own colour. */
-	text-decoration: none;
+@layer components {
+	.icon {
+		display: inline-flex;
+		width: 1em;
+		height: 1em;
+		flex-shrink: 0;
+	}
+	.icon svg {
+		width: 100%;
+		height: 100%;
+	}
 }
 
-.icon-btn--tertiary {
-	border-radius: var(--radius-xs);
-}
+/* ---- Badge · AI ring -------------------------------------------------------
+   Button, Badge and Alert are shadcn components now (src/components/ui/
+   button.tsx, badge.tsx, alert.tsx), styled with Tailwind utilities against
+   these same tokens. This ring is the one piece of them written as CSS. A
+   conic gradient over four tokens, a registered @property and a keyframe
+   don't read as utilities, and inlined into a class string they'd be
+   unreviewable. badge.tsx's `ai` variant applies it.
 
-.icon-btn--sm {
-	width: var(--spacing-3xl);
-	height: var(--spacing-3xl);
-}
-.icon-btn--sm .icon {
-	width: 0.875rem;
-	height: 0.875rem;
-}
-
-.icon-btn--md {
-	width: var(--spacing-5xl);
-	height: var(--spacing-5xl);
-}
-.icon-btn--md .icon {
-	/* Interpolated between sm (24px box / 14px icon) and lg (48px box / 26px
-	   icon) rather than left at sm's value — the box grows 67% from sm to md
-	   and the icon was not growing with it. */
-	width: 1.375rem;
-	height: 1.375rem;
-}
-
-.icon-btn--lg {
-	width: var(--spacing-6xl);
-	height: var(--spacing-6xl);
-}
-.icon-btn--lg .icon {
-	width: 1.625rem;
-	height: 1.625rem;
-}
-
-/* ---- Tabs ------------------------------------------------------------------
-   Chapter navigation, and the generic design-system Tabs component — both a
-   tab list, so both wear `.type-nav-link` for typography (applied alongside
-   `.tab` in the markup) rather than this class hand-rolling its own font
-   rules. That is the same style the site nav's Work/About switcher uses,
-   which is deliberate: a chapter tab and a nav link are the same kind of
-   control. `.tab` itself only supplies layout and interaction.
-
-   The state is carried by weight (500 → 700, `.type-nav-link`'s own medium
-   bumped to bold below) as well as colour and the underline, so it survives
-   greyscale and does not depend on colour vision — the reason the inactive
-   weight was lifted off 400.
-
-   The rail is a border on the list; the active marker is a box-shadow inset
-   on the button, so the two never fight over the same pixel row.
-   -------------------------------------------------------------------------- */
-.tabs {
-	display: flex;
-	gap: var(--spacing-4xl);
-	border-bottom: 1px solid var(--border);
-	overflow-x: auto;
-}
-
-.tab {
-	appearance: none;
-	background: none;
-	border: 0;
-	cursor: pointer;
-	color: var(--text-muted);
-
-	padding: var(--spacing-md) var(--spacing-xs) var(--spacing-lg);
-	margin-bottom: -1px; /* sit the marker on the rail, not above it */
-	white-space: nowrap;
-	transition: color 120ms ease;
-}
-
-.tab:hover:not([aria-selected='true']) {
-	color: var(--text);
-}
-
-.tab:focus-visible {
-	outline: 2px solid var(--focus-ring);
-	outline-offset: -2px;
-	border-radius: var(--radius-xs);
-}
-
-.tab[aria-selected='true'] {
-	font-weight: var(--weight-bold);
-	color: var(--primary-text);
-	box-shadow: inset 0 -2px 0 0 var(--primary);
-}
-
-/* ---- Note / Tooltip --------------------------------------------------------
-   One component, two uses: a Note sits in the flow, a Tooltip is dismissible.
-   Only the close button differs.
-
-   The fill is flat --primary-subtle rather than the amber gradient in the
-   Figma frame. A fill that runs from near-black to amber-500 has no single
-   text colour that survives both ends: light text is 14.42:1 at the top and
-   2.07:1 at the bottom. Flat keeps the amber signal and stays readable.
-   -------------------------------------------------------------------------- */
-.note {
-	display: grid;
-	gap: var(--spacing-xs);
-	position: relative;
-
-	background: var(--primary-subtle);
-	border: 1px solid var(--primary-text);
-	border-radius: var(--radius-md);
-	padding: var(--spacing-lg) var(--spacing-xl);
-	max-width: 34rem;
-}
-
-/* Typography comes from .type-overline and .type-annotation, applied in the
-   markup. The scale names both of these uses by name — "eyebrows and note
-   titles", "photo captions and note/tooltip copy" — so assembling the same
-   ramp again here only gave it somewhere to drift from. What is left below is
-   what is genuinely the note's own. */
-.note__title {
-	/* Leave room for the close button so a long title never runs under it. */
-	padding-right: var(--spacing-3xl);
-}
-
-/* A div, not a p: MDX hands the note block-level content, so the copy arrives
-   as paragraphs inside the body. They inherit the type style from here — only
-   the UA margin needs clearing, and a gap in case there is more than one. */
-.note__body {
-	display: grid;
-	gap: var(--spacing-md);
-
-	/* .type-annotation carries no colour, because its two uses want different
-	   ones: a caption under a figure is muted, note copy is meant to be read. */
-	color: var(--text-body);
-}
-
-.note__body p {
-	margin: 0;
-}
-
-/* Shape, colour and size come from .icon-btn--tertiary.icon-btn--sm; this is
-   only the note-specific placement. */
-.note__close {
-	position: absolute;
-	top: var(--spacing-md);
-	right: var(--spacing-md);
-}
-
-/* ---- Tag -------------------------------------------------------------------
-   A label, not a control: nothing here is clickable, focusable or stateful.
-   It rides on top of a cover image rather than on the page ground, which is
-   what decides most of the rest — it needs an opaque fill and its own border
-   to stay legible over whatever is behind it.
-
-   Declares its own type off the tokens, the same way .btn does, rather than
-   naming a .type-* class. The 12px rung has no class, and this is a component
-   label, not prose.
-   -------------------------------------------------------------------------- */
-.tag {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--spacing-xs);
-
-	font-family: var(--font-sans);
-	font-weight: var(--weight-medium);
-	font-size: var(--size-micro);
-	line-height: var(--lh-micro);
-
-	padding: var(--spacing-xs);
-	padding-inline-end: var(--spacing-sm);
-	border: 1px solid var(--border);
-	border-radius: var(--radius-sm);
-	background: var(--bg);
-	color: var(--text);
-	white-space: nowrap;
-}
-
-/* Bound to the amber ramp rather than to the semantic layer, and so identical
-   in both themes. The semantic tokens would flip this chip with the page, but
-   it sits on a cover image either way — the image is its ground, not the page.
-   gray-900 on amber-50 is 15.86:1.
-
-   The state is never colour alone: this is the only tag that carries an
-   hourglass, and it is the only tag on a card that has one, so it survives
-   greyscale on shape and position as well as hue. */
-.tag--coming-soon {
-	background: var(--amber-50);
-	border-color: var(--amber-200);
-	color: var(--text-on-primary);
-}
-
-/* The chip for a project that shipped an AI feature. An iridescent border
+   The badge for a project that shipped an AI feature. An iridescent border
    travelling around the chip is the convention for an AI surface, and the
-   amber/grey palette has nothing that says it — hence --ai-spectrum-*, whose
-   comment in tokens.css is the whole justification for those four hues
-   existing. Like .tag--coming-soon it is bound to primitives and identical in
-   both themes, because the image is its ground, not the page.
+   amber/grey palette has nothing that says it. Hence --ai-spectrum-*, whose
+   comment in tokens.css is the whole justification for those four hues. The
+   ring is bound to primitives and identical in both themes: it is
+   decoration, not a surface anything is read against.
 
-   Painted as two stacked backgrounds clipped to different boxes — a gradient
-   cannot be a border-color — the same technique the Bolt prototype's running
+   Painted as two stacked backgrounds clipped to different boxes (a gradient
+   can't be a border-color), the same technique the Bolt prototype's running
    composer uses. The angle is a *registered* custom property because an
    unregistered one has no type and would jump 0deg → 360deg instead of
-   interpolating; the `0deg` fallback in the var() keeps the declaration valid
-   where @property is unsupported, so the ring lands static rather than absent.
+   interpolating. The `0deg` fallback in the var() keeps the declaration valid
+   where @property is unsupported, so the ring lands static rather than
+   absent.
 
-   The state is never colour alone: this is the only tag carrying a sparkles
-   glyph, and the only one whose label is the fixed string "AI", so it survives
-   greyscale on shape and text. The label's own contrast is untouched — the
-   fill is still --bg and the text still --text, and the ring is decoration
-   outside the padding box. */
-@property --tag-ai-angle {
+   The state is never colour alone: this is the only badge carrying a
+   sparkles glyph, and the only one whose label is the fixed string "AI", so
+   it survives greyscale on shape and text. The label's own contrast is
+   untouched: the fill is still --bg, the text still --text, and the ring is
+   decoration outside the padding box.
+
+   Unlayered, so it beats the badge's base utilities for border width,
+   border colour and padding, which is the point.
+   -------------------------------------------------------------------------- */
+@property --badge-ai-angle {
 	syntax: '<angle>';
 	inherits: false;
 	initial-value: 0deg;
 }
 
-.tag--ai {
-	/* The ring is 2px, and it is taken out of the chip's own padding rather
-	   than added to its outside: this chip sits in a row beside 1px-bordered
-	   ones, and a border that grew the box would stand a pixel taller than its
-	   neighbours. The calc is derived from the extra border width, not a new
-	   spacing value — the padding gives back exactly what the border takes, so
-	   the outer box is unchanged at 26px and only the gap to the label moves. */
-	border-width: 1.5px;
+.badge-ai {
+	/* The ring is 2px, taken out of the chip's own padding rather than added
+	   outside it. The chip sits in a row beside 1px-bordered ones, and a
+	   border that grew the box would stand taller than its neighbours; the
+	   calc below gives back exactly the 1px of extra border width (2px −
+	   the default 1px), so the outer box is unchanged at 26px and only the
+	   gap to the label moves. Whole pixels on both sides of that trade
+	   deliberately — a 1.5px border here previously left the calc handing
+	   back more padding than the border actually added, since some
+	   browsers round a fractional border-width down when rasterizing,
+	   quietly shipping a chip 1–2px shorter than its neighbours. */
+	border-width: 2px;
 	border-color: transparent;
 	padding: calc(var(--spacing-xs) - 1px);
 	padding-inline-end: calc(var(--spacing-sm) - 1px);
 	background-image:
 		linear-gradient(var(--bg), var(--bg)),
 		conic-gradient(
-			from var(--tag-ai-angle, 0deg),
+			from var(--badge-ai-angle, 0deg),
 			var(--ai-spectrum-1),
 			var(--ai-spectrum-2),
 			var(--ai-spectrum-3),
@@ -447,28 +158,55 @@
 		);
 	background-origin: border-box;
 	background-clip: padding-box, border-box;
-	animation: tag-ai-spin 4s linear infinite;
+	animation: badge-ai-spin 4s linear infinite;
 }
 
-@keyframes tag-ai-spin {
+@keyframes badge-ai-spin {
 	to {
-		--tag-ai-angle: 360deg;
+		--badge-ai-angle: 360deg;
 	}
 }
 
+/* The gradient standing still is a real resting state (the ring is still
+   there, still iridescent), so stopping the sweep is the whole opt-out and
+   there is nothing to restore under it. */
 @media (prefers-reduced-motion: reduce) {
-	.btn,
-	.tab,
-	.icon-btn {
-		transition: none;
-	}
-
-	/* The gradient standing still is a real resting state — the ring is still
-	   there, still iridescent — so stopping the sweep is the whole opt-out and
-	   there is nothing to restore under it. */
-	.tag--ai {
+	.badge-ai {
 		animation: none;
 	}
+}
+
+/* ---- Button · ghost icon hover ---------------------------------------------
+   The one other piece of the shadcn button/badge/alert trio written as plain
+   CSS (ui/button.tsx applies the class; see that file's header comment for
+   why). The ghost variant's icon sizes hover to a translucent wash of
+   --primary-text over whatever they're sitting on — a flat token like
+   --primary-subtle would just repaint the Alert dismiss button's hover the
+   same colour as the Alert it already sits on, since that's --primary-subtle
+   too.
+
+   Written here rather than as a Tailwind arbitrary value
+   (`hover:bg-[color-mix(...)]`) because Tailwind adds an unguarded fallback
+   rule ahead of its own `@supports (color: color-mix(...))` block for any
+   arbitrary value containing `color-mix()`, and that fallback resolves to a
+   fully opaque --primary-text — the wrong failure mode for a hover wash.
+   Plain CSS just drops the whole declaration on a browser without
+   color-mix, same as the old `.icon-btn--tertiary:hover` this replaces. */
+@media (hover: hover) and (pointer: fine) {
+	.btn-ghost-icon-hover:hover {
+		background: color-mix(in srgb, var(--primary-text) 18%, transparent);
+	}
+}
+
+/* ---- Decrypted text --------------------------------------------------------
+   Text that scrambles and settles (DecryptedText.tsx). It has no type or
+   colour of its own and inherits both from where it is placed. It doesn't
+   reserve width either: scrambled glyphs are wider or narrower than the real
+   ones, so a caller whose layout must not move holds the width itself (see
+   `.hero__kaomoji` in HomeHero.astro). */
+.decrypted-text {
+	display: inline-block;
+	white-space: pre-wrap;
 }
 
 /* ---- Water field -----------------------------------------------------------
@@ -491,9 +229,12 @@
 
 /* ---- Smoke ring ------------------------------------------------------------
    Not currently on the page. `<SmokeRing>` is built and kept (see
-   smoke-ring.ts) but nothing mounts it; the homepage ships the water field
-   alone. Everything below describes what it does when it is put back, and the
-   contrast note at the end is the condition of putting it back.
+   smoke-ring.ts) but nothing mounts it. It was drawn for the water field,
+   which is now the about page's background only — the homepage runs liquid
+   metal (below) instead. Everything here describes what it does when it is
+   put back, and the contrast note at the end is the condition of putting it
+   back; the intro it measures against has since been replaced, so those
+   numbers are history until they are re-taken.
 
    The layer above the water field, and the only thing on the page that blends.
    No background of its own — the shader draws on transparency (`colorBack` is
@@ -545,6 +286,75 @@
 	mix-blend-mode: screen;
 }
 
+/* ---- Liquid metal ----------------------------------------------------------
+   The homepage background (liquid-metal.ts). The shader draws a colourless
+   shape; this layer is what makes it amber. It carries its own
+   `--home-shader-ground` fill, isolates so the canvas composites onto that
+   fill first, and then the pair is soft-lit onto whatever is behind it —
+   which has to be `--home-ground` (index.astro's `.home-ground`) for the
+   result to come out warm. Soft-light over a dark base can only lift it a
+   little, which is the ceiling the headline's contrast is measured against;
+   see liquid-metal.ts.
+
+   `position` and `isolation` restate what ShaderMount's injected
+   `@layer paper-shaders` rule sets, for the reason given under Smoke ring
+   above — and so the layer is already right before the shader has mounted,
+   or if it never does.
+   -------------------------------------------------------------------------- */
+.liquid-metal {
+	position: absolute;
+	inset: 0;
+	isolation: isolate;
+	pointer-events: none;
+	background: var(--home-shader-ground);
+	mix-blend-mode: soft-light;
+}
+
+/* The arrival. The shape waits at nothing until liquid-metal.ts marks the
+   layer `ready` — the shader is compiled and about to draw its first frame —
+   and then comes up, so the glow never pops in whenever the script happens
+   to land. Two parts, both one-off:
+
+   - The shape fades in on plain `ease` over 1.4s. It is light coming up,
+     not an object arriving, so it takes the curve a colour change does, and
+     takes it slowly: the glow is ambience behind the headline, and should
+     be noticed after the words are.
+   - It grows into place from 94% over 1.8s, on --ease-out — so it reads as
+     the glow blooming rather than a flat fade.
+
+   Both on the canvas, never on the layer. The layer's own ground is half of
+   the blend: soft-lighting --home-shader-ground onto --home-ground takes the
+   page from rgb(20, 12, 0) down to the near-black the reference shows, so
+   fading the whole layer would fade that darkening in too, and the entire
+   background would visibly dim behind the headline. With the layer left
+   alone, the ground is right from the first paint and only the shape
+   arrives. Scaling the layer would also show its edges.
+
+   A layer that never becomes ready (no WebGL, no JS) keeps its canvas hidden
+   and the ground as it is. Reduced motion keeps the fade and drops the
+   growth. */
+.liquid-metal canvas {
+	opacity: 0;
+	transition: opacity 1400ms ease;
+}
+
+.liquid-metal[data-liquid-metal='ready'] canvas {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.liquid-metal canvas {
+		scale: 0.94;
+		transition:
+			opacity 1400ms ease,
+			scale 1800ms var(--ease-out);
+	}
+
+	.liquid-metal[data-liquid-metal='ready'] canvas {
+		scale: 1;
+	}
+}
+
 /* ---- Case-study islands ----------------------------------------------------
    Styles for the three hydrated components. They live here rather than in
    the .tsx files so the whole system stays inspectable in one stylesheet.
@@ -572,8 +382,8 @@
 	cursor: default;
 }
 
-/* Shape, colour and size come from .icon-btn--secondary.icon-btn--md; this
-   is only the lightbox-specific placement. */
+/* Shape, colour and size come from <Button variant="outline" size="icon">;
+   this is only the lightbox-specific placement. */
 .lightbox__close {
 	position: absolute;
 	inset-block-start: var(--spacing-2xl);
@@ -582,8 +392,8 @@
 
 /* Only rendered when the opened shot came from a FigureRow with more than
    one image in it — cycles through that row's other shots without leaving
-   the lightbox. Shape/colour from .icon-btn--secondary.icon-btn--md, same
-   as the close button; this is only the placement. */
+   the lightbox. Shape/colour from <Button variant="outline" size="icon">,
+   same as the close button; this is only the placement. */
 .lightbox__nav {
 	position: absolute;
 	inset-block-start: 50%;
@@ -718,7 +528,7 @@
 	background: var(--scrim);
 	backdrop-filter: blur(2px);
 	font-family: var(--font-display);
-	font-weight: var(--weight-bold);
+	font-weight: var(--weight-regular);
 	font-size: var(--size-subtitle);
 	line-height: var(--lh-subtitle);
 	color: var(--text-on-overlay);
@@ -747,7 +557,7 @@
 	backdrop-filter: blur(2px);
 	font-family: var(--font-sans);
 	font-size: var(--size-fine);
-	font-weight: var(--weight-semibold);
+	font-weight: var(--weight-medium);
 	line-height: 1;
 	color: var(--text-on-overlay);
 }
