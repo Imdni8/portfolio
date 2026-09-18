@@ -34,10 +34,19 @@ The foundations, all settled with the user:
   reader stops on (titles, headlines — always 400, tracked −1%), DM Sans is
   what is read in full (copy at 16/1.7, deks, captions, controls), DM Mono is
   apparatus (nav, tabs, tags, eyebrows — 10–12px, uppercase, tracked +6–8%).
-  Sixteen styles, exposed as `.type-*` classes. **There is no bold**: the
-  loaded cuts are serif 400; sans 400/500 (plus 200, on the homepage
-  headline's demoted half only — see below); mono 300 (the footer
-  wordmark)/400/500, and `--weight-semibold`/`--weight-bold` no longer exist.
+  Seventeen styles, exposed as `.type-*` classes. `.type-stat` is the biggest
+  rung (`--size-stat`, 56→80, serif 400 upright, `--lh-stat` 1.1) and the
+  newest — a case study's Outcome numerals (`StatTile`'s `size="lg"`) and
+  nothing else; unlike `.type-display` it isn't italic, because a numeral is
+  read, not spoken. **There is effectively no
+  bold**: the loaded cuts are serif 400; sans 400/500 (plus 200, on the
+  homepage headline's demoted half only — see below); mono 300 (the footer
+  wordmark)/400/500. `--weight-bold` still doesn't exist. `--weight-semibold`
+  (600) is the one deliberate exception, reintroduced to give case-study
+  prose's `<strong>` (`story-type.ts`'s `storyProse`) a heavier cut than
+  `--weight-medium`, since 500 sits too close to DM Sans's 400 body weight to
+  read as emphasis at a glance. It is not reached for anywhere else — do not
+  use it outside that one `[&_strong]` rule.
   A fourth family, **Delicious Handrawn** (`--font-hand`, `.type-hand`), sets
   the homepage headline's "try to" and nothing else — an aside written into
   the sentence. Do not reach for it anywhere else. The headline is the only

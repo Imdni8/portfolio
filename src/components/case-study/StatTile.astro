@@ -1,7 +1,7 @@
 ---
 /**
- * A big number + label, for the Overview chapter's stat callouts. Built in
- * the token-CSS idiom (own scoped style, `.type-heading`/`.type-body`)
+ * A big number + label, for a case study's stat callouts. Built in the
+ * token-CSS idiom (own scoped style, `.type-heading`/`.type-body`)
  * mirroring about.astro's `.about__stat-value`/`.about__stat-label` — the
  * only other big-number pattern in the codebase — rather than a Tailwind
  * version, so the two stay close enough to extract into one shared
@@ -10,17 +10,29 @@
  * No `.glass`: case-study pages have no water field behind them for it to
  * bend, so this gets its own flat bordered surface instead of that
  * material.
+ *
+ * `size="lg"` is the Outcome section's callout — centred, the site's
+ * biggest numeral (`.type-stat`) with a trend-up glyph beside it, white
+ * rather than amber (see `.stat-tile--lg .stat-tile__value` below). The
+ * default stays the smaller, left-aligned tile used inline inside a
+ * chapter.
  */
+import Icon from '../ui/Icon.astro';
+
 interface Props {
 	value: string;
 	label: string;
+	size?: 'default' | 'lg';
 }
 
-const { value, label } = Astro.props;
+const { value, label, size = 'default' } = Astro.props;
 ---
 
-<div class="stat-tile">
-	<p class="type-heading stat-tile__value">{value}</p>
+<div class:list={['stat-tile', size === 'lg' && 'stat-tile--lg']}>
+	<p class:list={[size === 'lg' ? 'type-stat' : 'type-heading', 'stat-tile__value']}>
+		{value}
+		{size === 'lg' && <Icon name="trending-up" class="stat-tile__trend" />}
+	</p>
 	<p class="type-body stat-tile__label">{label}</p>
 </div>
 
@@ -31,7 +43,7 @@ const { value, label } = Astro.props;
 		background: var(--bg-raised);
 		padding: var(--spacing-xl);
 		display: grid;
-		gap: var(--spacing-sm);
+		gap: var(--spacing-xxs);
 		min-width: 12rem;
 	}
 
@@ -45,5 +57,37 @@ const { value, label } = Astro.props;
 	.stat-tile__label {
 		margin: 0;
 		color: var(--text);
+	}
+
+	.stat-tile--lg {
+		text-align: center;
+		justify-items: center;
+		gap: var(--spacing-xl);
+		padding: var(--spacing-2xl);
+		border-radius: var(--radius-2xl);
+	}
+
+	/* White, not amber: at this size the numeral is the page's own visual
+	   anchor, and the "Outcome" eyebrow above the row already carries the
+	   accent colour — doubling up on amber this large would compete with it
+	   rather than lead into it. */
+	.stat-tile--lg .stat-tile__value {
+		display: inline-flex;
+		align-items: baseline;
+		gap: var(--spacing-sm);
+		color: var(--text);
+	}
+
+	/* :global() because the trend glyph is Icon.astro's own <span>, not
+	   markup this component wrote — Astro only stamps its scoping attribute
+	   onto a component's own template, so an unqualified .stat-tile__trend
+	   selector here would silently match nothing (same reasoning as
+	   NoteBox's .note-box__chevron).
+	   Sized off the numeral's own font-size (em), not the icon registry's
+	   1em default (components.css's `.icon`, sized for running text) — full
+	   size would read as large as the numeral itself. */
+	.stat-tile__value :global(.stat-tile__trend) {
+		width: 0.5em;
+		height: 0.5em;
 	}
 </style>

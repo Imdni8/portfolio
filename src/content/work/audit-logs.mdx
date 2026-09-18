@@ -53,6 +53,27 @@ import slideDbActions from "../../assets/work/audit-logs/slide-3-db-actions.jpg"
 import slideFilterByResource from "../../assets/work/audit-logs/slide-4-filter-by-resource.jpg";
 import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg";
 
+{/* Same column the narrow chapters below read their heading/intro at —
+    --measure-copy with the gutter outside the cap (CLAUDE.md's page-frame
+    formula) — so the eyebrow and the stat cards line up with "Introduction"
+    and its prose rather than with the wider --measure-story chapters use
+    for their own media. */}
+<section class="mx-auto max-w-[calc(var(--measure-copy)+2*var(--gutter))] px-[var(--gutter)] pt-20">
+  <p class="type-overline text-center">Outcome</p>
+  <div class="mt-6 grid gap-[var(--spacing-xl)] grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]">
+    <StatTile size="lg" value="26%" label="in usability (measured by SUS going from 57 to 72)" />
+    <StatTile size="lg" value="48%" label="in weekly searches after one week of implementation" />
+  </div>
+</section>
+
+{/* The rule sits inside the same gutter-safe frame as the section above it
+    (page-frame formula again) so its ends line up with the cards' own
+    edges, rather than a bare max-width that would draw it wider than the
+    content it's dividing. */}
+<div class="mx-auto mt-[50px] max-w-[calc(var(--measure-copy)+2*var(--gutter))] px-[var(--gutter)]">
+  <hr class="border-t border-border" />
+</div>
+
 <Chapter id="introduction">
 <StoryChapter heading="Introduction" narrow>
 <Fragment slot="intro">
@@ -74,7 +95,7 @@ it.
 <Fragment slot="intro">
 
 The first version of agent action logs (also called logs) were hard to
-understand, causing compliance risk because it took longer to troubleshoot
+understand, **creating compliance risk** because it took longer to troubleshoot
 agents. The core issues contributing to this, in the order of severity,
 were:
 
@@ -85,9 +106,9 @@ were:
     src={problemLogEntries}
     alt="Two audit log entries for the same agent — an update and its creation — each identifying the agent only by its raw database key, 'Agent #55345'"
     notes={[
-      { x: 4, y: 28, label: "1", text: "Scanning the list of agent actions to understand what changed and when took a lot of effort." },
-      { x: 23, y: 77, label: "2", text: "The agent names were not human readable because I used the database key, not the name given by a user." },
-      { x: 51.5, y: 49, label: "3", text: "Many database actions were also showing up as agent logs due to the backend architecture, causing confusion." },
+      { x: 4, y: 28, label: "1", text: "All agent actions (create, update, delete) looked the same visually, making it hard to scan for a particular action type." },
+      { x: 23, y: 77, label: "2", text: "The agent names used database IDs instead of human readable names given by the user." },
+      { x: 51.5, y: 49, label: "3", text: "The list also included database actions due to the backend architecture, causing confusion." },
     ]}
   />
   <AnnotatedFigure
@@ -102,15 +123,15 @@ were:
     src={problemInconsistentFilters}
     alt="The filter row's Clear filters link above a separate 'Filtering by resource: Agent #50635' tag"
     notes={[
-      { x: 9.3, y: 60.5, label: "5", text: "Applying and removing filters was inconsistent." },
-      { x: 25, y: 92, label: "5", text: "Applying and removing filters was inconsistent." },
+      { x: 9.3, y: 60.5, label: "5", text: "Search and agent filters looked and worked differently. Not directly related to agent logs but it made the experience inconsistent and the blue bar took unnecessary space." },
+      { x: 25, y: 92, label: "5", text: "Search and agent filters looked and worked differently. Not directly related to agent logs but it made the experience inconsistent and the blue bar took unnecessary space." },
     ]}
   />
   <AnnotatedFigure
     src={problemAutomaticSearch}
     alt="The Audit page on arrival — From, To, User, Action, Resource and Show filters already filled with defaults, and a spinner in the empty results table while the automatic search runs"
     notes={[
-      { x: 96.9, y: 37.7, label: "6", text: "Page was set to automatic search. This made the initial load laggy and wasted user's time because they had to wait for the previous search to finish before initiating another." },
+      { x: 96.9, y: 37.7, label: "6", text: "Page was set to automatic search, wasting user's time because they had to wait for the previous search to finish first before initiating the search they want." },
     ]}
   />
 </div>
@@ -148,11 +169,6 @@ database actions differently, making agent actions easier to follow. This
 led to...
 
 </Fragment>
-
-<div class="mx-auto grid w-full max-w-[var(--measure-copy)] gap-6 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
-  <StatTile value="26%" label="Increase in usability (measured by SUS going from 57 to 72)" />
-  <StatTile value="48%" label="Increase in weekly searches after one week of implementation" />
-</div>
 
   <Slide static>
     <SlideVideo
