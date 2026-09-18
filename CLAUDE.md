@@ -837,14 +837,21 @@ and the notes under a figure stay one column of type.
     off, and while the overlay is open it stamps `data-lightbox-open` on
     `<html>` and fires a `lightbox:change` event so `updateActive()` pauses
     the slide's own copy of the clip rather than decoding it twice.
-  - **A `static` slide never autoplays; it gets a play button.** Stacked slides
-    sit outside `[data-carousel-track]`, so `updateActive()` never sees them.
+  - **A `static` slide plays itself once the first time it scrolls into
+    view, then falls back to a play button.** Stacked slides sit outside
+    `[data-carousel-track]`, so `updateActive()` never sees them.
     `SlideVideo` renders a `.slide-video__play` button (the same
     `buttonVariants({ size: 'icon-lg' })` as `Video.astro`) as a *sibling* of the
     zoom trigger — a button inside a button is invalid — and
-    `static-slide-video.ts` plays the clip once per press with `loop` off,
-    hiding the button while it plays and pausing on scroll-away or when the
-    lightbox opens. Carousel slides hide that button and keep looping.
+    `static-slide-video.ts` plays the clip, `loop` off, the first time an
+    `IntersectionObserver` reports it visible (tracked per video in an
+    `autoplayed` `WeakSet` so scrolling away and back doesn't replay it), and
+    on every later press of the button. The button hides while the clip
+    plays and reappears on pause or end, so a press always means "play
+    again." Reduced motion skips the autoplay — the poster stands until the
+    reader presses play, same as a carousel clip under reduced motion — and
+    pauses on scroll-away or when the lightbox opens either way. Carousel
+    slides hide that button and keep looping.
   - **`data-static={isStatic || undefined}`, never the bare boolean.** Astro
     renders `data-static={false}` as `data-static="false"`, which
     `[data-static]` still matches — carousel slides were silently wearing the

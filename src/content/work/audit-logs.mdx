@@ -20,11 +20,13 @@ facts:
       value: EPD (1 Des, 1 PM, 3 Dev)
 chapters:
     - id: introduction
-      label: Introduction
-    - id: problem
       label: Problem
+    - id: problem
+      label: UX Audit
+    - id: user-insights
+      label: User insights
     - id: goals
-      label: Goals
+      label: Key decisions
     - id: solution
       label: Solution
 heroShot:
@@ -40,7 +42,7 @@ import GoalChip from "../../components/case-study/GoalChip.astro";
 import StatTile from "../../components/case-study/StatTile.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
-import SlideCallout from "../../components/case-study/SlideCallout.astro";
+import { storyProse } from "../../components/case-study/story-type";
 
 import previousAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
 import problemLogEntries from "../../assets/work/audit-logs/21-problem-log-entries.png";
@@ -58,7 +60,7 @@ import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg"
     formula) — so the eyebrow and the stat cards line up with "Introduction"
     and its prose rather than with the wider --measure-story chapters use
     for their own media. */}
-<section class="mx-auto max-w-[calc(var(--measure-copy)+2*var(--gutter))] px-[var(--gutter)] pt-20">
+<section class="mx-auto max-w-[calc(var(--measure-copy)+2*var(--gutter))] px-[var(--gutter)] pt-[50px]">
   <p class="type-overline text-center">Outcome</p>
   <div class="mt-6 grid gap-[var(--spacing-xl)] grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]">
     <StatTile size="lg" value="26%" label="in usability (measured by SUS going from 57 to 72)" />
@@ -66,22 +68,30 @@ import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg"
   </div>
 </section>
 
-{/* The rule sits inside the same gutter-safe frame as the section above it
-    (page-frame formula again) so its ends line up with the cards' own
-    edges, rather than a bare max-width that would draw it wider than the
-    content it's dividing. */}
-<div class="mx-auto mt-[50px] max-w-[calc(var(--measure-copy)+2*var(--gutter))] px-[var(--gutter)]">
+{/* --measure-prose, not the cards' own --measure-copy: the rule reaches
+    all the way out to meet the hero shot's edges (CaseStudyHero's opener
+    frame, and every narrow StoryChapter's own outer section, both run at
+    --measure-prose — --measure-copy only caps the heading/intro inside
+    them) rather than stopping at the narrower column the cards sit in. */}
+<div class="mx-auto mt-[50px] max-w-[calc(var(--measure-prose)+2*var(--gutter))] px-[var(--gutter)]">
   <hr class="border-t border-border" />
 </div>
 
 <Chapter id="introduction">
-<StoryChapter heading="Introduction" narrow>
+<StoryChapter heading="Problem" narrow>
 <Fragment slot="intro">
+
+> Incomprehensible agent action logs contributed to longer agent
+> troubleshooting times, thereby creating compliance risk
 
 Agent action is a record of changes made to agents. They are recorded because
 each change could affect the way agents behave. So when an agent behaves
 unexpectedly, these actions help track which change introduced a bug and undo
 it.
+
+The first version of agent actions (also called logs) were hard to understand
+which made it longer to troubleshoot agents, thereby creating compliance
+risk...
 
 </Fragment>
 
@@ -91,13 +101,10 @@ it.
 </Chapter>
 
 <Chapter id="problem">
-<StoryChapter heading="Problem" narrow>
+<StoryChapter heading="UX Audit" narrow>
 <Fragment slot="intro">
 
-The first version of agent action logs (also called logs) were hard to
-understand, **creating compliance risk** because it took longer to troubleshoot
-agents. The core issues contributing to this, in the order of severity,
-were:
+I conducted an UX audit of the current implementation, finding the following issues...
 
 </Fragment>
 
@@ -139,22 +146,42 @@ were:
 </StoryChapter>
 </Chapter>
 
-<Chapter id="goals">
-<StoryChapter heading="Goals" narrow>
+<Chapter id="user-insights">
+<StoryChapter heading="User insights" narrow>
 <Fragment slot="intro">
 
-Based on the research, I arrived at the following goals for the redesign
-project. How might we...
+I conducted contextual enquiry with 5 internal users (all engineers) to
+understand how they search agent logs while troubleshooting. My insights -
+
+1. They locate agent logs by timestamps
+2. They look for the action type, usually update actions
+3. They skim for data before expanding for more details, usually to see
+   version change
+4. They frequently compare with adjacent logs because a log can be broken
+   into multiple database actions
+
+I also got them to fill the SUS questionnaire along with it to benchmark the
+current usability - 55.
+
+</Fragment>
+</StoryChapter>
+</Chapter>
+
+<Chapter id="goals">
+<StoryChapter heading="Key decisions" narrow>
+<Fragment slot="intro">
+
+Based on the research, I decided the new design should...
 
 </Fragment>
 
-{/* -mt-8 claws StoryChapter's 48px intro step back to 16px: the tiles finish the "How might we..." sentence. */}
+{/* -mt-8 claws StoryChapter's 48px intro step back to 16px: the tiles finish the "...should" sentence. */}
 <div class="mx-auto -mt-8 grid w-full max-w-[var(--measure-copy)] gap-4 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
-  <GoalChip>Make it easier to search for the right agent actions</GoalChip>
-  <GoalChip>Make the data change easy to understand</GoalChip>
-  <GoalChip>Make it easy to compare with adjacent logs</GoalChip>
-  <GoalChip>Help differentiate database actions from agent actions</GoalChip>
-  <GoalChip>Eliminate initial lag from automated searching</GoalChip>
+  <GoalChip>Lead with agent log's timestamp</GoalChip>
+  <GoalChip>Make log's action type clear in a glance</GoalChip>
+  <GoalChip>Make it easy to follow the trail of version changes</GoalChip>
+  <GoalChip>Visually differentiate database logs from agent logs</GoalChip>
+  <GoalChip>Eliminate initial lag caused by automated searching</GoalChip>
 </div>
 
 </StoryChapter>
@@ -164,11 +191,22 @@ project. How might we...
 <StoryChapter heading="Solution" narrow>
 <Fragment slot="intro">
 
-I redesigned the entire module, from initiating search to visualising
-database actions differently, making agent actions easier to follow. This
-led to...
+I redesigned the entire agent logs module, from initiating search to visualising database logs differently, to make agent actions easier to follow. The SUS for the new design came to 72. 
 
 </Fragment>
+
+{/* Each pair is its own grid, gap-[var(--spacing-xl)] (16px) — tight enough
+    to read the paragraph as the video's own caption rather than as prose
+    that happens to sit above it. The pairs themselves are still 48px apart
+    (StoryChapter's own default-slot gap-12, between these wrapper divs),
+    so one group reads as distinct from the next.
+    w-full max-w-[var(--measure-copy)] mx-auto on each paragraph — the same
+    cap StoryChapter itself puts on the heading and the intro slot in
+    `narrow` mode, applied here by hand because the default slot (these
+    wrappers, the Slide list) otherwise runs the section's full
+    --measure-prose width, wider than the copy above it. */}
+<div class="grid gap-[var(--spacing-xl)]">
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Leading with timestamps and action type to easily locate the right agent log. This allows user to avoid other information until they've found the right log and then dig deeper.</p>
 
   <Slide static>
     <SlideVideo
@@ -178,8 +216,12 @@ led to...
       alt="The audit log list showing timestamp-led rows with action-type icons, a colour-coded left border, and a shrunken search bar"
       pin="bottom-right"
     />
-    <SlideCallout marker="1">Easier to find the right agent action due to colour coded logs and leading with time</SlideCallout>
   </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Side panel makes it easier to compare action logs without excessive scrolling. And AI summarisation helps make data changes more human-readable.</p>
+
   <Slide static>
     <SlideVideo
       slot="media"
@@ -188,8 +230,12 @@ led to...
       alt="Generating an AI summary of a log's data change inside the details side panel"
       pin="bottom-left"
     />
-    <SlideCallout marker="2">Informative side panel with AI summarisation</SlideCallout>
   </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Database logs created by the backend cannot be eliminated due to regulatory reasons. But they still cluttered the list and confused users. So I decided to visually differentiate them from agent logs and hide them. This way, it doesn't clutter the list while still available to users when they want it.</p>
+
   <Slide static>
     <SlideVideo
       slot="media"
@@ -198,8 +244,12 @@ led to...
       alt="Expanding a 'Show db actions' divider to reveal the grouped database action entries it was hiding"
       pin="bottom-right"
     />
-    <SlideCallout marker="3">Suppressed database actions to declutter agent logs list</SlideCallout>
   </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Filters applied during and after search look and work consistently, so that user doesn't have to learn new ways to do the same thing.</p>
+
   <Slide static>
     <SlideVideo
       slot="media"
@@ -208,8 +258,8 @@ led to...
       alt="Filtering the audit trail by resource using a control consistent with the rest of the platform"
       pin="bottom-right"
     />
-    <SlideCallout marker="4">Consistent filtering experience</SlideCallout>
   </Slide>
+</div>
 
 </StoryChapter>
 </Chapter>
