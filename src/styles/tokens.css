@@ -275,6 +275,45 @@
 	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
+/* ---- 3b · Cross-document view transitions ---------------------------------
+   The browser's own MPA view transitions, no JS router involved — see
+   WorkCard.astro (`view-transition-name: card-<slug>`, plus
+   `data-astro-reload`) and CaseStudyHero.astro (the same name on `.hero`). A
+   clicked card's whole box morphs into the case study's whole header, so the
+   study appears to grow out of the card that opened it.
+
+   Both documents have to opt in for the browser to run a transition at all,
+   which is why this lives here rather than in either page's own styles:
+   tokens.css is the one file index.astro, about.astro and
+   CaseStudyLayout.astro all import identically. It is inert wherever a
+   navigation's two documents don't share a `view-transition-name` — About,
+   or any hard nav that isn't card→hero — an unmatched name just gets the
+   default cross-fade, never a broken one.
+
+   Astro's own <ClientRouter/> soft nav (Home<->About) never reaches this: it
+   swaps the DOM itself via document.startViewTransition(), which isn't a
+   real navigation, so the UA never runs a cross-document transition for it.
+   This only fires on an actual browser navigation — which is what
+   WorkCard's `data-astro-reload` is for: without it, <ClientRouter/> would
+   intercept the click, probe the destination for its own router, and only
+   then fall back to a real nav, adding a fetch round-trip before this can
+   even start.
+
+   Full opt-out under reduced motion, not a gentler version — the whole page
+   moving and rescaling is exactly what that preference exists to skip.
+   --ease-in-out because this is "something already on screen moving to a
+   new place" (3a, above). */
+@media (prefers-reduced-motion: no-preference) {
+	@view-transition {
+		navigation: auto;
+	}
+}
+
+::view-transition-group(*) {
+	animation-duration: 450ms;
+	animation-timing-function: var(--ease-in-out);
+}
+
 /* ---- 4 · Semantic colour · dark (default) ---------------------------------- */
 :root {
 	--bg: var(--gray-900);

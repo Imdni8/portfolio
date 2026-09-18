@@ -7,6 +7,10 @@ import type { ImageMetadata } from 'astro';
 
 interface Props {
 	title: string;
+	/** The study's content-collection id. Sets `.hero`'s view-transition-name
+	 *  (`card-<slug>`) so the browser's native cross-document transition can
+	 *  match it to the WorkCard that opened it — see tokens.css. */
+	slug: string;
 	/** Optional — a case study whose hero speaks for itself (e.g. one led by
 	 *  the chapter nav rather than a lede) can omit it; the line is skipped
 	 *  rather than rendering empty. */
@@ -36,7 +40,7 @@ interface Props {
 	};
 }
 
-const { title, subtitle, hasChapterNav = false, facts = [], actions = {}, hero, heroShot } = Astro.props;
+const { title, slug, subtitle, hasChapterNav = false, facts = [], actions = {}, hero, heroShot } = Astro.props;
 const beforeLabel = hero?.beforeLabel ?? 'Before';
 const afterLabel = hero?.afterLabel ?? 'After';
 const beforeNotes = hero?.beforeNotes ?? [];
@@ -70,7 +74,7 @@ const [before, after] = hero
 const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 ---
 
-<header class="hero">
+<header class="hero" style={`view-transition-name: card-${slug};`}>
 	<div class="hero__inner">
 		<div class="hero__lede">
 			{/* CaseStudyLayout renders no SiteNav — this breadcrumb is the only

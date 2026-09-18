@@ -17,6 +17,9 @@ import type { ImageMetadata } from 'astro';
 
 interface Props {
 	title: string;
+	/** The study's content-collection id — threaded down to CaseStudyHero for
+	 *  the card→hero view-transition pairing (see tokens.css). */
+	slug: string;
 	/** Optional — a case study whose hero speaks for itself can omit the
 	 *  standfirst; CaseStudyHero skips the line and OG/description meta
 	 *  fall back to the title. */
@@ -50,6 +53,7 @@ interface Props {
 
 const {
 	title,
+	slug,
 	subtitle,
 	thumbnail,
 	facts = [],
@@ -111,6 +115,7 @@ const metaDescription = subtitle ?? title;
 	<body>
 		<CaseStudyHero
 			title={title}
+			slug={slug}
 			subtitle={subtitle}
 			hasChapterNav={chapters.length > 0}
 			facts={facts}

@@ -45,13 +45,26 @@ const { title, industry, year, roles = [], aiFeature = false, thumbnail, href, s
 const Wrapper = href ? 'a' : 'div';
 
 const isExternal = status === 'external';
+
+// Only an internal case-study link gets a shared view-transition name — its
+// pairing lives in CaseStudyHero.astro's `.hero`, matched by the same slug,
+// and the opt-in that makes it do anything is in tokens.css.
+const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : undefined;
 ---
 
+{/* data-astro-reload skips <ClientRouter/>'s fetch-probe (it would
+    otherwise fetch the destination first, find no router there, and only
+    then fall back to a real navigation) — a case study is always a hard
+    nav today regardless (CaseStudyLayout.astro), so this just lets it
+    happen immediately, in time for the view-transition-name below to be
+    caught by the browser's own cross-document transition (tokens.css). */}
 <Wrapper
 	class:list={['card', { 'card--external': isExternal }]}
 	href={href}
 	target={isExternal ? '_blank' : undefined}
 	rel={isExternal ? 'noopener noreferrer' : undefined}
+	style={workSlug ? `view-transition-name: card-${workSlug};` : undefined}
+	{...(workSlug ? { 'data-astro-reload': '' } : {})}
 >
 	<div class="card__inner">
 		{/* Text first in the DOM, whatever the layout puts first on screen: the
