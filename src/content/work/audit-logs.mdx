@@ -20,13 +20,17 @@ facts:
       value: EPD (1 Des, 1 PM, 3 Dev)
 chapters:
     - id: introduction
-      label: Introduction
-    - id: problem
       label: Problem
+    - id: problem
+      label: UX Audit
+    - id: user-insights
+      label: User insights
     - id: goals
-      label: Goals
+      label: Key decisions
     - id: solution
       label: Solution
+    - id: reflection
+      label: Reflections
 heroShot:
     src: ../../assets/work/audit-logs/00-hero.png
     alt: The redesigned audit log page — a version-change side panel next to the activity timeline, with search converted to filter tags
@@ -36,31 +40,63 @@ import Chapter from "../../components/case-study/Chapter.astro";
 import StoryChapter from "../../components/case-study/StoryChapter.astro";
 import VideoFigure from "../../components/case-study/VideoFigure.astro";
 import AnnotatedFigure from "../../components/case-study/AnnotatedFigure.astro";
+import Figure from "../../components/case-study/Figure.astro";
 import GoalChip from "../../components/case-study/GoalChip.astro";
 import StatTile from "../../components/case-study/StatTile.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
-import SlideCallout from "../../components/case-study/SlideCallout.astro";
+import Reflection from "../../components/case-study/Reflection.astro";
+import { storyProse } from "../../components/case-study/story-type";
 
 import previousAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
 import problemLogEntries from "../../assets/work/audit-logs/21-problem-log-entries.png";
 import problemExpandedLogView from "../../assets/work/audit-logs/22-problem-expanded-log-view.png";
 import problemInconsistentFilters from "../../assets/work/audit-logs/23-problem-inconsistent-filters.png";
 import problemAutomaticSearch from "../../assets/work/audit-logs/24-problem-automatic-search.png";
+import reflectionAuditFlow from "../../assets/work/audit-logs/14-reflection-audit-modal.png";
 
 import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.jpg";
 import slideDbActions from "../../assets/work/audit-logs/slide-3-db-actions.jpg";
 import slideFilterByResource from "../../assets/work/audit-logs/slide-4-filter-by-resource.jpg";
 import slideAiSummary from "../../assets/work/audit-logs/slide-5-ai-summary.jpg";
 
+{/* Same column the narrow chapters below read their heading/intro at —
+    --measure-copy with the gutter outside the cap (CLAUDE.md's page-frame
+    formula) — so the eyebrow and the stat cards line up with "Introduction"
+    and its prose rather than with the wider --measure-story chapters use
+    for their own media. */}
+<section class="mx-auto max-w-[calc(var(--measure-copy)+2*var(--gutter))] px-[var(--gutter)] pt-[50px]">
+  <p class="type-overline text-center">Outcome</p>
+  <div class="mt-6 grid gap-[var(--spacing-xl)] grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]">
+    <StatTile size="lg" value="26%" label="in usability (measured by SUS going from 57 to 72)" />
+    <StatTile size="lg" value="48%" label="in weekly searches after one week of implementation" />
+  </div>
+</section>
+
+{/* --measure-prose, not the cards' own --measure-copy: the rule reaches
+    all the way out to meet the hero shot's edges (CaseStudyHero's opener
+    frame, and every narrow StoryChapter's own outer section, both run at
+    --measure-prose — --measure-copy only caps the heading/intro inside
+    them) rather than stopping at the narrower column the cards sit in. */}
+<div class="mx-auto mt-[50px] max-w-[calc(var(--measure-prose)+2*var(--gutter))] px-[var(--gutter)]">
+  <hr class="border-t border-border" />
+</div>
+
 <Chapter id="introduction">
-<StoryChapter heading="Introduction" narrow>
+<StoryChapter heading="Problem" narrow>
 <Fragment slot="intro">
+
+> Incomprehensible agent action logs contributed to longer agent
+> troubleshooting times, thereby creating compliance risk
 
 Agent action is a record of changes made to agents. They are recorded because
 each change could affect the way agents behave. So when an agent behaves
 unexpectedly, these actions help track which change introduced a bug and undo
 it.
+
+The first version of agent actions (also called logs) were hard to understand
+which made it longer to troubleshoot agents, thereby creating compliance
+risk...
 
 </Fragment>
 
@@ -70,13 +106,10 @@ it.
 </Chapter>
 
 <Chapter id="problem">
-<StoryChapter heading="Problem" narrow>
+<StoryChapter heading="UX Audit" narrow>
 <Fragment slot="intro">
 
-The first version of agent action logs (also called logs) were hard to
-understand, causing compliance risk because it took longer to troubleshoot
-agents. The core issues contributing to this, in the order of severity,
-were:
+I conducted an UX audit of the current implementation, finding the following issues...
 
 </Fragment>
 
@@ -85,9 +118,9 @@ were:
     src={problemLogEntries}
     alt="Two audit log entries for the same agent — an update and its creation — each identifying the agent only by its raw database key, 'Agent #55345'"
     notes={[
-      { x: 4, y: 28, label: "1", text: "Scanning the list of agent actions to understand what changed and when took a lot of effort." },
-      { x: 23, y: 77, label: "2", text: "The agent names were not human readable because I used the database key, not the name given by a user." },
-      { x: 51.5, y: 49, label: "3", text: "Many database actions were also showing up as agent logs due to the backend architecture, causing confusion." },
+      { x: 4, y: 28, label: "1", text: "All agent actions (create, update, delete) looked the same visually, making it hard to scan for a particular action type." },
+      { x: 23, y: 77, label: "2", text: "The agent names used database IDs instead of human readable names given by the user." },
+      { x: 51.5, y: 49, label: "3", text: "The list also included database actions due to the backend architecture, causing confusion." },
     ]}
   />
   <AnnotatedFigure
@@ -102,15 +135,15 @@ were:
     src={problemInconsistentFilters}
     alt="The filter row's Clear filters link above a separate 'Filtering by resource: Agent #50635' tag"
     notes={[
-      { x: 9.3, y: 60.5, label: "5", text: "Applying and removing filters was inconsistent." },
-      { x: 25, y: 92, label: "5", text: "Applying and removing filters was inconsistent." },
+      { x: 9.3, y: 60.5, label: "5", text: "Search and agent filters looked and worked differently. Not directly related to agent logs but it made the experience inconsistent and the blue bar took unnecessary space." },
+      { x: 25, y: 92, label: "5", text: "Search and agent filters looked and worked differently. Not directly related to agent logs but it made the experience inconsistent and the blue bar took unnecessary space." },
     ]}
   />
   <AnnotatedFigure
     src={problemAutomaticSearch}
     alt="The Audit page on arrival — From, To, User, Action, Resource and Show filters already filled with defaults, and a spinner in the empty results table while the automatic search runs"
     notes={[
-      { x: 96.9, y: 37.7, label: "6", text: "Page was set to automatic search. This made the initial load laggy and wasted user's time because they had to wait for the previous search to finish before initiating another." },
+      { x: 96.9, y: 37.7, label: "6", text: "Page was set to automatic search, wasting user's time because they had to wait for the previous search to finish first before initiating the search they want." },
     ]}
   />
 </div>
@@ -118,22 +151,42 @@ were:
 </StoryChapter>
 </Chapter>
 
-<Chapter id="goals">
-<StoryChapter heading="Goals" narrow>
+<Chapter id="user-insights">
+<StoryChapter heading="User insights" narrow>
 <Fragment slot="intro">
 
-Based on the research, I arrived at the following goals for the redesign
-project. How might we...
+I conducted contextual enquiry with 5 internal users (all engineers) to
+understand how they search agent logs while troubleshooting. My insights -
+
+1. They locate agent logs by timestamps
+2. They look for the action type, usually update actions
+3. They skim for data before expanding for more details, usually to see
+   version change
+4. They frequently compare with adjacent logs because a log can be broken
+   into multiple database actions
+
+I also got them to fill the SUS questionnaire along with it to benchmark the
+current usability - 55.
+
+</Fragment>
+</StoryChapter>
+</Chapter>
+
+<Chapter id="goals">
+<StoryChapter heading="Key decisions" narrow>
+<Fragment slot="intro">
+
+Based on the research, I decided the new design should...
 
 </Fragment>
 
-{/* -mt-8 claws StoryChapter's 48px intro step back to 16px: the tiles finish the "How might we..." sentence. */}
+{/* -mt-8 claws StoryChapter's 48px intro step back to 16px: the tiles finish the "...should" sentence. */}
 <div class="mx-auto -mt-8 grid w-full max-w-[var(--measure-copy)] gap-4 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
-  <GoalChip>Make it easier to search for the right agent actions</GoalChip>
-  <GoalChip>Make the data change easy to understand</GoalChip>
-  <GoalChip>Make it easy to compare with adjacent logs</GoalChip>
-  <GoalChip>Help differentiate database actions from agent actions</GoalChip>
-  <GoalChip>Eliminate initial lag from automated searching</GoalChip>
+  <GoalChip>Lead with agent log's timestamp</GoalChip>
+  <GoalChip>Make log's action type clear in a glance</GoalChip>
+  <GoalChip>Make it easy to follow the trail of version changes</GoalChip>
+  <GoalChip>Visually differentiate database logs from agent logs</GoalChip>
+  <GoalChip>Eliminate initial lag caused by automated searching</GoalChip>
 </div>
 
 </StoryChapter>
@@ -143,16 +196,22 @@ project. How might we...
 <StoryChapter heading="Solution" narrow>
 <Fragment slot="intro">
 
-I redesigned the entire module, from initiating search to visualising
-database actions differently, making agent actions easier to follow. This
-led to...
+I redesigned the entire agent logs module, from initiating search to visualising database logs differently, to make agent actions easier to follow. The SUS for the new design came to 72. 
 
 </Fragment>
 
-<div class="mx-auto grid w-full max-w-[var(--measure-copy)] gap-6 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
-  <StatTile value="26%" label="Increase in usability (measured by SUS going from 57 to 72)" />
-  <StatTile value="48%" label="Increase in weekly searches after one week of implementation" />
-</div>
+{/* Each pair is its own grid, gap-[var(--spacing-xl)] (16px) — tight enough
+    to read the paragraph as the video's own caption rather than as prose
+    that happens to sit above it. The pairs themselves are still 48px apart
+    (StoryChapter's own default-slot gap-12, between these wrapper divs),
+    so one group reads as distinct from the next.
+    w-full max-w-[var(--measure-copy)] mx-auto on each paragraph — the same
+    cap StoryChapter itself puts on the heading and the intro slot in
+    `narrow` mode, applied here by hand because the default slot (these
+    wrappers, the Slide list) otherwise runs the section's full
+    --measure-prose width, wider than the copy above it. */}
+<div class="grid gap-[var(--spacing-xl)]">
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Leading with timestamps and action type to easily locate the right agent log. This allows user to avoid other information until they've found the right log and then dig deeper.</p>
 
   <Slide static>
     <SlideVideo
@@ -162,8 +221,12 @@ led to...
       alt="The audit log list showing timestamp-led rows with action-type icons, a colour-coded left border, and a shrunken search bar"
       pin="bottom-right"
     />
-    <SlideCallout marker="1">Easier to find the right agent action due to colour coded logs and leading with time</SlideCallout>
   </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Side panel makes it easier to compare action logs without excessive scrolling. And AI summarisation helps make data changes more human-readable.</p>
+
   <Slide static>
     <SlideVideo
       slot="media"
@@ -172,8 +235,12 @@ led to...
       alt="Generating an AI summary of a log's data change inside the details side panel"
       pin="bottom-left"
     />
-    <SlideCallout marker="2">Informative side panel with AI summarisation</SlideCallout>
   </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Database logs created by the backend cannot be eliminated due to regulatory reasons. But they still cluttered the list and confused users. So I decided to visually differentiate them from agent logs and hide them. This way, it doesn't clutter the list while still available to users when they want it.</p>
+
   <Slide static>
     <SlideVideo
       slot="media"
@@ -182,8 +249,12 @@ led to...
       alt="Expanding a 'Show db actions' divider to reveal the grouped database action entries it was hiding"
       pin="bottom-right"
     />
-    <SlideCallout marker="3">Suppressed database actions to declutter agent logs list</SlideCallout>
   </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Filters applied during and after search look and work consistently, so that user doesn't have to learn new ways to do the same thing.</p>
+
   <Slide static>
     <SlideVideo
       slot="media"
@@ -192,15 +263,29 @@ led to...
       alt="Filtering the audit trail by resource using a control consistent with the rest of the platform"
       pin="bottom-right"
     />
-    <SlideCallout marker="4">Consistent filtering experience</SlideCallout>
   </Slide>
+</div>
 
 </StoryChapter>
 </Chapter>
 
+{/* Unlike agent-versioning.mdx's Reflection (outside any Chapter, not in
+    the rail), this one is wrapped so it shows up in the chapter railing —
+    Chapter is content-shape-agnostic, so wrapping Reflection.astro in it is
+    no different from wrapping a StoryChapter. */}
+<Chapter id="reflection">
+<Reflection narrow>
+  Next time, in addition to SUS, I would also measure an objective metric for benchmarking design improvement — for example, the time taken to find a log.
+
+Also, since the workflow predominantly focuses on auditing one agent at a time, for the next iteration I'm going to propose a flow that can be initiated from the agent itself, so we can save the user the trip to the audit page and back. Something like this:
+
+  <Figure src={reflectionAuditFlow} alt="An agent's overflow menu open with a new 'Audit' entry alongside Edit, Share and Setup monitor, pointing to the resulting audit logs modal scoped to that agent" caption="Audit logs open in a modal window from the agent's overflow menu" />
+</Reflection>
+</Chapter>
+
 {/* Everything below is the pre-redesign body — kept for reference, not
     deleted, while the new cut above replaces it on the page. Same
-    convention the Outcome/Reflection block already used further down in
+    convention the Outcome block already used further down in
     this file before this change.
 
     Restoring any of this means putting its imports back at the top of the
@@ -345,22 +430,23 @@ Concept 2 was selected because we weren't sure if follow-up chats were necessary
 
 </StoryChapter>
 
-Outcome and Reflection are dropped from the page for now, matching
-    agent-versioning's current WIP state — neither appears in the latest
-    design reference for this page. Kept below, in their old pre-redesign
-    Section shape so the content isn't lost; restore once there's a design
-    for how they fit the new cut. (This note used to be its own separate
-    comment block before the rest of this file's body joined it inside one
-    outer comment — left unmarked here rather than nested, since MDX
-    comments cannot nest: a second closing delimiter would end the outer
-    comment early and the remaining old content below would render as live,
-    broken JSX.)
+Outcome is dropped from the page for now, matching agent-versioning's
+    current WIP state — it doesn't appear in the latest design reference for
+    this page. Reflection did, and now lives uncommented above the Solution
+    chapter's closing `</Chapter>`, with its own imports restored. Outcome is
+    kept below, in its old pre-redesign Section shape so the content isn't
+    lost; restore once there's a design for how it fits the new cut. (This
+    note used to be its own separate comment block before the rest of this
+    file's body joined it inside one outer comment — left unmarked here
+    rather than nested, since MDX comments cannot nest: a second closing
+    delimiter would end the outer comment early and the remaining old
+    content below would render as live, broken JSX.)
 
-    Restoring one also means putting its imports back at the top of this file:
-    Section, Reflection, finalDesignThumbnail and reflectionAuditFlow were
-    removed with the rest of the dead imports, since nothing the compiler
-    sees was referencing them (a commented block is discarded before any of
-    it is resolved, so no tooling here would ever have flagged them).
+    Restoring it also means putting its imports back at the top of this
+    file: Section and finalDesignThumbnail were removed with the rest of the
+    dead imports, since nothing the compiler sees was referencing them (a
+    commented block is discarded before any of it is resolved, so no tooling
+    here would ever have flagged them).
 
 <Section chapter="outcome" id="outcome" claim eyebrow="Outcome" heading="Improved the audit logs design as measured by increase in SUS from 57 → 72" layout="wide">
   <VideoFigure slot="visual" poster={finalDesignThumbnail} src="/media/audit-logs-final-design-walkthrough.mp4" alt="Walkthrough of the shipped audit log page" caption="Final design walkthrough" />
@@ -370,14 +456,6 @@ Redesigned audit logs to make it easier to find using timestamp and version numb
 The new version was released on time and well received by the customer who had raised the original feedback.
 
 </Section>
-
-<Reflection>
-  Next time, in addition to SUS, I would also measure an objective metric for benchmarking design improvement — for example, the time taken to find a log.
-
-Also, since the workflow predominantly focuses on auditing one agent at a time, for the next iteration I'm going to propose a flow that can be initiated from the agent itself, so we can save the user the trip to the audit page and back. Something like this:
-
-  <Figure src={reflectionAuditFlow} alt="An agent's overflow menu open with a new 'Audit' entry alongside Edit, Share and Setup monitor, pointing to the resulting audit logs modal scoped to that agent" caption="Audit logs open in a modal window from the agent's overflow menu" />
-</Reflection>
 
 </ReadInDetail>
 */}

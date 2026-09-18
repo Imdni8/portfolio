@@ -25,6 +25,7 @@ import wrench from 'lucide-static/icons/wrench.svg?raw';
 import calendar from 'lucide-static/icons/calendar.svg?raw';
 import sparkles from 'lucide-static/icons/sparkles.svg?raw';
 import search from 'lucide-static/icons/search.svg?raw';
+import trendingUp from 'lucide-static/icons/trending-up.svg?raw';
 import maximize from 'lucide-static/icons/maximize.svg?raw';
 import minimize from 'lucide-static/icons/minimize.svg?raw';
 import figma from '../../assets/icons/figma.svg?raw';
@@ -50,6 +51,7 @@ export const icons = {
 	calendar,
 	sparkles,
 	search,
+	'trending-up': trendingUp,
 	maximize,
 	minimize,
 	figma,

@@ -41,6 +41,11 @@
  *   `& > :not(:last-child)` selector, and nesting that inside an arbitrary
  *   variant like `[&_ol]:` produces a descendant chain that does not match the
  *   list items — an adjacent-sibling margin is what actually works here.
+ * - `<strong>` reads at `--weight-semibold` (600), not `font-medium` (500):
+ *   inline emphasis has to read as heavier than the surrounding body copy at
+ *   a glance, and 500 sits too close to DM Sans's own 400 body weight to do
+ *   that. It's the one place this project reaches for that token — see
+ *   tokens.css's type-primitives comment.
  */
 export const storyProse = [
 	'space-y-6 font-[family-name:var(--font-sans)] text-[length:var(--size-body)] leading-[var(--lh-body)] text-body',
@@ -52,7 +57,7 @@ export const storyProse = [
 	'[&>blockquote>p]:m-0',
 	'[&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-6 [&_ul]:pl-6',
 	'[&_li+li]:mt-2 [&_li]:marker:text-muted-foreground',
-	'[&_strong]:font-medium [&_strong]:text-foreground',
+	'[&_strong]:font-(--weight-semibold) [&_strong]:text-foreground',
 ].join(' ');
 
 /**

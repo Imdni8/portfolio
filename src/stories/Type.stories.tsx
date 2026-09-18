@@ -5,6 +5,7 @@ type Spec = { token: string; role: string; sample: string; accent?: boolean };
 
 /** Ordered by size, which is also roughly the order a reader meets them. */
 const STYLES: Spec[] = [
+	{ token: 'type-stat', role: 'Case-study Outcome numeral — StatTile size="lg" only', sample: '48%' },
 	{ token: 'type-display', role: 'Homepage headline — the spoken phrase', sample: 'Thoughtful software' },
 	{ token: 'type-display-sans', role: 'Homepage headline — the plain words', sample: 'I design' },
 	{ token: 'type-hand', role: 'Homepage headline — the aside, and nothing else', sample: 'try to' },
@@ -94,7 +95,7 @@ export const Scale: StoryObj = {
 	render: () => (
 		<Page
 			title="Type"
-			lede="Sixteen styles across four families — the fourth, a hand, sets two words on the homepage and nothing else. The line under each specimen is what the browser actually resolved — if a font fails to load, it shows up here rather than being mistaken for a design choice."
+			lede="Seventeen styles across four families — the fourth, a hand, sets two words on the homepage and nothing else. The line under each specimen is what the browser actually resolved — if a font fails to load, it shows up here rather than being mistaken for a design choice."
 		>
 			<Group
 				label="The rule"

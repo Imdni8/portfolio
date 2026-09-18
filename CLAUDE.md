@@ -34,10 +34,19 @@ The foundations, all settled with the user:
   reader stops on (titles, headlines — always 400, tracked −1%), DM Sans is
   what is read in full (copy at 16/1.7, deks, captions, controls), DM Mono is
   apparatus (nav, tabs, tags, eyebrows — 10–12px, uppercase, tracked +6–8%).
-  Sixteen styles, exposed as `.type-*` classes. **There is no bold**: the
-  loaded cuts are serif 400; sans 400/500 (plus 200, on the homepage
-  headline's demoted half only — see below); mono 300 (the footer
-  wordmark)/400/500, and `--weight-semibold`/`--weight-bold` no longer exist.
+  Seventeen styles, exposed as `.type-*` classes. `.type-stat` is the biggest
+  rung (`--size-stat`, 56→80, serif 400 upright, `--lh-stat` 1.1) and the
+  newest — a case study's Outcome numerals (`StatTile`'s `size="lg"`) and
+  nothing else; unlike `.type-display` it isn't italic, because a numeral is
+  read, not spoken. **There is effectively no
+  bold**: the loaded cuts are serif 400; sans 400/500 (plus 200, on the
+  homepage headline's demoted half only — see below); mono 300 (the footer
+  wordmark)/400/500. `--weight-bold` still doesn't exist. `--weight-semibold`
+  (600) is the one deliberate exception, reintroduced to give case-study
+  prose's `<strong>` (`story-type.ts`'s `storyProse`) a heavier cut than
+  `--weight-medium`, since 500 sits too close to DM Sans's 400 body weight to
+  read as emphasis at a glance. It is not reached for anywhere else — do not
+  use it outside that one `[&_strong]` rule.
   A fourth family, **Delicious Handrawn** (`--font-hand`, `.type-hand`), sets
   the homepage headline's "try to" and nothing else — an aside written into
   the sentence. Do not reach for it anywhere else. The headline is the only
@@ -828,14 +837,21 @@ and the notes under a figure stay one column of type.
     off, and while the overlay is open it stamps `data-lightbox-open` on
     `<html>` and fires a `lightbox:change` event so `updateActive()` pauses
     the slide's own copy of the clip rather than decoding it twice.
-  - **A `static` slide never autoplays; it gets a play button.** Stacked slides
-    sit outside `[data-carousel-track]`, so `updateActive()` never sees them.
+  - **A `static` slide plays itself once the first time it scrolls into
+    view, then falls back to a play button.** Stacked slides sit outside
+    `[data-carousel-track]`, so `updateActive()` never sees them.
     `SlideVideo` renders a `.slide-video__play` button (the same
     `buttonVariants({ size: 'icon-lg' })` as `Video.astro`) as a *sibling* of the
     zoom trigger — a button inside a button is invalid — and
-    `static-slide-video.ts` plays the clip once per press with `loop` off,
-    hiding the button while it plays and pausing on scroll-away or when the
-    lightbox opens. Carousel slides hide that button and keep looping.
+    `static-slide-video.ts` plays the clip, `loop` off, the first time an
+    `IntersectionObserver` reports it visible (tracked per video in an
+    `autoplayed` `WeakSet` so scrolling away and back doesn't replay it), and
+    on every later press of the button. The button hides while the clip
+    plays and reappears on pause or end, so a press always means "play
+    again." Reduced motion skips the autoplay — the poster stands until the
+    reader presses play, same as a carousel clip under reduced motion — and
+    pauses on scroll-away or when the lightbox opens either way. Carousel
+    slides hide that button and keep looping.
   - **`data-static={isStatic || undefined}`, never the bare boolean.** Astro
     renders `data-static={false}` as `data-static="false"`, which
     `[data-static]` still matches — carousel slides were silently wearing the

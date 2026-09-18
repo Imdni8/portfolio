@@ -105,9 +105,12 @@
      meta. Small, uppercase where it labels something, tracked open so it
      recedes behind the serif and the sans.
 
-   Importance is carried by that choice of family, and by colour, never by a
-   heavier cut: there is no bold anywhere. Two weights per family at most —
-   serif 400; sans 400 and 500; mono 400 and 500, plus 300 for the wordmark.
+   Importance is carried by that choice of family, and by colour, almost never
+   by a heavier cut: sans runs at 400 and 500 nearly everywhere, serif stays
+   at 400, and mono at 400/500 plus 300 for the wordmark. The one exception is
+   inline `<strong>` emphasis inside case-study prose (story-type.ts's
+   storyProse), which needs to read as heavier than the surrounding copy at a
+   glance — --weight-semibold below, not reached for anywhere else.
 
    A fourth family, Delicious Handrawn, is not a fourth job. It sets the
    homepage headline's "try to" and nothing else: an aside scribbled into
@@ -123,6 +126,7 @@
 
 	/* Sizes. The top three rungs clamp; 18px and below are fixed, because
 	   below that the fluid range is narrower than the rounding error. */
+	--size-stat: clamp(3.5rem, 6.5vw, 5rem); /* 56 → 80 — the biggest rung, for a case study's Outcome numerals (StatTile's large variant only) */
 	--size-display: clamp(2.25rem, 2.8vw, 3rem); /* 36 → 48 — the homepage headline */
 	--size-title: clamp(2rem, 4.2vw, 2.625rem); /* 32 → 42 */
 	--size-heading: clamp(1.375rem, 2.6vw, 1.625rem); /* 22 → 26 */
@@ -139,6 +143,7 @@
 	--size-tag: 0.625rem; /* 10 */
 
 	/* Leading, unitless so it survives the clamps. */
+	--lh-stat: 1.1; /* tighter than --lh-display — a numeral being read at a glance, not a line of running text */
 	--lh-display: 1.2; /* 48/57.6 */
 	--lh-hand: 1.2; /* 40/48 */
 	--lh-title: 1.2; /* 42/50.4 */
@@ -155,6 +160,7 @@
 	--weight-light: 300; /* the footer's mono wordmark */
 	--weight-regular: 400;
 	--weight-medium: 500;
+	--weight-semibold: 600; /* case-study prose's <strong> only — see the comment above */
 
 	/* Tracking. The serif tightens; uppercase mono opens up — without it the
 	   labels set as a solid block — and opens less as it gets smaller, since a
@@ -267,6 +273,45 @@
 :root {
 	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* ---- 3b · Cross-document view transitions ---------------------------------
+   The browser's own MPA view transitions, no JS router involved — see
+   WorkCard.astro (`view-transition-name: card-<slug>`, plus
+   `data-astro-reload`) and CaseStudyHero.astro (the same name on `.hero`). A
+   clicked card's whole box morphs into the case study's whole header, so the
+   study appears to grow out of the card that opened it.
+
+   Both documents have to opt in for the browser to run a transition at all,
+   which is why this lives here rather than in either page's own styles:
+   tokens.css is the one file index.astro, about.astro and
+   CaseStudyLayout.astro all import identically. It is inert wherever a
+   navigation's two documents don't share a `view-transition-name` — About,
+   or any hard nav that isn't card→hero — an unmatched name just gets the
+   default cross-fade, never a broken one.
+
+   Astro's own <ClientRouter/> soft nav (Home<->About) never reaches this: it
+   swaps the DOM itself via document.startViewTransition(), which isn't a
+   real navigation, so the UA never runs a cross-document transition for it.
+   This only fires on an actual browser navigation — which is what
+   WorkCard's `data-astro-reload` is for: without it, <ClientRouter/> would
+   intercept the click, probe the destination for its own router, and only
+   then fall back to a real nav, adding a fetch round-trip before this can
+   even start.
+
+   Full opt-out under reduced motion, not a gentler version — the whole page
+   moving and rescaling is exactly what that preference exists to skip.
+   --ease-in-out because this is "something already on screen moving to a
+   new place" (3a, above). */
+@media (prefers-reduced-motion: no-preference) {
+	@view-transition {
+		navigation: auto;
+	}
+}
+
+::view-transition-group(*) {
+	animation-duration: 450ms;
+	animation-timing-function: var(--ease-in-out);
 }
 
 /* ---- 4 · Semantic colour · dark (default) ---------------------------------- */
@@ -433,6 +478,7 @@
    drift from the spec. Several share a rule below where the values are the
    same; the names stay separate because they say what the text is for.
    -------------------------------------------------------------------------- */
+.type-stat,
 .type-display,
 .type-display-sans,
 .type-hand,
@@ -450,6 +496,18 @@
 .type-meta,
 .type-wordmark {
 	margin: 0;
+}
+
+/* The biggest rung on the site — a case study's Outcome numerals
+   (StatTile's `size="lg"`), and nothing else. Serif, upright (a numeral is
+   read, not spoken, so it doesn't borrow .type-display's italic), tight
+   leading because it's a single glyph group, not a line of prose. */
+.type-stat {
+	font-family: var(--font-display);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-stat);
+	line-height: var(--lh-stat);
+	letter-spacing: var(--track-tight);
 }
 
 /* Page title. One per page — the homepage greeting, a case study's name. */
