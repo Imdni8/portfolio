@@ -1,29 +1,75 @@
 ---
 interface Props {
 	heading?: string;
+	/** Swaps the column to --measure-prose (1000px), matching StoryChapter's
+	 *  own `narrow` — for a case study whose chapters all read narrow, so
+	 *  Reflection's divider and column line up with the chapter above it
+	 *  rather than running at the wider --measure-story default. */
+	narrow?: boolean;
 }
-const { heading = 'Reflections' } = Astro.props;
+const { heading = 'Reflections', narrow = false } = Astro.props;
 ---
 
-<section class="reflection">
-	<h2 class="type-reflection">{heading}</h2>
-	<div class="reflection__body">
-		<slot />
+<section class="reflection" data-narrow={narrow || undefined}>
+	<div class="reflection__rule"></div>
+	<div class="reflection__content">
+		<h2 class="type-reflection">{heading}</h2>
+		<div class="reflection__body">
+			<slot />
+		</div>
 	</div>
 </section>
 
 <style>
 	.reflection {
-		max-width: var(--measure-story);
+		/* Gutter outside the cap (CLAUDE.md's page-frame formula): the box
+		   spans --reflection-measure + 2 * --gutter, and padding-inline insets
+		   its children by --gutter on each side, so a plain block child (no
+		   width of its own) lands at exactly --reflection-measure — the same
+		   width every image on the page tops out at, and the same width the
+		   Outcome section's own divider (near the top of the page) uses. */
+		--reflection-measure: var(--measure-story);
+		max-width: calc(var(--reflection-measure) + 2 * var(--gutter));
 		margin: 0 auto;
-		padding: var(--spacing-7xl) var(--gutter) var(--spacing-9xl);
-		border-block-start: 1px solid var(--border);
-		display: grid;
-		gap: var(--spacing-2xl);
+		padding-inline: var(--gutter);
+		/* --spacing-8xl (80px) matches every StoryChapter's own top step
+		   (Tailwind's pt-20) — the sitewide rhythm between stacked sections —
+		   so Reflection reads as one more section in that rhythm instead of
+		   sitting flush against the Solution chapter's last video. */
+		padding-block: var(--spacing-8xl) var(--spacing-9xl);
 	}
 
+	.reflection[data-narrow] {
+		--reflection-measure: var(--measure-prose);
+	}
+
+	/* A separate child from .reflection__content rather than a border
+	   directly on .reflection itself — border-box sizing draws a border at
+	   the outer edge of whatever box carries it, so putting it on .reflection
+	   (whose own box is --reflection-measure + 2 * --gutter wide) drew the
+	   line wider than the column it was meant to divide. An empty div with
+	   only padding-block-start has no border-box width problem — it's just
+	   another plain child, sized like any other — and the padding gives it
+	   its own height, standing in for the old flat 64px top gap without a
+	   `gap` from the grid below double-counting it. */
+	.reflection__rule {
+		border-block-start: 1px solid var(--border);
+		padding-block-start: var(--spacing-7xl);
+	}
+
+	/* --text, not --primary-text: every other chapter heading on a case study
+	   (StoryChapter's own h2, via story-type.ts's storyHeading) reads
+	   text-foreground (--text) — .type-reflection carries family/size/weight/
+	   tracking identical to that rung, but this was the one property this
+	   component set on its own instead of matching it, so "Reflections" read
+	   amber against a page of otherwise-white chapter headings. */
 	h2 {
-		color: var(--primary-text);
+		color: var(--text);
+	}
+
+	.reflection__content {
+		display: grid;
+		gap: var(--spacing-2xl);
 	}
 
 	.reflection__body {
@@ -32,8 +78,14 @@ const { heading = 'Reflections' } = Astro.props;
 	}
 
 	/* No measure cap: .reflection is single-column, already bounded by
-	   --measure-story, with no rail or split column beside it to leave a
-	   ragged void against — the same reasoning the hero's h1/subtitle follow. */
+	   --reflection-measure, with no rail or split column beside it to leave a
+	   ragged void against — the same reasoning the hero's h1/subtitle follow.
+	   Font, size, leading and colour here already match storyProse's own
+	   tokens (--font-sans, --size-body, --lh-body, --text-body) — kept as
+	   local rules rather than importing storyProse itself because this body
+	   mixes prose with a <Figure>, and storyProse's `space-y-6` margins would
+	   collide with Figure.astro's own `margin: 0` (both unlayered, so
+	   whichever is declared later wins, not whichever "should"). */
 	.reflection__body :global(p) {
 		font-family: var(--font-sans);
 		font-size: var(--size-body);

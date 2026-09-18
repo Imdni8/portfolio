@@ -29,6 +29,8 @@ chapters:
       label: Key decisions
     - id: solution
       label: Solution
+    - id: reflection
+      label: Reflections
 heroShot:
     src: ../../assets/work/audit-logs/00-hero.png
     alt: The redesigned audit log page — a version-change side panel next to the activity timeline, with search converted to filter tags
@@ -38,10 +40,12 @@ import Chapter from "../../components/case-study/Chapter.astro";
 import StoryChapter from "../../components/case-study/StoryChapter.astro";
 import VideoFigure from "../../components/case-study/VideoFigure.astro";
 import AnnotatedFigure from "../../components/case-study/AnnotatedFigure.astro";
+import Figure from "../../components/case-study/Figure.astro";
 import GoalChip from "../../components/case-study/GoalChip.astro";
 import StatTile from "../../components/case-study/StatTile.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
+import Reflection from "../../components/case-study/Reflection.astro";
 import { storyProse } from "../../components/case-study/story-type";
 
 import previousAuditPage from "../../assets/work/audit-logs/01-problem-initial-audit-page.png";
@@ -49,6 +53,7 @@ import problemLogEntries from "../../assets/work/audit-logs/21-problem-log-entri
 import problemExpandedLogView from "../../assets/work/audit-logs/22-problem-expanded-log-view.png";
 import problemInconsistentFilters from "../../assets/work/audit-logs/23-problem-inconsistent-filters.png";
 import problemAutomaticSearch from "../../assets/work/audit-logs/24-problem-automatic-search.png";
+import reflectionAuditFlow from "../../assets/work/audit-logs/14-reflection-audit-modal.png";
 
 import slideLogResults from "../../assets/work/audit-logs/slide-1-log-results.jpg";
 import slideDbActions from "../../assets/work/audit-logs/slide-3-db-actions.jpg";
@@ -264,9 +269,23 @@ I redesigned the entire agent logs module, from initiating search to visualising
 </StoryChapter>
 </Chapter>
 
+{/* Unlike agent-versioning.mdx's Reflection (outside any Chapter, not in
+    the rail), this one is wrapped so it shows up in the chapter railing —
+    Chapter is content-shape-agnostic, so wrapping Reflection.astro in it is
+    no different from wrapping a StoryChapter. */}
+<Chapter id="reflection">
+<Reflection narrow>
+  Next time, in addition to SUS, I would also measure an objective metric for benchmarking design improvement — for example, the time taken to find a log.
+
+Also, since the workflow predominantly focuses on auditing one agent at a time, for the next iteration I'm going to propose a flow that can be initiated from the agent itself, so we can save the user the trip to the audit page and back. Something like this:
+
+  <Figure src={reflectionAuditFlow} alt="An agent's overflow menu open with a new 'Audit' entry alongside Edit, Share and Setup monitor, pointing to the resulting audit logs modal scoped to that agent" caption="Audit logs open in a modal window from the agent's overflow menu" />
+</Reflection>
+</Chapter>
+
 {/* Everything below is the pre-redesign body — kept for reference, not
     deleted, while the new cut above replaces it on the page. Same
-    convention the Outcome/Reflection block already used further down in
+    convention the Outcome block already used further down in
     this file before this change.
 
     Restoring any of this means putting its imports back at the top of the
@@ -411,22 +430,23 @@ Concept 2 was selected because we weren't sure if follow-up chats were necessary
 
 </StoryChapter>
 
-Outcome and Reflection are dropped from the page for now, matching
-    agent-versioning's current WIP state — neither appears in the latest
-    design reference for this page. Kept below, in their old pre-redesign
-    Section shape so the content isn't lost; restore once there's a design
-    for how they fit the new cut. (This note used to be its own separate
-    comment block before the rest of this file's body joined it inside one
-    outer comment — left unmarked here rather than nested, since MDX
-    comments cannot nest: a second closing delimiter would end the outer
-    comment early and the remaining old content below would render as live,
-    broken JSX.)
+Outcome is dropped from the page for now, matching agent-versioning's
+    current WIP state — it doesn't appear in the latest design reference for
+    this page. Reflection did, and now lives uncommented above the Solution
+    chapter's closing `</Chapter>`, with its own imports restored. Outcome is
+    kept below, in its old pre-redesign Section shape so the content isn't
+    lost; restore once there's a design for how it fits the new cut. (This
+    note used to be its own separate comment block before the rest of this
+    file's body joined it inside one outer comment — left unmarked here
+    rather than nested, since MDX comments cannot nest: a second closing
+    delimiter would end the outer comment early and the remaining old
+    content below would render as live, broken JSX.)
 
-    Restoring one also means putting its imports back at the top of this file:
-    Section, Reflection, finalDesignThumbnail and reflectionAuditFlow were
-    removed with the rest of the dead imports, since nothing the compiler
-    sees was referencing them (a commented block is discarded before any of
-    it is resolved, so no tooling here would ever have flagged them).
+    Restoring it also means putting its imports back at the top of this
+    file: Section and finalDesignThumbnail were removed with the rest of the
+    dead imports, since nothing the compiler sees was referencing them (a
+    commented block is discarded before any of it is resolved, so no tooling
+    here would ever have flagged them).
 
 <Section chapter="outcome" id="outcome" claim eyebrow="Outcome" heading="Improved the audit logs design as measured by increase in SUS from 57 → 72" layout="wide">
   <VideoFigure slot="visual" poster={finalDesignThumbnail} src="/media/audit-logs-final-design-walkthrough.mp4" alt="Walkthrough of the shipped audit log page" caption="Final design walkthrough" />
@@ -436,14 +456,6 @@ Redesigned audit logs to make it easier to find using timestamp and version numb
 The new version was released on time and well received by the customer who had raised the original feedback.
 
 </Section>
-
-<Reflection>
-  Next time, in addition to SUS, I would also measure an objective metric for benchmarking design improvement — for example, the time taken to find a log.
-
-Also, since the workflow predominantly focuses on auditing one agent at a time, for the next iteration I'm going to propose a flow that can be initiated from the agent itself, so we can save the user the trip to the audit page and back. Something like this:
-
-  <Figure src={reflectionAuditFlow} alt="An agent's overflow menu open with a new 'Audit' entry alongside Edit, Share and Setup monitor, pointing to the resulting audit logs modal scoped to that agent" caption="Audit logs open in a modal window from the agent's overflow menu" />
-</Reflection>
 
 </ReadInDetail>
 */}
