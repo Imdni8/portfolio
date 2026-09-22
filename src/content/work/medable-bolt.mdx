@@ -1,6 +1,7 @@
 ---
-title: "Designing Bolt: Agent studio's task orchestrator agent"
+title: "Reduced friction in starting new conversations with agents"
 # metadata
+subtitle: Designed Bolt, an agent for handing user tasks to specialised agents, saving the user the trouble to choosing the right agent.
 industry: Clinical trials
 technology: AI agents
 year: 2026
@@ -8,12 +9,11 @@ thumbnail:
     src: ../../assets/work/medable-bolt/00-thumbnail.png
     alt: The Bolt chat running a tagged task, the regulatory agent searching the study database and returning five non-compliant studies
 order: 20
-status: coming-soon
+status: published
 roles:
     - kind: design-type
       label: New feature
 aiFeature: true
-subtitle: Bolt is the single source of intake for all tasks, handing them off to specialised agents built and validated for it, saving the user the trouble to choose the right agent for the task.
 facts:
     - label: Duration
       value: 2 weeks
@@ -21,23 +21,36 @@ facts:
       value: Sole product designer
     - label: Team
       value: EPD (1 Des, 1 PM, 3 Devs)
+chapters:
+    - id: Overview
+      label: Overview
+    - id: Goals
+      label: Design goals
+    - id: identity
+      label: Identity design
+    - id: navigation
+      label: Navigation and IA
+    - id: solution
+      label: Solution
+    - id: reflection
+      label: Reflection
 # A single opener rather than a before/after: Bolt is new, so there is no
-# earlier state of it to drag against. Same file as the card's thumbnail,
-# the same way agent-versioning reuses its after shot.
+# earlier state of it to drag against.
 heroShot:
-    src: ../../assets/work/medable-bolt/00-thumbnail.png
+    src: ../../assets/work/medable-bolt/00-hero.png
     alt: The Bolt chat after a run — the task tagged with @regulatory agent and @dashboarding agent, each tool call listed as it completes, and five non-compliant studies returned
 ---
 
 import Figure from "../../components/case-study/Figure.astro";
-import StorySection from "../../components/case-study/StorySection.astro";
+import Chapter from "../../components/case-study/Chapter.astro";
 import StoryChapter from "../../components/case-study/StoryChapter.astro";
 import StoryBlock from "../../components/case-study/StoryBlock.astro";
-import ReadInDetail from "../../components/case-study/ReadInDetail.astro";
-import Solution from "../../components/case-study/Solution.astro";
+import StatTile from "../../components/case-study/StatTile.astro";
+import GoalChip from "../../components/case-study/GoalChip.astro";
+import Reflection from "../../components/case-study/Reflection.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
-import SlideText from "../../components/case-study/SlideText.astro";
+import { storyProse } from "../../components/case-study/story-type";
 
 import problemAgentList from "../../assets/work/medable-bolt/01-problem.png";
 // PLACEHOLDERS — flat hatched fills at the right aspect ratio. Drop the real
@@ -50,77 +63,65 @@ import slideAgentHandoff from "../../assets/work/medable-bolt/slide-1-agent-hand
 import slideTagAgents from "../../assets/work/medable-bolt/slide-2-tag-agents.png";
 import slideInConversationAuth from "../../assets/work/medable-bolt/slide-3-in-conversation-auth.png";
 
-<StorySection heading="Problem" divider split="even">
+{/* Same column the narrow chapters below read their heading/intro at —
+    --measure-copy with the gutter outside the cap (CLAUDE.md's page-frame
+    formula) — so the eyebrow and the stat card line up with "Problem" and
+    its prose rather than with the wider --measure-story chapters use for
+    their own media. Mirrors audit-logs.mdx's Outcome block. */}
+<section class="mx-auto max-w-[calc(var(--measure-copy)+2*var(--gutter))] px-[var(--gutter)] pt-[50px]">
+  <p class="type-overline text-center">Outcome</p>
+  <div class="mt-6 grid gap-[var(--spacing-xl)] grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]">
+    <StatTile size="lg" value="86%" label="increase in conversations started after one week of launch" />
+  </div>
+</section>
 
-> User had to choose the right agent and keep all MCPs authenticated before they could start a conversation, leading to high setup friction
+{/* --measure-prose, not the card's own --measure-copy — see audit-logs.mdx's
+    identical divider for why. */}
+<div class="mx-auto mt-[50px] max-w-[calc(var(--measure-prose)+2*var(--gutter))] px-[var(--gutter)]">
+  <hr class="border-t border-border" />
+</div>
+
+<Chapter id="Overview">
+<StoryChapter heading="Overview" narrow>
+<Fragment slot="intro">
+
+> User had to choose the right agent before executing a task, leading to high friction in starting a conversation
 
 The reason for having multiple agents was that each one could be audited and approved for
 specific tasks, which is great for compliance. But it also forced user to find the right agent
-before delegating their task. Bolt was conceived for solving this problem.
+before delegating their task. 
+
+To solve this problem, it was decided to create an agent that would become the single point of intake for all user tasks and delegate them to the appropriate agent.
+
+</Fragment>
 
 <Figure
-    slot="visual"
     src={problemAgentList}
     alt="The agent list in Agent studio — five agent cards, each with its own description and version, and a Create Agent button"
+    caption="Specialised agents"
 />
 
-</StorySection>
+</StoryChapter>
+</Chapter>
 
-<Solution>
-    <Slide>
-        <SlideVideo
-            slot="media"
-            src="/media/medable-bolt-agent-handoff.mp4"
-            poster={slideAgentHandoff}
-            alt="A task typed into Bolt, then a banner reading 'Bolt handed off to Regulatory agent and dashboarding agent' as the regulatory agent starts searching the study database"
-            pin="bottom-right"
-        />
-        <SlideText title="Bolt hands off to the right agent">
-            Users can initiate the task via Bolt and Bolt chooses the right
-            agents for it, thus minimising the need to know which agent does
-            what.
-        </SlideText>
-    </Slide>
-    <Slide>
-        <SlideVideo
-            slot="media"
-            src="/media/medable-bolt-tag-agents.mp4"
-            poster={slideTagAgents}
-            alt="Typing @d into Bolt's composer opens an agent picker offering the dashboarding agent, tagging both the regulatory and dashboarding agents in the prompt"
-            pin="bottom-right"
-        />
-        <SlideText title="User can tag agents">
-            If the user knows which agents are appropriate for the job, they can
-            tag them directly.
-        </SlideText>
-    </Slide>
-    <Slide>
-        <SlideVideo
-            slot="media"
-            src="/media/medable-bolt-in-conversation-auth.mp4"
-            poster={slideInConversationAuth}
-            alt="A Slack sign-in sheet opening inside the conversation when the connector's credentials have expired, so the run continues without leaving the chat"
-            pin="center"
-        />
-        <SlideText title="In conversation authentication">
-            To prevent the conversation from stalling if the credentials for a
-            connector have expired, Bolt can launch the authentication tool
-            inside the conversation instead of asking them to authenticate it
-            first and then come back.
-        </SlideText>
-    </Slide>
-</Solution>
+<Chapter id="Goals">
+<StoryChapter heading="Design goals" narrow>
+<Fragment slot="intro">
 
-{/* Everything inside <ReadInDetail> is clipped to a 344px peek and buried
-under a wash until the reader opens it. It is real content, not a teaser —
-so every closing tag below must sit flush left, including the nested ones.
-An indented closing tag after a list reads to CommonMark as a continuation
-of the last list item; the MDX compiler then fails with a RolldownError
-pointing nowhere near the cause. See CLAUDE.md's case-studies section. */}
+I boiled down the minimum viable implementation of Bolt for the given scope to two missing pieces:
 
-<ReadInDetail>
+<div class="mx-auto grid w-full max-w-[var(--measure-copy)] gap-4 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
+  <GoalChip>How will user differentiate Bolt from other agents</GoalChip>
+  <GoalChip>How will user discover and navigate Bolt</GoalChip>
+</div>
 
-<StorySection heading="Bolt's identity">
+</Fragment>
+</StoryChapter>
+</Chapter>
+
+<Chapter id="identity">
+<StoryChapter heading="Identity design" narrow>
+<Fragment slot="intro">
 
 To differentiate Bolt from the rest of the agents, and give it more emphasis, I felt Bolt
 needed its own identity.
@@ -129,18 +130,20 @@ I began by asking what feeling it should evoke — fast, instantaneous, energeti
 images of bolts and thunder to finalise the following visual metaphors: sharp curves, dynamic,
 asymmetry.
 
-I explored 6–7 variations to arrive at the final logo.
-
+I explored 6–7 variations to arrive at the final logo. **I selected it because it looked distinct and recognizable at the 24x24 px size.**
 <Figure
     src={logoIterations}
     alt="Six lightning-bolt logo variations, each shown again below in the Create menu beside Bolt and Agents"
     caption="Logo iterations"
 />
 
-</StorySection>
+</Fragment>
+</StoryChapter>
+</Chapter>
 
-<StoryChapter heading="Embedding Bolt in Agent studio">
 
+<Chapter id="navigation">
+<StoryChapter heading="Navigation and IA" narrow>
 <Fragment slot="intro">
 
 > Conversations with Bolt should feel like group chats between the user, Bolt and other agents Bolt “invites” to the chat
@@ -148,44 +151,108 @@ I explored 6–7 variations to arrive at the final logo.
 When I began designing the Bolt experience, I asked myself how would the user relate to Bolt.
 After discussing with the PM, I proposed conversations with Bolt to be like group chats between
 the user, Bolt and other agents Bolt “invites” to the chat. Additionally, I was also solving for
-how user will find and interact with Bolt, for example, start a new chat and view previous chats.
-
-Some directions explored and dropped…
+how user will find and interact with Bolt, for example, starting a new chat or view previous chats. Some directions explored and dropped…
 
 </Fragment>
 
-<StoryBlock>
-
-<Figure
-    slot="visual"
-    src={directionGlobalChat}
-    alt="The agent list with a global Bolt chat summoned over the whole product surface"
-    caption="Direction 1: Global chat"
-/>
-
-I liked the idea of “summoning” Bolt anywhere on the product surface. But the complexity of
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Top bar concept</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>I liked the idea of “summoning” Bolt anywhere on the product surface. But the complexity of
 managing previous chats and keeping current chats in context while allowing user to move around
 the product snowballed. Also, it required a big UI nav revamp which I wasn't sure of committing
 to without validating the efficacy of this approach. Leading me to drop this idea for the time
-being.
+being.</p>
 
-</StoryBlock>
+  <Figure
+    src={directionGlobalChat}
+    alt="The agent list with a global Bolt chat summoned over the whole product surface"
+    caption="Direction 1: Global chat"
+  />
+</div>
 
-<StoryBlock>
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Side panel concept</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Side chat has come up in a lot of enterprise products lately. I tried it but decided against it
+because it obstructed the view and added a lot of visual clutter to an already information dense
+screen.</p>
 
-<Figure
-    slot="visual"
+  <Figure
     src={directionSideChat}
     alt="The agent list with Bolt docked as a side chat panel on the right, narrowing the content area"
     caption="Direction 2: Side chat"
-/>
-
-Side chat has come up in a lot of enterprise products lately. I tried it but decided against it
-because it obstructed the view and added a lot of visual clutter to an already information dense
-screen.
-
-</StoryBlock>
+  />
+</div>
 
 </StoryChapter>
+</Chapter>
 
-</ReadInDetail>
+<Chapter id="solution">
+<StoryChapter heading="Solution" narrow>
+<Fragment slot="intro">
+
+I designed Bolt as the single point of intake for every task — handing it off to the right
+specialised agents automatically, letting users tag agents directly when they already know who
+should do the work, and keeping the conversation moving even when a connector's credentials have
+expired.
+
+</Fragment>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Task handoff</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Users can initiate a task via Bolt, and Bolt hands it off to the right agents, minimising the need to know which agent does what.</p>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/medable-bolt-agent-handoff.mp4"
+      poster={slideAgentHandoff}
+      alt="A task typed into Bolt, then a banner reading 'Bolt handed off to Regulatory agent and dashboarding agent' as the regulatory agent starts searching the study database"
+      pin="bottom-right"
+    />
+  </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Tagging agents inside bolt</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>If the user already knows which agents are appropriate for the job, they can tag them directly in the composer.</p>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/medable-bolt-tag-agents.mp4"
+      poster={slideTagAgents}
+      alt="Typing @d into Bolt's composer opens an agent picker offering the dashboarding agent, tagging both the regulatory and dashboarding agents in the prompt"
+      pin="bottom-right"
+    />
+  </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Mid conversation auth</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>If the credentials for a connector have expired, Bolt can authenticate users mid conversation instead of asking the user to authenticate first and come back, so the conversation doesn't stall.</p>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/medable-bolt-in-conversation-auth.mp4"
+      poster={slideInConversationAuth}
+      alt="A Slack sign-in sheet opening inside the conversation when the connector's credentials have expired, so the run continues without leaving the chat"
+      pin="center"
+    />
+  </Slide>
+</div>
+
+</StoryChapter>
+</Chapter>
+
+
+<Chapter id="reflection">
+<Reflection narrow>
+
+This projects gave me the opportunity to think about how we can collaborate with agents. The agent reads 1000s of lines and comes back with answers in seconds. How can we verify the output when the pace of work is so fast?
+
+From my readings, I have learned the human brain is very good separating signal from noise quickly. We have to design cues that allow the user to follow what the agent is doing at a high level so that they can trace "What" the agent did, not "how". In doing this, I found motion to be a good solution. For example, a shimmering text can differentiate what the agent is currently doing vs what's already done. 
+
+Next time, I'll think about motion as a core part of interaction.
+</Reflection>
+</Chapter>

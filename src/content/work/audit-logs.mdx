@@ -1,5 +1,6 @@
 ---
-title: Made agent actions easier to follow
+title: Made agent actions more human-readable
+subtitle: Understanding agent actions easily reduced the time to troubleshoot agent bugs
 industry: Clinical trials
 technology: AI Agents
 year: 2026
@@ -211,7 +212,8 @@ I redesigned the entire agent logs module, from initiating search to visualising
     wrappers, the Slide list) otherwise runs the section's full
     --measure-prose width, wider than the copy above it. */}
 <div class="grid gap-[var(--spacing-xl)]">
-<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Leading with timestamps and action type to easily locate the right agent log. This allows user to avoid other information until they've found the right log and then dig deeper.</p>
+<h3 class="story-subhead">Scannable logs</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Leading with timestamps and action type to easily locate the right agent log. This allows user to avoid other information until they've found the log they're interested in.</p>
 
   <Slide static>
     <SlideVideo
@@ -225,6 +227,7 @@ I redesigned the entire agent logs module, from initiating search to visualising
 </div>
 
 <div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Accomodate more logs on screen for comparison</h3>
 <p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Side panel makes it easier to compare action logs without excessive scrolling. And AI summarisation helps make data changes more human-readable.</p>
 
   <Slide static>
@@ -239,6 +242,7 @@ I redesigned the entire agent logs module, from initiating search to visualising
 </div>
 
 <div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Handle visual noise of database actions</h3>
 <p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Database logs created by the backend cannot be eliminated due to regulatory reasons. But they still cluttered the list and confused users. So I decided to visually differentiate them from agent logs and hide them. This way, it doesn't clutter the list while still available to users when they want it.</p>
 
   <Slide static>
@@ -253,6 +257,7 @@ I redesigned the entire agent logs module, from initiating search to visualising
 </div>
 
 <div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Consistent filtering experience</h3>
 <p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Filters applied during and after search look and work consistently, so that user doesn't have to learn new ways to do the same thing.</p>
 
   <Slide static>

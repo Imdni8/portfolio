@@ -70,3 +70,4 @@ export const storyProse = [
  */
 export const storyHeading =
 	'font-[family-name:var(--font-display)] font-normal tracking-[var(--track-tight)] text-foreground';
+

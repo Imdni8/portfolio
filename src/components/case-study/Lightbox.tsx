@@ -154,7 +154,7 @@ export const Lightbox = () => {
 			{((shot.kind === 'image' && shot.caption) || many) && (
 				<div className="lightbox__meta" onClick={(e) => e.stopPropagation()}>
 					{shot.kind === 'image' && shot.caption && (
-						<p className="lightbox__caption type-annotation">{shot.caption}</p>
+						<p className="lightbox__caption type-annotation" style={{ textAlign: 'center' }}>{shot.caption}</p>
 					)}
 					{many && (
 						<p className="lightbox__count type-annotation">
