@@ -38,7 +38,9 @@ The foundations, all settled with the user:
   rung (`--size-stat`, 56→80, serif 400 upright, `--lh-stat` 1.1) and the
   newest — a case study's Outcome numerals (`StatTile`'s `size="lg"`) and
   nothing else; unlike `.type-display` it isn't italic, because a numeral is
-  read, not spoken. **There is effectively no
+  read, not spoken. Outcome tiles are capped at a maximum width of 364px so
+  they stay readable and do not stretch across the full case-study column.
+  **There is effectively no
   bold**: the loaded cuts are serif 400; sans 400/500 (plus 200, on the
   homepage headline's demoted half only — see below); mono 300 (the footer
   wordmark)/400/500. `--weight-bold` still doesn't exist. `--weight-semibold`

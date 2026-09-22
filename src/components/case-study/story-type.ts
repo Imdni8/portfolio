@@ -70,3 +70,11 @@ export const storyProse = [
  */
 export const storyHeading =
 	'font-[family-name:var(--font-display)] font-normal tracking-[var(--track-tight)] text-foreground';
+
+/**
+ * A small subsection heading for a paragraph-and-visual block, scoped to the
+ * measure-copy column so it can be reused across case studies without retyping
+ * the same 5–6 utility chain each time.
+ */
+export const storySubhead =
+	'mx-auto w-full max-w-[var(--measure-copy)] text-[length:var(--size-subtitle)] leading-[var(--lh-subtitle)] font-[family-name:var(--font-display)] font-normal tracking-[var(--track-tight)] text-foreground';
