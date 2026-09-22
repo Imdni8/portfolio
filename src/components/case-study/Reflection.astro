@@ -68,10 +68,16 @@ const { heading = 'Reflections', narrow = false } = Astro.props;
 	}
 
 	.reflection__content {
-		max-width: var(--measure-copy);
-		margin-inline: auto;
 		display: grid;
 		gap: var(--spacing-2xl);
+	}
+
+	.reflection__content > h2,
+	.reflection__body :global(p),
+	.reflection__body :global(ul) {
+		width: 100%;
+		max-width: var(--measure-copy);
+		margin-inline: auto;
 	}
 
 	.reflection__body {
@@ -79,10 +85,9 @@ const { heading = 'Reflections', narrow = false } = Astro.props;
 		gap: var(--spacing-2xl);
 	}
 
-	/* No measure cap: .reflection is single-column, already bounded by
-	   --reflection-measure, with no rail or split column beside it to leave a
-	   ragged void against — the same reasoning the hero's h1/subtitle follow.
-	   Font, size, leading and colour here already match storyProse's own
+	/* The prose stays at --measure-copy while figures use the full section
+	   measure, matching the other case-study image columns. Font, size,
+	   leading and colour here already match storyProse's own
 	   tokens (--font-sans, --size-body, --lh-body, --text-body) — kept as
 	   local rules rather than importing storyProse itself because this body
 	   mixes prose with a <Figure>, and storyProse's `space-y-6` margins would
@@ -93,7 +98,7 @@ const { heading = 'Reflections', narrow = false } = Astro.props;
 		font-size: var(--size-body);
 		line-height: var(--lh-body);
 		color: var(--text-body);
-		margin: 0;
+		margin-block: 0;
 	}
 
 	.reflection__body :global(ul) {
@@ -101,7 +106,7 @@ const { heading = 'Reflections', narrow = false } = Astro.props;
 		font-size: var(--size-body);
 		line-height: var(--lh-body);
 		color: var(--text-body);
-		margin: 0;
+		margin-block: 0;
 		padding-inline-start: var(--spacing-3xl);
 		display: grid;
 		gap: var(--spacing-sm);

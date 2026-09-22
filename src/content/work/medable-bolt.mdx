@@ -1,6 +1,7 @@
 ---
-title: "Reducing friction in starting new agent conversations"
+title: "Reduced friction in starting new conversations with agents"
 # metadata
+subtitle: Designed Bolt, an agent for handing user tasks to specialised agents, saving the user the trouble to choosing the right agent.
 industry: Clinical trials
 technology: AI agents
 year: 2026
@@ -13,7 +14,6 @@ roles:
     - kind: design-type
       label: New feature
 aiFeature: true
-subtitle: Designed Bolt, an agent for handing user tasks to specialised agents, saving the user the trouble to choosing the right agent.
 facts:
     - label: Duration
       value: 2 weeks
@@ -47,10 +47,11 @@ import Chapter from "../../components/case-study/Chapter.astro";
 import StoryChapter from "../../components/case-study/StoryChapter.astro";
 import StoryBlock from "../../components/case-study/StoryBlock.astro";
 import StatTile from "../../components/case-study/StatTile.astro";
+import GoalChip from "../../components/case-study/GoalChip.astro";
 import Reflection from "../../components/case-study/Reflection.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
-import { storyProse, storySubhead } from "../../components/case-study/story-type";
+import { storyProse } from "../../components/case-study/story-type";
 
 import problemAgentList from "../../assets/work/medable-bolt/01-problem.png";
 // PLACEHOLDERS — flat hatched fills at the right aspect ratio. Drop the real
@@ -109,8 +110,11 @@ To solve this problem, it was decided to create an agent that would become the s
 <Fragment slot="intro">
 
 I boiled down the minimum viable implementation of Bolt for the given scope to two missing pieces:
-1. How will user differentiate bolt from other agents
-2. How will user discover and navigate Bolt
+
+<div class="mx-auto grid w-full max-w-[var(--measure-copy)] gap-4 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
+  <GoalChip>How will user differentiate Bolt from other agents</GoalChip>
+  <GoalChip>How will user discover and navigate Bolt</GoalChip>
+</div>
 
 </Fragment>
 </StoryChapter>
@@ -153,7 +157,7 @@ how user will find and interact with Bolt, for example, starting a new chat or v
 </Fragment>
 
 <div class="grid gap-[var(--spacing-xl)]">
-<h3 class={storySubhead}>Top bar concept</h3>
+<h3 class="story-subhead">Top bar concept</h3>
 <p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>I liked the idea of “summoning” Bolt anywhere on the product surface. But the complexity of
 managing previous chats and keeping current chats in context while allowing user to move around
 the product snowballed. Also, it required a big UI nav revamp which I wasn't sure of committing
@@ -168,7 +172,7 @@ being.</p>
 </div>
 
 <div class="grid gap-[var(--spacing-xl)]">
-<h3 class={storySubhead}>Side panel concept</h3>
+<h3 class="story-subhead">Side panel concept</h3>
 <p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Side chat has come up in a lot of enterprise products lately. I tried it but decided against it
 because it obstructed the view and added a lot of visual clutter to an already information dense
 screen.</p>
@@ -195,7 +199,7 @@ expired.
 </Fragment>
 
 <div class="grid gap-[var(--spacing-xl)]">
-<h3 class={storySubhead}>Task handoff</h3>
+<h3 class="story-subhead">Task handoff</h3>
 <p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Users can initiate a task via Bolt, and Bolt hands it off to the right agents, minimising the need to know which agent does what.</p>
 
   <Slide static>
@@ -210,7 +214,7 @@ expired.
 </div>
 
 <div class="grid gap-[var(--spacing-xl)]">
-<h3 class={storySubhead}>Tagging agents inside bolt</h3>
+<h3 class="story-subhead">Tagging agents inside bolt</h3>
 <p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>If the user already knows which agents are appropriate for the job, they can tag them directly in the composer.</p>
 
   <Slide static>
@@ -225,7 +229,7 @@ expired.
 </div>
 
 <div class="grid gap-[var(--spacing-xl)]">
-<h3 class={storySubhead}>Mid conversation auth</h3>
+<h3 class="story-subhead">Mid conversation auth</h3>
 <p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>If the credentials for a connector have expired, Bolt can authenticate users mid conversation instead of asking the user to authenticate first and come back, so the conversation doesn't stall.</p>
 
   <Slide static>
@@ -246,9 +250,10 @@ expired.
 <Chapter id="reflection">
 <Reflection narrow>
 
-Next time, I'd invest earlier in the motion that shows the system's state — the handoff banner, the tool-call list filling in as each agent works, the auth sheet opening inline. Those moments carry more information about what's actually happening than any static label could, especially in a product where several agents can be working at once and the user has no other way to tell who's doing what.
+This projects gave me the opportunity to think about how we can collaborate with agents. The agent reads 1000s of lines and comes back with answers in seconds. How can we verify the output when the pace of work is so fast?
 
-I treated motion as a polish pass at the end of the sprint. It deserves to be a design decision from the start, made alongside the interaction logic itself, not layered on after.
+From my readings, I have learned the human brain is very good separating signal from noise quickly. We have to design cues that allow the user to follow what the agent is doing at a high level so that they can trace "What" the agent did, not "how". In doing this, I found motion to be a good solution. For example, a shimmering text can differentiate what the agent is currently doing vs what's already done. 
 
+Next time, I'll think about motion as a core part of interaction.
 </Reflection>
 </Chapter>
