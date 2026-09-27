@@ -22,39 +22,9 @@ facts:
       value: Sole product designer
     - label: Team
       value: EPD (1 Des, 1 PM, 3 Dev)
-hero:
-    before: ../../assets/work/agent-versioning/00-hero-before.png
-    after: ../../assets/work/agent-versioning/00-hero-after.png
-    beforeAlt: The agent canvas before versioning — a single editable draft, with Save and Publish and no version history
-    afterAlt: The same canvas after versioning — an unpublished-changes banner, a draft state control, version history, and accent borders on the nodes carrying updates
-    # x/y are percentages of the frame, and mark the centre of the numbered pin.
-    # Both shots are 1440x840 and the frame takes its ratio from them, so nothing
-    # is cropped and these map straight onto the images. Read off the annotated
-    # reference exports: each pin's square corner points back at the control it
-    # explains, so the centre sits down and to the right of that control.
-    beforeNotes:
-        - x: 22.6
-          y: 14.8
-          text: To make changes, user had to manually change state to draft
-        - x: 69.6
-          y: 15.5
-          text: Any new changes overwrote the previous agent configuration
-        - x: 54.2
-          y: 15.5
-          text: Inconsistent navigation pattern for accessing agent's settings
-    afterNotes:
-        - x: 25.6
-          y: 21.0
-          text: State changes are triggered contextually based on relevant actions
-        - x: 35.4
-          y: 46.5
-          text: All changes are versioned and viewable in the versions modal
-        - x: 54.9
-          y: 12.7
-          text: User receives a visible state change signifier that they can dismiss
-        - x: 89.0
-          y: 16.7
-          text: Agent settings are accessible in a side panel like the rest of the nodes on canvas
+heroShot:
+    src: ../../assets/work/agent-versioning/00-hero-after.png
+    alt: The agent canvas after versioning — an unpublished-changes banner, a draft state control, version history, and accent borders on the nodes carrying updates
 ---
 
 import Figure from "../../components/case-study/Figure.astro";

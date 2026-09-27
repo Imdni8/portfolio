@@ -4,8 +4,8 @@
    module next to it (see water-field.ts/WaterField.astro).
 
    Everything here is client-only: the exports run from bundled Astro
-   `<script>`s and from the BeforeAfter island's event handlers, never during
-   the static build.
+   `<script>`s and from React islands' event handlers, never during the
+   static build.
 
    The SDK itself is imported dynamically, in startAnalytics() below, and that
    is the single most load-bearing decision in this file. `posthog-js` is 274KB
@@ -49,8 +49,8 @@ const UI_HOST = 'https://eu.posthog.com';
 /* PostHog must be loaded and initialised exactly once per document.
 
    Callers: Analytics.astro on every page, trackCaseStudyOpened() below, and
-   the BeforeAfter island — each self-initialises so a `capture` can never be
-   stranded ahead of its own init. Bundled Astro `<script>`s are ES modules, so
+   the Bolt prototype island — each self-initialises so a `capture` can never
+   be stranded ahead of its own init. Bundled Astro `<script>`s are ES modules, so
    the browser already refuses to re-execute one across a `<ClientRouter />`
    soft navigation (index <-> about); these hold the line for the in-document
    case that module caching does not.
@@ -400,19 +400,6 @@ export function initHomepageTracking(): void {
 
 	document.addEventListener('astro:page-load', () => {
 		if (window.location.pathname === '/') trackOnIdle('Homepage Visited');
-	});
-}
-
-/* Called from the BeforeAfter island — the compare handle is React-owned, and
-   a drag is invisible to autocapture, which only ever sees a click. */
-export function trackCompareDragged(method: 'pointer' | 'keyboard', position: number): void {
-	initAnalytics();
-	if (!API_KEY) return;
-
-	trackNow('Dragged Compare Slider', {
-		method,
-		position: Math.round(position),
-		case_study_slug: caseStudySlug(),
 	});
 }
 

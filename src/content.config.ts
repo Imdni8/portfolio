@@ -16,21 +16,6 @@ import { glob } from 'astro/loaders';
  * "Case studies" in CLAUDE.md for the authoring workflow, or run
  * `/new-case-study` to scaffold one.
  */
-/** A numbered callout pinned to a hero shot. `x`/`y` are percentages of the
- *  frame, not of the source image — the two differ whenever a shot's aspect
- *  ratio does not match the frame and `object-fit: cover` crops it. Shared by
- *  beforeNotes/afterNotes below so the two can't drift into different shapes.
- *  `label` overrides the pin's badge (default: its 1-based position in the
- *  array) — for pointing at several spots that are all explained by one
- *  callout, give each the same `label` and `text`; the story panel collapses
- *  matching `text` into a single line. */
-const noteSchema = z.object({
-	x: z.number().min(0).max(100),
-	y: z.number().min(0).max(100),
-	text: z.string(),
-	label: z.string().optional(),
-});
-
 const work = defineCollection({
 	loader: glob({ pattern: '**/*.mdx', base: './src/content/work' }),
 	schema: ({ image }) =>
@@ -116,32 +101,8 @@ const work = defineCollection({
 					.array(z.object({ id: z.string(), label: z.string() }))
 					.default([]),
 
-				/** Full-bleed before/after opener. Omit to skip it. Separate from
+				/** Full-bleed opener shot. Omit to skip it. Separate from
 				 *  `thumbnail` above — this is for the in-page opener, not the card. */
-				hero: z
-					.object({
-						before: image(),
-						after: image(),
-						beforeAlt: z.string(),
-						afterAlt: z.string(),
-
-						/** Drag-handle labels. Default to "Before"/"After" — set these
-						 *  when the pair being compared wants its own vocabulary
-						 *  (e.g. "Draft"/"Published"). */
-						beforeLabel: z.string().optional(),
-						afterLabel: z.string().optional(),
-
-						/** Numbered callouts, revealed as the drag commits to a side. */
-						beforeNotes: z.array(noteSchema).default([]),
-						afterNotes: z.array(noteSchema).default([]),
-					})
-					.optional(),
-
-				/** Single full-bleed opener shot, for a case study whose opener is
-				 *  one state rather than a pair — there is nothing to compare, so
-				 *  a drag handle would be an affordance over a still. Mutually
-				 *  exclusive with `hero` above (enforced below): both would put
-				 *  two openers in the same slot with no defined order. */
 				heroShot: z.object({ src: image(), alt: z.string() }).optional(),
 
 				/** Hero actions. `video` scrolls to the outcome film, `read` to the body. */
@@ -155,10 +116,6 @@ const work = defineCollection({
 			.refine((data) => data.status !== 'external' || Boolean(data.externalUrl), {
 				message: 'externalUrl is required when status is "external"',
 				path: ['externalUrl'],
-			})
-			.refine((data) => !(data.hero && data.heroShot), {
-				message: 'set either `hero` (a before/after compare) or `heroShot` (a single shot), not both',
-				path: ['heroShot'],
 			})
 			.refine((data) => data.roles.some((role) => role.kind === 'design-type'), {
 				message: 'roles must include a "design-type" entry',
