@@ -698,8 +698,8 @@ of a fully published entry.
   standfirst; optional — the hero skips the line and meta tags fall back to
   the title), `facts` (max 4, the row under the title), `chapters` (the
   chapter rail — each `id` must match a `<Chapter id="…">` wrapper in the
-  body), `hero` (a before/after compare) *or* `heroShot` (a single still —
-  the schema rejects both), `actions` (hero CTAs).
+  body), `heroShot` (a single full-bleed opener still), `actions` (hero
+  CTAs).
 
 **`status`** decides what gets built and where it shows up. There is no
 separate "hide from homepage" flag — this one field is the whole state
@@ -1047,9 +1047,7 @@ Four things on the critical path are deliberate and easy to undo by accident.
   exactly the images that are the LCP candidate. `WorkCard` takes a `priority`
   prop (`index.astro` passes it to the first two cards — on the reel's first
   screen the first card peeks in at the bottom centre and the second at the
-  bottom right), `CaseStudyHero`'s
-  `heroShot` sets it directly, and
-  `BeforeAfter`'s two shots carry `fetchPriority="high"`.
+  bottom right), and `CaseStudyHero`'s `heroShot` sets it directly.
 - **`FontPreload.astro` is global chrome, like `Footer` and `Analytics`.**
   There is no shared root layout, so it is rendered in `index.astro`,
   `about.astro` and `CaseStudyLayout.astro` independently — a fourth top-level
@@ -1151,8 +1149,8 @@ re-optimizes Vite's on-disk dependency cache (`node_modules/.vite`), which
 desyncs from the running dev server's in-memory module graph. Symptom: every
 React island throws `TypeError: _jsxDEV is not a function` on hydration —
 the page still server-renders fine, so it looks like content silently
-vanished (before/after compare, chapter rail, lightbox, etc. all disappear)
-rather than like a build error. Fix: stop the dev server, `rm -rf
+vanished (chapter rail, lightbox, etc. all disappear) rather than like a
+build error. Fix: stop the dev server, `rm -rf
 node_modules/.vite`, restart `npm run dev`. If a build is genuinely needed
 mid-session, stop the dev server first and restart it after. This includes
 `npm run check` — the gate itself. A second, quieter symptom: the dev server
