@@ -1,11 +1,11 @@
 ---
-title: Introduce Agent Versioning and lifecycle management
+title: Enable customers to safely deploy agents in their workspace
 industry: Clinical trials
 technology: AI Agents
 year: 2026
 thumbnail:
-    src: ../../assets/work/agent-versioning/00-hero-after.png
-    alt: The agent canvas with version history and an unpublished-changes banner
+    src: ../../assets/work/agent-versioning/00-thumbnail.png
+    alt: An agent's Draft version history panel and a dialog listing outdated dependencies before it can be published
 # Carried over from earlier WIP on this card — adjust if this isn't accurate.
 roles:
     - kind: design-type
@@ -13,70 +13,60 @@ roles:
     - kind: code
       label: Contributed code
 order: 30
-status: coming-soon
-subtitle: Versioned agents can be validated and released in clinical trials safely because they can be rolled back.
+status: published
+subtitle: Agent versioning allows agents to be validated before releasing them in clinical trials and rolled back, if necessary.
 facts:
     - label: Duration
       value: 1 month (end-to-end)
     - label: Role
-      value: Sole product designer
+      value: Lead product designer
     - label: Team
       value: EPD (1 Des, 1 PM, 3 Dev)
-hero:
-    before: ../../assets/work/agent-versioning/00-hero-before.png
-    after: ../../assets/work/agent-versioning/00-hero-after.png
-    beforeAlt: The agent canvas before versioning — a single editable draft, with Save and Publish and no version history
-    afterAlt: The same canvas after versioning — an unpublished-changes banner, a draft state control, version history, and accent borders on the nodes carrying updates
-    # x/y are percentages of the frame, and mark the centre of the numbered pin.
-    # Both shots are 1440x840 and the frame takes its ratio from them, so nothing
-    # is cropped and these map straight onto the images. Read off the annotated
-    # reference exports: each pin's square corner points back at the control it
-    # explains, so the centre sits down and to the right of that control.
-    beforeNotes:
-        - x: 22.6
-          y: 14.8
-          text: To make changes, user had to manually change state to draft
-        - x: 69.6
-          y: 15.5
-          text: Any new changes overwrote the previous agent configuration
-        - x: 54.2
-          y: 15.5
-          text: Inconsistent navigation pattern for accessing agent's settings
-    afterNotes:
-        - x: 25.6
-          y: 21.0
-          text: State changes are triggered contextually based on relevant actions
-        - x: 35.4
-          y: 46.5
-          text: All changes are versioned and viewable in the versions modal
-        - x: 54.9
-          y: 12.7
-          text: User receives a visible state change signifier that they can dismiss
-        - x: 89.0
-          y: 16.7
-          text: Agent settings are accessible in a side panel like the rest of the nodes on canvas
+chapters:
+    - id: context
+      label: Context
+    - id: problem
+      label: Problem
+    - id: versioning
+      label: How versioning works
+    - id: goals
+      label: Design goals
+    - id: ideation
+      label: Ideation
+    - id: constraints
+      label: Constraints
+    - id: solution
+      label: Solution
+    - id: reflection
+      label: Reflection
+heroShot:
+    src: ../../assets/work/agent-versioning/00-hero.png
+    alt: The Medable Agents canvas on a laptop — a CRA Agent flow in Draft, the version history panel open, and its connected Veeva and Jira apps flagged with pending updates
 ---
 
 import Figure from "../../components/case-study/Figure.astro";
 import NoteBox from "../../components/case-study/NoteBox.astro";
 import Term from "../../components/case-study/Term.astro";
-import Solution from "../../components/case-study/Solution.astro";
+import Chapter from "../../components/case-study/Chapter.astro";
+import StoryChapter from "../../components/case-study/StoryChapter.astro";
+import GoalChip from "../../components/case-study/GoalChip.astro";
+import Reflection from "../../components/case-study/Reflection.astro";
 import Slide from "../../components/case-study/Slide.astro";
 import SlideVideo from "../../components/case-study/SlideVideo.astro";
-import SlideText from "../../components/case-study/SlideText.astro";
-import StorySection from "../../components/case-study/StorySection.astro";
-import ReadInDetail from "../../components/case-study/ReadInDetail.astro";
-import StoryChapter from "../../components/case-study/StoryChapter.astro";
-import StoryBlock from "../../components/case-study/StoryBlock.astro";
+import { storyProse } from "../../components/case-study/story-type";
 
-import studyStatusChange from "../../assets/work/agent-versioning/02-problem-status-change.png";
-import lifecycleMap from "../../assets/work/agent-versioning/03-framing-lifecycle-map.png";
-import stateIterations from "../../assets/work/agent-versioning/04-ideation-state-iterations.png";
-import dependencyCardIterations from "../../assets/work/agent-versioning/05-ideation-dependency-card.png";
-import mandatoryPublish from "../../assets/work/agent-versioning/06-ideation-mandatory-publish.png";
-import versionsModal from "../../assets/work/agent-versioning/07-ideation-versions-modal.png";
-import visualCues from "../../assets/work/agent-versioning/08-ideation-visual-cues.png";
+import problemCanvas from "../../assets/work/agent-versioning/01-problem-canvas.png";
 import versionCardFix from "../../assets/work/agent-versioning/11-refinement-version-card.png";
+// Cropped from the case-study deck (scratch/Agent versioning management.pdf)
+// at 2x. The slide headings are HTML below; only the cards and diagrams are
+// images.
+import contextAgents from "../../assets/work/agent-versioning/v2-01-context-agents.png";
+import versioningModel from "../../assets/work/agent-versioning/v2-02-versioning-model.png";
+import updatesFirst from "../../assets/work/agent-versioning/v2-03-updates-1-3.png";
+import updatesSecond from "../../assets/work/agent-versioning/v2-04-updates-4-6.png";
+import stateChange from "../../assets/work/agent-versioning/v2-05-state-change.png";
+import mandatoryUpdates from "../../assets/work/agent-versioning/v2-06-mandatory-updates.png";
+import scopeCut from "../../assets/work/agent-versioning/v2-07-scope-cut.png";
 
 import slideVersionPicker from "../../assets/work/agent-versioning/slide-1-version-picker.png";
 import slideDependencyCard from "../../assets/work/agent-versioning/slide-2-dependency-card.png";
@@ -85,393 +75,296 @@ import slideMandatoryUpdates from "../../assets/work/agent-versioning/slide-4-ma
 import slideUnifiedUpdatePanel from "../../assets/work/agent-versioning/slide-5-unified-update-panel.png";
 import slideVersionModal from "../../assets/work/agent-versioning/slide-6-version-modal.png";
 
-<StorySection heading="Problem" divider>
+{/* Every closing tag in this file sits flush left. Several blocks end on a
+list, and an indented closing tag after a list reads to CommonMark as part of
+the last item — see CLAUDE.md's case-studies section. */}
 
-> Without versioning, enterprise customers couldn't validate agents before releasing them.
+<Chapter id="context">
+<StoryChapter heading="Context" narrow>
+<Fragment slot="intro">
 
-<Term id="ai-builder">AI builder</Term> assembles an agentic workflow in Agent
-studio. For eg, a <Term id="cra">Clinical Research Associate</Term> (CRA)
-responsible for maintaining compliance can build an agent to monitor anomalies
-in the clinical trials they're responsible for.
+Agent studio helps customers create, deploy and monitor agents for running their clinical
+trials. It comes with pre-built agents, or users can create custom agents as well.
 
-Before versioning, editing an agent simply overwrote it and the changes went live immediately.
-As a result, there was no way to implement any governance which allowed customers to validate
-the changes before releasing it.
+For example, a <Term id="cra">Clinical Research Associate</Term> (CRA) can build an agent to monitor non-compliant events in the clinical trials they're overseeing.
 
-</StorySection>
-
-<Solution>
-    <Slide>
-        <SlideVideo
-            slot="media"
-            src="/media/agent-versioning-unified-update-panel.mp4"
-            poster={slideUnifiedUpdatePanel}
-            alt="A floating tab at the bottom of the canvas totalling every pending update, then confirming the agent was updated"
-            pin="top-left"
-        />
-        <SlideText title="Unified update panel">
-            A floating tab totals every pending update on the canvas and lets
-            builders accept them all in one go.
-        </SlideText>
-    </Slide>
-    <Slide>
-        <SlideVideo
-            slot="media"
-            src="/media/agent-versioning-dependency-card.mp4"
-            poster={slideDependencyCard}
-            alt="A dependency card in the settings side panel showing the version change and an Update action"
-            pin="bottom-left"
-        />
-        <SlideText title="Dependency card update">
-            The dependency card shows what changed in an update, and both the
-            previous and the latest version number, so builders can decide
-            whether to accept it.
-        </SlideText>
-        <SlideText title="Settings side panel">
-            Agent settings open in a side panel, consistent with how every other
-            node's settings are edited on the canvas.
-        </SlideText>
-    </Slide>
-    <Slide>
-        <SlideVideo
-            slot="media"
-            src="/media/agent-versioning-unpublished-banner.mp4"
-            poster={slideUnpublishedBanner}
-            alt="The canvas moving to draft, with a banner appearing across the top to flag unpublished changes"
-            pin="bottom-left"
-        />
-        <SlideText title="Unpublished changes banner">
-            A banner appears at the top of the canvas the moment it moves to
-            draft, giving builders clear, persistent feedback that they have
-            unpublished changes.
-        </SlideText>
-    </Slide>
-    <Slide>
-        <SlideVideo
-            slot="media"
-            src="/media/agent-versioning-mandatory-updates.mp4"
-            poster={slideMandatoryUpdates}
-            alt="A publish-time dialog listing outdated dependencies with a single Update all and publish action"
-            pin="bottom-left"
-        />
-        <SlideText title="Mandatory updates">
-            Mandatory updates from workspace admins are surfaced at the point of
-            publish, so builders accept them all in one pass instead of hunting
-            for them across the canvas.
-        </SlideText>
-    </Slide>
-    <Slide>
-        <SlideVideo
-            slot="media"
-            src="/media/agent-versioning-version-picker.mp4"
-            poster={slideVersionPicker}
-            alt="Opening the version picker from the agent's state tag to see the published version and its history"
-            pin="bottom-right"
-        />
-        <SlideText title="Agent state tag">
-            The current state of the agent is conveyed through the tag next to
-            its name. The state can be "Published" (in green) or "Draft" (in
-            yellow).
-        </SlideText>
-        <SlideText title="Version picker">
-            The state tag provides information about the selected version and
-            allows the user to open previous versions.
-        </SlideText>
-    </Slide>
-    <Slide>
-        <SlideVideo
-            slot="media"
-            src="/media/agent-versioning-version-modal.mp4"
-            poster={slideVersionModal}
-            alt="The versions modal, selecting an older draft version and rolling back to it"
-            pin="center"
-        />
-        <SlideText title="Version modal">
-            For accessing the previous version of the agent and rolling back to
-            one, if required.
-        </SlideText>
-    </Slide>
-</Solution>
-
-<StorySection heading="Code contribution">
-
-> Shipped a fix to a UI bug by designing it directly in code
-
-Post launch feedback revealed the version cards were breaking in production because
-double-digit version numbers were bleeding out of their borders. Even the draft tag looked too
-cramped.
-
-I didn't involve devs because this was a purely frontend change. I opened a branch in cursor,
-tried a few iterations directly in code, finalised one and raised a merge request in under an
-hour.
+</Fragment>
 
 <Figure
-    slot="visual"
-    src={versionCardFix}
-    alt="A merged pull request redesigning and unifying the version timeline card, with the old and new designs side by side"
+    src={contextAgents}
+    alt="Four agent cards from Agent studio: Clinical Monitoring, eTMF Management, PI Summary and Review, and Build your own agent"
+    caption="Pre-built agents, and the option to build your own"
 />
-
-</StorySection>
-
-{/* Everything inside <ReadInDetail> is clipped to a 344px peek and buried
-under a wash until the reader opens it. It is real content, not a teaser —
-so every closing tag below must sit flush left, including the nested ones.
-Several blocks end on a numbered list, and an indented closing tag after a
-list reads to CommonMark as a continuation of the last list item; the MDX
-compiler then fails with a RolldownError pointing nowhere near the cause.
-See CLAUDE.md's case-studies section. */}
-
-<ReadInDetail>
-
-<StoryChapter heading="Narrowing the problem">
-
-<StoryBlock title="Studying existing platform patterns">
-
-<Figure
-    slot="visual"
-    src={studyStatusChange}
-    alt="Study Studio's change-status dialog, showing a current status of Draft moving to Publish"
-/>
-
-Before diving into ideation, I studied an existing pattern for status change in <Term id="study-studio">Study Studio</Term> (another product in the Medable platform) to see if I can use it in the context of agents. I found it inadequate for agents because…
-
-1. **More UI manoeuvring:** A builder will receive updates on dependencies frequently. To
-   change the status first, and then accept the new update would be intrusive UX.
-2. **Misleading Mental modal:** Changing status from published to draft doesn't unpublish the
-   agent (unlike the study, which becomes unavailable). For agents, changing state to draft is
-   expected to create an identical version of the agent which user can modify, while the
-   previous version stays published and available for use simultaneously.
-
-</StoryBlock>
-
-<StoryBlock title="Synthesising user requirements">
-
-<Figure
-    slot="visual"
-    src={lifecycleMap}
-    alt="A lifecycle map: draft to published v1 on first publish, then edit to draft and second publish to published v2"
-/>
-
-I began by mapping how versioning will change the existing workflow for AI builders based on
-my product knowledge of agent studio.
-
-After versioning, whenever a <Term id="dependency">dependency</Term> is modified, the agent
-using it receives an update. I arrived at the following requirements for them.
-
-1. They should be able to view it
-2. They should be able to accept it only if they want to
-3. In case the update is mandatory, they shouldn't be able to update the agent without
-   accepting it
-4. They should be able to rollback to a previous agent version
-
-</StoryBlock>
 
 </StoryChapter>
+</Chapter>
 
-<StoryChapter heading="UX decisions">
+<Chapter id="problem">
+<StoryChapter heading="No versioning, no governance" narrow>
+<Fragment slot="intro">
 
-<StoryBlock title="Designing new agent lifecycle patterns">
+> Lack of versioning stalled adoption by customers, hurting revenue
 
-<Figure
-    slot="visual"
-    src={stateIterations}
-    alt="Three iterations of the agent header comparing published and draft states, with the selected iteration at the bottom"
-/>
+Any change made to an agent overwrote its previous configuration and went live immediately.
 
-> Version number is irrelevant. To help user track agent's lifecycle, anchor their attention to state
+This meant customers couldn't validate agents before letting them access their clinical trial
+data. Overwriting was also a problem because it prevented auditing: once a configuration was
+gone, there was no record of what the agent used to do.
 
-While ideating how to visualise agent's lifecycle, I realised the version number is not
-important. The version can be v237. Therefore, user's mental model should be anchored in
-canvas state so that it's clear which actions are allowed.
-
-Therefore, the experience of versioning boils down to helping the user:
-
-1. identify which state they are in currently, and as a result what they can do
-2. clearly show when the state has changed
-3. understand they have to republish for changes to take effect
-
-</StoryBlock>
-
-<StoryBlock title="Designing versioned dependency card">
+</Fragment>
 
 <Figure
-    slot="visual"
-    src={dependencyCardIterations}
-    alt="Three iterations of the dependency card, from a simple accept/dismiss affordance to the selected version-aware design"
+    src={problemCanvas}
+    alt="The agent canvas before versioning: a single draft agent with Settings, Test, Save and Publish, and no version history"
+    caption="The agent canvas before versioning"
 />
 
-{/* `open` because this note was plain always-visible prose before NoteBox
-became a collapsible <details>; leaving it closed would silently hide
-copy this published page had always shown. */}
+</StoryChapter>
+</Chapter>
 
-<NoteBox slot="visual" title="Note on user testing" open>
+<Chapter id="versioning">
+<StoryChapter heading="How does versioning work?" narrow>
+<Fragment slot="intro">
 
-Because conducting user tests with end users (eg, CRAs) can take significantly longer to set
-up, and we were on the clock with versioning, I validated these concepts with 5 internal
-users in the client services team who use the product daily.
+An agent is made of various <Term id="dependency">dependencies</Term> like a system prompt, skills, etc. When one of them is modified, every agent using it receives an update. **Changing any dependency or updating it increments the agent's version.**
+
+</Fragment>
+
+<Figure
+    src={versioningModel}
+    alt="A diagram: Agent v1, made of a system prompt, skills, knowledge, guardrails, connectors and triggers, receives an update (one or many, optional or mandatory) and becomes Agent v2"
+/>
+
+</StoryChapter>
+</Chapter>
+
+<Chapter id="goals">
+<StoryChapter heading="Design goals" narrow>
+<Fragment slot="intro">
+
+The best agent versioning experience will…
+
+<div class="mx-auto grid w-full max-w-[var(--measure-copy)] gap-4 grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
+  <GoalChip>Help users intuitively keep track of an agent's versions and state: draft or published</GoalChip>
+  <GoalChip>Handle multiple updates gracefully and help decide which ones are worth accepting</GoalChip>
+  <GoalChip>Prevent users from publishing while mandatory updates are missing</GoalChip>
+  <GoalChip>Allow reverting to a previous version when necessary</GoalChip>
+</div>
+
+</Fragment>
+</StoryChapter>
+</Chapter>
+
+<Chapter id="ideation">
+<StoryChapter heading="Ideation" narrow>
+
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">How to handle updates?</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>The dependency card was already used to edit a dependency's configuration. I redesigned it to handle updates on top of it.</p>
+
+  <Figure
+    src={updatesFirst}
+    alt="Three concepts: a list of every update with accept and dismiss per row; one bundled 'Accept all updates and republish agent' action; and a prompt card expanded to show a new update's change description"
+    caption="Iterations 1–3"
+  />
+
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>I made the card modular, extending it when it receives an update. I ensured it scaled to all dependency types.</p>
+
+  <Figure
+    src={updatesSecond}
+    alt="Three more concepts: a modular skills card with Update and Dismiss; a prompt card showing v3 → v4 with a change description; and the chosen design, where the prompt card extends with 'v4 available' and an Update link"
+    caption="Iterations 4–6"
+  />
+
+{/* `open` because this note was always-visible prose on the earlier draft
+of this page, before NoteBox became a collapsible <details>. */}
+
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">How to handle state change?</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}> State changes was the most important because what the user could or couldn't do depended on the state. My biggest insight driving this design was that version number is not important and that change of state should be made explicitly clear. </p>
+
+  <Figure
+    src={stateChange}
+    alt="Three concepts: 'Version 6' beside a Draft tag; an Unpublished tag with a Draft menu listing v5 as published; and a yellow banner reading 'Contains unpublished changes' across the top of the canvas"
+    caption="State change iterations"
+  />
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">How to handle mandatory updates?</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Mandatory updates are made by workspace admins, usually for security reasons. I decided to not emphasise updates as "mandatory" and bring them up only at the point of publish, incase the user had missed them, because builders have no choice but to accept them.</p>
+
+  <Figure
+    src={mandatoryUpdates}
+    alt="Two versions of the publish-time dialog: the first lists each outdated dependency with its change description; the simplified one lists Connect Veeva and Slack with v3 → v4 and a single 'Update all and publish' action"
+    caption="Mandatory update iterations"
+  />
+
+<div class="mx-auto w-full max-w-[var(--measure-copy)]">
+<NoteBox title="Note on user testing" open>
+
+Because conducting user tests with end users (e.g. CRAs) takes significantly longer to set up,
+and we were on the clock with versioning, I validated these concepts with 5 internal users in
+the client services team who use the product daily.
 
 </NoteBox>
-
-> Users want to know what changed in the update and both the previous and the latest version number
-
-The dependency card was already crucial for editing the configuration of a dependency. Now
-versioning was adding another layer of complexity.
-
-To keep it simple, I began with a simple Y/N affordance to accept of dismiss updates
-(iteration 1). But on viewing it with the user lens, it fell short because it didn't…
-
-1. give any info to decide whether the new update was important
-2. afford editing while it was also showing an update
-3. accommodate multiple files under each dependency type
-
-These points became the requirements for the 2nd iteration. But now the component felt too
-busy. So for iteration 3, I took out the current version thinking it didn't add any value.
-
-But on user testing iteration 3 with internal users, I learnt that they confused the version
-number shown to be the existing version, not the new version. This was rectified in the final
-iteration, which handled all requirements and scaled to all dependency types.
-
-</StoryBlock>
-
-<StoryBlock title="Enforcing mandatory updates">
-
-<Figure
-    slot="visual"
-    src={mandatoryPublish}
-    alt="A dialog listing dependencies with mandatory updates, blocking publish until all are accepted"
-/>
-
-<Term id="mandatory-update">Mandatory updates</Term> are crucial for security,
-and made by workspace admins, hence builders have to accept it.
-
-The key UX driver here was _when_ to bring the mandatory updates up and doing it without being
-intrusive. If the user doesn't accept them on the canvas, instead of highlighting it, the more
-thoughtful way to enforce it would be to bring them up at the point of publish so that the
-user can accept them all in one shot.
-
-I also debated whether mandatory updates should be highlighted on the canvas, exploring
-various layouts like accordions and grids to list them. Finally, I decided the optimal UX was
-to accept all mandatory updates in one go at the time of publish. A carousel works best
-because it does not force the user to see all the updates, yet does not prevent them to go
-through them if they want — <Term id="progressive-disclosure">progressive disclosure</Term>.
-
-</StoryBlock>
-
-<StoryBlock title="Showing versions and rollback">
-
-<Figure
-    slot="visual"
-    src={versionsModal}
-    alt="The versions modal: a dated list of versions on the left, the selected version's configuration in tabs on the right"
-/>
-
-> Modal can handle large number of versions. Arranging the version configuration in tabs keeps it easy to find for the user
-
-Regarding versions, I knew the list could grow long, that's why I opted to navigate user to a
-modal, where I can show large numbers of versions.
-
-The meta data on version card was decided based on what users want to know—when was the
-version created and by whom.
-
-At first, I decided not to put the "published" tag assuming it would be obvious that the
-version on top of the pile is the published, but during stakeholder discussion, I realised the
-topmost version could be draft.
-
-The content of each version was arranged in tabs for the following reasons:
-
-1. make it easy for users (likely auditor or builder) to find what they are looking for
-2. to avoid long scroll
-
-</StoryBlock>
-
-<StoryBlock title="Designing visual cues for state change and updates">
-
-<Figure
-    slot="visual"
-    src={visualCues}
-    alt="An accent-bordered node, a floating updates-available tab, and a banner reading 'This canvas contains unpublished changes'"
-/>
-
-I wanted to convey important information to the user about updates and state changes on the
-canvas in a subtle way without demanding too much cognition from them. I achieved this using…
-
-1. accent border to visually differentiate nodes with updates, making it easier to scan for
-   updates.
-2. a floating tab to convey total updates and accept all updates in one go.
-3. a banner moving at the top when canvas changes to draft, clearly giving feedback of state
-   change.
-
-</StoryBlock>
+</div>
+</div>
 
 </StoryChapter>
+</Chapter>
 
-</ReadInDetail>
+<Chapter id="constraints">
+<StoryChapter heading="Constraints and bug fixes" narrow>
 
-{/*
-The three chapters below are NOT part of the cut above and are NOT waiting on
-the "Read in detail" curtain — that is built, and everything it holds now
-lives uncommented further up. These are waiting on a *design\*: they have not
-been re-cut into the StoryChapter/StoryBlock shape the rest of the long form
-uses, so they still carry the old <Section> markup.
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Reduced scope to meet release dates</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Engineering assessed that the complete design, including the settings side panel, would take longer than the release deadline allowed. Instead of pushing the date, I was asked for a middle ground. Everyone agreed the side panel was better UX, but it needed new components. So I cut it, because it fixed a consistency issue rather than anything crucial to versioning. As a result, I had to redesign the dependency card again to fit the existing, inconsistent modal.</p>
 
-To restore one: give it a StoryBlock title (its old `eyebrow`), turn its
-`claim heading` into a leading blockquote if the design keeps the claim, and
-move it inside a StoryChapter in the <ReadInDetail> block above.
-
-Restoring also means putting the imports back at the top of this file:
-Section, FigureRow, VideoFigure, Reflection, scopeSidePanel, scopeModal and
-outcomeStill were removed as dead, since a commented block is discarded
-before anything in it is resolved and no tooling here would ever flag them.
-
-<Section chapter="constraint" eyebrow="Meeting engineering constraints" claim heading="To meet the release date, I reduced scope by cutting the side panel because even though it was better UX, it wasn't crucial to versioning">
-  <FigureRow slot="visual">
-    <Figure src={scopeSidePanel} alt="The settings side panel, consistent with the dependency card design" caption="Side panel (consistent)" />
-    <Figure src={scopeModal} alt="The edit-agent-details modal, inconsistent with the dependency card design" caption="Modal (inconsistent)" />
-  </FigureRow>
-
-Engineering assessed the complete design (including the side panels) would take longer than
-the release deadline. Instead of pushing the dates, I was asked for a middle ground.
-
-They agreed the side panel was better UX, but because it involved new components,
-implementing it within the deadline wasn't possible.
-
-So I cut the settings side panel designed to fix consistency issues because it wasn't crucial
-to versioning. Consequently, I had to redesign the dependency card again to fit it to the
-inconsistent modal design.
-
-</Section>
-
-<Section chapter="outcome" id="outcome" eyebrow="Outcome" claim heading="Designed the versioning UX, including fixing UI bugs found in production, in a month to meet business goals" layout="wide">
-  Shipped versioning in a month to meet the release deadline, fixing UI bugs found in
-  productions and alleviating compliance concerns expressed by existing and potential customers
-  alike.
-
-  <VideoFigure
-    slot="visual"
-    poster={outcomeStill}
-    src="/media/agent-versioning-walkthrough.mp4"
-    alt="Walkthrough of the shipped versioning experience on the agent canvas"
+  <Figure
+    src={scopeCut}
+    alt="The dependency card in the consistent settings side panel, and the same card redesigned to fit the inconsistent Edit agent details modal"
+    caption="Side panel (consistent) vs. modal (inconsistent)"
   />
-</Section>
+</div>
 
-<Reflection>
-  From the next time when meeting a deadline forces me to compromise on design, I'll get
-  explicit agreement from PM to pick it up for the following release, with a ticket raised, so
-  that the better UX stays visible.
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Shipped a fix to a UI bug directly in code</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>After launch, I got feedback that double-digit version numbers were bleeding out of their borders on the version cards, and the draft tag looked cramped. Because it was a purely front-end change, I didn't pull in a developer. I opened a branch in Cursor, tried a few iterations directly in code and raised a merge request in under an hour.</p>
 
-I also got to experiment with designing in code in this project. Based on this experience, I
-have the following thoughts:
+  <Figure
+    src={versionCardFix}
+    alt="A merged merge request redesigning and unifying the version timeline card, with the old and new designs side by side"
+    caption="The merged fix"
+  />
+</div>
 
-- I feel designing in code is not suited for exploring diverse concepts; pen on paper is still
-  the fastest
-- On the contrary, it shines when it comes to small problems with known solution patterns
-- It will empower design teams to own more of the frontend
+</StoryChapter>
+</Chapter>
 
-At the end of the day, it is another tool in a designer's belt which they can reach for
-depending on the situation.
+<Chapter id="solution">
+<StoryChapter heading="Bringing it all together" narrow>
+<Fragment slot="intro">
 
-Oh, I also learned about code reviews and testing. I reviewed my code and took screenshots for
-testing, getting a small taste of developing and pushing something end to end.
+The shipped design lets builders see what state their agent is in, weigh each update before
+accepting it, clear mandatory updates in one pass at publish, and roll back to any previous
+version.
+
+</Fragment>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Agent state tag and version picker</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>The tag next to the agent's name shows its current state: "Published" or "Draft". It also opens the version picker, which describes the version being viewed and links to previous ones.</p>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/agent-versioning-version-picker.mp4"
+      poster={slideVersionPicker}
+      alt="Opening the version picker from the agent's state tag to see the published version and its history"
+      pin="bottom-right"
+    />
+  </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Unpublished changes banner</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>A banner appears at the top of the canvas the moment it moves to draft, giving builders clear, persistent feedback that they have unpublished changes.</p>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/agent-versioning-unpublished-banner.mp4"
+      poster={slideUnpublishedBanner}
+      alt="The canvas moving to draft, with a banner appearing across the top to flag unpublished changes"
+      pin="bottom-left"
+    />
+  </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Dependency card update</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>The dependency card shows what changed in an update, and both the previous and the latest version number, so builders can decide whether to accept it.</p>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/agent-versioning-dependency-card.mp4"
+      poster={slideDependencyCard}
+      alt="A dependency card in the settings side panel showing the version change and an Update action"
+      pin="bottom-left"
+    />
+  </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Unified update panel</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>A floating tab totals every pending update on the canvas and lets builders accept them all in one go.</p>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/agent-versioning-unified-update-panel.mp4"
+      poster={slideUnifiedUpdatePanel}
+      alt="A floating tab at the bottom of the canvas totalling every pending update, then confirming the agent was updated"
+      pin="top-left"
+    />
+  </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Mandatory updates</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>Mandatory updates from workspace admins are surfaced at the point of publish, so builders accept them all in one pass instead of hunting for them across the canvas.</p>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/agent-versioning-mandatory-updates.mp4"
+      poster={slideMandatoryUpdates}
+      alt="A publish-time dialog listing outdated dependencies with a single Update all and publish action"
+      pin="bottom-left"
+    />
+  </Slide>
+</div>
+
+<div class="grid gap-[var(--spacing-xl)]">
+<h3 class="story-subhead">Version modal</h3>
+<p class={[storyProse, 'w-full max-w-[var(--measure-copy)] mx-auto'].join(' ')}>The version modal lists every previous version of the agent, and lets builders roll back to one if they need to.</p>
+
+  <Slide static>
+    <SlideVideo
+      slot="media"
+      src="/media/agent-versioning-version-modal.mp4"
+      poster={slideVersionModal}
+      alt="The versions modal, selecting an older draft version and rolling back to it"
+      pin="center"
+    />
+  </Slide>
+</div>
+
+</StoryChapter>
+</Chapter>
+
+<Chapter id="reflection">
+<Reflection narrow>
+
+Next time a deadline forces me to compromise on design, I'll get explicit agreement from the PM
+to pick it up in the following release, with a ticket raised, so that the better UX stays
+visible.
+
+I also got to experiment with designing in code on this project. Based on that experience:
+
+- Designing in code isn't suited to exploring diverse concepts; pen on paper is still the
+  fastest.
+- It shines on small problems with known solution patterns.
+- It will empower design teams to own more of the front end.
+
+At the end of the day, it's another tool in a designer's belt to reach for depending on the
+situation. I also learned about code reviews and testing: I reviewed my own code and took
+screenshots for testing, getting a small taste of developing and shipping something end to end.
 
 </Reflection>
-*/}
+</Chapter>

@@ -58,9 +58,8 @@ Both are optional — ask for them conversationally if omitted.
    - `facts` (optional, max 4 label/value pairs)
    - `chapters` (optional, `id`/`label` pairs — each `id` must match a
      `Section`'s `chapter` prop used in the body)
-   - `hero` (optional full-bleed before/after opener — if the user wants one,
-     you'll need before/after images, alts, and optionally numbered
-     `beforeNotes`/`afterNotes` with `x`/`y` as percentages of the frame)
+   - `heroShot` (optional full-bleed opener shot — if the user wants one,
+     you'll need the image and an alt)
    - `actions` (optional hero CTAs)
 
    Scaffold the MDX body from `src/components/case-study/*` (`Section`,

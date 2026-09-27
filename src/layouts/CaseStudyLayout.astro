@@ -30,16 +30,6 @@ interface Props {
 	 *  rail at all, so this is opt-in per case study. */
 	chapters?: { id: string; label: string }[];
 	heroShot?: { src: ImageMetadata; alt: string };
-	hero?: {
-		before: ImageMetadata;
-		after: ImageMetadata;
-		beforeAlt: string;
-		afterAlt: string;
-		beforeLabel?: string;
-		afterLabel?: string;
-		beforeNotes?: { x: number; y: number; text: string }[];
-		afterNotes?: { x: number; y: number; text: string }[];
-	};
 	actions?: {
 		primary?: { label: string; href: string };
 		secondary?: { label: string; href: string };
@@ -57,7 +47,6 @@ const {
 	subtitle,
 	thumbnail,
 	facts = [],
-	hero,
 	heroShot,
 	actions = {},
 	chapters = [],
@@ -120,7 +109,6 @@ const metaDescription = subtitle ?? title;
 			hasChapterNav={chapters.length > 0}
 			facts={facts}
 			actions={actions}
-			hero={hero}
 			heroShot={heroShot}
 		/>
 		{chapters.length > 0 && <ChapterNav chapters={chapters} />}

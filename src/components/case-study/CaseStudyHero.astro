@@ -1,6 +1,5 @@
 ---
-import { Image, getImage } from 'astro:assets';
-import BeforeAfter, { dedupeNotes } from './BeforeAfter';
+import { Image } from 'astro:assets';
 import Icon from '../ui/Icon.astro';
 import { buttonVariants } from '../ui/button';
 import type { ImageMetadata } from 'astro';
@@ -25,36 +24,13 @@ interface Props {
 		primary?: { label: string; href: string };
 		secondary?: { label: string; href: string };
 	};
-	/** A single opener shot, for a case study with nothing to compare. The
-	 *  schema keeps this and `hero` mutually exclusive. */
+	/** The opener shot. */
 	heroShot?: { src: ImageMetadata; alt: string };
-	hero?: {
-		before: ImageMetadata;
-		after: ImageMetadata;
-		beforeAlt: string;
-		afterAlt: string;
-		beforeLabel?: string;
-		afterLabel?: string;
-		beforeNotes?: { x: number; y: number; text: string; label?: string }[];
-		afterNotes?: { x: number; y: number; text: string; label?: string }[];
-	};
 }
 
-const { title, slug, subtitle, hasChapterNav = false, facts = [], actions = {}, hero, heroShot } = Astro.props;
-const beforeLabel = hero?.beforeLabel ?? 'Before';
-const afterLabel = hero?.afterLabel ?? 'After';
-const beforeNotes = hero?.beforeNotes ?? [];
-const afterNotes = hero?.afterNotes ?? [];
+const { title, slug, subtitle, hasChapterNav = false, facts = [], actions = {}, heroShot } = Astro.props;
 
-// The island takes plain src/srcSet strings, so the responsive set has to be
-// resolved here — <Image> cannot do it inside a React component.
 const shotWidths = [720, 1080, 1440, 1920];
-const [before, after] = hero
-	? await Promise.all([
-			getImage({ src: hero.before, widths: shotWidths, format: 'webp', quality: 82 }),
-			getImage({ src: hero.after, widths: shotWidths, format: 'webp', quality: 82 }),
-		])
-	: [];
 
 // Mirrors .hero__frame's own max-width formula below — measure-prose plus
 // two gutters, capped by the viewport, minus those same two gutters handed
@@ -71,7 +47,7 @@ const [before, after] = hero
 // is a safe round threshold above it. Below the threshold the frame tracks
 // ~92vw (the viewport less two ~4vw gutters). If the measure moves, move this
 // string too.
-const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
+const shotSizes = '(min-width: 68rem) 62.5rem, 92vw';
 ---
 
 <header class="hero" style={`view-transition-name: card-${slug};`}>
@@ -139,10 +115,6 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 
 	{
 		heroShot && (
-			/* The still counterpart to the compare below: same frame, same
-			   width, no drag affordance. `sizes` is compareSizes for the same
-			   reason — the two openers occupy the identical box, so they want
-			   the identical responsive set. */
 			<div class="hero__frame hero__shot">
 				{/* The opener, so it is the page's LCP candidate on every case
 				    study that has one. Astro's image service defaults to
@@ -152,63 +124,11 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 					src={heroShot.src}
 					alt={heroShot.alt}
 					widths={shotWidths}
-					sizes={compareSizes}
+					sizes={shotSizes}
 					quality={82}
 					loading="eager"
 					fetchpriority="high"
 				/>
-			</div>
-		)
-	}
-
-	{
-		hero && before && after && (
-			<div class="hero__frame hero__compare">
-				<BeforeAfter
-					client:load
-					before={{
-						src: before.src,
-						srcSet: before.srcSet.attribute,
-						sizes: compareSizes,
-						width: hero.before.width,
-						height: hero.before.height,
-						alt: hero.beforeAlt,
-					}}
-					after={{
-						src: after.src,
-						srcSet: after.srcSet.attribute,
-						sizes: compareSizes,
-						width: hero.after.width,
-						height: hero.after.height,
-						alt: hero.afterAlt,
-					}}
-					beforeLabel={beforeLabel}
-					afterLabel={afterLabel}
-					beforeNotes={beforeNotes}
-					afterNotes={afterNotes}
-					ratio={hero.after.width / hero.after.height}
-				/>
-
-				{/* The pins and the panel they open are aria-hidden inside the
-				    island — they are a drag affordance, and at rest both sides'
-				    text is in the DOM at once, which would read as duplicated
-				    nonsense. This is the same content, once, in reading order.
-				    Same labels as the island above, not restated literally, so
-				    the two representations cannot drift apart. */}
-				<div class="ba-notes sr-only">
-					{beforeNotes.length > 0 && (
-						<div class="ba-notes__group">
-							<h2 class="type-overline">{beforeLabel}</h2>
-							<ol>{dedupeNotes(beforeNotes).map(({ text }) => <li>{text}</li>)}</ol>
-						</div>
-					)}
-					{afterNotes.length > 0 && (
-						<div class="ba-notes__group">
-							<h2 class="type-overline">{afterLabel}</h2>
-							<ol>{dedupeNotes(afterNotes).map(({ text }) => <li>{text}</li>)}</ol>
-						</div>
-					)}
-				</div>
 			</div>
 		)
 	}
@@ -377,7 +297,7 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 		color: var(--text-body);
 	}
 
-	/* ---- before / after ----
+	/* ---- opener shot ----
 	   Capped to --measure-prose, not .hero__lede's narrower --measure-copy —
 	   the frame is deliberately wider than the title/facts above it, breaking
 	   out past their edges on both sides, the same copy-vs-media split
@@ -386,8 +306,7 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 	   precisely because that's the measure narrow-mode chapters render their
 	   own screenshots at. The hero shot is the reader's first look at the
 	   product, so it needs to read as the same width as those, not as wide as
-	   a plain `Section`'s own --measure-story column. The island sets its own
-	   aspect ratio, so this only has to give it the width.
+	   a plain `Section`'s own --measure-story column.
 
 	   The `+ 2 * var(--gutter)` inside the min() is the same compensation
 	   StoryChapter's `narrow` mode applies to its own container (see that
@@ -398,14 +317,7 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 	   screenshot below it) instead of flush with it. Adding the gutter back
 	   before subtracting it nets out to exactly --measure-prose once the
 	   viewport is wide enough, and still falls back to "100% minus two
-	   gutters" below that, same as before.
-
-	   No background here: the island carries its own, and a sunken band exactly
-	   the width of the frame would do nothing but show square corners behind
-	   the frame's rounded ones. */
-	/* The opener's box, shared by both variants — a compare and a single shot
-	   are the same frame in the same slot, so the width lives here once rather
-	   than in two rules that could drift. */
+	   gutters" below that, same as before. */
 	.hero__frame {
 		max-width: calc(min(var(--measure-prose) + 2 * var(--gutter), 100%) - 2 * var(--gutter));
 		margin-inline: auto;
@@ -414,10 +326,6 @@ const compareSizes = '(min-width: 68rem) 62.5rem, 92vw';
 		margin-block-end: var(--spacing-4xl);
 	}
 
-	/* Radius and ground are lifted from `.ba` in components.css, so a still
-	   opener is cut to the same corner as a compare one. The compare owns its
-	   own copy there because it also clips two absolutely-positioned halves to
-	   it; this only has to clip one <img>. */
 	.hero__shot {
 		overflow: hidden;
 		border-radius: var(--radius-lg);
