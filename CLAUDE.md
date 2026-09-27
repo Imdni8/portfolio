@@ -721,9 +721,9 @@ the MDX body.
 **Assets** live in `src/assets/work/<slug>/`, numbered by where they appear in
 the story (`00-` for the hero/thumbnail shots, then reading order) — follow
 `src/assets/work/agent-versioning/`. Reference them from frontmatter with a
-relative path (`../../assets/work/<slug>/…`). `thumbnail` and
-`hero.before`/`hero.after` are independent images, not the same field reused —
-a `coming-soon` entry has only a thumbnail, no hero pair.
+relative path (`../../assets/work/<slug>/…`). `thumbnail` and `heroShot` are
+independent images, not the same field reused — a `coming-soon` entry has
+only a thumbnail, no `heroShot`.
 
 **Body** is free-form MDX assembled from `src/components/case-study/*`
 (`Section`, `Figure`, `FigureRow`, `NoteBox`, `VideoFigure`, `Reflection`,
