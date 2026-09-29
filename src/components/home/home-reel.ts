@@ -9,8 +9,9 @@
  *
  *   intro   — two states and a transition between them, never anything in
  *             between. First screen: the headline, cards peeking in below.
- *             Second: the headline gone, its T mark in the nav's brand slot,
- *             the nav in, the first card centred. The first gesture on the
+ *             Second: the headline gone, the background's bands dimmed, the
+ *             first card centred. The nav is there throughout. The first
+ *             gesture on the
  *             first screen *plays* the transition, whatever size the gesture
  *             is; a gesture back from the first card plays it in reverse. The
  *             two states sit INTRO viewport-heights apart in the scroll, so
@@ -45,7 +46,6 @@
  * work-spotlight.ts lights them the way it did before the reel.
  */
 import { initWorkSpotlight } from '../work/work-spotlight';
-import { LIQUID_METAL_REST_SCALE, getLiquidMetal } from '../ui/liquid-metal';
 
 /** Keep in step with the `@media` blocks in index.astro and SiteNav.astro. */
 export const REEL_QUERY =
@@ -78,36 +78,19 @@ const INTRO_DURATION = 1000;
 const FADE = [0, 0.3] as const;
 /** …drifting up this far as they go, in viewport heights. */
 const FADE_DRIFT = 0.04;
-/** The T mark's flight into the nav — on-screen movement, so --ease-in-out.
- *  It leads, and lands well before the cards behind it come to rest. */
-const GLIDE = [0, 0.6] as const;
-/** The liquid-metal diamond's size once the intro has played, on the same
- *  GLIDE timing and curve as the mark: it grows as the mark glides, so by the
- *  time the mark lands, the diamond is this many times its resting size — big
- *  enough that its corners peek out from behind the lit card and its
- *  neighbours, per
- *  https://app.paper.design/file/01M0JA3C4D56J49TYWHSXTMEKJ/1-0/2BP-0. No
- *  measured reference, only that frame — eyeballed, retune by eye if it stops
- *  clearing the cards at other viewport sizes.
- *
- *  Capped below 1: the shader's `fit: 'contain'` sizes the diamond against
- *  whichever of the host's dimensions is smaller, which on every reel-width
- *  viewport (landscape, ≥64rem) is the height — so at `scale` 1 its top and
- *  bottom points already touch the viewport's own top and bottom edges, and
- *  anything past that pushes them off-screen. 0.85 leaves both points a
- *  visible margin inside the screen. */
-const DIAMOND_EXPAND_SCALE = 0.88;
-/** The nav's fade-in, done the moment the mark lands. The nav's own brand is
- *  inside the faded shell, so anything short of full strength at the
- *  hand-off would show as the mark dimming as it arrives. */
-const NAV = [0.3, 0.6] as const;
+/** The background's bands dim over this stretch, on --ease-in-out (a
+ *  colour change on screen, not an arrival)… */
+const DIM = [0, 0.6] as const;
+/** …down to this opacity, so the lit card never sits on the bands at full
+ *  strength. Eyeballed; retune by eye. */
+const DIM_TO = 0.4;
 
 /** How far below its place a card starts, in viewport heights — the
  *  reference's first frame has the centre card's top at 77% of the screen,
  *  58% below where it comes to rest. */
 const RISE = 0.58;
 /** The centre card starts rising this far into the intro — a beat behind
- *  the mark, so it follows the mark up instead of catching it. */
+ *  the headline's fade, so it rises into space the words have mostly left. */
 const RISE_DELAY = 0.2;
 /** Each card's rise takes this much of the intro… */
 const RISE_SPAN = 0.6;
@@ -116,13 +99,6 @@ const RISE_SPAN = 0.6;
  *  inside the intro: 0.2 + 2 × 0.1 + 0.6 = 1. */
 const RISE_STAGGER = 0.1;
 const RISE_STAGGER_STEPS = 2;
-/** The closest a card's top edge may come to the flying mark, in px
- *  (--spacing-3xl). With the timings above it never comes this close — the
- *  narrowest gap on the way is the resting one, checked from 1024×768 to
- *  1920×600 — so this is a guard for viewport shapes the timings were not
- *  checked against, not the thing keeping them apart. */
-const MARK_CLEARANCE = 24;
-
 /** The gap kept between the lit card and the footer laid over the reel, and
  *  between the lit card and the nav when the reel lifts to make that gap —
  *  --spacing-3xl, in px. */
@@ -248,20 +224,6 @@ const cubicBezier = (x1: number, y1: number, x2: number, y2: number) => {
 const easeOut = cubicBezier(0.23, 1, 0.32, 1);
 const easeInOut = cubicBezier(0.77, 0, 0.175, 1);
 
-/** Layout offset of `el` inside `ancestor` — offsetLeft/Top, so transforms
- *  (including the headline's own entrance) do not skew it. */
-const offsetWithin = (el: HTMLElement, ancestor: HTMLElement) => {
-	let x = 0;
-	let y = 0;
-	let node: HTMLElement | null = el;
-	while (node && node !== ancestor) {
-		x += node.offsetLeft;
-		y += node.offsetTop;
-		node = node.offsetParent as HTMLElement | null;
-	}
-	return { x, y };
-};
-
 /* ---- The reel ---------------------------------------------------------------- */
 
 type IntroState = 0 | 1;
@@ -271,37 +233,26 @@ function startReel(reel: HTMLElement): () => void {
 	const slots = [...reel.querySelectorAll<HTMLElement>('.reel__slot')];
 	const cards = slots.map((slot) => slot.querySelector<HTMLElement>('.card'));
 	const fades = [...reel.querySelectorAll<HTMLElement>('[data-reel-fade]')];
-	const mark = reel.querySelector<HTMLElement>('[data-reel-mark]');
 	const shell = document.querySelector<HTMLElement>('.nav-shell');
-	const brand = shell?.querySelector<HTMLElement>('.nav__brand') ?? null;
-	const brandGlyph = brand?.querySelector<SVGElement>('svg') ?? null;
 	const footer = document.querySelector<HTMLElement>('.site-footer');
-	const shaderHost = document.querySelector<HTMLElement>('[data-liquid-metal]');
-	/* Looked up fresh each time, not captured once here: LiquidMetal.astro's
-	   own `astro:page-load` handler is what registers it, and script order
-	   between the two components is not something this file should have to
-	   assume — by the time a frame actually runs (a gesture, at the earliest),
-	   both handlers have long since fired either way. */
-	const shader = () => (shaderHost ? getLiquidMetal(shaderHost) : undefined);
+	/* The bands' host, not their canvas: the canvas's own opacity is its
+	   fade-in (components.css), and the two must not fight. */
+	const blinds = document.querySelector<HTMLElement>('[data-gradient-blinds]');
 
 	if (!pin || slots.length === 0) return () => {};
 
 	/* Measured on start and on resize, never per frame. */
 	let top = 0; // the section's top, in document coordinates
 	let vh = 0; // the pin's height — the viewport, as the CSS sizes it
-	let pinWidth = 0;
 	let cardWidth = 0;
 	let cardHeight = 0;
 	let cardCentreY = 0; // the lit card's centre, in the pin
-	let markBox = { x: 0, y: 0, w: 0, h: 0 }; // the mark at rest, in the pin
-	let glide = { dx: 0, dy: 0, scale: 1 };
 	let footerHeight = 0;
 	let footerLift = 0; // how far the reel rises to clear the footer, in px
 
 	const measure = () => {
 		top = reel.getBoundingClientRect().top + window.scrollY;
 		vh = pin.offsetHeight;
-		pinWidth = pin.offsetWidth;
 		cardWidth = slots[0].offsetWidth;
 		cardHeight = slots[0].offsetHeight;
 		/* The slot's `top` is its centre line — `translate: -50% -50%` does
@@ -321,21 +272,6 @@ function startReel(reel: HTMLElement): () => void {
 		const overlay = footer !== null && needed <= available;
 		footerLift = overlay ? needed : 0;
 		document.body.toggleAttribute('data-footer-overlay', overlay);
-
-		/* The mark's resting box, inside the pin, against the nav glyph's box
-		   in the viewport. While the reel is running the pin is stuck at the
-		   top of the viewport, so the two share an origin. */
-		if (mark && brandGlyph) {
-			const from = offsetWithin(mark, pin);
-			const to = brandGlyph.getBoundingClientRect();
-			const height = mark.offsetHeight;
-			markBox = { x: from.x, y: from.y, w: mark.offsetWidth, h: height };
-			glide = {
-				dx: to.left - from.x,
-				dy: to.top - from.y,
-				scale: height > 0 ? to.height / height : 1,
-			};
-		}
 	};
 
 	/* Scroll positions, relative to the section's top. */
@@ -348,7 +284,6 @@ function startReel(reel: HTMLElement): () => void {
 	};
 
 	let lit = -1;
-	let navHidden: boolean | null = null;
 
 	/** Draws a frame: the intro at progress `p` (0 → 1, linear in time), the
 	 *  reel at `position` (scroll, in viewport heights). */
@@ -363,41 +298,8 @@ function startReel(reel: HTMLElement): () => void {
 			el.style.translate = `0 ${-fade * FADE_DRIFT * vh}px`;
 		}
 
-		/* The mark, and the hand-off to the nav's own copy of it once it has
-		   landed. The two are the same SVG at the same size by then, so the
-		   swap does not show. */
-		const flight = easeInOut(within(GLIDE, p));
-		const landed = flight >= 1;
-		if (mark) {
-			mark.style.translate = `${glide.dx * flight}px ${glide.dy * flight}px`;
-			mark.style.scale = String(lerp(1, glide.scale, flight));
-			mark.style.opacity = landed ? '0' : '1';
-		}
-		brand?.style.setProperty('--reel-brand', landed ? '1' : '0');
-
-		/* The diamond behind it all, expanding on the same clock and curve as
-		   the mark's own flight — see DIAMOND_EXPAND_SCALE. */
-		shader()?.setScale(lerp(LIQUID_METAL_REST_SCALE, DIAMOND_EXPAND_SCALE, flight));
-
-		/* The nav. Hidden, it still takes focus — tabbing into it brings it
-		   back (SiteNav.astro) — but it stops taking the pointer, so nothing
-		   invisible sits over the top of the headline. */
-		const nav = easeOut(within(NAV, p));
-		if (shell) {
-			shell.style.setProperty('--reel-nav', String(nav));
-			const hidden = nav < 0.5;
-			if (hidden !== navHidden) {
-				shell.toggleAttribute('data-reel-hidden', hidden);
-				navHidden = hidden;
-			}
-		}
-
-		/* Where the mark is this frame, in the pin — the box a rising card must
-		   stay under. */
-		const markScale = lerp(1, glide.scale, flight);
-		const markLeft = markBox.x + glide.dx * flight;
-		const markRight = markLeft + markBox.w * markScale;
-		const markBottom = markBox.y + glide.dy * flight + markBox.h * markScale;
+		/* The bands behind it all, dimming as the cards take the screen. */
+		if (blinds) blinds.style.opacity = String(lerp(1, DIM_TO, easeInOut(within(DIM, p))));
 
 		/* The rise that clears the footer, in step with the footer coming up:
 		   it enters over the last `footerHeight` of scroll before the end. */
@@ -427,18 +329,7 @@ function startReel(reel: HTMLElement): () => void {
 			const riseStart = RISE_DELAY + Math.min(Math.max(d, 0), RISE_STAGGER_STEPS) * RISE_STAGGER;
 			const risen = easeOut(clamp01((p - riseStart) / RISE_SPAN));
 			const x = d * stepX;
-			let y = (1 - risen) * RISE * vh - lift + arcDrop;
-
-			/* Never over the mark while it is in the air: a card that shares
-			   its column is held under it. */
-			if (mark && !landed) {
-				const centreX = pinWidth / 2 + x;
-				const halfWidth = (cardWidth / 2) * scale;
-				const sharesColumn = centreX - halfWidth < markRight && centreX + halfWidth > markLeft;
-				const cardTop = cardCentreY + y - (cardHeight / 2) * scale;
-				const floor = markBottom + MARK_CLEARANCE;
-				if (sharesColumn && cardTop < floor) y += floor - cardTop;
-			}
+			const y = (1 - risen) * RISE * vh - lift + arcDrop;
 
 			slot.style.transform = `translate3d(${x}px, ${y}px, ${depthZ}px) rotateY(${rotateY}deg) scale(${scale})`;
 			slot.style.zIndex = String(100 - Math.round(Math.abs(d) * 10));
@@ -778,7 +669,7 @@ function startReel(reel: HTMLElement): () => void {
 
 	let stopped = false;
 
-	/* Web fonts change the headline's size, and so where the mark starts. */
+	/* Web fonts change the nav's height, and so whether the footer fits. */
 	document.fonts?.ready.then(() => {
 		if (!stopped) onResize();
 	});
@@ -832,13 +723,7 @@ function startReel(reel: HTMLElement): () => void {
 			el.style.removeProperty('opacity');
 			el.style.removeProperty('translate');
 		}
-		mark?.style.removeProperty('translate');
-		mark?.style.removeProperty('scale');
-		mark?.style.removeProperty('opacity');
-		brand?.style.removeProperty('--reel-brand');
-		shader()?.setScale(LIQUID_METAL_REST_SCALE);
-		shell?.style.removeProperty('--reel-nav');
-		shell?.removeAttribute('data-reel-hidden');
+		blinds?.style.removeProperty('opacity');
 		document.body.removeAttribute('data-footer-overlay');
 		for (const slot of slots) {
 			slot.style.removeProperty('transform');

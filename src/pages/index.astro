@@ -6,7 +6,7 @@ import '../styles/tailwind.css';
 import '../styles/components.css';
 import ThemePreview from '../components/ThemePreview.astro';
 import DevOutline from '../components/DevOutline.astro';
-import LiquidMetal from '../components/ui/LiquidMetal.astro';
+import GradientBlinds from '../components/ui/GradientBlinds.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import HomeHero from '../components/home/HomeHero.astro';
 import WorkCard from '../components/work/WorkCard.astro';
@@ -40,7 +40,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<FontPreload />
+		<FontPreload home />
 		<title>Tousif's portfolio</title>
 		<meta name="description" content="Tousif Rahaman — turning messy workflows and data into usable interfaces." />
 
@@ -82,7 +82,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 	</head>
 	<body>
 		<div class="home-ground">
-			<LiquidMetal />
+			<GradientBlinds />
 		</div>
 		<SiteNav />
 		<main class="home">
@@ -177,13 +177,9 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 
 <style>
 	/* `--nav-band` is the colour the nav's scrim fades in with — the page's
-	   ground, which on this page is not --bg. `--home-ground-blend`, not the
-	   flatter `--home-ground` the body itself paints below: the scrim sits
-	   over content the liquid-metal layer has already darkened by its own
-	   blend, and matching the unblended token left a visibly lighter band
-	   where the two met. See SiteNav.astro. */
+	   ground, which on this page is not --bg. See SiteNav.astro. */
 	body {
-		--nav-band: var(--home-ground-blend);
+		--nav-band: var(--home-ground);
 		margin: 0;
 		background: var(--home-ground);
 		color: var(--text-body);
@@ -191,11 +187,10 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		-webkit-font-smoothing: antialiased;
 	}
 
-	/* Fixed behind everything and sized to the viewport, so the glow holds
-	   still while the page scrolls over it. It paints the warm ground itself,
-	   and isolates, so the liquid-metal layer inside has exactly that ground
-	   to soft-light onto and nothing else — see .liquid-metal in
-	   components.css for why the ground is what makes the glow amber. */
+	/* Fixed behind everything and sized to the viewport, so the bands hold
+	   still while the page scrolls over it. It paints the ground itself, and
+	   isolates, so the blinds inside have exactly that ground to hard-light
+	   onto and nothing else — see .gradient-blinds in components.css. */
 	.home-ground {
 		position: fixed;
 		inset: 0;
@@ -224,11 +219,10 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 	   motion, and without JS. The headline has most of the first screen to
 	   itself — 78svh leaves the first card's top in view, as the reel's own
 	   first frame does — and the cards follow as a plain column. */
-	/* The headline's centre lands where the reel puts it: 47.5svh down, just
-	   above the centre of the viewport-fixed glow (HomeHero's own 5svh of
-	   bottom padding is the lift). The box stays 78svh tall so the first card
-	   still starts in view; the top padding is what moves the headline down
-	   within it — (22 + 78 − 5) / 2 = 47.5. */
+	/* The headline's centre lands where the reel puts it: the middle of the
+	   screen, under the bands' tails. The box stays 78svh tall so the first
+	   card still starts in view; the top padding is what moves the headline
+	   down within it — (22 + 78) / 2 = 50. */
 	.reel__hero {
 		box-sizing: border-box;
 		display: grid;
@@ -313,9 +307,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		}
 
 		/* Its own stacking context, so the cards' z-order stays among
-		   themselves, and the headline's flying mark (z-index 1, HomeHero.astro)
-		   sits above all of them should the two ever meet — which the reel's
-		   timing and its clearance guard keep from happening. */
+		   themselves. */
 		.reel__track {
 			position: absolute;
 			inset: 0;
@@ -360,7 +352,7 @@ const studies = (await getCollection('work', ({ data }) => data.status !== 'unli
 		}
 
 		.reel__slot,
-		.reel__hero :global(.hero__visual) {
+		.reel__hero :global(.hero__title) {
 			pointer-events: auto;
 		}
 

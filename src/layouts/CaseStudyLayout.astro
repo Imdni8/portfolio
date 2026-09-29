@@ -173,6 +173,29 @@ const metaDescription = subtitle ?? title;
 		text-rendering: optimizeLegibility;
 	}
 
+	/* Dark theme's ground matches the homepage's — the same near-black
+	   (--home-ground) rather than --gray-900. Overriding --bg itself, not
+	   just what's painted, is what keeps it a single change: every
+	   descendant that reads --bg picks it up too — ReadInDetail's curtain
+	   wash fades to the same value it's sitting on, and any badge or button
+	   rendered in case-study content stays in sync. --bg-raised/--bg-sunken
+	   are untouched (they're their own literals, not derived from --bg), and
+	   the new ground still sits below --bg-sunken's #090b0c, so a sunken
+	   surface still reads as pressed in rather than raised.
+
+	   Scoped to dark only, the same conditional tokens.css itself uses for
+	   its light override, so light theme (and every other page) is
+	   untouched — --home-ground is a dark-only literal. */
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme='light']) body {
+			--bg: var(--home-ground);
+		}
+	}
+
+	:root[data-theme='dark'] body {
+		--bg: var(--home-ground);
+	}
+
 	img {
 		max-width: 100%;
 	}

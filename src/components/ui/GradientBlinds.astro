@@ -1,0 +1,37 @@
+---
+/**
+ * The homepage's bands of light, hard-lit onto whatever is behind them.
+ *
+ * Absolutely positioned and inert to the pointer, so it fills its nearest
+ * positioned ancestor and never intercepts a click (the spotlight listens on
+ * the window instead). That ancestor has to be painted in `--home-ground` for
+ * the bands to come out as drawn — see gradient-blinds.ts. The script appends
+ * its own canvas into this div.
+ */
+interface Props {
+	class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<div class:list={['gradient-blinds', className]} data-gradient-blinds aria-hidden="true"></div>
+
+<script>
+	import { createGradientBlinds, type GradientBlinds } from './gradient-blinds';
+
+	/* Registered on `astro:page-load`, and the outgoing page's instance torn
+	   down first, for the reasons LiquidMetal.astro gives: this host is not
+	   persisted, so a soft nav back to the homepage brings a fresh one, and a
+	   detached host does not release its WebGL context on its own. */
+	let instances: GradientBlinds[] = [];
+
+	document.addEventListener('astro:page-load', () => {
+		for (const instance of instances) instance.destroy();
+		instances = [];
+
+		for (const host of document.querySelectorAll<HTMLElement>('[data-gradient-blinds]')) {
+			instances.push(createGradientBlinds(host));
+		}
+	});
+</script>

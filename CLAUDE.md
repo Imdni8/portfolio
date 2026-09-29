@@ -28,7 +28,10 @@ The foundations, all settled with the user:
   steps each. No pure white, no pure black; `gray-50` is the lightest value in
   the system. Dark is the default theme, light is fully specified. The two themes
   use opposite ends of the amber ramp with no overlap, because `amber-500` is
-  8.09:1 on the dark ground and 2.07:1 on the light one.
+  8.09:1 on the dark ground and 2.07:1 on the light one. The homepage's
+  gradient blinds carry a second sanctioned exception, `--blinds-1…7`
+  (sampled from `scratch/bg_color_inspo.jpg`) — decoration only, the same
+  terms as `--ai-spectrum-*`; see Gradient blinds.
 - **Type** — ported from carlthomasiv.com
   (`scratch/carlthomasiv-typography-notes.md`). DM Serif Display is what a
   reader stops on (titles, headlines — always 400, tracked −1%), DM Sans is
@@ -37,32 +40,30 @@ The foundations, all settled with the user:
   Seventeen styles, exposed as `.type-*` classes. `.type-stat` is the biggest
   rung (`--size-stat`, 56→80, serif 400 upright, `--lh-stat` 1.1) and the
   newest — a case study's Outcome numerals (`StatTile`'s `size="lg"`) and
-  nothing else; unlike `.type-display` it isn't italic, because a numeral is
-  read, not spoken. Outcome tiles are capped at a maximum width of 364px so
+  nothing else; it isn't italic, because a numeral is read, not spoken. Outcome tiles are capped at a maximum width of 364px so
   they stay readable and do not stretch across the full case-study column.
   **There is effectively no
-  bold**: the loaded cuts are serif 400; sans 400/500 (plus 200, on the
-  homepage headline's demoted half only — see below); mono 300 (the footer
-  wordmark)/400/500. `--weight-bold` still doesn't exist. `--weight-semibold`
-  (600) is the one deliberate exception, reintroduced to give case-study
+  bold** outside the homepage headline: the loaded DM cuts are serif 400;
+  sans 400/500; mono 300 (the footer wordmark)/400/500. `--weight-semibold`
+  (600) is the one deliberate exception in the DM families, reintroduced to give case-study
   prose's `<strong>` (`story-type.ts`'s `storyProse`) a heavier cut than
   `--weight-medium`, since 500 sits too close to DM Sans's 400 body weight to
-  read as emphasis at a glance. It is not reached for anywhere else — do not
-  use it outside that one `[&_strong]` rule.
-  A fourth family, **Delicious Handrawn** (`--font-hand`, `.type-hand`), sets
-  the homepage headline's "try to" and nothing else — an aside written into
-  the sentence. Do not reach for it anywhere else. The headline is the only
-  text above the title rung, and now reads "I try to design / Thoughtful
-  software that / makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗":
-  `.type-display` (serif italic, "Thoughtful software") and
-  `.type-display-sans` ("I … design", "that", "makes users", "and
-  businesses") share `--size-display` (36→48) and `--lh-display` (1.2);
-  `.type-hand` runs at 5:6 of that (`--size-hand`, 30→40); the closing
-  kaomoji (`.hero__kaomoji`, plain characters in `--font-display`, not
-  emoji) sit at 5:6 of it too. `.type-display-sans` drops to
-  `--weight-extralight` and 7:8 of `--size-display` locally in
-  `HomeHero.astro` for "that" and the outcome clause — lighter and smaller,
-  never heavier or larger — the sentence's one demotion.
+  read as emphasis at a glance. In body copy it is not reached for anywhere
+  else — do not use it outside that one `[&_strong]` rule (and the headline
+  name below).
+  A fourth and fifth family, **Montserrat** (`--font-headline-sans`, 300 and
+  600) and **Playfair Display** (`--font-headline-serif`, 700 italic only),
+  set the homepage headline and nothing else — it is drawn that way in the
+  Figma frame (`20205:22325`). Do not reach for either anywhere else. The
+  headline is the only text above the title rung and reads "Tousif Rahaman /
+  Designs *thoughtful* / products that drive results": `.type-hero-name`
+  (Montserrat 600, `--size-hero-name` 22→30), `.type-hero` (Montserrat 300,
+  `--size-hero` 44→80, `--lh-hero` 1.25) and `.type-hero-accent` (Playfair
+  700 italic, set inside a `.type-hero` line and taking its size).
+  `--weight-bold` (700) exists for that one word only. The old headline's
+  Delicious Handrawn aside, kaomoji and `DecryptedText` scramble are gone,
+  along with `.type-display`, `.type-display-sans`, `.type-hand` and their
+  tokens.
   Importance comes from the family and the colour token, never a heavier cut.
   `.type-heading`, `.type-reflection` and `.type-card-title` now share one
   rule (serif 400, 26/31) — the names stay because they say what the text is
@@ -324,18 +325,16 @@ dropdown together on the *right* — `space-between` across a `--measure-chrome`
 be the current page, so `SiteNav.astro` carries no `aria-current` and no
 URL-reading frontmatter.
 
-- **On the homepage the nav arrives with the scroll.** Under the reel's media
-  query, rules scoped by `body:has([data-reel])` put the shell at
-  `opacity: var(--reel-nav)` and the brand at `var(--reel-brand)` — registered,
-  non-inheriting `@property`s with an initial value of 0, so the first paint
-  already hides it. `home-reel.ts` writes both. Hidden, the nav stays in the
-  accessibility tree and the tab order (`:focus-within` brings it back at full
-  strength) but drops the pointer via `data-reel-hidden`. On any other page the
-  `:has()` doesn't match, which is why the persisted shell needs no cleanup on
-  swap.
+- **The nav is the same on every page, homepage included.** It used to be
+  hidden on the homepage's first screen and fade in as the headline's T mark
+  flew up into it; both went with the gradient-blinds redesign.
 - **The scrim band paints `var(--nav-band, var(--bg))`.** The homepage sets
-  `--nav-band` to its warm `--home-ground` on `<body>`; everywhere else the band
+  `--nav-band` to its `--home-ground` on `<body>`; everywhere else the band
   is `--bg`.
+- **On the homepage the nav sits over the gradient blinds**, which are held
+  back to 30% strength behind its 72px band (`NAV_DAMP`, `navClearance` in
+  `gradient-blinds.ts`) so its 12px labels stay readable. If the nav's height
+  changes, move `navClearance` with it.
 
 - **On phones (below 40rem) Side projects opens a bottom sheet**, not the
   dropdown.
@@ -403,11 +402,14 @@ trackpad's sideways swipe also steps through the cards.
   everything inside the pin should be:
   - **intro**: two states and a *played* transition, never anything in
     between.
-    - State 1 is the first screen. State 2 has the headline gone, the T mark
-      in the nav, the nav in, and the first card centred.
-    - The transition (`INTRO_DURATION`, 1s) fades the words, flies the mark
-      into the nav, fades the nav in, and raises the cards 58svh behind the
-      mark, staggered from the centre outwards.
+    - State 1 is the first screen. State 2 has the headline gone, the
+      gradient blinds dimmed to 40% (`DIM_TO`), and the first card centred.
+      The nav is there in both.
+    - The transition (`INTRO_DURATION`, 1s) fades the headline (0–30%),
+      dims the bands (0–60%, `--ease-in-out`) and raises the cards 58svh
+      from 20% (`RISE_DELAY`), staggered from the centre outwards. The
+      dimming writes the blinds *host's* opacity; the canvas's own opacity
+      is its fade-in, and the two must not share an element.
     - The two states sit `INTRO` (1 viewport) apart in the scroll, so the
       scroll position always says which one the page is in. Nothing is drawn
       from positions in between;
@@ -466,8 +468,8 @@ trackpad's sideways swipe also steps through the cards.
     position on a state takes that state.
   - **Resize** keeps the page at the same place in the reel by rescaling the
     scroll offset to the new viewport height.
-- **One media query gates the reel**, in `index.astro`, `SiteNav.astro`,
-  `HomeHero.astro` and as `REEL_QUERY`: `(min-width: 64rem) and
+- **One media query gates the reel**, in `index.astro`, `SiteNav.astro`'s
+  scrim script and as `REEL_QUERY`: `(min-width: 64rem) and
   (prefers-reduced-motion: no-preference) and (scripting: enabled)`. Move
   them together.
   - The CSS default inside it is the reel's first frame (each `.reel__slot`
@@ -476,49 +478,27 @@ trackpad's sideways swipe also steps through the cards.
     gets 78svh, the cards follow as a plain column, and `work-spotlight.ts`
     lights the middle one.
     - `.reel__hero` has `padding-block-start: 22svh`, which centres the
-      headline at 47.5svh, the same place the reel puts it (just above the
-      viewport-fixed glow's centre), while the first card still starts at
-      78svh.
-    - The headline uses a plain letter T (`.hero__letter`) there, not the
-      brand mark: the mark only exists to fly into the nav, and without the
-      reel the nav shows its own mark from the start, so it would be the same
-      logo twice. `HomeHero.astro` swaps them on the same query.
+      headline at 50svh, the same place the reel puts it, while the first
+      card still starts at 78svh.
   - `initHomeReel()` switches between the two modes live on `matchMedia`
     change, and its teardown hands every inline style back.
-- **The headline** (`HomeHero.astro`) is read from an `.sr-only` copy. The
-  drawing is `aria-hidden`, because the T is an SVG and the grid's whitespace
-  never reaches the accessibility tree.
-  - Its entrance is CSS only: the two lines arrive 80ms apart
-    (`--ease-out`), then the middle grid track animates `0fr → 1fr`
-    (`--ease-in-out`), so "I" and "design" part symmetrically, and "try to"
-    is written into the gap, rising from `scale(0.9)`.
-  - The track animation is a deliberate layout-property exception. The
-    transform version would have to measure the aside after its font loads
-    and hide the line until then.
-  - The card track then settles up 6svh, 80ms after the second line. It uses
-    `translate` only, because an opacity fade would delay the LCP (the first
-    card's cover).
-  - Under reduced motion all of this becomes one 200ms fade of the finished
-    sentence.
-  - The animations fill `backwards`, never `both`. A filled opacity animation
-    would leave `.hero__visual` a stacking context and trap the flying mark
-    (z-index 1) behind the card track (a stacking context at 0).
-  - The scroll script writes only to `[data-reel-fade]` and `[data-reel-mark]`,
-    never to an animated element, because a running animation outranks inline
-    styles.
-- **The T mark's flight** is measured with `offsetLeft/Top` against the pin
-  (so the entrance transform can't skew it) and aimed at the nav glyph's rect.
-  It lands at the same size as the nav's own mark. There the page swaps: the
-  hero mark hides and `--reel-brand` shows the nav's.
-  - The nav fades in over 30–60% of the transition, finishing exactly when the
-    mark lands, so the handoff doesn't dim.
-  - **The mark never overlaps a card.** It leads (`GLIDE` 0–60%,
-    `--ease-in-out`) and the centre card follows (`RISE_DELAY` 20%, over
-    `RISE_SPAN` 60%, `--ease-out`). The narrowest gap during playback is the
-    resting one (≥125px at 1440×900), checked from 1024×768 to 1920×600.
-  - `MARK_CLEARANCE` (24px) also holds any card that shares the mark's column
-    under it while the mark is in the air, as a guard for untested viewport
-    shapes. Retune those three together and re-check the gap.
+- **The headline** (`HomeHero.astro`) is plain text in an `<h1>`: the name,
+  then "Designs *thoughtful*" / "products that drive results" (a `<br>`
+  where Figma breaks it).
+  - It starts on the nav's left edge (x = 197 on a 1440 frame, the brand
+    mark's) but runs past the nav's 1000px row to the gutter:
+    `.hero__frame` restates the nav row's centring margin as
+    `padding-inline-start`. Montserrat at 80px sets the second line wider
+    than 1000px, and capping it there wraps "results" onto a line of its
+    own.
+  - Its entrance is CSS only: the name, then the sentence 80ms behind it,
+    rising on `--ease-out`, filling `backwards`. Under reduced motion, one
+    200ms fade.
+  - The card track settles up 6svh behind it. It uses `translate` only,
+    because an opacity fade would delay the LCP (the first card's cover).
+  - The scroll script writes only to `[data-reel-fade]` (`.hero__frame`),
+    never to an animated element, because a running animation outranks
+    inline styles.
   - The rise stagger is capped at two steps so the last visible card still
     finishes inside the intro.
 - **`WorkCard`** is a solid `--bg-sunken` panel, 1px `--border`, at the
@@ -571,8 +551,8 @@ trackpad's sideways swipe also steps through the cards.
   flow mode, once the pin scrolls away with the last card, that line is what
   meets the nav first. In overlay mode the pin never scrolls away, so the
   band never shows.
-- **The ground is `--home-ground`**, and `.home-ground` (fixed) holds the
-  liquid-metal glow. See Liquid metal.
+- **The ground is `--home-ground`** (`#070709`, the Figma frame's), and
+  `.home-ground` (fixed) holds the gradient blinds. See Gradient blinds.
 - **What Frame 2 shows is mid-reel, not the opening.** The reference draws a
   card to the left of the lit one; with a finite list starting on the first
   study, nothing is there until the second is centred.
@@ -607,13 +587,13 @@ the footer holds no links at all, so the nav's mark is the only route home.
   specimen.)
   - It's `--text` at `opacity: var(--footer-name-opacity)` (0.5): the
     wordmark's own colour receding behind the tagline.
-  - Measured: 5.2:1 on the homepage's ground and 4.9:1 on a case study's
+  - Measured: ~5.1:1 on the homepage's `#070709` ground and 4.9:1 on a case study's
     `--bg`, both clear of AA for 12px text. Don't take it lower.
   - The about page's water field can brighten the ground past that. The page
     is parked, so re-check it when re-linking.
 
 - **`position: relative` on `.site-footer` is load-bearing, not decorative.**
-  On `index.astro` (`.home-ground`, the liquid-metal glow) and `about.astro`
+  On `index.astro` (`.home-ground`, the gradient blinds) and `about.astro`
   (`.site-field`, the water field) a fixed background (`position: fixed`,
   `z-index: auto`) paints *after* static in-flow content per the CSS stacking
   spec, regardless of DOM order — so without this the footer lays out
@@ -964,7 +944,7 @@ indented closing tags right after a list before looking anywhere else.
 ## Water field
 
 `src/components/ui/water-field.ts` is the background on `about.astro` (the
-homepage used to run it too; it now runs liquid metal, below) — one WebGL pass drawing a domain-warped fBm fluid, a grid that
+homepage used to run it too; it now runs gradient blinds, below) — one WebGL pass drawing a domain-warped fBm fluid, a grid that
 refracts through the same displacement, and pointer-driven wave packets. The
 palette is read out of `tokens.css` at run time, so it follows `[data-theme]`
 without restating a colour.
@@ -989,43 +969,76 @@ that budget the same way, and the numbers have to be re-measured after (sample
 the canvas over a pointer sweep, both themes; Playwright is already a dev
 dependency for exactly this kind of check).
 
-## Liquid metal
+## Gradient blinds
 
-`src/components/ui/liquid-metal.ts` is the homepage background: Paper's
-`LiquidMetal` shader (diamond shape), mounted through the framework-free
-`ShaderMount` the same way `smoke-ring.ts` is. Its values are the Paper file's,
-unmodified, in one `PAPER` constant, except `frame`: 2000 opens the loop on a
-soft-edged phase, since t=0 is its hardest-edged one. That frame matters most
-under reduced motion, where it is the only one shown. `LiquidMetal.astro` mounts
-it on `astro:page-load` and tears down the previous one; `LiquidMetal.tsx` and
-`src/stories/LiquidMetal.stories.tsx` are the tuning surface.
+`src/components/ui/gradient-blinds.ts` is the homepage background: bands of
+light across the top half of the screen, from Figma's `20205:22325`. It's a
+port of React Bits' `GradientBlinds`, written in raw WebGL (one triangle, one
+fragment shader, like `water-field.ts`) rather than taking on `ogl` or React.
+`GradientBlinds.astro` mounts it on `astro:page-load` and tears down the
+previous one; `GradientBlinds.tsx` and `src/stories/GradientBlinds.stories.tsx`
+are the tuning surface. The tuned values are in the `BLINDS` constant.
 
-**The shader draws in greys; the amber is the blend.**
-- `.liquid-metal` (components.css) fills itself with `--home-shader-ground`,
-  isolates, and soft-lights onto `.home-ground`'s `--home-ground`.
-- Soft-light can only push each channel toward where its base already is, and
-  the warm ground has no blue, so the glow can only come up amber. On a
-  grey-ramp ground it renders grey.
-- That is why the two grounds are literals in the semantic layer (next to
-  `--brand-mark`), not ramp steps, and are not redefined per theme.
+- **Straight bands, top half only.** The original's angle and warp are gone.
+  A vertical mask fades the bands out by `maskEnd` (0.9) of the height,
+  each blind at its own jittered point, so the tails are ragged. The fade
+  is squared, so the beams read as ending well before `maskEnd`: at 0.9
+  they run behind the headline and die out around 74% of the height, just
+  above the first card.
+- **Colours** are `--blinds-1…7`, read from tokens.css at run time and
+  sampled from `scratch/bg_color_inspo.jpg`. They're decoration only, the
+  palette's second sanctioned exception.
+- **The blend is the recipe.** `.gradient-blinds` (components.css) is
+  `mix-blend-mode: hard-light` onto `--home-ground`. Above 0.5 a channel
+  screens (light), below it multiplies (dark), and 0.5 is neutral.
+  - The mask therefore fades to **0.5, not 0**. At 0 it would multiply the
+    lower page to pure black.
+- **No grain.** The original's noise was tried and removed. With nothing
+  animated, the page only draws on mount, on resize, and while the
+  spotlight is catching up.
+- **The spotlight** is the original's: bright inside its radius, negative
+  past it, so bands far from it sink to black. It follows a fine pointer
+  with a 0.15s lag anywhere down to `TRACK_END` (74% of the height, just
+  above the first card), its height scaled onto `[0, SPOT_Y_MAX]` (0.25) so
+  it stays in the bands' bright upper part. Followed one to one, a pointer
+  on the headline put it under the mask, where the negative falloff darkened
+  every band. Below `TRACK_END` it stays where it was left. It rests at the
+  top centre until a pointer arrives, and always under reduced motion.
+- **Two opacities, two elements.** The canvas fades in to
+  `--blinds-opacity` (0.8) once the host is `ready`. The host's opacity is
+  `home-reel.ts`'s intro dimming. Without WebGL or JS there is no canvas and
+  the ground stands.
+- **Contrast is measured**, with Playwright. Hide the text, move the pointer
+  over a 9×7 grid, screenshot, and take the 99th percentile of 6px-averaged
+  cells under each text box, at 1728/1440/1024 wide. These numbers were
+  taken with grain on and the spotlight free to reach 75% of the height;
+  both changes since only lower the peaks, so they're upper bounds.
+  - With `maskEnd` at 0.9 (beams behind the headline), checked at 1440×900
+    over five pointer positions: the name is ≥5.8:1 and the sentence
+    ≥15:1. The name is the tight one — at 30px semibold it is large text
+    (3:1), but keep it at AA's 4.5:1 regardless.
+  - The nav was 1.7:1 when the spotlight sat behind it, so the bands are
+    held to 30% (`NAV_DAMP`) over the nav's 72px band. That gives the nav
+    links ≥6.8:1.
+  - Re-measure if `maskEnd`, the spotlight, `NAV_DAMP` or any `--blinds-*`
+    stop changes.
 
-**It fades in; the layer doesn't.** `createLiquidMetal()` marks the host
-`data-liquid-metal="ready"` once the shader is built. It resolves the new
-canvas's hidden starting style first, so the fade has somewhere to start
-from.
-- On `ready`, the *canvas* fades in (1.4s `ease`) and grows from 94% (1.8s
-  `--ease-out`; no growth under reduced motion).
-- Never animate the host's opacity. Its own ground is half the blend: it's
-  what darkens rgb(20, 12, 0) to the near-black rgb(5, 2, 0) the reference
-  shows. Fading the host would visibly dim the whole background on load.
-- Without WebGL or JS the canvas simply stays hidden.
+The old background, **liquid metal** (`liquid-metal.ts`, Paper's
+`LiquidMetal` shader, soft-lit onto `--liquid-metal-ground`), stays in the
+library and its Storybook story, but no page renders it.
 
-**Contrast is bounded by the blend, and measured.** Every pixel under the
-headline, over a 60s sweep of the loop at 1728/1440/1024 wide, peaks at
-rgb(61, 40, 0), which puts `--text` at 13.5:1. Re-measure (Playwright: hide
-the text, `paperShaderMount.setFrame()` across the loop, read the
-screenshot) if `contour`, `softness` or `scale` change, or either ground
-does.
+## Case-study ground
+
+In dark theme a case study's `--bg` is `--home-ground` (`#070709`), not
+`--gray-900`, so the reading pages share the homepage's black.
+`CaseStudyLayout.astro` overrides `--bg` itself on `body`, under the same
+dark-only conditions tokens.css uses, rather than just painting the
+background. Everything that reads `--bg` follows: `ReadInDetail`'s curtain
+wash fades to the ground it sits on, the nav scrim matches, and so do
+`bg-background` badges and buttons in the content. `--bg-sunken` (`#090b0c`)
+is still a shade lighter than the new ground, not darker, but the difference
+is two or three levels per channel and doesn't read. Light theme and every
+other page keep the global `--bg`.
 
 ## Performance
 
@@ -1054,9 +1067,9 @@ Four things on the critical path are deliberate and easy to undo by accident.
   page needs it wired in there too, or that page's headline paints in a
   fallback serif and reflows. It preloads only the two `latin` faces that set
   visible text at the top of the page; the file explains why more would be
-  worse. The homepage's hand (`--font-hand`) is deliberately not preloaded:
-  "try to" is invisible until ~1.4s into the entrance, by which time normal
-  discovery has fetched it. `<ClientRouter />` and `<Analytics />` sit *last* in each `<head>`
+  worse. The homepage passes `home`, which swaps those for the headline's
+  three files (Montserrat 300 and 600, Playfair 700 italic), since no DM face
+  is at the top of that page. `<ClientRouter />` and `<Analytics />` sit *last* in each `<head>`
   for the same reason, after everything that decides how the page looks.
 - **Islands are gated on being reachable.** `NavMenu` is `client:idle`, not
   `client:load` — its trigger renders as static SSR markup and nothing it adds
@@ -1096,9 +1109,9 @@ Two things that look like wins and are not, so they don't get "fixed" later:
   "shadcn/ui" under Components for how the two systems coexist today.
 - **TypeScript** — `astro/tsconfigs/strict`, `jsx: react-jsx`.
 - **Fonts** — self-hosted via `@fontsource*` packages: `@fontsource/dm-serif-display`,
-  `@fontsource-variable/dm-sans`, `@fontsource/dm-mono`, and
-  `@fontsource/delicious-handrawn` (the homepage's two handwritten words, 400
-  only). tokens.css imports
+  `@fontsource-variable/dm-sans`, `@fontsource/dm-mono`, and — for the
+  homepage headline only — `@fontsource/montserrat` (300, 600) and
+  `@fontsource/playfair-display` (700 italic). tokens.css imports
   only the cuts the type styles use; `FontPreload.astro` preloads the serif
   and the sans.
 - **Playwright** — dev dependency, used only for ad-hoc visual checks.

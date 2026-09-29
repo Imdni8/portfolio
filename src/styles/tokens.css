@@ -24,8 +24,8 @@
    italic is what MDX *emphasis* renders in. DM Mono: 300 is the wordmark, 400
    every label, 400 italic the footer tagline's <em>, 500 the chapter rail's
    active entry.
-   Delicious Handrawn is drawn at 400 alone, and sets two words on the whole
-   site — see --font-hand. */
+   Montserrat (300, 600) and Playfair Display (700 italic) set the homepage
+   headline and nothing else — see --font-headline-sans. */
 @import '@fontsource/dm-serif-display/400.css';
 @import '@fontsource/dm-serif-display/400-italic.css';
 @import '@fontsource-variable/dm-sans';
@@ -34,7 +34,9 @@
 @import '@fontsource/dm-mono/400.css';
 @import '@fontsource/dm-mono/400-italic.css';
 @import '@fontsource/dm-mono/500.css';
-@import '@fontsource/delicious-handrawn/400.css';
+@import '@fontsource/montserrat/300.css';
+@import '@fontsource/montserrat/600.css';
+@import '@fontsource/playfair-display/700-italic.css';
 
 /* ---- 1 · Colour primitives -------------------------------------------------
    Amber is Tailwind's ramp, unmodified. Grey is custom — a cool cast that
@@ -112,28 +114,30 @@
    storyProse), which needs to read as heavier than the surrounding copy at a
    glance — --weight-semibold below, not reached for anywhere else.
 
-   A fourth family, Delicious Handrawn, is not a fourth job. It sets the
-   homepage headline's "try to" and nothing else: an aside scribbled into
-   the sentence, which is the one thing none of the three above can say.
-   Do not reach for it anywhere else — a hand that appears twice stops
-   reading as a hand.
+   Two more families are not two more jobs. Montserrat and Playfair Display
+   set the homepage headline — "Tousif Rahaman / Designs thoughtful products
+   that drive results" — and nothing else, because that is the one line on
+   the site drawn in its own voice (the Figma frame it comes from sets it
+   that way). Montserrat runs at 300 for the sentence and 600 for the name;
+   Playfair is drawn only as 700 italic, for "thoughtful". The name's 600 and
+   the accent's 700 are this line's alone — the rest of the site keeps its
+   no-bold rule. Do not reach for either family anywhere else.
    -------------------------------------------------------------------------- */
 :root {
 	--font-display: 'DM Serif Display', Georgia, serif;
 	--font-sans: 'DM Sans Variable', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
 	--font-mono: 'DM Mono', ui-monospace, SFMono-Regular, monospace;
-	--font-hand: 'Delicious Handrawn', 'Segoe Print', 'Bradley Hand', cursive;
+	--font-headline-sans: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+	--font-headline-serif: 'Playfair Display', Georgia, serif;
 
 	/* Sizes. The top three rungs clamp; 18px and below are fixed, because
 	   below that the fluid range is narrower than the rounding error. */
 	--size-stat: clamp(3.5rem, 6.5vw, 5rem); /* 56 → 80 — the biggest rung, for a case study's Outcome numerals (StatTile's large variant only) */
-	--size-display: clamp(2.25rem, 2.8vw, 3rem); /* 36 → 48 — the homepage headline */
+	--size-hero: clamp(2.75rem, 5.5vw, 5rem); /* 44 → 80 — the homepage headline */
+	--size-hero-name: clamp(1.375rem, 2.1vw, 1.875rem); /* 22 → 30 — the name above it */
 	--size-title: clamp(2rem, 4.2vw, 2.625rem); /* 32 → 42 */
 	--size-heading: clamp(1.375rem, 2.6vw, 1.625rem); /* 22 → 26 */
 	--size-subtitle: clamp(1.125rem, 2vw, 1.25rem); /* 18 → 20 */
-	/* The handwritten aside inside the display line. Scales with it, at the
-	   5:6 ratio the reference draws it at (40 against 48). */
-	--size-hand: clamp(1.875rem, 2.3333vw, 2.5rem); /* 30 → 40 */
 	--size-tab: 1.25rem; /* 20 */
 	--size-body: 1rem; /* 16 — running copy */
 	--size-ui: 1rem; /* 16 — controls; shares the rung with body, parts on weight and leading */
@@ -144,8 +148,8 @@
 
 	/* Leading, unitless so it survives the clamps. */
 	--lh-stat: 1.1; /* tighter than --lh-display — a numeral being read at a glance, not a line of running text */
-	--lh-display: 1.2; /* 48/57.6 */
-	--lh-hand: 1.2; /* 40/48 */
+	--lh-hero: 1.25; /* 80/100 */
+	--lh-hero-name: 1.2; /* 30/36 */
 	--lh-title: 1.2; /* 42/50.4 */
 	--lh-heading: 1.2; /* 26/31.2 */
 	--lh-subtitle: 1.4; /* 20/28 */
@@ -156,11 +160,11 @@
 	--lh-tag: 1.6; /* 10/16 */
 	--lh-wordmark: 1; /* 15/15 */
 
-	--weight-extralight: 200; /* the homepage headline's demoted half — "that", "makes users", "and businesses" */
-	--weight-light: 300; /* the footer's mono wordmark */
+	--weight-light: 300; /* the footer's mono wordmark, and the homepage headline's sentence */
 	--weight-regular: 400;
 	--weight-medium: 500;
-	--weight-semibold: 600; /* case-study prose's <strong> only — see the comment above */
+	--weight-semibold: 600; /* case-study prose's <strong>, and the homepage headline's name — see the comment above */
+	--weight-bold: 700; /* the homepage headline's "thoughtful" (Playfair's only cut) and nothing else */
 
 	/* Tracking. The serif tightens; uppercase mono opens up — without it the
 	   labels set as a solid block — and opens less as it gets smaller, since a
@@ -381,31 +385,43 @@
 	   ground beneath it would fight the image instead of reading over it. */
 	--overlay: #0e0e0ebf;
 
-	/* The homepage's ground, and the ground of the liquid-metal layer on top
-	   of it (.liquid-metal in components.css). Literals, and outside both
-	   ramps, for the same reason --brand-mark is: they are shader material,
-	   not interface colour. The shader draws in greyscale and reaches the
-	   page through a soft-light blend, and soft-light can only push a channel
-	   toward where its base already is — so the amber glow is made by the
-	   warm cast of these two values, and a cool ground from the grey ramp
-	   would render it grey. Nothing is read against them directly: every card
-	   carries its own --bg-sunken surface, and the headline over them is
-	   --text on a ground no brighter than the glow's peak (measured — see
-	   liquid-metal.ts). Not redefined per theme; the homepage pins dark. */
-	--home-ground: #140c00;
-	--home-shader-ground: #191300;
+	/* The homepage's ground — the Figma frame's near-black, a touch cooler
+	   than --gray-950. A literal, and outside both ramps, for the same reason
+	   --brand-mark is: it is what the gradient blinds (gradient-blinds.ts)
+	   are hard-lit onto, and so it is shader material rather than interface
+	   colour. Not redefined per theme; the homepage pins dark. */
+	--home-ground: #070709;
 
-	/* The homepage's actual resting background — soft-lighting
-	   --home-shader-ground onto --home-ground (computed, not measured:
-	   the W3C soft-light formula on these two literals resolves to this),
-	   darker than --home-ground alone. Nothing paints this directly (the
-	   blend is real, done by .liquid-metal's mix-blend-mode); it exists so
-	   a flat fill elsewhere on the page — the nav's scrim band — can match
-	   what the shader actually renders instead of the brighter unblended
-	   ground. Only accurate outside the glow's own bloom, which lifts this
-	   locally toward its measured peak of rgb(61, 40, 0) — see Liquid
-	   metal in CLAUDE.md. */
-	--home-ground-blend: #050200;
+	/* The gradient blinds' stops, left to right across the screen —
+	   sampled from scratch/bg_color_inspo.jpg in the order it runs (pink,
+	   peach, orange, crimson, navy, periwinkle, violet). Like
+	   --ai-spectrum-*, these are the one sanctioned exception to the
+	   two-hue palette, and exist for a single component: they are
+	   decoration and nothing else — never text, never a fill, never a
+	   surface anything is read against. What is read over them (the
+	   headline) is measured against the brightest pixel they produce
+	   instead; see gradient-blinds.ts. Not theme-aware, and must not
+	   become so. */
+	--blinds-1: #e86da9;
+	--blinds-2: #fbb770;
+	--blinds-3: #f99c3f;
+	--blinds-4: #a72b54;
+	--blinds-5: #092f40;
+	--blinds-6: #535cb3;
+	--blinds-7: #9840c0;
+	/* How strongly the blinds are hard-lit onto the ground — the Figma
+	   frame's layer opacity. */
+	--blinds-opacity: 0.8;
+
+	/* The liquid-metal layer's two grounds (.liquid-metal in
+	   components.css) — no page renders it any more; it stays in the
+	   library, and its Storybook story, for these. The shader draws in
+	   greyscale and reaches the page through a soft-light blend, and
+	   soft-light can only push a channel toward where its base already is —
+	   so the amber glow is made by the warm cast of these two values, and a
+	   cool ground would render it grey. */
+	--liquid-metal-ground: #140c00;
+	--liquid-metal-shader-ground: #191300;
 
 	/* Text and icon colour for anything sitting on --overlay, a fixed dark
 	   scrim, or a product screenshot — surfaces that are dark (or light) in
@@ -479,9 +495,9 @@
    same; the names stay separate because they say what the text is for.
    -------------------------------------------------------------------------- */
 .type-stat,
-.type-display,
-.type-display-sans,
-.type-hand,
+.type-hero,
+.type-hero-name,
+.type-hero-accent,
 .type-title,
 .type-heading,
 .type-reflection,
@@ -645,49 +661,36 @@
 	letter-spacing: var(--track-wordmark);
 }
 
-/* The homepage headline — "I try to design / Thoughtful software that /
-   makes users (˶ᵔ ᵕ ᵔ˶) and businesses ˗ˋˏ⛀⛁ˎˊ˗" — is the one line on the
-   site set above the title rung, and it is three styles on one sentence:
+/* The homepage headline — "Tousif Rahaman / Designs thoughtful products
+   that drive results" — is the one line on the site set above the title
+   rung, in its own two families (see the type primitives above), and it is
+   three styles:
 
-   - .type-display is the phrase spoken rather than set — "Thoughtful
-     software". The one place the display face runs italic at this size.
-     Needs the real italic face, same reasoning as .type-heading--claim.
-   - .type-display-sans is the plain half of the sentence — "I", "design",
-     "that", "makes users", "and businesses". Same size and leading as
-     .type-display, so the lines share one rhythm; normal tracking, as all
-     sans does. HomeHero.astro drops "that" and the outcome clause to
-     `--weight-extralight` and 7:8 of `--size-display` (42 against 48)
-     locally — lighter and smaller, never heavier or larger — rather than
-     forking a second `.type-*` class over two changed properties. The
-     kaomoji closing each outcome clause (`.hero__kaomoji`) are plain
-     characters set in `--font-display`, not emoji, so they aren't a fourth
-     style on the sentence — they read `color: var(--text)` like everything
-     else here, which the emoji they replaced never could.
-   - .type-hand is the aside — "try to". Smaller than the words either side
-     of it, at the 5:6 the reference draws it at. See --font-hand for why it
-     is used here and nowhere else. */
-.type-display {
-	font-family: var(--font-display);
-	font-style: italic;
-	font-weight: var(--weight-regular);
-	font-size: var(--size-display);
-	line-height: var(--lh-display);
-	letter-spacing: var(--track-tight);
-}
-
-.type-display-sans {
-	font-family: var(--font-sans);
-	font-weight: var(--weight-regular);
-	font-size: var(--size-display);
-	line-height: var(--lh-display);
+   - .type-hero-name is the name, Montserrat 600, sitting over the sentence.
+   - .type-hero is the sentence, Montserrat 300.
+   - .type-hero-accent is "thoughtful", Playfair Display 700 italic, the one
+     word the sentence leans on. It sits inside a .type-hero line and takes
+     its size and leading from it, so the two share one rhythm. */
+.type-hero-name {
+	font-family: var(--font-headline-sans);
+	font-weight: var(--weight-semibold);
+	font-size: var(--size-hero-name);
+	line-height: var(--lh-hero-name);
 	letter-spacing: var(--track-normal);
 }
 
-.type-hand {
-	font-family: var(--font-hand);
-	font-weight: var(--weight-regular);
-	font-size: var(--size-hand);
-	line-height: var(--lh-hand);
+.type-hero {
+	font-family: var(--font-headline-sans);
+	font-weight: var(--weight-light);
+	font-size: var(--size-hero);
+	line-height: var(--lh-hero);
+	letter-spacing: var(--track-normal);
+}
+
+.type-hero-accent {
+	font-family: var(--font-headline-serif);
+	font-style: italic;
+	font-weight: var(--weight-bold);
 	letter-spacing: var(--track-normal);
 }
 

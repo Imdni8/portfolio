@@ -12,7 +12,7 @@
    transparent it draws a chrome diamond in greys (plus a little red/blue
    fringing), and the amber is made entirely by how that reaches the page: the
    host has its own `--home-shader-ground` fill, isolates, and soft-lights the
-   result onto `--home-ground`. Soft-light moves each channel toward the
+   result onto `--liquid-metal-ground`. Soft-light moves each channel toward the
    direction the blend layer points, scaled by how far the base channel has
    to go — and the warm ground has no blue in it, so the highlights can only
    come up amber. That is the whole recipe, and why those two grounds are
