@@ -261,6 +261,7 @@ const ring = await Promise.all(
 
 <script>
 	import { initHomeReel } from '../components/home/home-reel';
+	import { initDecryptedText } from '../components/home/decrypted-text';
 
 	/* Registered on `astro:page-load` rather than run inline: this is a
 	   bundled module script, so its body executes once, while `<ClientRouter />`
@@ -270,13 +271,19 @@ const ring = await Promise.all(
 	   listener would still be positioning the cards that were swapped out, and
 	   the persisted nav would keep whatever the last frame wrote to it. */
 	let stopHome: (() => void) | undefined;
+	let stopDecrypt: (() => void) | undefined;
 
 	document.addEventListener('astro:page-load', () => {
 		stopHome?.();
 		stopHome = undefined;
+		stopDecrypt?.();
+		stopDecrypt = undefined;
 
 		const reel = document.querySelector<HTMLElement>('[data-reel]');
 		if (reel) stopHome = initHomeReel(reel);
+
+		const heroLine = document.querySelector<HTMLElement>('.hero__line');
+		if (heroLine) stopDecrypt = initDecryptedText(heroLine);
 	});
 </script>
 

@@ -7,7 +7,14 @@
    and `.hero__line` (`.hero__title` under reduced motion, where the reel
    never runs); the exit writes to `[data-reel-fade]` on `.hero__title`'s
    wrapper, because a running CSS animation outranks an inline style and
-   would pin whatever the script tried to set. */
+   would pin whatever the script tried to set.
+   "thoughtful" additionally gets a one-shot decrypt/scramble reveal —
+   `decrypted-text.ts`, wired up in index.astro's `<script>` alongside
+   `home-reel.ts`. It starts scrambling immediately on load, running
+   underneath this entrance rather than after it, and only ever rewrites
+   `[data-decrypt-visual]`'s children, so it can't fight the fade/rise
+   above. Skipped outright under reduced motion, where the plain word
+   stands. */
 ---
 
 <div class="hero" data-reel-hero>
@@ -20,7 +27,7 @@
 			{/* Broken where Figma breaks it. The frame is wide enough at 80px to
 			    pull "products" up onto the first line, which would leave the
 			    accent in the middle of a line rather than closing one. */}
-			<span class="hero__line type-hero">Designs <em class="type-hero-accent">thoughtful</em><br /> products that drive results</span>
+			<span class="hero__line type-hero">Designs <em class="type-hero-accent" aria-label="thoughtful"><span data-decrypt-visual aria-hidden="true">thoughtful</span></em><br /> products that drive results</span>
 		</h1>
 	</div>
 </div>
