@@ -131,9 +131,10 @@
 
    The state is never colour alone: this is the only badge carrying a
    sparkles glyph, and the only one whose label is the fixed string "AI", so
-   it survives greyscale on shape and text. The label's own contrast is
-   untouched: the fill is still --bg, the text still --text, and the ring is
-   decoration outside the padding box.
+   it survives greyscale on shape and text. The fill is --secondary, the
+   same white the other chips (the `light` variant) wear beside it, and the
+   label --text-on-secondary on it (17.3:1); the ring is decoration outside
+   the padding box.
 
    Unlayered, so it beats the badge's base utilities for border width,
    border colour and padding, which is the point.
@@ -160,7 +161,7 @@
 	padding: calc(var(--spacing-xs) - 1px);
 	padding-inline-end: calc(var(--spacing-sm) - 1px);
 	background-image:
-		linear-gradient(var(--bg), var(--bg)),
+		linear-gradient(var(--secondary), var(--secondary)),
 		conic-gradient(
 			from var(--badge-ai-angle, 0deg),
 			var(--ai-spectrum-1),

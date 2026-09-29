@@ -77,10 +77,10 @@ const RISE_STAGGER = 0.35;
 /** …so the front card lands first. On the first screen, before the
  *  entrance, the three leading cards peek in along the bottom edge: the two
  *  either side of the front with their highest visible point this far above
- *  it (--spacing-xl, in px)… */
-const PEEK_SIDE = 16;
-/** …and the front card 8px higher than them (--spacing-3xl). */
-const PEEK_FRONT = 24;
+ *  it (--spacing-5xl, in px)… */
+const PEEK_SIDE = 40;
+/** …and the front card 8px higher than them. */
+const PEEK_FRONT = 48;
 
 const TO_RAD = Math.PI / 180;
 

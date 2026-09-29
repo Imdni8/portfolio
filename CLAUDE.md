@@ -450,8 +450,8 @@ reads nearly flat.
   1s), never anything in between.
   - State 1 is the first screen: the headline, the bands at full strength,
     and the ring's three leading cards peeking in along the bottom edge.
-    The front card's highest point sits 24px above it (`PEEK_FRONT`), the
-    two either side 16px (`PEEK_SIDE`).
+    The front card's highest point sits 48px above it (`PEEK_FRONT`), the
+    two either side 40px (`PEEK_SIDE`).
     - A point on the ring at angle φ is drawn at `P / (P − R + 1 + R cos φ)`
       of its size, larger further round. So a card lowered below the
       horizon curves *down* toward its far end, and its highest point is
@@ -505,10 +505,14 @@ reads nearly flat.
     capture nothing, so the card→hero pairing only runs from the stacked
     list.
 - **The caption.** One `.reel__caption` per card, all in one grid cell under
-  the ring: the role chips (`light`, AI keeps its ring), then the title,
+  the ring: the role chips (`light`; the AI chip is the same white inside
+  its ring), then the title,
   then industry and year with their icons, centred, 8px apart
   (`--spacing-md`, which is what keeps the metadata 24px clear of the
-  footer at 1440×900). No counter. The front
+  footer at 1440×900). No counter. Each caption is pinned to the top of the
+  shared cell (`align-self`/`align-content: start`): stretched to the
+  tallest caption's height, a shorter one spread its rows, and the gaps
+  changed with the title's length. The front
   one has `data-active` (work-ring.ts); the rest are `visibility: hidden`,
   so assistive tech hears only the front card's, and a polite live region
   (`data-ring-status`) reads "Title, n of 6". Motion (emil-design-eng):
@@ -554,7 +558,9 @@ reads nearly flat.
   on the left and industry and year (with their icons) on the right, then
   `.type-card-title` 32px below, all inset 16px.
   - The chips are the `light` badge variant (`--secondary` fill,
-    `--text-on-secondary`, 17.3:1); the AI chip keeps its ring. Font sizes
+    `--text-on-secondary`, 17.3:1). The AI chip keeps its ring and is filled
+    the same white (`.badge-ai` paints `--secondary`), so the row reads as
+    one set. Font sizes
     are unchanged from the old card.
   - `.card__body` is a grid with named areas, so the title stays first in
     the link's accessible name while the chips and facts sit above it on

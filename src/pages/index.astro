@@ -600,8 +600,15 @@ const ring = await Promise.all(
 		   blends it into the one arriving, so the two never read as two
 		   blocks of text overlapping. `visibility` flips once the fade is
 		   done, which takes it out of the accessibility tree. */
+		/* `align-self`/`align-content: start`: every caption shares one
+		   cell, as tall as the longest, and a shorter one stretched to fill
+		   it spreads its rows apart — so the gaps changed with the length of
+		   the title. Pinned to the top, every caption keeps the same 8px
+		   rhythm. */
 		.reel__caption {
 			grid-area: 1 / 1;
+			align-self: start;
+			align-content: start;
 			display: grid;
 			justify-items: center;
 			row-gap: var(--spacing-md);
