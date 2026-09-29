@@ -491,58 +491,6 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		color: var(--primary-text);
 	}
 
-	/* ---- Homepage: the nav arrives with the scroll ------------------------
-	   On the homepage, while the reel is running (the same query as
-	   home-reel.ts's REEL_QUERY), the nav is not there on the first screen:
-	   the headline is. home-reel.ts fades it in as the headline hands over,
-	   through `--reel-nav` on the shell, and shows the brand through
-	   `--reel-brand` only once the headline's own T mark has flown up and
-	   landed on top of it.
-
-	   Scoped by `:has([data-reel])` on the body, so on any other page none of
-	   this matches — the shell is persisted across navigations and keeps
-	   whatever the homepage last wrote to it, but nothing here reads it.
-
-	   Registered so the initial value is 0 (hidden, matching the headline's
-	   first frame before the script has run) and so a write to the shell
-	   restyles the shell alone, not everything that would inherit it.
-
-	   While hidden it keeps its place in the accessibility tree and in the tab
-	   order — a reader who tabs into it gets it back at full strength — but
-	   drops the pointer (`data-reel-hidden`, set by the script), so nothing
-	   invisible sits over the top of the headline. */
-	@property --reel-nav {
-		syntax: '<number>';
-		inherits: false;
-		initial-value: 0;
-	}
-
-	@property --reel-brand {
-		syntax: '<number>';
-		inherits: false;
-		initial-value: 0;
-	}
-
-	@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
-		:global(body:has([data-reel])) .nav-shell {
-			opacity: var(--reel-nav);
-		}
-
-		:global(body:has([data-reel])) .nav__brand {
-			opacity: var(--reel-brand);
-		}
-
-		:global(body:has([data-reel])) .nav-shell[data-reel-hidden] {
-			pointer-events: none;
-		}
-
-		:global(body:has([data-reel])) .nav-shell:focus-within,
-		:global(body:has([data-reel])) .nav-shell:focus-within .nav__brand {
-			opacity: 1;
-			pointer-events: auto;
-		}
-	}
-
 	.nav__brand:focus-visible,
 	.nav__link:focus-visible {
 		outline: 2px solid var(--focus-ring);

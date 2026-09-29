@@ -131,9 +131,10 @@
 
    The state is never colour alone: this is the only badge carrying a
    sparkles glyph, and the only one whose label is the fixed string "AI", so
-   it survives greyscale on shape and text. The label's own contrast is
-   untouched: the fill is still --bg, the text still --text, and the ring is
-   decoration outside the padding box.
+   it survives greyscale on shape and text. The fill is --secondary, the
+   same white the other chips (the `light` variant) wear beside it, and the
+   label --text-on-secondary on it (17.3:1); the ring is decoration outside
+   the padding box.
 
    Unlayered, so it beats the badge's base utilities for border width,
    border colour and padding, which is the point.
@@ -160,7 +161,7 @@
 	padding: calc(var(--spacing-xs) - 1px);
 	padding-inline-end: calc(var(--spacing-sm) - 1px);
 	background-image:
-		linear-gradient(var(--bg), var(--bg)),
+		linear-gradient(var(--secondary), var(--secondary)),
 		conic-gradient(
 			from var(--badge-ai-angle, 0deg),
 			var(--ai-spectrum-1),
@@ -209,17 +210,6 @@
 	.btn-ghost-icon-hover:hover {
 		background: color-mix(in srgb, var(--primary-text) 18%, transparent);
 	}
-}
-
-/* ---- Decrypted text --------------------------------------------------------
-   Text that scrambles and settles (DecryptedText.tsx). It has no type or
-   colour of its own and inherits both from where it is placed. It doesn't
-   reserve width either: scrambled glyphs are wider or narrower than the real
-   ones, so a caller whose layout must not move holds the width itself (see
-   `.hero__kaomoji` in HomeHero.astro). */
-.decrypted-text {
-	display: inline-block;
-	white-space: pre-wrap;
 }
 
 /* ---- Water field -----------------------------------------------------------
@@ -300,11 +290,12 @@
 }
 
 /* ---- Liquid metal ----------------------------------------------------------
-   The homepage background (liquid-metal.ts). The shader draws a colourless
+   The old homepage background (liquid-metal.ts) — no page renders it now;
+   it stays in the library and its Storybook story. The shader draws a colourless
    shape; this layer is what makes it amber. It carries its own
-   `--home-shader-ground` fill, isolates so the canvas composites onto that
+   `--liquid-metal-shader-ground` fill, isolates so the canvas composites onto that
    fill first, and then the pair is soft-lit onto whatever is behind it —
-   which has to be `--home-ground` (index.astro's `.home-ground`) for the
+   which has to be `--liquid-metal-ground` for the
    result to come out warm. Soft-light over a dark base can only lift it a
    little, which is the ceiling the headline's contrast is measured against;
    see liquid-metal.ts.
@@ -319,7 +310,7 @@
 	inset: 0;
 	isolation: isolate;
 	pointer-events: none;
-	background: var(--home-shader-ground);
+	background: var(--liquid-metal-shader-ground);
 	mix-blend-mode: soft-light;
 }
 
@@ -336,7 +327,7 @@
      the glow blooming rather than a flat fade.
 
    Both on the canvas, never on the layer. The layer's own ground is half of
-   the blend: soft-lighting --home-shader-ground onto --home-ground takes the
+   the blend: soft-lighting --liquid-metal-shader-ground onto --liquid-metal-ground takes the
    page from rgb(20, 12, 0) down to the near-black the reference shows, so
    fading the whole layer would fade that darkening in too, and the entire
    background would visibly dim behind the headline. With the layer left
@@ -366,6 +357,41 @@
 	.liquid-metal[data-liquid-metal='ready'] canvas {
 		scale: 1;
 	}
+}
+
+/* ---- Gradient blinds --------------------------------------------------------
+   The homepage background (gradient-blinds.ts): bands of light across the
+   top of the screen, hard-lit onto `--home-ground` (index.astro's
+   `.home-ground`). Hard-light is what the bands are drawn for — above 0.5 a
+   channel lightens the ground, below it darkens it, and 0.5 leaves it
+   exactly as it is — so this layer must not isolate; the blend has to reach
+   the ground.
+
+   Two opacities, on two elements, and they must stay apart:
+   - the host's is home-reel.ts's, dimming the bands as the cards rise;
+   - the canvas's is the arrival: nothing until gradient-blinds.ts marks the
+     host `ready`, then up to --blinds-opacity on plain `ease` over 1.4s, the
+     same curve and length the liquid-metal glow came up on — it is light
+     arriving, not an object. Reduced motion keeps the fade; there is no
+     movement in it to drop.
+   Without WebGL or JS the canvas never exists, and the ground stands. */
+.gradient-blinds {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	mix-blend-mode: hard-light;
+}
+
+.gradient-blinds canvas {
+	display: block;
+	inline-size: 100%;
+	block-size: 100%;
+	opacity: 0;
+	transition: opacity 1400ms ease;
+}
+
+.gradient-blinds[data-gradient-blinds='ready'] canvas {
+	opacity: var(--blinds-opacity);
 }
 
 /* ---- Case-study islands ----------------------------------------------------

@@ -65,6 +65,32 @@ const metaDescription = subtitle ?? title;
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		{/* Arriving from a homepage ring card: see work-ring.ts ("Opening a
+		    card") and tokens.css §3b. A classic inline script in <head>,
+		    because `pagereveal` fires before the first render, ahead of every
+		    module script. The key is cleared on every load, so a browser
+		    without `pagereveal` can't carry it into a later visit. */}
+		<script is:inline>
+			(() => {
+				let from = null;
+				try {
+					from = sessionStorage.getItem('ring-open');
+					sessionStorage.removeItem('ring-open');
+				} catch {}
+				const trim = (path) => path.replace(/\/+$/, '');
+				if (from === null || trim(from) !== trim(location.pathname)) return;
+				addEventListener(
+					'pagereveal',
+					(event) => {
+						if (!event.viewTransition) return;
+						const root = document.documentElement;
+						root.setAttribute('data-ring-open', '');
+						event.viewTransition.finished.finally(() => root.removeAttribute('data-ring-open'));
+					},
+					{ once: true },
+				);
+			})();
+		</script>
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<FontPreload />
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
@@ -171,6 +197,29 @@ const metaDescription = subtitle ?? title;
 		font-family: var(--font-sans);
 		-webkit-font-smoothing: antialiased;
 		text-rendering: optimizeLegibility;
+	}
+
+	/* Dark theme's ground matches the homepage's — the same near-black
+	   (--home-ground) rather than --gray-900. Overriding --bg itself, not
+	   just what's painted, is what keeps it a single change: every
+	   descendant that reads --bg picks it up too — ReadInDetail's curtain
+	   wash fades to the same value it's sitting on, and any badge or button
+	   rendered in case-study content stays in sync. --bg-raised/--bg-sunken
+	   are untouched (they're their own literals, not derived from --bg), and
+	   the new ground still sits below --bg-sunken's #090b0c, so a sunken
+	   surface still reads as pressed in rather than raised.
+
+	   Scoped to dark only, the same conditional tokens.css itself uses for
+	   its light override, so light theme (and every other page) is
+	   untouched — --home-ground is a dark-only literal. */
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme='light']) body {
+			--bg: var(--home-ground);
+		}
+	}
+
+	:root[data-theme='dark'] body {
+		--bg: var(--home-ground);
 	}
 
 	img {

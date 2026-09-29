@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { LiquidMetal } from '../components/ui/LiquidMetal';
 
 /**
- * The homepage background. The shader draws a colourless chrome diamond; the
- * amber comes from soft-lighting it onto `--home-ground`, which is why the
+ * The old homepage background, no longer on any page. The shader draws a colourless chrome diamond; the
+ * amber comes from soft-lighting it onto `--liquid-metal-ground`, which is why the
  * decorator paints that ground rather than the page's `--bg`. On a cool
  * ground the same shader comes out grey — see liquid-metal.ts.
  *
@@ -27,7 +27,7 @@ const meta = {
 					position: 'relative',
 					isolation: 'isolate',
 					height: '40rem',
-					background: 'var(--home-ground)',
+					background: 'var(--liquid-metal-ground)',
 				}}
 			>
 				<Story />
