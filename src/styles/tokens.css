@@ -318,6 +318,52 @@
 	animation-timing-function: var(--ease-in-out);
 }
 
+/* A homepage ring card (work-ring.ts, "Opening a card") hands over a screen
+   already filled by its cover, still growing, as the snapshot named
+   `ring-open`. That snapshot keeps growing as it fades out, revealing the
+   study, which holds still underneath instead of cross-fading in.
+   CaseStudyLayout's inline pagereveal script marks the arrival with
+   `data-ring-open`.
+   - The scale is linear because it continues a motion already under way
+     rather than starting one. Its end is never seen: the fade is on
+     --ease-out, so the snapshot is almost gone by then.
+   - Both pages are dense with text, and mid-fade they read as a double
+     exposure. The same 4px blur the homepage's caption swap uses blends
+     them into one change.
+   - The hero's `card-<slug>` name is dropped for this one transition.
+     Otherwise it would be a new-only element that fades in on its own
+     layer, above the snapshot, before the rest of the page. */
+:root[data-ring-open] .hero {
+	view-transition-name: none !important; /* over CaseStudyHero's inline style */
+}
+
+::view-transition-group(ring-open) {
+	z-index: 1;
+}
+
+::view-transition-old(ring-open) {
+	animation:
+		ring-open-grow 400ms linear both,
+		ring-open-fade 400ms var(--ease-out) both;
+}
+
+:root[data-ring-open]::view-transition-new(root) {
+	animation: none;
+}
+
+@keyframes ring-open-grow {
+	to {
+		scale: 1.12;
+	}
+}
+
+@keyframes ring-open-fade {
+	to {
+		opacity: 0;
+		filter: blur(4px);
+	}
+}
+
 /* ---- 4 · Semantic colour · dark (default) ---------------------------------- */
 :root {
 	--bg: var(--gray-900);

@@ -98,6 +98,12 @@ const tokenPx = (el: Element, name: string, fallback: number) => {
 	return value;
 };
 
+/** A custom property's raw computed value — for anything that isn't a
+ *  length, such as an easing token. `Element.animate()` doesn't resolve
+ *  `var(...)`, so a curve has to be read out as its literal cubic-bezier
+ *  before it can drive a Web Animation. */
+const tokenValue = (el: Element, name: string, fallback: string) => getComputedStyle(el).getPropertyValue(name).trim() || fallback;
+
 export type WorkRing = {
 	/** How far through the entrance the ring is, 0 (on the first screen) to
 	 *  1 (on the ring). */
@@ -161,6 +167,7 @@ export function createWorkRing(stage: HTMLElement, { onActive, room }: WorkRingO
 			samples: { time: number; angle: number }[];
 		},
 		suppressClick: false,
+		opening: false,
 		pointer: { inside: false, x: 0, y: 0 },
 		yaw: 0,
 		pitch: 0,
@@ -406,6 +413,190 @@ export function createWorkRing(stage: HTMLElement, { onActive, room }: WorkRingO
 	const slotOf = (target: EventTarget | null) =>
 		target instanceof Element ? slots.findIndex((slot) => slot.contains(target)) : -1;
 
+	/* ---- Opening a card ---------------------------------------------------
+	   The front card's link is a real navigation (`data-astro-reload`), and
+	   the site opts into cross-document view transitions (tokens.css §3b),
+	   so the case study opens on a snapshot of this page's last frame. The
+	   motion is split across the two documents so the cover never stops
+	   growing:
+
+	   1. Here, a flat copy of the cover is laid exactly over the card and
+	      grown, on `transform` alone, past every edge of the screen. The
+	      navigation starts the moment the copy covers the screen rather than
+	      when the animation ends, so the cover is still growing while the
+	      next page loads instead of freezing on its last frame.
+	   2. There, CaseStudyLayout's inline pagereveal script finds
+	      RING_OPEN_KEY and marks the transition, and tokens.css keeps the
+	      snapshot growing while it fades out over the study.
+
+	   Appended to <body>: `.reel__lens`'s `perspective` would otherwise
+	   become the containing block for `position: fixed`. */
+	const OPEN_MS = 700; // only the head of it plays here — at 1440×900 the screen is covered ~150ms in
+	const OVERSHOOT = 1.3; // how far past covering the screen the cover grows
+	const RING_OPEN_KEY = 'ring-open'; // read by the inline script in CaseStudyLayout.astro
+	let opener: { panel: HTMLDivElement; photo: HTMLImageElement } | null = null;
+
+	const ensureOpener = () => {
+		if (!opener) {
+			const panel = document.createElement('div');
+			const photo = document.createElement('img');
+			panel.setAttribute('aria-hidden', 'true');
+			photo.alt = '';
+			Object.assign(panel.style, {
+				position: 'fixed',
+				inset: '0',
+				zIndex: '1000', // above the nav (20), Lightbox (100) and Toast (110)
+				overflow: 'hidden',
+				opacity: '0',
+				pointerEvents: 'none',
+			});
+			Object.assign(photo.style, {
+				position: 'absolute',
+				top: '0',
+				left: '0',
+				display: 'block',
+				maxWidth: 'none',
+				objectFit: 'cover',
+				objectPosition: 'center top',
+				transformOrigin: '0 0',
+			});
+			panel.append(photo);
+			document.body.append(panel);
+			opener = { panel, photo };
+		}
+		return opener;
+	};
+
+	/* Coming back through the back/forward cache restores the page exactly as
+	   it was left, with the panel still covering it. */
+	const resetOpener = () => {
+		state.opening = false;
+		document.documentElement.style.removeProperty('view-transition-name');
+		if (!opener) return;
+		for (const animation of opener.panel.getAnimations({ subtree: true })) animation.cancel();
+		opener.panel.style.opacity = '0';
+	};
+
+	const onPageShow = (event: PageTransitionEvent) => {
+		if (event.persisted) resetOpener();
+	};
+
+	/* This page's <html> carries Astro's `transition:animate="none"`, which
+	   Astro turns into a generated view-transition-name, so the outgoing
+	   snapshot would be captured under that name rather than `root`, where
+	   no stylesheet can reach it. Names set in `pageswap` are read when the
+	   old state is captured, so the snapshot is renamed to one tokens.css
+	   can target. */
+	const onPageSwap = (event: Event) => {
+		if (!state.opening || !('viewTransition' in event) || !event.viewTransition) return;
+		document.documentElement.style.setProperty('view-transition-name', RING_OPEN_KEY);
+	};
+
+	const navigate = (href: string) => {
+		try {
+			sessionStorage.setItem(RING_OPEN_KEY, new URL(href, window.location.href).pathname);
+		} catch {
+			/* Storage can be switched off; the study then opens on the default cross-fade. */
+		}
+		window.location.assign(href);
+	};
+
+	type Box = { left: number; top: number; right: number; bottom: number };
+
+	/* The eased progress (0–1) at which the growing cover first spans the
+	   whole screen. Translate and scale each interpolate linearly in
+	   progress, so every edge does too, and each edge's crossing solves
+	   directly. */
+	const coveredAt = (from: Box, to: Box, vw: number, vh: number) => {
+		const cross = (a: number, b: number) => (a <= 0 ? 0 : a / (a - b)); // first p where a + (b − a)·p ≤ 0
+		return Math.min(
+			1,
+			Math.max(
+				cross(from.left, to.left),
+				cross(from.top, to.top),
+				cross(vw - from.right, vw - to.right),
+				cross(vh - from.bottom, vh - to.bottom),
+			),
+		);
+	};
+
+	/* The card's box is 0×0 (its strips hold the picture), so its outline on
+	   screen is read from the strips. The ends are drawn ~4% taller than the
+	   middle (see DISTANCE), so the height comes from a middle strip. */
+	const outlineOf = (card: HTMLElement): Box => {
+		const strips = [...card.querySelectorAll('.reel__tile')].map((tile) => tile.getBoundingClientRect());
+		const middle = strips[strips.length >> 1];
+		return {
+			left: Math.min(...strips.map((r) => r.left)),
+			right: Math.max(...strips.map((r) => r.right)),
+			top: middle.top,
+			bottom: middle.bottom,
+		};
+	};
+
+	const openCard = (card: HTMLElement, href: string) => {
+		const { panel, photo } = ensureOpener();
+
+		/* Reduced motion: no growth, and tokens.css turns the view transition
+		   off entirely, so the page dims to the ground and the study cuts in. */
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			photo.style.visibility = 'hidden';
+			panel.style.background = 'var(--home-ground)';
+			panel.style.opacity = '1';
+			const fade = panel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease' });
+			Promise.race([fade.finished, new Promise((resolve) => window.setTimeout(resolve, 400))])
+				.catch(() => {})
+				.finally(() => navigate(href));
+			return;
+		}
+
+		const easeOut = tokenValue(stage, '--ease-out', 'cubic-bezier(0.23, 1, 0.32, 1)');
+		const vw = window.innerWidth;
+		const vh = window.innerHeight;
+		const imageH = vw / ASPECT;
+		const from = outlineOf(card);
+		const fromScale = (from.right - from.left) / vw;
+		const toScale = Math.max(1, vh / imageH) * OVERSHOOT;
+		const to: Box = {
+			left: (vw - toScale * vw) / 2,
+			top: (vh - toScale * imageH) / 2,
+			right: (vw + toScale * vw) / 2,
+			bottom: (vh + toScale * imageH) / 2,
+		};
+
+		const source = card.querySelector<HTMLImageElement>('.reel__photo');
+		photo.src = source?.currentSrc || source?.src || '';
+		photo.style.visibility = '';
+		photo.style.width = `${vw}px`;
+		photo.style.height = `${imageH}px`;
+		/* In the photo's own px, so it scales with it: the card's corner at
+		   the start, and off-screen by the time it would read as too round. */
+		photo.style.borderRadius = `${(CORNER * vw) / cardW}px`;
+		panel.style.background = '';
+		panel.style.opacity = '1';
+
+		const grow = photo.animate(
+			[
+				{ transform: `translate(${from.left}px, ${from.top}px) scale(${fromScale})` },
+				{ transform: `translate(${to.left}px, ${to.top}px) scale(${toScale})` },
+			],
+			{ duration: OPEN_MS, easing: easeOut, fill: 'forwards' },
+		);
+
+		/* Hand over as soon as the screen is covered. The deadline is for an
+		   animation that never reports progress, so the reader isn't stranded. */
+		const covered = coveredAt(from, to, vw, vh);
+		const deadline = performance.now() + OPEN_MS + 400;
+		const watch = () => {
+			if (!state.opening) return;
+			const progress = grow.effect?.getComputedTiming().progress;
+			const done = progress == null ? grow.playState === 'finished' : progress >= covered;
+			if (done || performance.now() > deadline) navigate(href);
+			else requestAnimationFrame(watch);
+		};
+		requestAnimationFrame(watch);
+	};
+
 	const onPointerDown = (event: PointerEvent) => {
 		state.suppressClick = false;
 		if (!state.live || event.button !== 0) return;
@@ -479,7 +670,9 @@ export function createWorkRing(stage: HTMLElement, { onActive, room }: WorkRingO
 
 	/* A drag never counts as a click, and a click on a side card turns it to
 	   the front rather than following its link — only the front card
-	   navigates. Capture, so this runs before the router sees the click. */
+	   navigates, and now expands into what it opens rather than cutting
+	   straight to the reload. Capture, so this runs before the router sees
+	   the click. */
 	const onClick = (event: MouseEvent) => {
 		if (!state.live) return;
 		if (state.suppressClick) {
@@ -489,10 +682,27 @@ export function createWorkRing(stage: HTMLElement, { onActive, room }: WorkRingO
 			return;
 		}
 		const index = slotOf(event.target);
-		if (index < 0 || index === active) return;
+		if (index < 0) return;
+		if (index !== active) {
+			event.preventDefault();
+			event.stopPropagation();
+			focusIndex(index);
+			return;
+		}
+		if (state.opening) {
+			event.preventDefault();
+			event.stopPropagation();
+			return;
+		}
+		/* A modified click (new tab, new window, download) stays the browser's. */
+		if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+		const card = cards[index];
+		const href = card?.getAttribute('href');
+		if (!card || !href || card.getAttribute('target') === '_blank') return;
 		event.preventDefault();
 		event.stopPropagation();
-		focusIndex(index);
+		state.opening = true;
+		openCard(card, href);
 	};
 
 	/* A link dragged would otherwise start the browser's own drag-and-drop. */
@@ -528,6 +738,8 @@ export function createWorkRing(stage: HTMLElement, { onActive, room }: WorkRingO
 	stage.addEventListener('dragstart', onDragStart);
 	stage.addEventListener('focusin', onFocusIn);
 	document.addEventListener('visibilitychange', onVisibility);
+	window.addEventListener('pageshow', onPageShow);
+	window.addEventListener('pageswap', onPageSwap);
 
 	measure();
 	render();
@@ -565,6 +777,8 @@ export function createWorkRing(stage: HTMLElement, { onActive, room }: WorkRingO
 			stage.removeEventListener('dragstart', onDragStart);
 			stage.removeEventListener('focusin', onFocusIn);
 			document.removeEventListener('visibilitychange', onVisibility);
+			window.removeEventListener('pageshow', onPageShow);
+			window.removeEventListener('pageswap', onPageSwap);
 
 			/* Hand everything back to the stylesheet, so the stacked layout
 			   (or the next page) starts clean. */
@@ -581,6 +795,8 @@ export function createWorkRing(stage: HTMLElement, { onActive, room }: WorkRingO
 				stage.style.removeProperty(name);
 			}
 			for (const name of ['data-ring-ready', 'data-ring-live', 'data-dragging']) stage.removeAttribute(name);
+			opener?.panel.remove();
+			opener = null;
 		},
 	};
 }
