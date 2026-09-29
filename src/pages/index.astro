@@ -465,6 +465,19 @@ const ring = await Promise.all(
 			cursor: grabbing;
 		}
 
+		/* `.reel__card` is a link, and the UA stylesheet forces `cursor:
+		   pointer` on `:any-link` regardless of the grab cursor inherited
+		   from `.reel__lens` — since the front card fills most of the
+		   screen, that pointer cursor is what a reader actually sees.
+		   Restated here so the drag affordance isn't lost under it. */
+		.reel__stage[data-ring-live] .reel__card {
+			cursor: grab;
+		}
+
+		.reel__stage[data-dragging] .reel__card {
+			cursor: grabbing;
+		}
+
 		.reel__camera,
 		.reel__ring,
 		.reel__slot,
