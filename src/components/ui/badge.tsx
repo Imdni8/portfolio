@@ -4,7 +4,7 @@
 //   - `cn` comes from @/lib/utils, not the standalone `cn` package the CLI
 //     installs (uninstalled again).
 //   - The variants are Tag's, not shadcn's: `default`, `coming-soon` and
-//     `ai`. shadcn's set (a primary-filled chip, destructive, link…) has no
+//     `ai`, plus `light` (the work card's white chips). shadcn's set (a primary-filled chip, destructive, link…) has no
 //     use here, and the palette has no destructive token.
 //   - Type is the 10px tag rung in DM Mono: uppercase, tracked open. No
 //     `.type-*` class carries that rung, so it's set from the tokens directly.
@@ -51,6 +51,11 @@ const badgeVariants = cva(
         // place for it to go stale against the first. The label keeps the
         // default badge's contrast: --text on --bg.
         ai: "badge-ai text-foreground",
+        // A white chip, for the work card's role labels, which sit on the
+        // bare page ground rather than a panel. The control-surface tokens,
+        // not a literal: --secondary is the one sanctioned white, and
+        // --text-on-secondary (gray-900) on it is 17.3:1.
+        light: "border-(--secondary-border) bg-(--secondary) text-(--text-on-secondary)",
       },
     },
     defaultVariants: {

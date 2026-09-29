@@ -390,98 +390,149 @@ carries the measurements.
 
 ## Homepage
 
-`index.astro` is a headline and a reel, rebuilt from the Paper file's frames
-`1RC-0` (first screen) and `1I9-0` (the reel). The page scrolls vertically; a
-trackpad's sideways swipe also steps through the cards.
+`index.astro` is a headline and the work ring. On desktop the page is one
+screen and doesn't scroll. The first gesture plays the headline away and
+the six case-study covers rise onto a panorama that the reader drags round,
+with the front card's details underneath. The logo plays it back. The ring
+is a framework-free port of React Bits' `CircularCarousel` (`panorama`
+preset, "rise" entrance), with the camera pulled back so the front card
+reads nearly flat.
 
-- **The structure.** `.reel` (`data-reel`) is a tall section whose height is
-  `(1 + reelLength(n)) × 100svh`, from `reelLength()` in `home-reel.ts`, so the
-  CSS and the script can't disagree about where the sequence ends. Inside it,
-  `.reel__pin` is sticky and viewport-sized, and holds `HomeHero` plus an `<ol>`
-  of `WorkCard`s, all absolutely positioned. The script decides where
-  everything inside the pin should be:
-  - **intro**: two states and a *played* transition, never anything in
-    between.
-    - State 1 is the first screen. State 2 has the headline gone, the
-      gradient blinds dimmed to 40% (`DIM_TO`), and the first card centred.
-      The nav is there in both.
-    - The transition (`INTRO_DURATION`, 1s) fades the headline (0–30%),
-      dims the bands (0–60%, `--ease-in-out`) and raises the cards 58svh
-      from 20% (`RISE_DELAY`), staggered from the centre outwards. The
-      dimming writes the blinds *host's* opacity; the canvas's own opacity
-      is its fade-in, and the two must not share an element.
-    - The two states sit `INTRO` (1 viewport) apart in the scroll, so the
-      scroll position always says which one the page is in. Nothing is drawn
-      from positions in between;
-  - **reel** (`STEP`, 0.9 per card): cards fan out in a coverflow, one
-    position per step. Neighbours still step 0.6707 card-widths across, and
-    now — instead of sliding down a 10° diagonal — tilt 35° around their own
-    vertical axis and recede 0.32 card-widths into depth under a shared
-    `perspective`, both plateauing at the immediate neighbour (as the old
-    83%-of-lit-size scale already did, now compounded with perspective's own
-    shrink), overlapping the lit card's edges as drawn. They also sag along a
-    downward arc — 0.15 card-widths per squared step, unplateaued, so the row
-    curves continuously instead of kinking where the tilt/depth/scale flatten
-    out. There is no measured reference for these numbers, only a described
-    screenshot — retune by eye;
-  - **end**: the page ends on the last card (`TAIL` is 0). Where the screen
-    has room under the lit card, the footer is laid over the bottom of the
-    reel and rises into view as the last card arrives, so there's nothing
-    left to scroll. Where it doesn't, the footer stays in flow and scrolls in
-    after. See "The footer at the end" below.
+- **Two lists, one shown.** `.work-list` is the stacked column of
+  `WorkCard`s, used below 64rem, under reduced motion and without JS. The
+  ring is `.reel__stage`, used where the reel runs. The hidden one is
+  `display: none`, so it's out of the tab order and the accessibility tree.
+  Both lists' first cover is `eager`/`fetchpriority="high"`, so on desktop
+  the stacked list's first cover downloads unseen.
+- **The ring's structure.** `.reel__stage` is the whole screen and carries
+  the panorama's side mask (transparent → 12% → 88% → transparent).
+  - It must stay full-screen. A mask clips to its element's box, and while
+    the stage stopped at the nav's band it cut the side cards off in a hard
+    line under the nav (`mask-clip: no-clip` didn't help at the top).
+  - It never takes the pointer itself.
+  - `.reel__lens` is the ring's box. It sits below the nav's band plus
+    `RING_CLEARANCE` (40px, home-reel.ts: brings the ring down toward the
+    middle) as `--ring-top`, above the captions (`--ring-caption`) and the
+    footer plus 24px (`--ring-bottom`); all three are measured by the
+    script. It holds the perspective and the fit scale, and takes the drag
+    while the ring is live (pointer capture is on it), so the footer keeps
+    its pointer.
+  - `.reel__captions` sits under it, `--ring-bottom` up from the screen's
+    bottom.
+  - `.reel__camera` is the viewpoint.
+  - `ol.reel__ring` is the ring. Each `li.reel__slot` has an `a.reel__card`
+    (the link, `aria-label` the title), holding the cover cut into 8
+    `.reel__tile` strips.
+  - Every strip shows the same `<img>` (one `getImage()` URL at 960w, so one
+    download), offset to its own slice, with a `.reel__shade` that darkens
+    it into the ground as it turns away.
+  - `.reel__probe` carries the card width, `min(--measure-chrome, 100vw − 2
+    gutters)`, so the front card spans the nav row. The script measures it,
+    because a custom property's computed value is only its raw text.
+- **The geometry** (`work-ring.ts`, tunables at the top):
+  - Cards are the covers' own 1303:770 frame. The radius is the arc:
+    `n·(W + gap) / 2π`.
+  - Each card is bent onto the arc in 8 strips (upstream's formula; 2.5px
+    overlap so no seam shows, rounded corners on the end strips). Card i+1
+    sits to the right of card i.
+  - **The camera is `DISTANCE` (3) radii back**, not at the ring's centre as
+    upstream's panorama has it. From the centre, a card's ends are much
+    nearer than its middle and its top and bottom edges bow hard (the ends
+    drawn ~14% larger). Three radii back that drops to ~4%, about 10px at
+    1440×900, and the neighbours still sit right beside it. The lens
+    perspective is `3R`, and the camera is `translate3d(0, 0, R − 1)`, so
+    the front card is drawn at its own size.
+  - **The fit** is height only (the ring runs off both sides by design):
+    `lensH / (cardH × scale at the card's ends)`, capped at 1. At 1440×900
+    that makes the front card 810px wide; on taller screens it reaches the
+    full nav row.
+- **The intro** has two states and a *played* transition (`INTRO_DURATION`,
+  1s), never anything in between.
+  - State 1 is the first screen: the headline, the bands at full strength,
+    and the ring's three leading cards peeking in along the bottom edge.
+    The front card's highest point sits 24px above it (`PEEK_FRONT`), the
+    two either side 16px (`PEEK_SIDE`).
+    - A point on the ring at angle φ is drawn at `P / (P − R + 1 + R cos φ)`
+      of its size, larger further round. So a card lowered below the
+      horizon curves *down* toward its far end, and its highest point is
+      the part nearest the camera: the front card's middle, and a side
+      card's inner end.
+    - The lift for each is solved in closed form from that scale. Measured
+      at 1440×900, 1280×640 and 1024×768.
+    - The front card's cover is the page's LCP image, so it is never faded.
+      The stage is hidden until the script's first measure (there is no
+      CSS-only first frame for a fitted 3D ring).
+  - State 2 is the ring: headline gone, blinds dimmed to 40% (`DIM_TO`),
+    all six cards on the ring, the caption and the footer in.
+  - The transition fades the headline (0–30%), dims the bands (0–60%,
+    `--ease-in-out`), raises the cards (15–100%) and brings the footer up by
+    its own height (60–100%). The dimming writes the blinds *host's*
+    opacity; the canvas's own opacity is its fade-in.
+  - **The entrance ("rise").** Each card slides up from below the frame,
+    delayed by how far round the ring it sits from the front
+    (`RISE_STAGGER`, easeOutQuint), so the front card lands first. Played
+    backwards, the same curve is the exit.
+- **How input moves between the states** (`home-reel.ts`):
+  - **Forward**: any forward wheel gesture, a swipe up, or
+    ArrowDown/PageDown/Space on the first screen. The wheel and touch play
+    the transition; keys jump instantly. The rest of the gesture is
+    swallowed until the wheel has been quiet for `GESTURE_IDLE` (200ms),
+    capped at `GESTURE_MAX`.
+  - **Back**: the logo, and nothing else. A capture-phase click listener on
+    the window catches `.nav__brand`, calls `preventDefault` (so the router
+    never soft-navigates to the page it's on) and plays the reverse. On the
+    first screen the logo does nothing. Scrolling up does **not** reverse
+    the intro, by design.
+  - **Tab** into a card from the first screen jumps straight to the ring.
+  - The wheel is always `preventDefault`ed while the reel runs (`html` is
+    `overflow: hidden`).
+- **On the ring** (only while `live`):
+  - Drag with a mouse, finger or pen. The ring turns the way the hand goes:
+    a drag left brings the next card in from the right. Pointer capture,
+    velocity sampled over the last 110ms, and a flick that aims the settle
+    at where it would glide to (`MOMENTUM`).
+  - A spring (`SPRING` 118, critically damped) settles on the nearest card.
+  - The wheel on either axis turns the ring (sideways for trackpads,
+    vertical so a mouse wheel works). It snaps after 140ms of quiet.
+  - ArrowLeft/Right step one card.
+  - Clicking a side card turns it to the front; only the front card's link
+    navigates. A drag never counts as a click. All of this runs in the
+    capture phase.
+  - Tabbing to a card turns it to the front instantly.
+  - The camera leans toward the pointer (`PARALLAX` 0.12). The rAF loop only
+    runs while something moves.
+  - Ring cards carry no `view-transition-name`: a 0×0 3D anchor would
+    capture nothing, so the card→hero pairing only runs from the stacked
+    list.
+- **The caption.** One `.reel__caption` per card, all in one grid cell under
+  the ring: the role chips (`light`, AI keeps its ring), then the title,
+  then industry and year with their icons, centred, 8px apart
+  (`--spacing-md`, which is what keeps the metadata 24px clear of the
+  footer at 1440×900). No counter. The front
+  one has `data-active` (work-ring.ts); the rest are `visibility: hidden`,
+  so assistive tech hears only the front card's, and a polite live region
+  (`data-ring-status`) reads "Title, n of 6". Motion (emil-design-eng):
 
-  All the tunables sit in one block at the top of `home-reel.ts`. A single
-  rAF loop drives it, not ScrollTrigger (GSAP stays scoped to the nav).
-  - The reel doesn't sit on the scroll position; it follows it through an
-    exponential lag (`SMOOTHING`, a 90ms time constant). A wheel notch
-    otherwise teleports the cards by 100px. The follower stops once it's
-    within half a pixel, so an idle page runs no frames.
-  - It snaps instead of gliding on the first frame, on resize, and on
-    keyboard focus.
-- **How input moves between the states** (all in `home-reel.ts`):
-  - **Wheel/trackpad** (a non-passive `wheel` listener on the window):
-    - Any forward gesture on state 1, however small, plays the transition.
-      Any backward gesture on the first card plays it in reverse.
-    - The scroll jumps to that state's position at once, and the timeline
-      runs on the clock using the token curves (a JS `cubicBezier` that
-      mirrors `--ease-out`/`--ease-in-out`).
-    - The rest of that gesture, trackpad momentum included, is swallowed until
-      the wheel has been quiet for `GESTURE_IDLE` (200ms). An opposite-direction
-      event is a new gesture, so reversing mid-transition turns it around.
-    - Scrolling back through the reel **stops at the first card** instead of
-      carrying on into the intro. The next backward gesture plays the reverse.
-  - **Horizontal**: a gesture that mostly moves sideways counts as that axis.
-    Inside the reel it's converted to the scroll it stands for, at
-    `STEP·vh / (STEP_X·cardWidth)` so a card stays under the fingers, and
-    clamped to the first and last card. `html` gets `overscroll-behavior-x:
-    none` in reel mode so the swipe isn't also the browser's back gesture.
-  - **Touch** (reel-width touch screens): a swipe plays the intro the same
-    way. Moves in the intro's direction are `preventDefault`ed from the first
-    pixel, because Chrome won't let a touch be cancelled once it has started
-    scrolling.
-  - **Keys**: ArrowDown/PageDown/Space on state 1, and ArrowUp/PageUp/Shift+Space
-    on the first card, jump between the states *instantly* (keyboard actions
-    don't animate). Elsewhere keys scroll natively.
-  - **Anything else that moves the scroll** (scrollbar, Home/End,
-    find-in-page, a link back to the top, a restored position) is reconciled
-    in `tick`: a position between the states snaps to the other one, and a
-    position on a state takes that state.
-  - **Resize** keeps the page at the same place in the reel by rescaling the
-    scroll offset to the new viewport height.
+  | Element | Enter | Exit |
+  | --- | --- | --- |
+  | Caption swap | opacity, `blur(4px)`→0, 240ms `--ease-out` | opacity, blur, 120ms, no movement |
+  | Lines (tags, title, facts) | rise 6px, staggered 0/40/80ms | snap back once invisible |
+  | Caption block | 200ms fade once the ring is live | gone at once on the way back |
+  | Card press | `scale: 0.98`, 160ms `--ease-out` | same |
+
+  Transitions, not keyframes, so a quick drag through several cards
+  retargets instead of restarting; the blur keeps the crossfade from
+  reading as two blocks of text overlapping.
 - **One media query gates the reel**, in `index.astro`, `SiteNav.astro`'s
   scrim script and as `REEL_QUERY`: `(min-width: 64rem) and
   (prefers-reduced-motion: no-preference) and (scripting: enabled)`. Move
   them together.
-  - The CSS default inside it is the reel's first frame (each `.reel__slot`
-    reads `--i`), so nothing jumps when the script arrives.
-  - Outside it (narrow, reduced motion, no JS), the page stacks: the headline
-    gets 78svh, the cards follow as a plain column, and `work-spotlight.ts`
-    lights the middle one.
-    - `.reel__hero` has `padding-block-start: 22svh`, which centres the
-      headline at 50svh, the same place the reel puts it, while the first
-      card still starts at 78svh.
+  - Outside it (narrow, reduced motion, no JS), the page stacks: the
+    headline gets 78svh, the cards follow as a plain column, and
+    `work-spotlight.ts` lights the middle one. `.reel__hero` has
+    `padding-block-start: 22svh`, which centres the headline at 50svh.
   - `initHomeReel()` switches between the two modes live on `matchMedia`
-    change, and its teardown hands every inline style back.
+    change, and its teardown (and the ring's) hands every inline style back.
 - **The headline** (`HomeHero.astro`) is plain text in an `<h1>`: the name,
   then "Designs *thoughtful*" / "products that drive results" (a `<br>`
   where Figma breaks it).
@@ -494,68 +545,46 @@ trackpad's sideways swipe also steps through the cards.
   - Its entrance is CSS only: the name, then the sentence 80ms behind it,
     rising on `--ease-out`, filling `backwards`. Under reduced motion, one
     200ms fade.
-  - The card track settles up 6svh behind it. It uses `translate` only,
-    because an opacity fade would delay the LCP (the first card's cover).
-  - The scroll script writes only to `[data-reel-fade]` (`.hero__frame`),
-    never to an animated element, because a running animation outranks
-    inline styles.
-  - The rise stagger is capped at two steps so the last visible card still
-    finishes inside the intro.
-- **`WorkCard`** is a solid `--bg-sunken` panel, 1px `--border`, at the
-  reference's 1230×709 ratio: cover on top, then tags, `.type-card-title`, and
-  a half-strength `--border-strong` rule over industry and year side by side.
-  - The text panel takes its natural height and the cover gets the rest.
-  - The cover image is width-fitted at 16:10 and cropped at the bottom by
-    `.card__media`'s own `overflow: clip`. Without that clip, the positioned
-    image paints straight over the text.
-  - The card has no width of its own. The reel sets `min(71.2vw, 110svh,
-    76.875rem)`; the stacked layout uses the frame. Under 40rem of card width
-    it drops the ratio and gives the cover its own 16:10.
-- **One card is lit at a time**, `round(k)` in the reel.
-  - Every other card gets `data-dimmed`: `--card-dimmed-opacity` (0.6) and a
-    2px blur, toggled with a transition rather than scrubbed, since a
-    per-frame blur is the most expensive thing the reel could ask for.
-  - 0.6 is a contrast floor, kept deliberately above the reference's 0.3. Over
-    the homepage ground (darkest to glow peak) it leaves titles at ≥7.1:1 and
-    meta rows at ≥6.1:1; 0.3 would be 2.6:1.
-  - A focused card is never dimmed. Focusing a card finishes the intro and
-    scrolls the window to its step, so Tab walks the reel. Both happen
-    instantly, with the follower snapped: Tab is a repeated keyboard action
-    and shouldn't animate.
+  - The script writes only to `[data-reel-fade]` (`.hero__frame`), never to
+    an animated element, because a running animation outranks inline
+    styles.
+- **`WorkCard`** has no panel: a rounded cover (`--radius-lg`, the
+  reference's 1303×770 frame, anchored to the top), and 24px under it the
+  text straight on the page ground. The text is one row with the role chips
+  on the left and industry and year (with their icons) on the right, then
+  `.type-card-title` 32px below, all inset 16px.
+  - The chips are the `light` badge variant (`--secondary` fill,
+    `--text-on-secondary`, 17.3:1); the AI chip keeps its ring. Font sizes
+    are unchanged from the old card.
+  - `.card__body` is a grid with named areas, so the title stays first in
+    the link's accessible name while the chips and facts sit above it on
+    screen. Under 30rem of card width the facts drop under the chips.
+  - The card has no width of its own; the stacked column uses the frame.
+    The ring doesn't use WorkCard.
+  - In the stacked layout, `work-spotlight.ts` dims every card but the one
+    at the midline (`data-dimmed`: `--card-dimmed-opacity` 0.6 and a 2px
+    blur). The ring doesn't use `data-dimmed`; its depth fade does that
+    job.
   - Cards lift 2px on hover (gated to mouse and trackpad) and press to
-    `scale: 0.98` on `:active` for every input. They're separate properties,
-    so a press composes with the lift.
-  - Coming-soon cards aren't links, so Tab skips them.
-- **The footer at the end.** `index.astro` wraps `<Footer />` in
-  `.home-footer`, outside `<main>` so the `<footer>` keeps its contentinfo
-  role.
-  - `home-reel.ts`'s `measure()` checks whether the footer (115px) plus
-    `FOOTER_CLEARANCE` (24px) fits under the lit card. The reel may rise by up
-    to the lit card's distance from the nav minus `NAV_CLEARANCE` to make room.
-  - If it fits, the script sets `data-footer-overlay` on `<body>`. The wrapper
-    is then absolutely pinned to the body's bottom edge (the body is
-    `position: relative`, and its height is the reel's). Over the last
-    footer-height of scroll, the cards rise by just the missing amount, in
-    step with the footer.
-  - Measured: it fits at 1115×930, 1440×900, 1280×800, 1024×768 and 1728×1117,
-    with a gap of ≥24px everywhere. It doesn't fit at 1280×640 or 1920×600,
-    which scroll the footer in as before.
-  - The footer sits *under* the reel (`.home` is z-index 1), so a card
-    passing through covers it rather than footer text crossing a card. The
-    viewport-sized pin would then swallow the pointer over the footer (the
-    mascot's hover pose), so in reel mode
-    `.home` is `pointer-events: none` and only `.reel__slot` and the
-    headline's `.hero__visual` take the pointer back.
-- **The nav's scrim target is `.reel__scrim-line`**, placed at the lit card's
-  resting top edge. While the pin holds, nothing passes under the nav. In
-  flow mode, once the pin scrolls away with the last card, that line is what
-  meets the nav first. In overlay mode the pin never scrolls away, so the
-  band never shows.
+    `scale: 0.98` on `:active` for every input.
+- **The footer.** `index.astro` wraps `<Footer />` in `.home-footer`, outside
+  `<main>` so the `<footer>` keeps its contentinfo role. In reel mode the
+  script sets `data-footer-overlay` on `<body>` before the ring measures,
+  and the wrapper is pinned to the bottom of the one-screen body.
+  - The ring keeps clear of the footer itself (`.site-footer`, 115px) plus
+    `FOOTER_CLEARANCE` (24px), not of the wrapper: the wrapper also holds
+    the footer's 75px top margin, which is empty.
+  - Checked at 1440×900, 1280×640 and 1024×768: the ring, nav and footer
+    all fit with no overlap.
+  - `.home` is `pointer-events: none` in reel mode, and only the live
+    stage and the headline take the pointer back, so the footer's mascot
+    still gets its hover.
+- **The nav's scrim never shows on the homepage in reel mode**, because
+  nothing scrolls under it. There is no `data-nav-scrim` target; SiteNav's
+  script holds the scrim at 0 without one. The stacked layout still uses
+  the headline (`data-nav-scrim-narrow`).
 - **The ground is `--home-ground`** (`#070709`, the Figma frame's), and
   `.home-ground` (fixed) holds the gradient blinds. See Gradient blinds.
-- **What Frame 2 shows is mid-reel, not the opening.** The reference draws a
-  card to the left of the lit one; with a finite list starting on the first
-  study, nothing is there until the second is centred.
 
 ## Footer
 
