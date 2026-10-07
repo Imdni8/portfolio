@@ -31,39 +31,34 @@ The foundations, all settled with the user:
   8.09:1 on the dark ground and 2.07:1 on the light one. The homepage's
   gradient blinds carry a second sanctioned exception, `--blinds-1…7`
   (sampled from `scratch/bg_color_inspo.jpg`) — decoration only, the same
-  terms as `--ai-spectrum-*`; see Gradient blinds.
+  terms as `--ai-spectrum-*`; see Gradient blinds. The homepage tagline's
+  GitHub squares, `--commit-1…4`, are amber rungs on the same
+  decoration-only terms (what they say is in sr-only text).
 - **Type** — ported from carlthomasiv.com
   (`scratch/carlthomasiv-typography-notes.md`). DM Serif Display is what a
   reader stops on (titles, headlines — always 400, tracked −1%), DM Sans is
   what is read in full (copy at 16/1.7, deks, captions, controls), DM Mono is
   apparatus (nav, tabs, tags, eyebrows — 10–12px, uppercase, tracked +6–8%).
-  Seventeen styles, exposed as `.type-*` classes. `.type-stat` is the biggest
+  Fourteen styles, exposed as `.type-*` classes. `.type-stat` is the biggest
   rung (`--size-stat`, 56→80, serif 400 upright, `--lh-stat` 1.1) and the
   newest — a case study's Outcome numerals (`StatTile`'s `size="lg"`) and
   nothing else; it isn't italic, because a numeral is read, not spoken. Outcome tiles are capped at a maximum width of 364px so
   they stay readable and do not stretch across the full case-study column.
   **There is effectively no
-  bold** outside the homepage headline: the loaded DM cuts are serif 400;
+  bold**: the loaded DM cuts are serif 400;
   sans 400/500; mono 300 (the footer wordmark)/400/500. `--weight-semibold`
   (600) is the one deliberate exception in the DM families, reintroduced to give case-study
   prose's `<strong>` (`story-type.ts`'s `storyProse`) a heavier cut than
   `--weight-medium`, since 500 sits too close to DM Sans's 400 body weight to
   read as emphasis at a glance. In body copy it is not reached for anywhere
-  else — do not use it outside that one `[&_strong]` rule (and the headline
-  name below).
-  A fourth and fifth family, **Montserrat** (`--font-headline-sans`, 300 and
-  600) and **Playfair Display** (`--font-headline-serif`, 700 italic only),
-  set the homepage headline and nothing else — it is drawn that way in the
-  Figma frame (`20205:22325`). Do not reach for either anywhere else. The
-  headline is the only text above the title rung and reads "Tousif Rahaman /
-  Designs *thoughtful* / products that drive results": `.type-hero-name`
-  (Montserrat 600, `--size-hero-name` 22→30), `.type-hero` (Montserrat 300,
-  `--size-hero` 44→80, `--lh-hero` 1.25) and `.type-hero-accent` (Playfair
-  700 italic, set inside a `.type-hero` line and taking its size).
-  `--weight-bold` (700) exists for that one word only. The old headline's
-  Delicious Handrawn aside, kaomoji and `DecryptedText` scramble are gone,
-  along with `.type-display`, `.type-display-sans`, `.type-hand` and their
-  tokens.
+  else — do not use it outside that one `[&_strong]` rule.
+  Three families and no more. The homepage headline used to be set in
+  Montserrat and Playfair Display (`.type-hero*`, `--weight-bold`); the
+  redesign dropped them, uninstalled both packages and removed their
+  tokens. Its "thoughtful" is now DM Serif Display's drawn 400 italic, the
+  face `.type-heading--claim` already loads. The older Delicious Handrawn
+  aside, kaomoji and `DecryptedText` scramble are gone too, along with
+  `.type-display`, `.type-display-sans`, `.type-hand` and their tokens.
   Importance comes from the family and the colour token, never a heavier cut.
   `.type-heading`, `.type-reflection` and `.type-card-title` now share one
   rule (serif 400, 26/31) — the names stay because they say what the text is
@@ -280,8 +275,8 @@ components come from shadcn first, retuned onto the tokens the same way.
   default `bg-popover` look via the tailwind.css token bridge, not `.glass`
   — the simplified nav has no glass material anywhere).
   `SiteNav.astro` renders it as a `client:idle` island for just that one
-  dropdown; the Resume link beside it is off-site, has nowhere to open, and
-  stays a plain Astro-rendered anchor, untouched by any of this. Its popup is
+  dropdown; the Work link beside it has nowhere to open and stays a plain
+  Astro-rendered anchor, untouched by any of this. Its popup is
   `align="start"`, not `end` — the whole nav row clusters on the left, so a
   trailing-edge alignment would open the panel away from its trigger.
 - **`ui/drawer.tsx`** is the second vendored primitive (`npx shadcn add
@@ -315,19 +310,24 @@ that is ever wanted.
 
 ## Site nav
 
-Brand mark on the *left*; **Resume** (off-site, `links.resume` from
-`src/data/links.ts`, with the `arrow-up-right` glyph) and the **Side projects**
-dropdown together on the *right* — `space-between` across a `--measure-chrome`
-(1000px) row, sitewide. The brand is 40px tall and sits 16px from the top
-(`--spacing-xl` of block padding), so the band is 72px. The dropdown is
-`align="end"` because its trigger is the row's last item. There is no Work link
-(the homepage reel is the work) and no About link; nothing in the nav can ever
-be the current page, so `SiteNav.astro` carries no `aria-current` and no
-URL-reading frontmatter.
+Brand mark on the *left*; **Work** (`/#work`, the homepage's Selected works)
+and the **Side projects** dropdown together on the *right* — `space-between`
+across a `var(--nav-measure, var(--measure-chrome))` row: 1000px sitewide,
+narrowed to `--measure-home` on the homepage, which sets `--nav-measure` on
+`<body>` so the brand sits over the name (the footer's default variant reads
+the same override). The brand is 40px tall and sits 16px from the top
+(`--spacing-xl` of block padding), so the band is 72px (`--nav-height`).
+The dropdown is `align="end"` because its trigger is the row's last item.
+Resume moved out of the nav into the homepage bio. There is no About link;
+nothing in the nav is ever a page of its own, so `SiteNav.astro` carries no
+`aria-current` and no URL-reading frontmatter.
 
-- **The nav is the same on every page, homepage included.** It used to be
-  hidden on the homepage's first screen and fade in as the headline's T mark
-  flew up into it; both went with the gradient-blinds redesign.
+- **The nav is the same on every page, homepage included** (only its width
+  differs, above).
+- **The scrim** ramps in as the page's `data-nav-scrim` element reaches the
+  band — the homepage's opening row (`HomeHero.astro`), about's frame. One
+  marker per page; the old reel-only `data-nav-scrim-narrow` branch is
+  gone.
 - **The scrim band paints `var(--nav-band, var(--bg))`.** The homepage sets
   `--nav-band` to its `--home-ground` on `<body>`; everywhere else the band
   is `--bg`.
@@ -379,7 +379,7 @@ padding-inline: var(--gutter);
 or its equivalent — the gutter *outside* the cap, on a full-bleed parent, which
 is what `about.astro` does (and `.nav-shell`/`.nav-shell__inner`, though the
 nav now caps at `--measure-chrome` rather than `--measure-content` — see Site
-nav — and the homepage has no frame at all; see Homepage). The two are the
+nav — and the homepage caps at `--measure-home`; see Homepage). The two are the
 same geometry; a bare `max-width: var(--measure-content)` with padding inside it
 is **not**, and that is the trap. It was equivalent while the pages were
 content-box, but Tailwind's preflight (`src/styles/tailwind.css`) makes
@@ -390,168 +390,101 @@ carries the measurements.
 
 ## Homepage
 
-`index.astro` is a headline and the work ring. On desktop the page is one
-screen and doesn't scroll. The first gesture plays the headline away and
-the six case-study covers rise onto a panorama that the reader drags round,
-with the front card's details underneath. The logo plays it back. The ring
-is a framework-free port of React Bits' `CircularCarousel` (`panorama`
-preset, "rise" entrance), with the camera pulled back so the front card
-reads nearly flat.
+`index.astro` is one column, from Figma's wireframe `20302:1154`: the name
+and tagline, a four-paragraph bio, then Selected works. The wireframe is
+Inter on white; it was taken as layout and content only and set in the
+token system. The page scrolls like any other. (The 3D work ring, its
+scroll-triggered intro, `home-reel.ts`, `work-ring.ts`, `decrypted-text.ts`
+and `work-spotlight.ts` were removed with this redesign.)
 
-- **Two lists, one shown.** `.work-list` is the stacked column of
-  `WorkCard`s, used below 64rem, under reduced motion and without JS. The
-  ring is `.reel__stage`, used where the reel runs. The hidden one is
-  `display: none`, so it's out of the tab order and the accessibility tree.
-  Both lists' first cover is `eager`/`fetchpriority="high"`, so on desktop
-  the stacked list's first cover downloads unseen.
-- **The ring's structure.** `.reel__stage` is the whole screen and carries
-  the panorama's side mask (transparent → 12% → 88% → transparent).
-  - It must stay full-screen. A mask clips to its element's box, and while
-    the stage stopped at the nav's band it cut the side cards off in a hard
-    line under the nav (`mask-clip: no-clip` didn't help at the top).
-  - It never takes the pointer itself.
-  - `.reel__lens` is the ring's box. It sits below the nav's band plus
-    `RING_CLEARANCE` (40px, home-reel.ts: brings the ring down toward the
-    middle) as `--ring-top`, above the captions (`--ring-caption`) and the
-    footer plus 24px (`--ring-bottom`); all three are measured by the
-    script. It holds the perspective and the fit scale, and takes the drag
-    while the ring is live (pointer capture is on it), so the footer keeps
-    its pointer.
-  - `.reel__captions` sits under it, `--ring-bottom` up from the screen's
-    bottom.
-  - `.reel__camera` is the viewpoint.
-  - `ol.reel__ring` is the ring. Each `li.reel__slot` has an `a.reel__card`
-    (the link, `aria-label` the title), holding the cover cut into 8
-    `.reel__tile` strips.
-  - Every strip shows the same `<img>` (one `getImage()` URL at 960w, so one
-    download), offset to its own slice, with a `.reel__shade` that darkens
-    it into the ground as it turns away.
-  - `.reel__probe` carries the card width, `min(--measure-chrome, 100vw − 2
-    gutters)`, so the front card spans the nav row. The script measures it,
-    because a custom property's computed value is only its raw text.
-- **The geometry** (`work-ring.ts`, tunables at the top):
-  - Cards are the covers' own 1303:770 frame. The radius is the arc:
-    `n·(W + gap) / 2π`.
-  - Each card is bent onto the arc in 8 strips (upstream's formula; 2.5px
-    overlap so no seam shows, rounded corners on the end strips). Card i+1
-    sits to the right of card i.
-  - **The camera is `DISTANCE` (3) radii back**, not at the ring's centre as
-    upstream's panorama has it. From the centre, a card's ends are much
-    nearer than its middle and its top and bottom edges bow hard (the ends
-    drawn ~14% larger). Three radii back that drops to ~4%, about 10px at
-    1440×900, and the neighbours still sit right beside it. The lens
-    perspective is `3R`, and the camera is `translate3d(0, 0, R − 1)`, so
-    the front card is drawn at its own size.
-  - **The fit** is height only (the ring runs off both sides by design):
-    `lensH / (cardH × scale at the card's ends)`, capped at 1. At 1440×900
-    that makes the front card 810px wide; on taller screens it reaches the
-    full nav row.
-- **The intro** has two states and a *played* transition (`INTRO_DURATION`,
-  1s), never anything in between.
-  - State 1 is the first screen: the headline, the bands at full strength,
-    and the ring's three leading cards peeking in along the bottom edge.
-    The front card's highest point sits 48px above it (`PEEK_FRONT`), the
-    two either side 40px (`PEEK_SIDE`).
-    - A point on the ring at angle φ is drawn at `P / (P − R + 1 + R cos φ)`
-      of its size, larger further round. So a card lowered below the
-      horizon curves *down* toward its far end, and its highest point is
-      the part nearest the camera: the front card's middle, and a side
-      card's inner end.
-    - The lift for each is solved in closed form from that scale. Measured
-      at 1440×900, 1280×640 and 1024×768.
-    - The front card's cover is the page's LCP image, so it is never faded.
-      The stage is hidden until the script's first measure (there is no
-      CSS-only first frame for a fitted 3D ring).
-  - State 2 is the ring: headline gone, blinds dimmed to 40% (`DIM_TO`),
-    all six cards on the ring, the caption and the footer in.
-  - The transition fades the headline (0–30%), dims the bands (0–60%,
-    `--ease-in-out`), raises the cards (15–100%) and brings the footer up by
-    its own height (60–100%). The dimming writes the blinds *host's*
-    opacity; the canvas's own opacity is its fade-in.
-  - **The entrance ("rise").** Each card slides up from below the frame,
-    delayed by how far round the ring it sits from the front
-    (`RISE_STAGGER`, easeOutQuint), so the front card lands first. Played
-    backwards, the same curve is the exit.
-- **How input moves between the states** (`home-reel.ts`):
-  - **Forward**: any forward wheel gesture, a swipe up, or
-    ArrowDown/PageDown/Space on the first screen. The wheel and touch play
-    the transition; keys jump instantly. The rest of the gesture is
-    swallowed until the wheel has been quiet for `GESTURE_IDLE` (200ms),
-    capped at `GESTURE_MAX`.
-  - **Back**: the logo, and nothing else. A capture-phase click listener on
-    the window catches `.nav__brand`, calls `preventDefault` (so the router
-    never soft-navigates to the page it's on) and plays the reverse. On the
-    first screen the logo does nothing. Scrolling up does **not** reverse
-    the intro, by design.
-  - **Tab** into a card from the first screen jumps straight to the ring.
-  - The wheel is always `preventDefault`ed while the reel runs (`html` is
-    `overflow: hidden`).
-- **On the ring** (only while `live`):
-  - Drag with a mouse, finger or pen. The ring turns the way the hand goes:
-    a drag left brings the next card in from the right. Pointer capture,
-    velocity sampled over the last 110ms, and a flick that aims the settle
-    at where it would glide to (`MOMENTUM`).
-  - A spring (`SPRING` 118, critically damped) settles on the nearest card.
-  - The wheel on either axis turns the ring (sideways for trackpads,
-    vertical so a mouse wheel works). It snaps after 140ms of quiet.
-  - ArrowLeft/Right step one card.
-  - Clicking a side card turns it to the front; only the front card's link
-    navigates. A drag never counts as a click. All of this runs in the
-    capture phase.
-  - Tabbing to a card turns it to the front instantly.
-  - The camera leans toward the pointer (`PARALLAX` 0.12). The rAF loop only
-    runs while something moves.
-  - Ring cards carry no `view-transition-name`: a 0×0 3D anchor would
-    capture nothing, so the card→hero pairing only runs from the stacked
-    list.
-- **The caption.** One `.reel__caption` per card, all in one grid cell under
-  the ring: the role chips (`light`; the AI chip is the same white inside
-  its ring), then the title,
-  then industry and year with their icons, centred, 8px apart
-  (`--spacing-md`, which is what keeps the metadata 24px clear of the
-  footer at 1440×900). No counter. Each caption is pinned to the top of the
-  shared cell (`align-self`/`align-content: start`): stretched to the
-  tallest caption's height, a shorter one spread its rows, and the gaps
-  changed with the title's length. The front
-  one has `data-active` (work-ring.ts); the rest are `visibility: hidden`,
-  so assistive tech hears only the front card's, and a polite live region
-  (`data-ring-status`) reads "Title, n of 6". Motion (emil-design-eng):
-
-  | Element | Enter | Exit |
-  | --- | --- | --- |
-  | Caption swap | opacity, `blur(4px)`→0, 240ms `--ease-out` | opacity, blur, 120ms, no movement |
-  | Lines (tags, title, facts) | rise 6px, staggered 0/40/80ms | snap back once invisible |
-  | Caption block | 200ms fade once the ring is live | gone at once on the way back |
-  | Card press | `scale: 0.98`, 160ms `--ease-out` | same |
-
-  Transitions, not keyframes, so a quick drag through several cards
-  retargets instead of restarting; the blur keeps the crossfade from
-  reading as two blocks of text overlapping.
-- **One media query gates the reel**, in `index.astro`, `SiteNav.astro`'s
-  scrim script and as `REEL_QUERY`: `(min-width: 64rem) and
-  (prefers-reduced-motion: no-preference) and (scripting: enabled)`. Move
-  them together.
-  - Outside it (narrow, reduced motion, no JS), the page stacks: the
-    headline gets 78svh, the cards follow as a plain column, and
-    `work-spotlight.ts` lights the middle one. `.reel__hero` has
-    `padding-block-start: 22svh`, which centres the headline at 50svh.
-  - `initHomeReel()` switches between the two modes live on `matchMedia`
-    change, and its teardown (and the ring's) hands every inline style back.
-- **The headline** (`HomeHero.astro`) is plain text in an `<h1>`: the name,
-  then "Designs *thoughtful*" / "products that drive results" (a `<br>`
-  where Figma breaks it).
-  - It starts on the nav's left edge (x = 197 on a 1440 frame, the brand
-    mark's) but runs past the nav's 1000px row to the gutter:
-    `.hero__frame` restates the nav row's centring margin as
-    `padding-inline-start`. Montserrat at 80px sets the second line wider
-    than 1000px, and capping it there wraps "results" onto a line of its
-    own.
-  - Its entrance is CSS only: the name, then the sentence 80ms behind it,
-    rising on `--ease-out`, filling `backwards`. Under reduced motion, one
-    200ms fade.
-  - The script writes only to `[data-reel-fade]` (`.hero__frame`), never to
-    an animated element, because a running animation outranks inline
-    styles.
+- **The column** is `--measure-home` (37.5rem, 600px: the wireframe's 453px
+  at 12px copy, scaled to the 16px body), gutter outside the cap. `.home`
+  clears the nav with `--nav-height` + `--spacing-7xl` and spaces its three
+  blocks `--spacing-5xl` apart (the Paper frame's 40px), with Selected works
+  a further `--spacing-4xl` down (72px in all). The nav row and the footer narrow to the same
+  column through `--nav-measure`.
+- **The opening row** (`HomeHero.astro`, `<header data-nav-scrim>`): the
+  name (`h1.type-heading`) and role (`.type-meta`, `--text-body` — muted
+  grey measured 3.0:1 over the bands) on the left; the tagline
+  (`.type-subtitle`, right-aligned, dropped `--spacing-4xl`) on the right:
+  "Ships ▢▢▢▢▢▢▢ / *thoughtful* products / that drive results". Stacks
+  below 40rem.
+  - "thoughtful" is DM Serif Display 400 italic.
+  - **The squares** are the last seven days of GitHub contributions for
+    `Imdni8`, fetched live in the browser by `commit-strip.ts` from
+    `github-contributions-api.jogruber.de` (GitHub's own calendar has no
+    CORS). Server-rendered empty (outlined); each fills to its
+    `--commit-1…4` level, 40ms apart. On failure or a 6s timeout they stay
+    empty — an empty strip claims nothing. The strip is a link to GitHub
+    whose sr-only text carries the total. Hover (fine pointers) or keyboard
+    focus shows it in a CSS tooltip, "N contributions in last 7 days"
+    (`.commit-strip__tip`, aria-hidden since the sr-only text says the
+    same). It shows only once `commit-strip.ts` stamps `data-ready`, so a
+    failed fetch shows no tooltip either.
+  - **"results"**: u, l and t are bars. Their grown height is the CSS
+    resting state (`--bar`: 1.6, 1.35, 2, read off the Figma frame
+    `20305:1200`), scaled from the baseline (`transform-origin: 50% 0.84em`
+    at `line-height: 1`). `home-motion.ts` plays the growth from 1 with Web
+    Animations, 120ms apart, once on arrival and again on mouse-enter of the
+    tagline. Without JS or under reduced motion the word stands grown.
+- **The bio** (`HomeBio.astro`), four `.type-body` paragraphs, from the
+  Paper frame "Portfolio components", 24px (`--spacing-3xl`) apart. The copy
+  is one colour, `--text`. Every named thing has a **tile** in front of it —
+  a 24px (`--spacing-3xl`) square at `--radius-xxs`, 8px before the word,
+  centred on the x-height by `vertical-align: middle` (by the box, so a
+  mark's intrinsic SVG height can't shift it), like an app icon beside its
+  name. Tile and name plus any punctuation are one nowrap `.mark` run.
+  Links carry a quiet `--border` underline, since colour no longer sets
+  them apart.
+  - **"[6] years"** opens to "[6] years, 6 months and 7 days", counted from
+    1 April 2020 (`career.ts`'s `CAREER_START`). Computed at build so no-JS
+    reads right, then recomputed in the browser. The number is printed on a
+    `.calendar` tile (Google Calendar's app icon): the white tile
+    (`--secondary`) with a `--primary` amber binding band, the number in
+    `--text-on-secondary` (17.3:1). It leads its word, so the words start at
+    "years". The number is 14px (`--size-fine`) and the tile is sized
+    from it (`--size-fine / 0.56`, ~25px), the band its top 28%.
+    **The number sits on the sentence's baseline** (measured equal to
+    "years"' baseline), so the tile hangs round it like a glyph. That
+    works because an `inline-block`'s baseline is its last line of text —
+    so the tile must never become a clipping box (`overflow: hidden` moves
+    the baseline to its bottom edge); the band is a background gradient,
+    not a clipped child. `--spacing-xs` is pulled off each block margin so
+    the line box sees ~17px of it: lines stay 27.2px apart (measured at
+    1440, 375 and 320 wide).
+  - **Paragraphs three and four are tiles alone**; each name slides out to
+    the right of its tile, so the logo stays put. NID and the companies are
+    `<button data-toggle>`s. The profile links (LinkedIn, GitHub, résumé)
+    open on hover or keyboard focus only, because a tap just follows the
+    link, and their underline is on the revealed name. The 8px gap belongs
+    to `.reveal__name`, an inner span: padding on the clipped
+    `.reveal__inner` would keep its width at 0fr.
+  - All the toggles work the same way. A mouse opens them by hover (CSS,
+    gated to fine pointers) and its click does nothing; a tap or Enter
+    toggles `data-open`; leaving with the mouse closes. The width animates
+    with `grid-template-columns: 0fr ↔ 1fr` (nothing measured), text
+    arriving with the site's 4px blur. Screen readers always get the whole
+    name from an sr-only copy, with the commas and "and" the visual drops;
+    the moving parts are `aria-hidden`. Reduced motion: no width animation,
+    a 120ms fade.
+  - Astro trims whitespace at a line break before a component, so every
+    word that runs into an inline element ends in an explicit `{' '}`.
+  - **Marks** are the real files in `src/assets/homepage/`. Agent Studio
+    is its gradient mark, bare. NID and Philips' shield carry their own
+    white ground and fill a white tile. Medable (its square mark, the
+    viewBox narrowed to 0 0 22 22) and J&J sit white on their brand grounds,
+    `--brand-medable` and `--brand-jnj`: decoration only, like the footer
+    mascot. The single-colour files are recoloured from white to
+    `currentColor` at build.
+  - Links: versioning and audit logs go to their case studies; LinkedIn,
+    GitHub (the footer's SVGs) and the résumé are off-site.
+- **Selected works** (`section#work`, `.type-overline` heading) is the
+  stacked `WorkCard` list, `priority` on the first card. `WorkCard`'s
+  `sizes` is a hand-resolved mirror of `--measure-home`; move them
+  together.
+- **The entrance** is CSS: the opening row rises and fades, the bio and the
+  work rise only (80ms apart) — the bio's copy and the first cover are the
+  LCP candidates, and opacity 0 would delay them.
 - **`WorkCard`** has no panel: a rounded cover (`--radius-lg`, the
   reference's 1303×770 frame, anchored to the top), and 24px under it the
   text straight on the page ground. The text is one row with the role chips
@@ -560,37 +493,18 @@ reads nearly flat.
   - The chips are the `light` badge variant (`--secondary` fill,
     `--text-on-secondary`, 17.3:1). The AI chip keeps its ring and is filled
     the same white (`.badge-ai` paints `--secondary`), so the row reads as
-    one set. Font sizes
-    are unchanged from the old card.
+    one set.
   - `.card__body` is a grid with named areas, so the title stays first in
     the link's accessible name while the chips and facts sit above it on
     screen. Under 30rem of card width the facts drop under the chips.
-  - The card has no width of its own; the stacked column uses the frame.
-    The ring doesn't use WorkCard.
-  - In the stacked layout, `work-spotlight.ts` dims every card but the one
-    at the midline (`data-dimmed`: `--card-dimmed-opacity` 0.6 and a 2px
-    blur). The ring doesn't use `data-dimmed`; its depth fade does that
-    job.
+  - The card has no width of its own; the column sets it.
   - Cards lift 2px on hover (gated to mouse and trackpad) and press to
     `scale: 0.98` on `:active` for every input.
-- **The footer.** `index.astro` wraps `<Footer />` in `.home-footer`, outside
-  `<main>` so the `<footer>` keeps its contentinfo role. In reel mode the
-  script sets `data-footer-overlay` on `<body>` before the ring measures,
-  and the wrapper is pinned to the bottom of the one-screen body.
-  - The ring keeps clear of the footer itself (`.site-footer`, 115px) plus
-    `FOOTER_CLEARANCE` (24px), not of the wrapper: the wrapper also holds
-    the footer's 75px top margin, which is empty.
-  - Checked at 1440×900, 1280×640 and 1024×768: the ring, nav and footer
-    all fit with no overlap.
-  - `.home` is `pointer-events: none` in reel mode, and only the live
-    stage and the headline take the pointer back, so the footer's mascot
-    still gets its hover.
-- **The nav's scrim never shows on the homepage in reel mode**, because
-  nothing scrolls under it. There is no `data-nav-scrim` target; SiteNav's
-  script holds the scrim at 0 without one. The stacked layout still uses
-  the headline (`data-nav-scrim-narrow`).
+- **The footer** is a plain `<Footer />` after `<main>`.
 - **The ground is `--home-ground`** (`#070709`, the Figma frame's), and
-  `.home-ground` (fixed) holds the gradient blinds. See Gradient blinds.
+  `.home-ground` (fixed) holds the gradient blinds, held to
+  `--blinds-host-opacity` (0.4) because the copy now sits inside the bands.
+  See Gradient blinds.
 
 ## Footer
 
@@ -653,8 +567,10 @@ the footer holds no links at all, so the nav's mark is the only route home.
     there).
 - **Spacing**: the row sits `--spacing-xl` under the rule and `--spacing-xl`
   above the footer's bottom edge, and is inset `--spacing-xl` from the rule's
-  ends (`.site-footer__meta`, border-box pinned). The footer is 115px tall;
-  the homepage reel measures it rather than assuming it.
+  ends (`.site-footer__meta`, border-box pinned). The footer is 115px tall.
+- **Width**: the default (`chrome`) variant caps at
+  `var(--nav-measure, var(--measure-chrome))`, tracking the nav row —
+  `--measure-home` on the homepage, 1000px elsewhere.
 - **Hover animation**: `Tousif&clawd-hover.svg` (arms and legs raised) sits
   absolutely-positioned directly on top of the resting `Tousif&clawd.svg`,
   both sharing the same 123×96 viewBox so they line up without any extra
@@ -1040,23 +956,26 @@ are the tuning surface. The tuned values are in the `BLINDS` constant.
   every band. Below `TRACK_END` it stays where it was left. It rests at the
   top centre until a pointer arrives, and always under reduced motion.
 - **Two opacities, two elements.** The canvas fades in to
-  `--blinds-opacity` (0.8) once the host is `ready`. The host's opacity is
-  `home-reel.ts`'s intro dimming. Without WebGL or JS there is no canvas and
+  `--blinds-opacity` (0.8) once the host is `ready`. The host is held at
+  `--blinds-host-opacity` (0.4, index.astro), because the name, tagline and
+  bio all sit inside the bands. Without WebGL or JS there is no canvas and
   the ground stands.
 - **Contrast is measured**, with Playwright. Hide the text, move the pointer
   over a 9×7 grid, screenshot, and take the 99th percentile of 6px-averaged
   cells under each text box, at 1728/1440/1024 wide. These numbers were
   taken with grain on and the spotlight free to reach 75% of the height;
   both changes since only lower the peaks, so they're upper bounds.
-  - With `maskEnd` at 0.9 (beams behind the headline), checked at 1440×900
-    over five pointer positions: the name is ≥5.8:1 and the sentence
-    ≥15:1. The name is the tight one — at 30px semibold it is large text
-    (3:1), but keep it at AA's 4.5:1 regardless.
-  - The nav was 1.7:1 when the spotlight sat behind it, so the bands are
-    held to 30% (`NAV_DAMP`) over the nav's 72px band. That gives the nav
-    links ≥6.8:1.
-  - Re-measure if `maskEnd`, the spotlight, `NAV_DAMP` or any `--blinds-*`
-    stop changes.
+  - Single-column homepage, host at 0.4, worst case over the 9×7 sweep at
+    1728/1440/1024: name ≥7.0:1, role ≥5.9:1 (the tight one — 12px mono;
+    it was 3.0:1 in `--text-muted`, hence `--text-body`), tagline ≥8.0:1,
+    bio copy ≥4.79:1 when it was `--text-muted` — it is `--text` now, so
+    that is a floor, but don't lift the host past 0.4 — Selected works ≥9.3:1, nav links ≥6.5:1.
+  - The nav was 1.7:1 when the spotlight sat behind it at full strength,
+    so the bands are also held to 30% (`NAV_DAMP`) over the nav's 72px band.
+  - Re-measure if `maskEnd`, the spotlight, `NAV_DAMP`,
+    `--blinds-host-opacity` or any `--blinds-*` stop changes (hide the
+    bio's tiles too, or they become the sampled peak), or if text
+    near the top of the page changes colour.
 
 The old background, **liquid metal** (`liquid-metal.ts`, Paper's
 `LiquidMetal` shader, soft-lit onto `--liquid-metal-ground`), stays in the
@@ -1093,18 +1012,17 @@ Four things on the critical path are deliberate and easy to undo by accident.
 - **Above-the-fold images have to opt out of lazy loading.** Astro's image
   service defaults every `<Image>` to `loading="lazy"`, which is wrong for
   exactly the images that are the LCP candidate. `WorkCard` takes a `priority`
-  prop (`index.astro` passes it to the first two cards — on the reel's first
-  screen the first card peeks in at the bottom centre and the second at the
-  bottom right), and `CaseStudyHero`'s `heroShot` sets it directly.
+  prop (`index.astro` passes it to the first card, the one cover near the
+  first screen), and `CaseStudyHero`'s `heroShot` sets it directly.
 - **`FontPreload.astro` is global chrome, like `Footer` and `Analytics`.**
   There is no shared root layout, so it is rendered in `index.astro`,
   `about.astro` and `CaseStudyLayout.astro` independently — a fourth top-level
   page needs it wired in there too, or that page's headline paints in a
   fallback serif and reflows. It preloads only the two `latin` faces that set
   visible text at the top of the page; the file explains why more would be
-  worse. The homepage passes `home`, which swaps those for the headline's
-  three files (Montserrat 300 and 600, Playfair 700 italic), since no DM face
-  is at the top of that page. `<ClientRouter />` and `<Analytics />` sit *last* in each `<head>`
+  worse. Every page, homepage included, preloads the same two (the
+  homepage's old `home` variant went with its headline fonts).
+  `<ClientRouter />` and `<Analytics />` sit *last* in each `<head>`
   for the same reason, after everything that decides how the page looks.
 - **Islands are gated on being reachable.** `NavMenu` is `client:idle`, not
   `client:load` — its trigger renders as static SSR markup and nothing it adds
@@ -1144,9 +1062,7 @@ Two things that look like wins and are not, so they don't get "fixed" later:
   "shadcn/ui" under Components for how the two systems coexist today.
 - **TypeScript** — `astro/tsconfigs/strict`, `jsx: react-jsx`.
 - **Fonts** — self-hosted via `@fontsource*` packages: `@fontsource/dm-serif-display`,
-  `@fontsource-variable/dm-sans`, `@fontsource/dm-mono`, and — for the
-  homepage headline only — `@fontsource/montserrat` (300, 600) and
-  `@fontsource/playfair-display` (700 italic). tokens.css imports
+  `@fontsource-variable/dm-sans`, `@fontsource/dm-mono`. tokens.css imports
   only the cuts the type styles use; `FontPreload.astro` preloads the serif
   and the sans.
 - **Playwright** — dev dependency, used only for ad-hoc visual checks.

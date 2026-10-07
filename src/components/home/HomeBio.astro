@@ -1,0 +1,418 @@
+---
+/* The homepage bio — four short paragraphs, from the Paper frame
+   "Portfolio components".
+
+   The look: the copy is one lit colour (--text), and every named thing — a
+   product, a school, a company, a profile — has its mark on a small tile in
+   front of it, the way an app icon sits beside its name. The tile and the
+   name are one nowrap run, punctuation included, so a tile never wraps away
+   from its word.
+
+   Three kinds of opening, all the same mechanism:
+
+   - "[6] years" slides open to "[6] years, 6 months and 7 days". The
+     number is printed on a calendar tile, Google Calendar's app icon as a
+     white tile with an amber band: the tile is the number, so the words
+     start at "years".
+   - The school and the companies (paragraph three) are tiles alone; each
+     is a toggle whose name slides out to the right of its tile.
+   - The profile links (paragraph four) are tiles alone too; their names
+     slide out on hover or keyboard focus. A tap just follows the link — a
+     first tap that only revealed would be a trap on a link.
+
+   A mouse opens them by hover (CSS, gated to fine pointers); a tap or Enter
+   toggles `data-open` (home-motion.ts). Once opened it is pure CSS: a
+   `grid-template-columns` of 0fr ↔ 1fr animates the width without
+   measuring anything, and the text inside arrives with the 4px blur the
+   site uses for every swap. Screen readers always get the whole name from
+   an sr-only copy; the moving parts are aria-hidden. */
+import Icon from '../ui/Icon.astro';
+import { links } from '../../data/links';
+import { CAREER_START, since, formatYears, formatUnit, formatRest } from './career';
+import agentStudioRaw from '../../assets/homepage/agent_studio.svg?raw';
+import nidRaw from '../../assets/homepage/nid-logo.svg?raw';
+import medableRaw from '../../assets/homepage/medable_logo.svg?raw';
+import philipsRaw from '../../assets/homepage/philips_shield.svg?raw';
+import jnjRaw from '../../assets/homepage/J&J_logo.svg?raw';
+import githubRaw from '../../assets/footer/Github.svg?raw';
+import linkedinRaw from '../../assets/footer/Linkedin.svg?raw';
+
+/* The single-colour logo files are drawn in white; recoloured to
+   currentColor so they take the tile's ink. NID and Philips carry their own
+   white grounds and Agent Studio its own gradient, so those stay as drawn. */
+const ink = (svg: string) => svg.replace(/(fill|stroke)="(white|#FFFEFE)"/g, '$1="currentColor"');
+
+/* Medable's file is its square mark followed by the wordmark; the tile shows
+   the mark alone, by narrowing the viewBox to the mark's own 22×22. */
+const medableMark = ink(medableRaw).replace('width="92" height="22" viewBox="0 0 92 22"', 'width="22" height="22" viewBox="0 0 22 22"');
+
+/* Paragraph three's tiles, in reading order. `tone` picks the tile's ground:
+   white for marks drawn on white, the brand's own colour otherwise. */
+const companies = [
+	{ name: 'Medable', svg: medableMark, tone: 'medable' },
+	{ name: 'Philips', svg: philipsRaw, tone: 'fill' },
+	{ name: 'J&J', svg: ink(jnjRaw), tone: 'jnj' },
+];
+
+/* Paragraph four's links. */
+const profiles = [
+	{ name: 'LinkedIn', href: links.linkedin, svg: linkedinRaw },
+	{ name: 'GitHub', href: links.github, svg: ink(githubRaw) },
+	{ name: 'resume', href: links.resume, icon: 'file-text' as const },
+];
+
+const span = since(CAREER_START);
+const years = formatYears(span);
+const unit = formatUnit(span);
+const rest = formatRest(span);
+---
+
+<div class="bio">
+	<p class="type-body">
+		I have{' '}
+		<button class="toggle" type="button" data-toggle>
+			<span class="sr-only" data-duration-full>{years}{rest}</span>
+			<span class="toggle__visual" aria-hidden="true">
+				<span class="calendar"><span class="calendar__day" data-duration-number>{span.years}</span></span>
+				<span class="toggle__text"><span data-duration-unit>{unit}</span><span class="reveal"><span class="reveal__inner" data-duration-rest>{rest}</span></span></span>
+			</span>
+		</button>{' '}
+		of experience designing complex enterprise and B2B SaaS products, from problem to production.
+	</p>
+
+	<p class="type-body">
+		Most recently, I was the lead designer on{' '}
+		<span class="mark"><span class="tile tile--bare" aria-hidden="true" set:html={agentStudioRaw} />Agent Studio,</span> working
+		on AI governance features like <a class="link" href="/work/agent-versioning">versioning</a>,{' '}
+		<a class="link" href="/work/audit-logs">audit logs</a> and model management that made Agent Studio ready for large enterprises.
+	</p>
+
+	<p class="type-body">
+		I graduated from{' '}
+		<button class="toggle" type="button" data-toggle>
+			<span class="sr-only">NID</span>
+			<span class="toggle__visual" aria-hidden="true">
+				<span class="tile tile--fill" set:html={nidRaw} /><span class="reveal"><span class="reveal__inner"><span class="reveal__name">NID</span></span></span>
+			</span>
+		</button><span class="sr-only">,</span>{' '}
+		and previously worked at{' '}
+		<span class="tiles">
+			{
+				companies.map((company, i) => (
+					<>
+						<button class="toggle" type="button" data-toggle>
+							<span class="sr-only">{company.name}</span>
+							<span class="toggle__visual" aria-hidden="true">
+								<span class={`tile tile--${company.tone}`} set:html={company.svg} />
+								<span class="reveal"><span class="reveal__inner"><span class="reveal__name">{company.name}</span></span></span>
+							</span>
+						</button>
+						{i < companies.length - 2 && <span class="sr-only">, </span>}
+						{i === companies.length - 2 && <span class="sr-only"> and </span>}
+					</>
+				))
+			}
+		</span><span class="sr-only">.</span>
+	</p>
+
+	<p class="type-body">
+		See more at{' '}
+		{
+			profiles.map((profile, i) => (
+				<>
+					{/* The link and the punctuation after it are one run. */}
+					<span class="mark"><a class="reveal-link" href={profile.href} target="_blank" rel="noopener noreferrer">
+						<span class="sr-only">{profile.name} (opens in new tab)</span>
+						<span class="toggle__visual" aria-hidden="true">
+							{profile.icon ? (
+								<span class="tile">
+									<Icon name={profile.icon} />
+								</span>
+							) : (
+								<span class="tile" set:html={profile.svg} />
+							)}
+							<span class="reveal"><span class="reveal__inner"><span class="reveal__name">{profile.name}</span></span></span>
+						</span>
+					</a>{i === 1 && ','}{i === 2 && '.'}</span>
+					{i === 0 && ' and '}
+					{i === 1 && ' or download my '}
+				</>
+			))
+		}
+	</p>
+</div>
+
+<style>
+	.bio {
+		display: grid;
+		gap: var(--spacing-3xl);
+		color: var(--text);
+	}
+
+	/* A name and the tile before it — plus any punctuation that follows —
+	   are one unbreakable run. */
+	.mark {
+		white-space: nowrap;
+	}
+
+	/* ---- Tiles -----------------------------------------------------------
+	   An app-icon chip: a 24px square at the 2px radius, with the mark
+	   inside it. The default ground is white (--secondary) with the mark
+	   inked --text-on-secondary (17.3:1), so the tile reads the same on
+	   either theme; the modifiers below swap the ground for the mark's own.
+	   It leads its word by 8px, and is centred on the x-height
+	   (`vertical-align: middle`) rather than standing on the baseline — by
+	   the box, not by its contents, so a mark's own intrinsic height can't
+	   move it. Not interactive on its own and never read out: the name is. */
+	.tile {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+		inline-size: var(--spacing-3xl);
+		block-size: var(--spacing-3xl);
+		margin-inline-end: var(--spacing-md);
+		border-radius: var(--radius-xxs);
+		overflow: clip;
+		background: var(--secondary);
+		color: var(--text-on-secondary);
+		vertical-align: middle;
+	}
+
+	/* The glyph fills most of the tile: a Lucide icon through its own 1em
+	   box, a raw mark sized directly. */
+	.tile :global(.icon) {
+		font-size: 1em;
+	}
+
+	.tile > :global(svg) {
+		inline-size: 75%;
+		block-size: 75%;
+	}
+
+	/* Marks drawn on their own white ground (NID, Philips' shield) fill
+	   the tile edge to edge, less a 1px inset. */
+	.tile--fill > :global(svg) {
+		inline-size: calc(100% - 2px);
+		block-size: calc(100% - 2px);
+	}
+
+	/* Agent Studio's mark is its own gradient, drawn bare. */
+	.tile--bare {
+		background: none;
+	}
+
+	.tile--bare > :global(svg) {
+		inline-size: 100%;
+		block-size: 100%;
+	}
+
+	/* Brand grounds (--brand-* in tokens.css), the mark in white on them. */
+	.tile--medable,
+	.tile--jnj {
+		color: var(--gray-50);
+	}
+
+	.tile--medable {
+		background: var(--brand-medable);
+	}
+
+	.tile--medable > :global(svg) {
+		inline-size: 62%;
+		block-size: 62%;
+	}
+
+	.tile--jnj {
+		background: var(--brand-jnj);
+	}
+
+	.tile--jnj > :global(svg) {
+		inline-size: 80%;
+		block-size: auto;
+	}
+
+	/* ---- Revealing tiles --------------------------------------------------
+	   In paragraphs three and four the tile stands alone and its name
+	   slides out after it. The 8px between them belongs to the name — on an
+	   inner span, since padding on the clipped box itself would keep its
+	   width at 0fr — so a closed tile leaves no gap behind it; consecutive
+	   tiles sit 4px apart. */
+	.toggle .tile,
+	.reveal-link .tile {
+		margin-inline-end: 0;
+	}
+
+	.reveal__name {
+		padding-inline-start: var(--spacing-md);
+	}
+
+	.tiles > .toggle + .toggle,
+	.tiles > .toggle + .sr-only + .toggle {
+		margin-inline-start: var(--spacing-xs);
+	}
+
+	/* ---- Calendar --------------------------------------------------------
+	   The "years" number, printed on a calendar: a white tile (--secondary)
+	   with an amber binding band across the top (--primary) and the number
+	   in --text-on-secondary, the same ink as every other tile's mark
+	   (17.3:1). It leads its word, so the 8px gap is on its trailing side.
+
+	   Sized from its number: the number is 14px (--size-fine) so it reads
+	   at a glance, and the tile is that over 0.56 — the number-to-tile
+	   proportion it was drawn at — so about 25px. The band is the top 28%,
+	   the number centred in the 72% below it.
+
+	   Aligned by the number, not the box: the "6" sits on the sentence's
+	   baseline, so it reads as part of the line and the tile hangs round it.
+	   An inline-block's baseline is its last line of text — the number —
+	   as long as nothing makes it a clipping box, which is why the band is
+	   a background gradient rather than a child clipped by `overflow`
+	   (`overflow: hidden` would move the baseline to the box's bottom
+	   edge). The band then follows the corner radius on its own.
+
+	   About 25px against a 27px line, so `--spacing-xs` is pulled off each
+	   block margin: the line box only ever sees ~17px of the tile, and it
+	   can't push its line apart from the ones around it. */
+	.calendar {
+		--calendar-size: calc(var(--size-fine) / 0.56);
+		display: inline-block;
+		box-sizing: border-box;
+		inline-size: var(--calendar-size);
+		block-size: var(--calendar-size);
+		/* The band's height, keeping the number below it. */
+		padding-block-start: calc(var(--calendar-size) * 0.28);
+		margin-block: calc(-1 * var(--spacing-xs));
+		margin-inline-end: var(--spacing-md);
+		border-radius: var(--radius-sm);
+		background: linear-gradient(var(--primary) 0 28%, var(--secondary) 28%);
+		color: var(--text-on-secondary);
+		text-align: center;
+	}
+
+	.calendar__day {
+		display: block;
+		font-family: var(--font-sans);
+		font-weight: var(--weight-medium);
+		font-size: var(--size-fine);
+		line-height: calc(var(--calendar-size) * 0.72);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ---- Links -----------------------------------------------------------
+	   The copy is all one colour, so a link is told apart by a quiet
+	   underline under its word. It comes up to the text's own colour on
+	   hover. A profile link carries it on its revealed name only — a tile
+	   on its own has nothing to underline. */
+	.link,
+	.reveal-link .reveal__name {
+		text-decoration-line: underline;
+		text-decoration-color: var(--border);
+		text-decoration-thickness: 1px;
+		text-underline-offset: 0.2em;
+		transition: text-decoration-color 150ms ease;
+	}
+
+	.reveal-link {
+		color: inherit;
+		text-decoration: none;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.link:hover,
+		.reveal-link:hover .reveal__name {
+			text-decoration-color: var(--text);
+		}
+	}
+
+	.link:focus-visible,
+	.reveal-link:focus-visible,
+	.toggle:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-xs);
+	}
+
+	/* ---- Toggles ---------------------------------------------------------
+	   Read as part of the sentence, not as a control: the copy's own type
+	   and colour. */
+	.toggle {
+		display: inline;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		cursor: default;
+		-webkit-tap-highlight-color: transparent;
+		touch-action: manipulation;
+	}
+
+	.toggle__visual {
+		white-space: nowrap;
+	}
+
+	/* The opening. The moving part is a one-column grid whose track goes
+	   between 0fr (no width) and 1fr (its content's width); the text inside
+	   can't wrap, and is clipped while the track is narrower than it.
+	   240ms on --ease-out. */
+	.reveal {
+		display: inline-grid;
+		grid-template-columns: 0fr;
+		transition: grid-template-columns 240ms var(--ease-out);
+	}
+
+	/* `overflow: clip` with a little block margin, so descenders and the
+	   link underline aren't clipped along with the text's width. */
+	.reveal__inner {
+		min-inline-size: 0;
+		overflow: clip;
+		overflow-clip-margin: var(--spacing-xs);
+		white-space: nowrap;
+		opacity: 0;
+		filter: blur(var(--spacing-xs));
+		transition:
+			opacity 240ms var(--ease-out),
+			filter 240ms var(--ease-out);
+	}
+
+	/* Open — by `data-open` (tap, Enter), by keyboard focus on a link, or by
+	   a hovering mouse. */
+	.toggle[data-open] .reveal,
+	.reveal-link:focus-visible .reveal {
+		grid-template-columns: 1fr;
+	}
+
+	.toggle[data-open] .reveal__inner,
+	.reveal-link:focus-visible .reveal__inner {
+		opacity: 1;
+		filter: blur(0);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.toggle:hover .reveal,
+		.reveal-link:hover .reveal {
+			grid-template-columns: 1fr;
+		}
+
+		.toggle:hover .reveal__inner,
+		.reveal-link:hover .reveal__inner {
+			opacity: 1;
+			filter: blur(0);
+		}
+	}
+
+	/* Reduced motion keeps the change and drops the movement: the width
+	   steps, the text fades. */
+	@media (prefers-reduced-motion: reduce) {
+		.reveal {
+			transition: none;
+		}
+
+		.reveal__inner {
+			filter: none !important;
+			transition: opacity 120ms ease;
+		}
+	}
+</style>

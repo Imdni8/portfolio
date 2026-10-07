@@ -5,9 +5,7 @@ type Spec = { token: string; role: string; sample: string; accent?: boolean };
 
 /** Ordered by size, which is also roughly the order a reader meets them. */
 const STYLES: Spec[] = [
-	{ token: 'type-hero', role: 'Homepage headline — the sentence (Montserrat, homepage only)', sample: 'Designs products' },
 	{ token: 'type-stat', role: 'Case-study Outcome numeral — StatTile size="lg" only', sample: '48%' },
-	{ token: 'type-hero-name', role: 'Homepage headline — the name (Montserrat, homepage only)', sample: 'Tousif Rahaman' },
 	{ token: 'type-title', role: 'Case-study page title', sample: 'Introduce Agent Versioning and lifecycle management' },
 	{ token: 'type-heading', role: 'Section headline — states a finding', sample: 'There was no way to validate the changes made to an agent' },
 	{ token: 'type-reflection', role: 'Editorial heading — you, speaking', sample: 'Reflections', accent: true },
@@ -94,7 +92,7 @@ export const Scale: StoryObj = {
 	render: () => (
 		<Page
 			title="Type"
-			lede="Seventeen styles across five families — the fourth and fifth, Montserrat and Playfair Display, set the homepage headline and nothing else (Playfair's “thoughtful” is .type-hero-accent, set inside a .type-hero line). The line under each specimen is what the browser actually resolved — if a font fails to load, it shows up here rather than being mistaken for a design choice."
+			lede="Fourteen styles across three families. The line under each specimen is what the browser actually resolved — if a font fails to load, it shows up here rather than being mistaken for a design choice."
 		>
 			<Group
 				label="The rule"

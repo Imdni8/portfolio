@@ -9,21 +9,18 @@ import DevOutline from '../components/DevOutline.astro';
 import GradientBlinds from '../components/ui/GradientBlinds.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import HomeHero from '../components/home/HomeHero.astro';
+import HomeBio from '../components/home/HomeBio.astro';
 import WorkCard from '../components/work/WorkCard.astro';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
 import FontPreload from '../components/FontPreload.astro';
-import Badge from '../components/ui/Badge.astro';
-import Icon from '../components/ui/Icon.astro';
-import { ROLE_ICONS } from '../components/work/roles';
-import { getImage } from 'astro:assets';
 
-// The reel is the collection, not a hand-maintained list — a new case study
+// The work list is the collection, not a hand-maintained list — a new case study
 // (including a `coming-soon` stub) shows up here purely by existing, ordered
 // by its own `order` field. See "Case studies" in CLAUDE.md.
 //
 // `coming-soon` entries sort after everything else, regardless of their own
-// `order` — so they shouldn't crowd real work out of the reel's early slots.
+// `order` — so they shouldn't crowd real work out of the list's early slots.
 // `order` still decides their place within that trailing group, and everyone
 // else's place among themselves.
 const studies = (await getCollection('work', ({ data }) => data.status !== 'unlisted')).sort((a, b) => {
@@ -39,21 +36,6 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 		: entry.data.status === 'external'
 			? entry.data.externalUrl
 			: `/work/${entry.id}`;
-
-/* The ring's cards are the covers alone, each cut into TILES strips so it
-   can bend round the ring (work-ring.ts sets the bend). Every strip shows
-   the same image, so it is resolved once here — one URL, one download — at
-   960px: twice the widest card (30rem), for 2x screens. */
-const TILES = 8;
-const ring = await Promise.all(
-	studies.map(async (entry) => ({
-		entry,
-		href: hrefOf(entry),
-		external: entry.data.status === 'external',
-		cover: (await getImage({ src: entry.data.thumbnail.src, width: 960, format: 'webp' })).src,
-	})),
-);
-
 ---
 
 <!doctype html>
@@ -65,7 +47,7 @@ const ring = await Promise.all(
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<FontPreload home />
+		<FontPreload />
 		<title>Tousif's portfolio</title>
 		<meta name="description" content="Tousif Rahaman — turning messy workflows and data into usable interfaces." />
 
@@ -110,188 +92,72 @@ const ring = await Promise.all(
 			<GradientBlinds />
 		</div>
 		<SiteNav />
+		{/* One column: the name and tagline, the bio, then the work. The
+		    column is the nav's row too (`--nav-measure`, below), so the brand
+		    mark sits over the name as Figma draws it. See "Homepage" in
+		    CLAUDE.md. */}
 		<main class="home">
-			{/* The reel: one screen holding the headline and the work ring. Where
-			    the reel runs, home-reel.ts plays the headline away and the ring
-			    in, and work-ring.ts turns the ring; everywhere else this is a
-			    headline above a plain column of cards. See home-reel.ts, and
-			    "Homepage" in CLAUDE.md. */}
-			<section class="reel" data-reel>
-				<div class="reel__pin">
-					<div class="reel__hero">
-						<HomeHero />
-					</div>
-					<h2 id="work-heading" class="sr-only">Selected work</h2>
-					{/* Two presentations of the same work, one shown at a time by
-					    the reel query: this plain column of WorkCards where the
-					    ring doesn't run, and the ring below where it does. The
-					    hidden one is `display: none`, so it is out of the tab
-					    order and the accessibility tree. */}
-					<ol class="work-list" aria-labelledby="work-heading">
-						{
-							studies.map((entry, i) => (
-								<li class="work-list__item">
-									<WorkCard
-										title={entry.data.title}
-										industry={entry.data.industry}
-										year={entry.data.year}
-										roles={entry.data.roles}
-										aiFeature={entry.data.aiFeature}
-										thumbnail={entry.data.thumbnail}
-										href={hrefOf(entry)}
-										status={
-											entry.data.status === 'coming-soon' || entry.data.status === 'external'
-												? entry.data.status
-												: undefined
-										}
-										priority={i === 0}
-									/>
-								</li>
-							))
-						}
-					</ol>
-					{/* The ring. The stage is the space it gets (between the nav's
-					    band and the footer) and takes the drag; the lens holds the
-					    perspective and the scale that fits it; the camera is the
-					    viewpoint, at the ring's centre; the <ol> is the ring. Each
-					    card is a link wrapping its cover's strips. See
-					    work-ring.ts. */}
-					<div class="reel__stage">
-						{/* Holds the card width, so the script can measure it: a
-						    custom property's computed value is only its raw text. */}
-						<span class="reel__probe" aria-hidden="true"></span>
-						<div class="reel__lens">
-							<div class="reel__camera">
-								<ol class="reel__ring" aria-labelledby="work-heading" aria-roledescription="carousel">
-									{
-										ring.map(({ entry, href, external, cover }, i) => {
-											const Card = href ? 'a' : 'div';
-											return (
-												<li class="reel__slot" data-title={entry.data.title} aria-roledescription="slide">
-													<Card
-														class="reel__card"
-														href={href}
-														target={external ? '_blank' : undefined}
-														rel={external ? 'noopener noreferrer' : undefined}
-														aria-label={href ? `${entry.data.title}${external ? ' (opens in new tab)' : ''}` : undefined}
-														{...(href && !external ? { 'data-astro-reload': '' } : {})}
-													>
-														{Array.from({ length: TILES }, () => (
-															<span class="reel__tile" aria-hidden="true">
-																<span class="reel__frame">
-																	<img
-																		class="reel__photo"
-																		src={cover}
-																		alt=""
-																		draggable="false"
-																		decoding="async"
-																		loading={i === 0 ? 'eager' : 'lazy'}
-																		fetchpriority={i === 0 ? 'high' : 'auto'}
-																	/>
-																	<span class="reel__shade" />
-																</span>
-															</span>
-														))}
-													</Card>
-												</li>
-											);
-										})
+			<HomeHero />
+			<HomeBio />
+			<section class="home__works" aria-labelledby="work">
+				<h2 id="work" class="home__works-heading type-overline">Selected works</h2>
+				<ol class="work-list">
+					{
+						studies.map((entry, i) => (
+							<li>
+								<WorkCard
+									title={entry.data.title}
+									industry={entry.data.industry}
+									year={entry.data.year}
+									roles={entry.data.roles}
+									aiFeature={entry.data.aiFeature}
+									thumbnail={entry.data.thumbnail}
+									href={hrefOf(entry)}
+									status={
+										entry.data.status === 'coming-soon' || entry.data.status === 'external'
+											? entry.data.status
+											: undefined
 									}
-								</ol>
-							</div>
-						</div>
-						{/* The front card's details, under the ring. One caption per
-						    card, all in one cell; the front one is shown
-						    (`data-active`, work-ring.ts) and the rest are
-						    `visibility: hidden`, so assistive tech hears only the
-						    front card's. */}
-						<div class="reel__captions">
-							{
-								ring.map(({ entry }) => (
-									<div class="reel__caption">
-										{(entry.data.aiFeature || entry.data.roles.length > 0) && (
-											<ul class="reel__roles">
-												{entry.data.aiFeature && (
-													<li>
-														<Badge variant="ai">
-															<Icon name="sparkles" />
-															AI
-														</Badge>
-													</li>
-												)}
-												{entry.data.roles.map((role) => (
-													<li>
-														<Badge variant="light">
-															<Icon name={ROLE_ICONS[role.kind]} />
-															{role.label}
-														</Badge>
-													</li>
-												))}
-											</ul>
-										)}
-										<p class="reel__title type-card-title">{entry.data.title}</p>
-										<p class="reel__meta type-card-meta">
-											<span class="reel__meta-item">
-												<Icon name="building-2" />
-												{entry.data.industry}
-											</span>
-											<span class="reel__meta-item">
-												<Icon name="calendar" />
-												{entry.data.year}
-											</span>
-										</p>
-									</div>
-								))
-							}
-						</div>
-					</div>
-					<p class="sr-only" aria-live="polite" data-ring-status></p>
-				</div>
+									priority={i === 0}
+								/>
+							</li>
+						))
+					}
+				</ol>
 			</section>
 		</main>
-		{/* A wrapper, not the footer itself, so the reel can lay it over its
-		    own bottom edge (see `.home-footer`) without Footer.astro knowing.
-		    Outside <main> either way, so the <footer> keeps its contentinfo
-		    role. */}
-		<div class="home-footer">
-			<Footer />
-		</div>
+		<Footer />
 	</body>
 </html>
 
 <script>
-	import { initHomeReel } from '../components/home/home-reel';
-	import { initDecryptedText } from '../components/home/decrypted-text';
+	import { initHomeMotion } from '../components/home/home-motion';
+	import { initCommitStrip } from '../components/home/commit-strip';
 
 	/* Registered on `astro:page-load` rather than run inline: this is a
 	   bundled module script, so its body executes once, while `<ClientRouter />`
 	   swaps in a fresh page every time someone navigates back to `/`. The
-	   previous page's reel is torn down first — this module outlives the page
-	   it was loaded on, so after a soft nav to /about and back, a stale
-	   listener would still be positioning the cards that were swapped out, and
-	   the persisted nav would keep whatever the last frame wrote to it. */
-	let stopHome: (() => void) | undefined;
-	let stopDecrypt: (() => void) | undefined;
+	   previous page's listeners and in-flight fetch are torn down first. */
+	let stop: (() => void)[] = [];
 
 	document.addEventListener('astro:page-load', () => {
-		stopHome?.();
-		stopHome = undefined;
-		stopDecrypt?.();
-		stopDecrypt = undefined;
+		for (const fn of stop) fn();
+		stop = [];
 
-		const reel = document.querySelector<HTMLElement>('[data-reel]');
-		if (reel) stopHome = initHomeReel(reel);
-
-		const heroLine = document.querySelector<HTMLElement>('.hero__line');
-		if (heroLine) stopDecrypt = initDecryptedText(heroLine);
+		if (!document.querySelector('.home')) return;
+		stop.push(initHomeMotion());
+		const strip = document.querySelector<HTMLElement>('[data-commit-strip]');
+		if (strip) stop.push(initCommitStrip(strip));
 	});
 </script>
 
 <style>
 	/* `--nav-band` is the colour the nav's scrim fades in with — the page's
-	   ground, which on this page is not --bg. See SiteNav.astro. */
+	   ground, which on this page is not --bg. `--nav-measure` narrows the
+	   nav's row to this page's column. See SiteNav.astro. */
 	body {
 		--nav-band: var(--home-ground);
+		--nav-measure: var(--measure-home);
 		margin: 0;
 		background: var(--home-ground);
 		color: var(--text-body);
@@ -310,416 +176,93 @@ const ring = await Promise.all(
 		background: var(--home-ground);
 	}
 
-	/* The positioning context for `.home-footer` when it is laid over the
-	   reel — the page's own height, which the reel's section sets. */
-	body {
-		position: relative;
+	/* The bands run behind the name and the bio, so they are held down
+	   enough for the copy over them to keep AA. */
+	.home-ground :global(.gradient-blinds) {
+		opacity: var(--blinds-host-opacity);
 	}
 
-	/* `position: relative` plus a `z-index` is load-bearing: `.home-ground` is
-	   `position: fixed` at `z-index: auto`, so it paints after static in-flow
-	   content regardless of DOM order, and without this the whole page would
-	   lay out correctly and be invisible underneath it. `.site-footer`
-	   carries the same fix for the same reason. */
+	/* The page frame: the gutter outside a --measure-home cap (see "The page
+	   frame" in CLAUDE.md). The top padding clears the nav's 72px band and
+	   leaves the 56px Figma draws between it and the name.
+
+	   `position: relative` plus a `z-index` is load-bearing: `.home-ground`
+	   is `position: fixed` at `z-index: auto`, so it paints after static
+	   in-flow content regardless of DOM order, and without this the whole
+	   page would lay out correctly and be invisible underneath it.
+	   `.site-footer` carries the same fix for the same reason. */
 	.home {
 		position: relative;
 		z-index: 1;
-	}
-
-	/* ---- Stacked ---------------------------------------------------------------
-	   The layout everywhere the reel does not run: below 64rem, under reduced
-	   motion, and without JS. The headline has most of the first screen to
-	   itself — 78svh leaves the first card's top in view, as the reel's own
-	   first frame does — and the cards follow as a plain column. */
-	/* The headline's centre lands where the reel puts it: the middle of the
-	   screen, under the bands' tails. The box stays 78svh tall so the first
-	   card still starts in view; the top padding is what moves the headline
-	   down within it — (22 + 78) / 2 = 50. */
-	.reel__hero {
 		box-sizing: border-box;
 		display: grid;
-		min-block-size: 78svh;
-		padding-block-start: 22svh;
+		gap: var(--spacing-5xl);
+		max-inline-size: calc(var(--measure-home) + 2 * var(--gutter));
+		margin-inline: auto;
+		padding-block: calc(var(--nav-height) + var(--spacing-7xl)) var(--spacing-9xl);
+		padding-inline: var(--gutter);
+	}
+
+	/* The work sits a step further down than the opening row and the bio:
+	   72px in all, the 40px row gap plus this. */
+	.home__works {
+		display: grid;
+		gap: var(--spacing-xl);
+		margin-block-start: var(--spacing-4xl);
+		scroll-margin-block-start: calc(var(--nav-height) + var(--spacing-3xl));
 	}
 
 	.work-list {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
+		display: grid;
 		gap: var(--spacing-7xl);
 		margin: 0;
-		padding-block: 0 var(--spacing-9xl);
-		padding-inline: var(--gutter);
+		padding: 0;
 		list-style: none;
 	}
 
-	.work-list__item {
-		inline-size: min(100%, 76.875rem);
-	}
-
-	/* The ring only exists where it runs. */
-	.reel__stage {
-		display: none;
-	}
-
-	/* The cards settle in just behind the headline — 80ms after its second
-	   line, so the first screen assembles in one order rather than all at
-	   once. Movement only, no fade: the first card's cover is the page's
-	   largest paint, and an element held at opacity 0 does not count as
-	   painted until it shows, so a fade here would push the LCP back by the
-	   length of the delay. */
+	/* The page arrives in reading order: the opening row, the bio 80ms
+	   behind it, the work 80ms behind that — each rising a little on
+	   --ease-out. Only the opening row fades: the bio's copy and the first
+	   card's cover are the page's largest paints, and an element held at
+	   opacity 0 does not count as painted until it shows. */
 	@media (prefers-reduced-motion: no-preference) {
-		.work-list {
-			animation: reel-settle 800ms var(--ease-out) 360ms backwards;
+		.home > :global(*) {
+			animation: home-settle 600ms var(--ease-out) backwards;
+		}
+
+		.home > :global(:nth-child(1)) {
+			animation-name: home-arrive;
+			animation-delay: 120ms;
+		}
+
+		.home > :global(:nth-child(2)) {
+			animation-delay: 200ms;
+		}
+
+		.home > :global(:nth-child(3)) {
+			animation-delay: 280ms;
 		}
 	}
 
-	@keyframes reel-settle {
+	@keyframes home-arrive {
 		from {
-			translate: 0 6svh;
+			opacity: 0;
+			translate: 0 var(--spacing-md);
+		}
+
+		to {
+			opacity: 1;
+			translate: 0 0;
+		}
+	}
+
+	@keyframes home-settle {
+		from {
+			translate: 0 var(--spacing-md);
 		}
 
 		to {
 			translate: 0 0;
-		}
-	}
-
-	/* ---- Ring ------------------------------------------------------------------
-	   Everything below is what home-reel.ts and work-ring.ts drive, and only
-	   applies where they run. The query is REEL_QUERY's; move them together.
-
-	   The page is one screen and does not scroll: the first gesture plays
-	   the headline away and the ring in, and from then on the wheel turns the
-	   ring. */
-	@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
-		html {
-			overflow: hidden;
-			overscroll-behavior: none;
-		}
-
-		.reel__pin {
-			position: relative;
-			block-size: 100svh;
-			overflow: clip;
-			/* Dragging the ring on a touch screen must not also be read as a
-			   scroll or a zoom. */
-			touch-action: none;
-		}
-
-		.reel__hero {
-			position: absolute;
-			inset: 0;
-			min-block-size: 0;
-			padding-block-start: 0;
-		}
-
-		.work-list {
-			display: none;
-		}
-
-		/* The whole screen, so nothing the ring draws is ever cut off by
-		   its box: the side cards run up past the nav and the peeking cards
-		   down past the footer. It carries the panorama's mask — the ring
-		   fades to nothing over the outer 12% on each side rather than being
-		   cut off by the screen's edge (`black` is the mask's alpha, not a
-		   colour) — and is hidden until the script has measured and placed
-		   the ring: there is no CSS-only first frame for a fitted 3D ring.
-		   It never takes the pointer itself; the ring's box does. */
-		.reel__stage {
-			--ring-gap: var(--spacing-3xl);
-			position: absolute;
-			inset: 0;
-			display: block;
-			visibility: hidden;
-			pointer-events: none;
-			user-select: none;
-			-webkit-user-select: none;
-			mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
-		}
-
-		.reel__stage[data-ring-ready] {
-			visibility: visible;
-		}
-
-		/* The ring's own box: below the nav's band and the room kept under it
-		   (`--ring-top`), above the captions (`--ring-caption`) and the
-		   footer (`--ring-bottom`) — all measured by work-ring.ts. It takes
-		   the drag while the ring is live, and only it, so the footer keeps
-		   its pointer. The perspective is set by the script, and the scale
-		   fits the ring to the box — a 2D scale of the finished picture. */
-		.reel__lens {
-			position: absolute;
-			inset: var(--ring-top, 0) 0 calc(var(--ring-bottom, 0px) + var(--ring-caption, 0px));
-			display: grid;
-			place-items: center;
-			perspective: var(--ring-perspective, 1800px);
-			transform: scale(var(--ring-fit, 1));
-		}
-
-		.reel__stage[data-ring-live] .reel__lens {
-			pointer-events: auto;
-			cursor: grab;
-		}
-
-		.reel__stage[data-dragging] .reel__lens {
-			cursor: grabbing;
-		}
-
-		/* `.reel__card` is a link, and the UA stylesheet forces `cursor:
-		   pointer` on `:any-link` regardless of the grab cursor inherited
-		   from `.reel__lens` — since the front card fills most of the
-		   screen, that pointer cursor is what a reader actually sees.
-		   Restated here so the drag affordance isn't lost under it. */
-		.reel__stage[data-ring-live] .reel__card {
-			cursor: grab;
-		}
-
-		.reel__stage[data-dragging] .reel__card {
-			cursor: grabbing;
-		}
-
-		.reel__camera,
-		.reel__ring,
-		.reel__slot,
-		.reel__card {
-			display: block;
-			inline-size: 0;
-			block-size: 0;
-			transform-style: preserve-3d;
-		}
-
-		.reel__camera {
-			position: relative;
-		}
-
-		.reel__ring,
-		.reel__slot,
-		.reel__card {
-			position: absolute;
-			inset-block-start: 0;
-			inset-inline-start: 0;
-		}
-
-		.reel__ring {
-			margin: 0;
-			padding: 0;
-			list-style: none;
-		}
-
-		/* The card width: the nav's row (--measure-chrome), so the front
-		   card's edges line up under the brand mark and the last nav link —
-		   or the frame between the gutters, on a screen narrower than that.
-		   The script measures this box and builds the cards from it, and
-		   scales the ring down if the height can't take it. */
-		.reel__probe {
-			position: absolute;
-			inline-size: min(var(--measure-chrome), 100vw - 2 * var(--gutter));
-			block-size: 0;
-			visibility: hidden;
-		}
-
-		/* The press: a pressable surface gives a little under the pointer.
-		   `scale`, so it composes with the transforms the ring owns. */
-		.reel__card {
-			color: inherit;
-			-webkit-tap-highlight-color: transparent;
-			transition: scale 160ms var(--ease-out);
-		}
-
-		a.reel__card:active {
-			scale: 0.98;
-		}
-
-		/* One strip of the card's cover, set on the ring's arc by the script
-		   (box, bend and corner radius). Hidden when turned away. The
-		   transparent outline is upstream's: it makes the browser smooth the
-		   strip's edges where it would otherwise leave them jagged. */
-		.reel__tile {
-			position: absolute;
-			display: block;
-			outline: 1px solid transparent;
-			backface-visibility: hidden;
-			-webkit-backface-visibility: hidden;
-		}
-
-		.reel__frame {
-			position: absolute;
-			inset: 0;
-			display: block;
-			overflow: clip;
-			background: var(--bg-media);
-		}
-
-		/* The whole cover, offset so each strip shows its own slice of it —
-		   the eight strips read as one image. Anchored to the top, where the
-		   screenshots keep their headers. */
-		.reel__photo {
-			position: absolute;
-			inset-block-start: 0;
-			display: block;
-			max-inline-size: none;
-			object-fit: cover;
-			object-position: center top;
-			pointer-events: none;
-			user-select: none;
-			-webkit-user-drag: none;
-		}
-
-		/* The card darkening into the ground as it turns away (`--ring-depth`,
-		   set on the card by the script). */
-		.reel__shade {
-			position: absolute;
-			inset: 0;
-			background: var(--home-ground);
-			opacity: var(--ring-depth, 0);
-			pointer-events: none;
-		}
-
-		/* The focus ring, drawn on every strip — inset, so the strips' edges
-		   meet and it reads as one outline round the card. */
-		.reel__card:focus-visible {
-			outline: none;
-		}
-
-		.reel__card:focus-visible .reel__frame {
-			outline: 2px solid var(--focus-ring);
-			outline-offset: -2px;
-		}
-
-		.reel__card :global(*) {
-			-webkit-user-drag: none;
-		}
-
-		/* ---- The caption ----------------------------------------------------
-		   The front card's details under the ring. The block appears once the
-		   ring is live — after the cards have landed — and is gone at once
-		   when the intro plays back. */
-		.reel__captions {
-			position: absolute;
-			inset-inline: 0;
-			inset-block-end: var(--ring-bottom, 0);
-			display: grid;
-			justify-items: center;
-			row-gap: var(--spacing-xl);
-			padding-inline: var(--gutter);
-			opacity: 0;
-			pointer-events: none;
-		}
-
-		.reel__stage[data-ring-live] .reel__captions {
-			opacity: 1;
-			transition: opacity 200ms var(--ease-out);
-		}
-
-		/* Every caption in one cell; only the front card's shows. The swap
-		   happens many times a visit, so it is short, and it is transitions
-		   rather than keyframes, so a fast drag through several cards
-		   retargets instead of restarting.
-
-		   Leaving: 120ms, a fade with a 4px blur and no movement — the blur
-		   blends it into the one arriving, so the two never read as two
-		   blocks of text overlapping. `visibility` flips once the fade is
-		   done, which takes it out of the accessibility tree. */
-		/* `align-self`/`align-content: start`: every caption shares one
-		   cell, as tall as the longest, and a shorter one stretched to fill
-		   it spreads its rows apart — so the gaps changed with the length of
-		   the title. Pinned to the top, every caption keeps the same 8px
-		   rhythm. */
-		.reel__caption {
-			grid-area: 1 / 1;
-			align-self: start;
-			align-content: start;
-			display: grid;
-			justify-items: center;
-			row-gap: var(--spacing-md);
-			max-inline-size: 40rem;
-			text-align: center;
-			opacity: 0;
-			filter: blur(var(--spacing-xs));
-			visibility: hidden;
-			transition:
-				opacity 120ms var(--ease-out),
-				filter 120ms var(--ease-out),
-				visibility 0s linear 120ms;
-		}
-
-		/* Arriving: 240ms, twice the exit, on --ease-out — it is moving
-		   the moment the card lands. */
-		.reel__caption[data-active] {
-			opacity: 1;
-			filter: blur(0);
-			visibility: visible;
-			transition:
-				opacity 240ms var(--ease-out),
-				filter 240ms var(--ease-out),
-				visibility 0s;
-		}
-
-		/* The rise, 6px, staggered by 40ms down the caption — tags, title,
-		   facts. On the way out the lines only fade; they drop back to their
-		   start once invisible, so the next arrival rises from the same
-		   place. */
-		.reel__roles,
-		.reel__title,
-		.reel__meta {
-			translate: 0 var(--spacing-sm);
-			transition: translate 0s linear 120ms;
-		}
-
-		.reel__caption[data-active] :is(.reel__roles, .reel__title, .reel__meta) {
-			translate: 0 0;
-			transition: translate 240ms var(--ease-out);
-		}
-
-		.reel__caption[data-active] .reel__title {
-			transition-delay: 40ms;
-		}
-
-		.reel__caption[data-active] .reel__meta {
-			transition-delay: 80ms;
-		}
-
-		.reel__title {
-			margin: 0;
-			color: var(--text);
-		}
-
-		.reel__roles {
-			display: flex;
-			gap: var(--spacing-md);
-			margin: 0;
-			padding: 0;
-			list-style: none;
-		}
-
-		.reel__meta {
-			display: flex;
-			column-gap: var(--spacing-3xl);
-			margin: 0;
-			color: var(--text);
-		}
-
-		.reel__meta-item {
-			display: flex;
-			align-items: center;
-			gap: var(--spacing-md);
-		}
-
-		/* The footer lies along the bottom of the screen, under the ring's
-		   stage, and rises in with the intro (home-reel.ts). The body is the
-		   positioning context, and it is one screen tall. */
-		:global(body[data-footer-overlay]) .home-footer {
-			position: absolute;
-			inset-inline: 0;
-			inset-block-end: 0;
-		}
-
-		.home {
-			pointer-events: none;
-		}
-
-		.reel__hero :global(.hero__title) {
-			pointer-events: auto;
 		}
 	}
 </style>

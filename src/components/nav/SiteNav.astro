@@ -1,12 +1,9 @@
 ---
 import { NavMenu } from './NavMenu';
-import Icon from '../ui/Icon.astro';
-import { links } from '../../data/links';
 import logoMark from '../../assets/nav/logo.svg?raw';
 
-/* No `aria-current` anywhere in here any more: the nav holds one off-site
-   link and one dropdown, and neither can ever be the current page. The brand
-   mark is the only route back to `/`, which is also what it was before. */
+/* No `aria-current`: the nav holds an in-page link to the homepage's work
+   and one dropdown, and neither is ever a page of its own. */
 ---
 
 <header class="nav-shell" transition:persist>
@@ -15,24 +12,10 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 		<div class="nav__group">
 			<nav class="nav__links" aria-label="Primary">
-				{/* Off-site (Drive), so it takes the same arrow the Side-projects rows
-				    use — one glyph from icons.ts, not a second copy of it. `links` is
-				    the shared declaration in src/data/links.ts, so the footer and this
-				    cannot drift onto different résumé URLs. */}
-				<a
-					class="nav__link nav__link--external type-nav-link"
-					href={links.resume}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Resume<span class="sr-only"> (opens in new tab)</span>
-					{/* The span is what moves; the link's own `overflow: hidden` is what
-					    hides it at rest. Same arrangement as a Side-projects row, and the
-					    same code drives both — see nav-dropdown.ts. .icon inside is
-					    already 1em square (components.css), so the glyph tracks the link's
-					    12px label rung and inherits its muted -> full hover colour. */}
-					<span class="nav__link-arrow"><Icon name="arrow-up-right" /></span>
-				</a>
+				{/* The homepage's Selected works list. A plain anchor: on the
+				    homepage it scrolls, anywhere else it navigates there. The
+				    résumé moved into the homepage bio. */}
+				<a class="nav__link type-nav-link" href="/#work">Work</a>
 			</nav>
 
 			{/* `client:idle`, not `client:load`. The trigger renders correctly as
@@ -68,15 +51,14 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		padding-inline: var(--gutter);
 	}
 
-	/* Brand on one edge, Resume and Side projects on the other, across a
-	   1000px row — narrower than the 1240px the page frames used to share,
-	   which is what keeps the pair from looking stranded at the far end of
-	   it. `--measure-chrome` rather than a page content measure: the nav's
-	   width is its own standalone decision, not meant to track any page's
-	   body column. `gap` only matters once the viewport is too narrow for
-	   `space-between` to leave any room. */
+	/* Brand on one edge, Work and Side projects on the other, across a
+	   1000px row (`--measure-chrome`) — the nav's own width, not any page's
+	   body column. One page is the exception: the homepage sets
+	   `--nav-measure` to its --measure-home column, so the brand sits over
+	   the name as Figma draws it. `gap` only matters once the viewport is
+	   too narrow for `space-between` to leave any room. */
 	.nav-shell__inner {
-		max-width: var(--measure-chrome);
+		max-width: var(--nav-measure, var(--measure-chrome));
 		margin-inline: auto;
 		display: flex;
 		align-items: center;
@@ -120,18 +102,17 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 	/* :global() on both of these: the <svg> arrives via set:html, so it has
 	   no scope attribute for an unqualified `svg` to match. */
-	/* 2.5rem is the reference's 40px — and the size the homepage headline's
-	   mark shrinks to on its way up here (home-reel.ts measures this box). */
+	/* 2.5rem is the reference's 40px. */
 	.nav__brand :global(svg) {
 		display: block;
 		height: 2.5rem;
 		width: auto;
 	}
 
-	/* Resume and the Side-projects trigger cluster together on the right as
+	/* Work and the Side-projects trigger cluster together on the right as
 	   one visual group, 24px apart — .nav__links and NavMenu stay two
 	   separate elements underneath (Base UI's NavigationMenu owns only the
-	   dropdown; Resume has nowhere to open and stays a plain anchor), but this
+	   dropdown; Work has nowhere to open and stays a plain anchor), but this
 	   wrapper is what makes them read as one group instead of two. */
 	.nav__group {
 		display: flex;
@@ -167,29 +148,6 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		.nav__link:hover {
 			color: var(--text);
 		}
-	}
-
-	/* The arrow flies in diagonally on hover and back out on leave, exactly as
-	   a Side-projects row's does — nav-dropdown.ts drives both off one pair of
-	   selectors. Two things make it work, and both mirror
-	   `.nav-dropdown__item`/`.nav-dropdown__item-arrow`:
-
-	   `overflow: hidden` is the clip. The arrow is parked well outside the
-	   link's padding box at rest, and this is what stops it being drawn there.
-
-	   The rest transform lives here in CSS rather than being set by the script,
-	   for the reason nav-dropdown.ts's header gives: the element has to already
-	   look right before any JS has touched it. 6rem is the same generous
-	   overshoot the dropdown rows use — the script tweens from the row's own
-	   measured height, so this value only has to clear the box, not match. */
-	.nav__link--external {
-		overflow: hidden;
-	}
-
-	.nav__link-arrow {
-		display: inline-flex;
-		flex-shrink: 0;
-		transform: translate(-6rem, 6rem);
 	}
 
 	/* .nav-dropdown is NavMenu.tsx's <NavigationMenu> root — a React island,
@@ -523,22 +481,11 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	   Opt-in per page, via `data-nav-scrim` on the first thing that scrolls up
 	   under the nav — each page's own content column, so the ramp starts at the
 	   top of the content rather than at the top of the padding above it
-	   (about.astro's `.about__frame`; on the homepage's reel layout, a marker
-	   at the end of the reel, since nothing inside the pinned reel ever
-	   passes under the nav and the footer is the first thing that does). The
-	   nav can't know that on its own, and a page with nothing marked just
-	   never paints a band.
-
-	   The homepage carries a second, `data-nav-scrim-narrow` marker too — the
-	   headline itself (HomeHero.astro) — for below the reel's breakpoint,
-	   where the page is a plain scroll and the headline (not the end of a
-	   pinned sequence) is the first thing that passes under the nav. Which of
-	   a page's marker(s) is live is resolved by the same query the reel
-	   itself runs under (REEL_QUERY, home-reel.ts) — keep the two in step. A
-	   page with only `data-nav-scrim` (about.astro, a case study) ignores the
-	   breakpoint entirely and always uses it. Otherwise, one target per page
-	   is enough: progress clamps at 1, so once that column has passed under
-	   the nav the band stays on for everything below it.
+	   (about.astro's `.about__frame`, the homepage's opening row). The nav
+	   can't know that on its own, and a page with nothing marked just never
+	   paints a band. One target per page is enough: progress clamps at 1, so
+	   once that column has passed under the nav the band stays on for
+	   everything below it.
 
 	   Scrubbed 1:1 to scroll position rather than transitioned on a class
 	   toggle, same reasoning as index.astro's own hero fade: the band should
@@ -556,25 +503,13 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	const shell = document.querySelector<HTMLElement>('.nav-shell');
 	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-	/* Mirrors home-reel.ts's REEL_QUERY — move the two together. Decides,
-	   only for a page carrying both markers (the homepage), which one is
-	   live: the reel's own end-of-sequence line while the reel runs, the
-	   headline itself once the page is a plain scroll instead. */
-	const reelQuery = window.matchMedia(
-		'(min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled)',
-	);
-
-	let reelTarget: HTMLElement | null = null;
-	let narrowTarget: HTMLElement | null = null;
+	let scrimTarget: HTMLElement | null = null;
 	let scrimTicking = false;
-
-	const activeScrimTarget = () => (narrowTarget && !reelQuery.matches ? narrowTarget : reelTarget);
 
 	const updateScrim = () => {
 		scrimTicking = false;
 		if (!shell) return;
 
-		const scrimTarget = activeScrimTarget();
 		if (!scrimTarget) {
 			shell.style.setProperty('--nav-scrim', '0');
 			return;
@@ -606,15 +541,13 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	   across Work<->About, so this script body runs on the first load only,
 	   while the elements it watches are replaced on every swap. */
 	const resolveScrimTargets = () => {
-		reelTarget = document.querySelector<HTMLElement>('[data-nav-scrim]');
-		narrowTarget = document.querySelector<HTMLElement>('[data-nav-scrim-narrow]');
+		scrimTarget = document.querySelector<HTMLElement>('[data-nav-scrim]');
 		updateScrim();
 	};
 
 	if (shell) {
 		window.addEventListener('scroll', onScrimScroll, { passive: true });
 		window.addEventListener('resize', onScrimScroll, { passive: true });
-		reelQuery.addEventListener('change', updateScrim);
 		document.addEventListener('astro:after-swap', resolveScrimTargets);
 		resolveScrimTargets();
 	}

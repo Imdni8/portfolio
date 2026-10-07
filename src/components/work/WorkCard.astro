@@ -98,15 +98,16 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 			</p>
 		</div>
 		{/* `sizes` follows the host, which sets the card's width: the
-		    homepage's stacked column (index.astro's `.work-list`), the frame
-		    between the gutters, ~92vw, capped at 1230px (77rem). The cover
-		    runs the card's full width. The ring doesn't use WorkCard. */}
+		    homepage's column (index.astro's `.home__works`), the frame
+		    between the gutters, ~92vw, capped at --measure-home (37.5rem —
+		    `sizes` cannot read a custom property, so move this with it). The
+		    cover runs the card's full width. */}
 		<div class="card__media">
 			<Image
 				src={thumbnail.src}
 				alt={thumbnail.alt}
 				widths={[480, 720, 1080, 1440, 2000]}
-				sizes="(min-width: 84rem) 77rem, 92vw"
+				sizes="(min-width: 44rem) 37.5rem, 92vw"
 				loading={priority ? 'eager' : 'lazy'}
 				fetchpriority={priority ? 'high' : 'auto'}
 			/>
@@ -131,47 +132,13 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 <style>
 	/* No panel: a rounded cover, and the card's text straight on the page
 	   ground beneath it. The card has no width of its own — whatever hosts it
-	   decides that (the homepage ring sizes each slot; the stacked fallback
-	   runs the frame) — and takes its height from its content. */
+	   decides that (the homepage's Selected works column) — and takes its height from its content. */
 	.card {
 		position: relative;
 		display: block;
 		container-type: inline-size;
 		color: inherit;
 		text-decoration: none;
-	}
-
-	/* Every card but the lit one — set by home-reel.ts (or, in the stacked
-	   layout, work-spotlight.ts), never in the markup, so with no JS nothing
-	   is dimmed. 0.6 is the floor the card's text allows, and it is kept
-	   deliberately above the reference's 0.3: composited over the homepage's
-	   ground — anywhere from its darkest to the glow's measured peak — it
-	   leaves the title at 7.1:1 or better and the 14px meta rows at 6.1:1,
-	   where 0.3 would take them to 2.6:1 and 2.4:1 while the card is still a
-	   link a reader can read and follow. A card that takes keyboard focus comes back
-	   to full strength, so the ring is never drawn round something the reader
-	   is being told to ignore.
-
-	   The blur pushes the dimmed cards further back without taking the
-	   opacity any lower, which the floor above rules out. Contrast ratios
-	   don't account for blur, so it is the value that has to stay small:
-	   --spacing-xxs (2px) reads as out of focus while a dimmed title is still
-	   legible. It is toggled rather than scrubbed with the scroll — a blur
-	   recomputed every frame on a card this size is the most expensive thing
-	   the reel could ask for — so the transition below does the easing. It is
-	   a state change the reader sees many times a visit, so it is kept short:
-	   200ms, on --ease-out, so the handover starts the moment it is due. */
-	.card {
-		--card-dimmed-opacity: 0.6;
-		--card-dimmed-blur: var(--spacing-xxs);
-		transition:
-			opacity 200ms var(--ease-out),
-			filter 200ms var(--ease-out);
-	}
-
-	.card[data-dimmed]:not(:focus-visible) {
-		opacity: var(--card-dimmed-opacity);
-		filter: blur(var(--card-dimmed-blur));
 	}
 
 	/* A lift on hover, and a press that gives a little under the pointer or
@@ -189,8 +156,6 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 	a.card {
 		-webkit-tap-highlight-color: transparent;
 		transition:
-			opacity 200ms var(--ease-out),
-			filter 200ms var(--ease-out),
 			transform 160ms var(--ease-out),
 			scale 160ms var(--ease-out);
 	}

@@ -1,127 +1,266 @@
 ---
-/* The homepage headline: "Tousif Rahaman / Designs thoughtful products that
-   drive results", from Figma's 20205:22325. Its entrance is CSS alone — see
-   the keyframes below — and its exit is home-reel.ts, which fades it out as
-   the cards rise.
-   The two never touch the same element: the entrance animates `.hero__name`
-   and `.hero__line` (`.hero__title` under reduced motion, where the reel
-   never runs); the exit writes to `[data-reel-fade]` on `.hero__title`'s
-   wrapper, because a running CSS animation outranks an inline style and
-   would pin whatever the script tried to set.
-   "thoughtful" additionally gets a one-shot decrypt/scramble reveal —
-   `decrypted-text.ts`, wired up in index.astro's `<script>` alongside
-   `home-reel.ts`. It starts scrambling immediately on load, running
-   underneath this entrance rather than after it, and only ever rewrites
-   `[data-decrypt-visual]`'s children, so it can't fight the fade/rise
-   above. Skipped outright under reduced motion, where the plain word
-   stands. */
+/* The homepage's opening row, from Figma's 20302:1154: the name and role on
+   the left, the tagline on the right — "Ships ▢▢▢▢▢▢▢▢ / thoughtful products
+   / that drive results".
+
+   Two pieces of the tagline move, and both are scripted in home-motion.ts:
+
+   - The squares after "Ships" are the last seven days of GitHub
+     contributions (commit-strip.ts fills them). Rendered here empty, so
+     without JS — or if the fetch fails — the row stands as seven outlined
+     squares and nothing is claimed. Hovering or focusing them shows the
+     total in a tooltip, once there is a total to show.
+   - The u, l and t of "results" grow like the bars of a chart, one after
+     the next. Their resting (grown) height is set here in CSS, so without
+     JS or under reduced motion the word is drawn at its end state; the
+     script only plays the growth on top. */
+import { links } from '../../data/links';
+
+const DAYS = 7;
+
+/* How far each bar letter stands above its own height — read off the Figma
+   frame's "results" (20305:1200): u rises past the x-height to about an
+   ascender, l a little past its ascender, t well past both. */
+const BARS: Record<string, number> = { u: 1.6, l: 1.35, t: 2 };
 ---
 
-<div class="hero" data-reel-hero>
-	{/* data-nav-scrim-narrow: the stacked layout's nav-scrim target — see
-	    SiteNav.astro. Below the reel's breakpoint the page is a plain scroll,
-	    so the headline itself is what the nav watches. */}
-	<div class="hero__frame" data-reel-fade>
-		<h1 class="hero__title" data-nav-scrim-narrow>
-			<span class="hero__name type-hero-name">Tousif Rahaman</span>
-			{/* Broken where Figma breaks it. The frame is wide enough at 80px to
-			    pull "products" up onto the first line, which would leave the
-			    accent in the middle of a line rather than closing one. */}
-			<span class="hero__line type-hero">Designs <em class="type-hero-accent" aria-label="thoughtful"><span data-decrypt-visual aria-hidden="true">thoughtful</span></em><br /> products that drive results</span>
-		</h1>
+{/* data-nav-scrim: the first thing that scrolls up under the nav, so the
+    nav's band fades in as it gets there — see SiteNav.astro. */}
+<header class="intro" data-nav-scrim>
+	<div class="intro__id">
+		<h1 class="intro__name type-heading">Tousif Rahaman</h1>
+		<p class="intro__role type-meta">Lead designer (IC)</p>
 	</div>
-</div>
+
+	<p class="intro__tagline type-subtitle" data-tagline>
+		<span class="intro__line">
+			Ships
+			<a class="commit-strip" href={links.github} target="_blank" rel="noopener noreferrer" data-commit-strip>
+				<span class="commit-strip__days" aria-hidden="true">
+					{Array.from({ length: DAYS }, () => <span class="commit-strip__day" data-level="0" />)}
+				</span>
+				<span class="sr-only" data-commit-label>(my GitHub activity, opens in new tab)</span>
+				{/* aria-hidden: the sr-only label above already reads the same total. */}
+				<span class="commit-strip__tip type-annotation" aria-hidden="true" data-commit-tip></span>
+			</a>
+		</span>
+		<span class="intro__line"><em class="intro__accent">thoughtful</em> products</span>
+		<span class="intro__line">
+			that drive
+			{/* One word to assistive tech; seven letters on screen. */}
+			<span class="bars">
+				<span class="sr-only">results</span>
+				<span class="bars__word" aria-hidden="true">
+					{
+						[...'results'].map((letter) =>
+							BARS[letter] ? (
+								<span class="bars__bar" style={`--bar: ${BARS[letter]}`} data-bar>
+									{letter}
+								</span>
+							) : (
+								<span class="bars__letter">{letter}</span>
+							),
+						)
+					}
+				</span>
+			</span>
+		</span>
+	</p>
+</header>
 
 <style>
-	/* Centred top to bottom in whatever box hosts it — the reel's pinned
-	   viewport, or the stacked layout's first screen — and starting on the
-	   nav's own left edge (SiteNav.astro's `.nav-shell`: gutter outside, a
-	   --measure-chrome row centred inside), so the name sits on the same
-	   line as the brand mark above it, as Figma draws them (both at x = 197
-	   on a 1440 frame). */
-	.hero {
-		display: grid;
-		align-content: center;
-		padding-inline: var(--gutter);
-		color: var(--text);
-	}
-
-	/* Only the left edge is the nav's. The right is left open to the
-	   gutter: Montserrat at 80px sets "products that drive results" wider
-	   than the nav's 1000px row (Figma's block is 1087 wide on a 1440
-	   frame), and capping it there wraps "results" onto a line of its own.
-	   The inset is the nav row's own centring margin, restated as padding
-	   so the box itself still runs to the gutter. */
-	.hero__frame {
-		box-sizing: border-box;
-		inline-size: 100%;
-		padding-inline-start: max(0px, calc((100% - var(--measure-chrome)) / 2));
-	}
-
-	/* No measure cap: nothing sits beside the headline, and the frame above
-	   already bounds it. The two lines are 16px apart, as drawn. */
-	.hero__title {
+	/* Name on one side, tagline on the other, top-aligned — the tagline's
+	   first line sits level with the role, as drawn. Below 40rem the two
+	   stack, tagline under the name and set to the left like everything else
+	   in the column. */
+	.intro {
 		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xl);
-		margin: 0;
-		font: inherit;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--spacing-3xl);
 	}
 
-	.hero__name,
-	.hero__line {
-		display: block;
+	.intro__id {
+		display: grid;
+		gap: var(--spacing-xs);
+	}
+
+	.intro__name {
 		color: var(--text);
 	}
 
-	/* `<em>` for the one word the sentence leans on; the class carries its
-	   face. `font-style` is restated only so a browser default can't be read
-	   as the reason it slants. */
-	.hero__line em {
+	/* --text-body, not --text-muted: the role sits inside the bands, and
+	   muted grey over their brightest point measured 3.0:1 — too low for
+	   12px text. */
+	.intro__role {
+		color: var(--text-body);
+	}
+
+	/* Three right-aligned lines. `padding-block-start` drops the first one
+	   below the role, where the Paper frame puts it (34px; the nearest rung
+	   is 32). */
+	.intro__tagline {
+		display: grid;
+		justify-items: end;
+		padding-block-start: var(--spacing-4xl);
+		color: var(--text);
+		text-align: end;
+	}
+
+	.intro__line {
+		display: inline-flex;
+		align-items: baseline;
+		gap: var(--spacing-sm);
+		white-space: nowrap;
+	}
+
+	/* The one word the sentence leans on, in the serif's drawn italic — the
+	   same face .type-heading--claim uses, so no new family and no
+	   synthesised slant. */
+	.intro__accent {
+		font-family: var(--font-display);
 		font-style: italic;
+		letter-spacing: var(--track-tight);
 	}
 
-	/* The entrance — the name, then the sentence 80ms behind it, both rising
-	   a little on --ease-out. Every keyframe ends on the element's own
-	   resting style, so filling `backwards` is all that is needed, and once
-	   each animation ends it leaves nothing behind. */
-	@media (prefers-reduced-motion: no-preference) {
-		.hero__name {
-			animation: hero-arrive 600ms var(--ease-out) 200ms backwards;
-		}
-
-		.hero__line {
-			animation: hero-arrive 600ms var(--ease-out) 280ms backwards;
+	@media (max-width: 40rem) {
+		.intro__tagline {
+			justify-items: start;
+			padding-block-start: 0;
+			text-align: start;
 		}
 	}
 
-	/* Reduced motion keeps the arrival and drops the movement: one short
-	   fade of the finished headline. */
+	/* ---- Commit strip ---------------------------------------------------- */
+	.commit-strip {
+		position: relative;
+		display: inline-flex;
+		align-self: center;
+		border-radius: var(--radius-xs);
+		color: inherit;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.commit-strip:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	.commit-strip__days {
+		display: inline-flex;
+		gap: var(--spacing-xs);
+	}
+
+	/* An empty day is an outline; a day with work is filled in its level's
+	   amber. The fill eases in, so the strip fills left to right as
+	   commit-strip.ts stamps each square's level in turn. */
+	.commit-strip__day {
+		box-sizing: border-box;
+		inline-size: var(--spacing-xl);
+		block-size: var(--spacing-xl);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-xs);
+		background: transparent;
+		transition:
+			background-color 240ms var(--ease-out),
+			border-color 240ms var(--ease-out);
+	}
+
+	.commit-strip__day[data-level='1'] {
+		background: var(--commit-1);
+		border-color: var(--commit-1);
+	}
+
+	.commit-strip__day[data-level='2'] {
+		background: var(--commit-2);
+		border-color: var(--commit-2);
+	}
+
+	.commit-strip__day[data-level='3'] {
+		background: var(--commit-3);
+		border-color: var(--commit-3);
+	}
+
+	.commit-strip__day[data-level='4'] {
+		background: var(--commit-4);
+		border-color: var(--commit-4);
+	}
+
+	/* The total, in a small bubble above the squares, flush with their
+	   trailing edge — the strip ends the right-aligned row, so a centred
+	   bubble would hang past the column. It
+	   only exists once commit-strip.ts has a total and stamps `data-ready`
+	   — a failed fetch shows nothing, the same rule as the empty squares.
+	   Opens on a hovering mouse or keyboard focus: it fades in and rises
+	   4px, and under reduced motion only fades. */
+	.commit-strip__tip {
+		position: absolute;
+		inset-block-end: calc(100% + var(--spacing-md));
+		inset-inline-end: 0;
+		z-index: 1;
+		padding: var(--spacing-xs) var(--spacing-md);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-xs);
+		background: var(--bg-raised);
+		color: var(--text);
+		white-space: nowrap;
+		pointer-events: none;
+		opacity: 0;
+		translate: 0 var(--spacing-xs);
+		transition:
+			opacity 150ms var(--ease-out),
+			translate 150ms var(--ease-out);
+	}
+
+	/* Stacked, the row is left-aligned, so the bubble follows it. */
+	@media (max-width: 40rem) {
+		.commit-strip__tip {
+			inset-inline: 0 auto;
+		}
+	}
+
+	.commit-strip:not([data-ready]) .commit-strip__tip {
+		display: none;
+	}
+
+	.commit-strip:focus-visible .commit-strip__tip {
+		opacity: 1;
+		translate: 0;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.commit-strip:hover .commit-strip__tip {
+			opacity: 1;
+			translate: 0;
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.hero__title {
-			animation: hero-fade 200ms ease backwards;
+		.commit-strip__tip {
+			translate: 0;
+			transition: opacity 150ms ease;
 		}
 	}
 
-	@keyframes hero-arrive {
-		from {
-			opacity: 0;
-			translate: 0 var(--spacing-md);
-		}
-
-		to {
-			opacity: 1;
-			translate: 0 0;
-		}
+	/* ---- Bars ------------------------------------------------------------
+	   The bar letters stand at their grown height at rest; home-motion.ts
+	   plays the growth from 1 on load and on hover. `scale` grows each one
+	   up from its own baseline, so the word keeps its spacing and only the
+	   three bars rise above it. */
+	.bars__word {
+		display: inline-flex;
+		align-items: baseline;
 	}
 
-	@keyframes hero-fade {
-		from {
-			opacity: 0;
-		}
-
-		to {
-			opacity: 1;
-		}
+	/* The origin is the baseline, not the box's bottom edge — growing from
+	   the bottom of the descender space would lift each bar off the line.
+	   At `line-height: 1`, DM Sans's baseline sits 0.84em from the box's
+	   top (ascent 0.992 + half of the 1 − 1.302 leading). */
+	.bars__bar {
+		display: inline-block;
+		line-height: 1;
+		transform-origin: 50% 0.84em;
+		scale: 1 var(--bar);
 	}
 </style>

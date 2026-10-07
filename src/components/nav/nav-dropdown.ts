@@ -2,14 +2,11 @@
    diagonally on hover and back out on leave, plus — on the rows that have one
    — a hoverline that draws in under the label.
 
-   Two kinds of row wear it, listed in ROW below: the items inside the open
-   "Side projects" panel, and the Resume link sitting beside its trigger. Only
-   the panel items carry a hoverline, so that half is optional; the arrow is
-   what the two have in common. The Resume link is plain Astro markup outside
-   the React island that initialises this file (NavMenu.tsx) — which works,
-   because everything below binds to `document` rather than to anything inside
-   that island, for the reasons that follow. It does mean the dropdown's island
-   is what wires up the Resume arrow: delete the dropdown and that goes too.
+   The rows are the items inside the open "Side projects" panel (ROW below).
+   The nav bar's Resume link used to wear the arrow too; it moved into the
+   homepage bio, and the bar's Work link beside the trigger is internal and
+   takes no arrow. Binding to `document` would still reach plain Astro markup
+   outside the island, should an off-site link return to the bar.
 
    Originally: per-item choreography inside the panel only — ported from main,
    where it lived alongside a hand-rolled `<details>` open/close toggle this
@@ -40,11 +37,9 @@ import { gsap } from 'gsap';
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* The rows this applies to, and the parts inside them. A row has to have an
-   arrow to take part; the hoverline is optional, since the Resume link is a
-   text row in the nav bar rather than a bordered panel item and has nothing to
-   draw a line under. */
-const ROW = '.nav-dropdown__item, .nav__link--external';
-const ARROW = '.nav-dropdown__item-arrow, .nav__link-arrow';
+   arrow to take part; the hoverline is optional. */
+const ROW = '.nav-dropdown__item';
+const ARROW = '.nav-dropdown__item-arrow';
 const HOVERLINE = '.nav-dropdown__item-hoverline';
 
 type Parts = { arrow: HTMLElement; hoverline: HTMLElement | null; travel: number };

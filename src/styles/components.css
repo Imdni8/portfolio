@@ -368,7 +368,8 @@
    the ground.
 
    Two opacities, on two elements, and they must stay apart:
-   - the host's is home-reel.ts's, dimming the bands as the cards rise;
+   - the host's is the page's, holding the bands down behind its copy
+     (--blinds-host-opacity, index.astro);
    - the canvas's is the arrival: nothing until gradient-blinds.ts marks the
      host `ready`, then up to --blinds-opacity on plain `ease` over 1.4s, the
      same curve and length the liquid-metal glow came up on — it is light

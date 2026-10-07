@@ -23,9 +23,8 @@
    .type-heading--claim and .type-display set. DM Sans is variable, and its
    italic is what MDX *emphasis* renders in. DM Mono: 300 is the wordmark, 400
    every label, 400 italic the footer tagline's <em>, 500 the chapter rail's
-   active entry.
-   Montserrat (300, 600) and Playfair Display (700 italic) set the homepage
-   headline and nothing else — see --font-headline-sans. */
+   active entry. The serif's 400 italic is the homepage tagline's
+   "thoughtful" and .type-heading--claim. */
 @import '@fontsource/dm-serif-display/400.css';
 @import '@fontsource/dm-serif-display/400-italic.css';
 @import '@fontsource-variable/dm-sans';
@@ -34,9 +33,6 @@
 @import '@fontsource/dm-mono/400.css';
 @import '@fontsource/dm-mono/400-italic.css';
 @import '@fontsource/dm-mono/500.css';
-@import '@fontsource/montserrat/300.css';
-@import '@fontsource/montserrat/600.css';
-@import '@fontsource/playfair-display/700-italic.css';
 
 /* ---- 1 · Colour primitives -------------------------------------------------
    Amber is Tailwind's ramp, unmodified. Grey is custom — a cool cast that
@@ -113,28 +109,15 @@
    inline `<strong>` emphasis inside case-study prose (story-type.ts's
    storyProse), which needs to read as heavier than the surrounding copy at a
    glance — --weight-semibold below, not reached for anywhere else.
-
-   Two more families are not two more jobs. Montserrat and Playfair Display
-   set the homepage headline — "Tousif Rahaman / Designs thoughtful products
-   that drive results" — and nothing else, because that is the one line on
-   the site drawn in its own voice (the Figma frame it comes from sets it
-   that way). Montserrat runs at 300 for the sentence and 600 for the name;
-   Playfair is drawn only as 700 italic, for "thoughtful". The name's 600 and
-   the accent's 700 are this line's alone — the rest of the site keeps its
-   no-bold rule. Do not reach for either family anywhere else.
    -------------------------------------------------------------------------- */
 :root {
 	--font-display: 'DM Serif Display', Georgia, serif;
 	--font-sans: 'DM Sans Variable', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
 	--font-mono: 'DM Mono', ui-monospace, SFMono-Regular, monospace;
-	--font-headline-sans: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
-	--font-headline-serif: 'Playfair Display', Georgia, serif;
 
 	/* Sizes. The top three rungs clamp; 18px and below are fixed, because
 	   below that the fluid range is narrower than the rounding error. */
 	--size-stat: clamp(3.5rem, 6.5vw, 5rem); /* 56 → 80 — the biggest rung, for a case study's Outcome numerals (StatTile's large variant only) */
-	--size-hero: clamp(2.5rem, 4vw, 5rem); /* 44 → 80 — the homepage headline */
-	--size-hero-name: clamp(1.5rem, 2vw, 1.875rem); /* 22 → 30 — the name above it */
 	--size-title: clamp(2rem, 4.2vw, 2.625rem); /* 32 → 42 */
 	--size-heading: clamp(1.375rem, 2.6vw, 1.625rem); /* 22 → 26 */
 	--size-subtitle: clamp(1.125rem, 2vw, 1.25rem); /* 18 → 20 */
@@ -148,8 +131,6 @@
 
 	/* Leading, unitless so it survives the clamps. */
 	--lh-stat: 1.1; /* tighter than --lh-display — a numeral being read at a glance, not a line of running text */
-	--lh-hero: 1.25; /* 80/100 */
-	--lh-hero-name: 1.2; /* 30/36 */
 	--lh-title: 1.2; /* 42/50.4 */
 	--lh-heading: 1.2; /* 26/31.2 */
 	--lh-subtitle: 1.4; /* 20/28 */
@@ -160,11 +141,10 @@
 	--lh-tag: 1.6; /* 10/16 */
 	--lh-wordmark: 1; /* 15/15 */
 
-	--weight-light: 300; /* the footer's mono wordmark, and the homepage headline's sentence */
+	--weight-light: 300; /* the footer's mono wordmark */
 	--weight-regular: 400;
 	--weight-medium: 500;
-	--weight-semibold: 600; /* case-study prose's <strong>, and the homepage headline's name — see the comment above */
-	--weight-bold: 700; /* the homepage headline's "thoughtful" (Playfair's only cut) and nothing else */
+	--weight-semibold: 600; /* case-study prose's <strong> — see the comment above */
 
 	/* Tracking. The serif tightens; uppercase mono opens up — without it the
 	   labels set as a solid block — and opens less as it gets smaller, since a
@@ -232,6 +212,13 @@
 	   is parked and unlinked (see "about" in CLAUDE.md), not an oversight to
 	   fix by widening this back out. */
 	--measure-chrome: 62.5rem; /* 1000px */
+	/* The homepage's single column — name, tagline, bio and Selected works,
+	   with the nav row capped to match. Figma's wireframe draws it 453px wide
+	   at 12px copy; at the system's 16px body that is this. */
+	--measure-home: 37.5rem; /* 600px */
+	/* The fixed nav's band: a 40px brand row with --spacing-xl above and
+	   below (SiteNav.astro). What a page's first content clears. */
+	--nav-height: 4.5rem; /* 72px */
 	--gutter: clamp(1.25rem, 4vw, 4rem);
 
 	--spacing-none: 0rem; /* 0px */
@@ -316,52 +303,6 @@
 ::view-transition-group(*) {
 	animation-duration: 450ms;
 	animation-timing-function: var(--ease-in-out);
-}
-
-/* A homepage ring card (work-ring.ts, "Opening a card") hands over a screen
-   already filled by its cover, still growing, as the snapshot named
-   `ring-open`. That snapshot keeps growing as it fades out, revealing the
-   study, which holds still underneath instead of cross-fading in.
-   CaseStudyLayout's inline pagereveal script marks the arrival with
-   `data-ring-open`.
-   - The scale is linear because it continues a motion already under way
-     rather than starting one. Its end is never seen: the fade is on
-     --ease-out, so the snapshot is almost gone by then.
-   - Both pages are dense with text, and mid-fade they read as a double
-     exposure. The same 4px blur the homepage's caption swap uses blends
-     them into one change.
-   - The hero's `card-<slug>` name is dropped for this one transition.
-     Otherwise it would be a new-only element that fades in on its own
-     layer, above the snapshot, before the rest of the page. */
-:root[data-ring-open] .hero {
-	view-transition-name: none !important; /* over CaseStudyHero's inline style */
-}
-
-::view-transition-group(ring-open) {
-	z-index: 1;
-}
-
-::view-transition-old(ring-open) {
-	animation:
-		ring-open-grow 400ms linear both,
-		ring-open-fade 400ms var(--ease-out) both;
-}
-
-:root[data-ring-open]::view-transition-new(root) {
-	animation: none;
-}
-
-@keyframes ring-open-grow {
-	to {
-		scale: 1.12;
-	}
-}
-
-@keyframes ring-open-fade {
-	to {
-		opacity: 0;
-		filter: blur(4px);
-	}
 }
 
 /* ---- 4 · Semantic colour · dark (default) ---------------------------------- */
@@ -458,6 +399,32 @@
 	/* How strongly the blinds are hard-lit onto the ground — the Figma
 	   frame's layer opacity. */
 	--blinds-opacity: 0.8;
+	/* And how much of that the homepage lets through behind its copy — the
+	   host's opacity (index.astro). The bio and the name sit inside the
+	   bands, so they are held to this; see "Gradient blinds" in CLAUDE.md
+	   for the contrast it buys. */
+	--blinds-host-opacity: 0.4;
+
+	/* The homepage tagline's GitHub squares (commit-strip.ts) — one per day,
+	   shaded by GitHub's own contribution level, 1 (a little) to 4 (a lot);
+	   level 0 is an empty outlined square. Amber rungs climbing toward the
+	   page's own --primary, so the busiest day reads as the brand hue.
+	   Decoration on the same terms as --ai-spectrum-*: what the squares
+	   say is in the strip's sr-only text, so they carry no contrast
+	   measurement. Light theme takes the opposite end of the ramp. */
+	--commit-1: var(--amber-950);
+	--commit-2: var(--amber-800);
+	--commit-3: var(--amber-600);
+	--commit-4: var(--amber-400);
+
+	/* The homepage bio's company tiles (HomeBio.astro) — Medable's and
+	   J&J's own grounds, sampled from their app icons, each carrying its
+	   mark in white. Brand marks, not palette, on the same terms as the
+	   footer's multicolour mascot: decoration only, never a text colour or
+	   a surface copy is read against — the company's name is in the tile's
+	   sr-only text and in the label it slides out. Not theme-aware. */
+	--brand-medable: #6345d7;
+	--brand-jnj: #eb1700;
 
 	/* The liquid-metal layer's two grounds (.liquid-metal in
 	   components.css) — no page renders it any more; it stays in the
@@ -508,6 +475,11 @@
 		--text-on-primary: var(--gray-50);
 		--primary-text: var(--amber-800);
 		--focus-ring: var(--amber-700);
+
+		--commit-1: var(--amber-100);
+		--commit-2: var(--amber-300);
+		--commit-3: var(--amber-500);
+		--commit-4: var(--amber-700);
 	}
 }
 
@@ -532,6 +504,11 @@
 	--text-on-primary: var(--gray-50);
 	--primary-text: var(--amber-800);
 	--focus-ring: var(--amber-700);
+
+	--commit-1: var(--amber-100);
+	--commit-2: var(--amber-300);
+	--commit-3: var(--amber-500);
+	--commit-4: var(--amber-700);
 }
 
 /* ---- 5 · Type styles -------------------------------------------------------
@@ -541,9 +518,6 @@
    same; the names stay separate because they say what the text is for.
    -------------------------------------------------------------------------- */
 .type-stat,
-.type-hero,
-.type-hero-name,
-.type-hero-accent,
 .type-title,
 .type-heading,
 .type-reflection,
@@ -705,39 +679,6 @@
 	font-size: var(--size-wordmark);
 	line-height: var(--lh-wordmark);
 	letter-spacing: var(--track-wordmark);
-}
-
-/* The homepage headline — "Tousif Rahaman / Designs thoughtful products
-   that drive results" — is the one line on the site set above the title
-   rung, in its own two families (see the type primitives above), and it is
-   three styles:
-
-   - .type-hero-name is the name, Montserrat 600, sitting over the sentence.
-   - .type-hero is the sentence, Montserrat 300.
-   - .type-hero-accent is "thoughtful", Playfair Display 700 italic, the one
-     word the sentence leans on. It sits inside a .type-hero line and takes
-     its size and leading from it, so the two share one rhythm. */
-.type-hero-name {
-	font-family: var(--font-headline-sans);
-	font-weight: var(--weight-semibold);
-	font-size: var(--size-hero-name);
-	line-height: var(--lh-hero-name);
-	letter-spacing: var(--track-normal);
-}
-
-.type-hero {
-	font-family: var(--font-headline-sans);
-	font-weight: var(--weight-light);
-	font-size: var(--size-hero);
-	line-height: var(--lh-hero);
-	letter-spacing: var(--track-normal);
-}
-
-.type-hero-accent {
-	font-family: var(--font-headline-serif);
-	font-style: italic;
-	font-weight: var(--weight-bold);
-	letter-spacing: var(--track-normal);
 }
 
 /* ---- 6 · Surface — glass ----------------------------------------------------

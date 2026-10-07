@@ -28,6 +28,7 @@ import search from 'lucide-static/icons/search.svg?raw';
 import trendingUp from 'lucide-static/icons/trending-up.svg?raw';
 import maximize from 'lucide-static/icons/maximize.svg?raw';
 import minimize from 'lucide-static/icons/minimize.svg?raw';
+import fileText from 'lucide-static/icons/file-text.svg?raw';
 import figma from '../../assets/icons/figma.svg?raw';
 import home from '../../assets/icons/home.svg?raw';
 import slashDivider from '../../assets/icons/slash-divider.svg?raw';
@@ -54,6 +55,7 @@ export const icons = {
 	'trending-up': trendingUp,
 	maximize,
 	minimize,
+	'file-text': fileText,
 	figma,
 	home,
 	'slash-divider': slashDivider,
