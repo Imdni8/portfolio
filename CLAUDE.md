@@ -472,8 +472,29 @@ and `work-spotlight.ts` were removed with this redesign.)
     leaves the ends lit; aria-hidden since the sr-only text says the
     same). It opens in two beats: the wash spreads from the centre
     (`scale` 0.4→1 + fade, 200ms), then, 50ms after it settles, the words
-    arrive on the 4px blur (250ms in); closing, the words leave first and the wash follows. It shows only once `commit-strip.ts` stamps `data-ready`, so a
-    failed fetch shows no tooltip either.
+    arrive on the 4px blur (250ms in); closing, the words leave first
+    and the wash follows. It shows only once `commit-strip.ts` stamps
+    `data-ready`, so a failed fetch shows no label either.
+  - **Considered for later: fetch the bars at build time instead.** Not
+    done; the live fetch works. GitHub's GraphQL API
+    (`contributionsCollection.contributionCalendar`) serves the same
+    calendar but needs a token on every call, which can't ship to the
+    browser — hence the jogruber proxy today. The alternative is to fetch it
+    in the build (plain `fetch`, no Octokit) with a no-scope token in
+    `GITHUB_TOKEN`, render levels and total into the HTML, and redeploy
+    daily (a scheduled GitHub Action calling the host's deploy hook).
+    About an hour or two of work, most of it setup.
+    - Gains: right on first paint, no grey-then-fill, no failure or 6s
+      timeout path; no third party (visitors' IPs stop going to
+      jogruber); works without JS; most of `commit-strip.ts` is deleted.
+    - Costs: up to a day stale; the load-time fill-in goes (or is redone
+      in CSS); a fine-grained token expires within a year and the bars go
+      quietly grey until it's renewed, so the build should warn loudly; a
+      daily build's minutes.
+    - A missing token or failed call must render grey bars, never fail
+      the build. Commits-only per day isn't available either way — the
+      calendar mixes commits, PRs and reviews; only the total can be
+      commits-only.
 - **The bio** (`HomeBio.astro`), four `.type-body` paragraphs, from the
   Paper frame "Portfolio components", 24px (`--spacing-3xl`) apart. The copy
   is one colour, `--text`. Every named thing has a **tile** in front of it —
