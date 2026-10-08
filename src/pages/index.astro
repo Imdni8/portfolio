@@ -203,8 +203,15 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 		padding-inline: var(--gutter);
 	}
 
-	/* The work sits a step further down than the opening row and the bio:
-	   72px in all, the 40px row gap plus this. */
+	/* The bio and the work each sit a step further down than the row gap
+	   alone: 72px in all, the 40px gap plus --spacing-4xl. The hero carries
+	   the extra below itself (its root is HomeHero's .intro); the work
+	   carries it above. */
+	.home > :global(.intro) {
+		margin-block-end: var(--spacing-4xl);
+	}
+
+	/* The work: see the step above. */
 	.home__works {
 		display: grid;
 		gap: var(--spacing-6xl);

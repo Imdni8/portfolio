@@ -401,16 +401,29 @@ and `work-spotlight.ts` were removed with this redesign.)
 - **The column** is `--measure-home` (37.5rem, 600px: the wireframe's 453px
   at 12px copy, scaled to the 16px body), gutter outside the cap. `.home`
   clears the nav with `--nav-height` + `--spacing-7xl` and spaces its three
-  blocks `--spacing-5xl` apart (the Paper frame's 40px), with Selected works
-  a further `--spacing-4xl` down (72px in all). The nav row and the footer narrow to the same
+  blocks `--spacing-5xl` apart (the Paper frame's 40px), with the bio and
+  Selected works each a further `--spacing-4xl` down (72px in all), so the
+  hero→bio and bio→work steps match. The nav row and the footer narrow to the same
   column through `--nav-measure`.
 - **The opening row** (`HomeHero.astro`, `<header data-nav-scrim>`), from
   Paper's hero frame: four rows 4px apart — the name (`h1.type-heading`);
   the role ("Lead designer / Builder", `.type-body`, `--text-body` — muted
   grey measured 3.0:1 over the bands); the GitHub bars running from the
-  left edge into "ships *thoughtful*"; then "products that drive results",
-  right-aligned. The copy is all `.type-body`. The bars flex into whatever
-  the tagline leaves, so the row holds on a phone without wrapping.
+  left edge to 8px short of "ships *thoughtful*"; then "products that drive
+  results". Both tagline lines are right-aligned to the column. The role is
+  `.type-body`; the tagline is `.type-subtitle` pinned to a fixed 24px
+  (`--size-lead`), stepping down to `--size-subtitle` below a 375px
+  viewport, where its second line would overflow. The row is
+  `last baseline`-aligned, so the bars stand on the tagline's baseline,
+  and `text-box` trimming makes it exactly 12px from that baseline to the
+  cap height of "products". The name's baseline sits 12px above the
+  role's capitals (both trimmed with `text-box`). The role's baseline sits 16px above the
+  bars' top edge (role trimmed to its baseline; the row's margin subtracts
+  the tagline's `1cap` so it holds whatever the tagline's size). Each bar is a whole pixel wide (`round()`) so their
+  edges render crisply, and the leftover is shared across the gaps
+  (`space-between`, minimum 4px). Below
+  40rem the bars take their own full-width line and the tagline follows,
+  still right-aligned, 16px under the bars — the role-to-bars distance.
   - "thoughtful" is DM Serif Display 400 italic.
   - **The bars** are the last 30 days of GitHub contributions for
     `Imdni8`, fetched live in the browser by `commit-strip.ts` from

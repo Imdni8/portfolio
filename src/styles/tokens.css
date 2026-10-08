@@ -121,6 +121,7 @@
 	--size-title: clamp(2rem, 4.2vw, 2.625rem); /* 32 → 42 */
 	--size-heading: clamp(1.375rem, 2.6vw, 1.625rem); /* 22 → 26 */
 	--size-subtitle: clamp(1.125rem, 2vw, 1.25rem); /* 18 → 20 */
+	--size-lead: 1.5rem; /* 24 — fixed; the homepage tagline, which a bar strip has to be measured against */
 	--size-tab: 1.25rem; /* 20 */
 	--size-body: 1rem; /* 16 — running copy */
 	--size-ui: 1rem; /* 16 — controls; shares the rung with body, parts on weight and leading */

@@ -20,19 +20,19 @@ const DAYS = 30;
 	<h1 class="intro__name type-heading">Tousif Rahaman</h1>
 	<p class="intro__role type-body">Lead designer / Builder</p>
 
-	<div class="intro__row">
+	<div class="intro__row" style={`--days: ${DAYS}`}>
 		<a class="commit-strip" href={links.github} target="_blank" rel="noopener noreferrer" data-commit-strip>
-			<span class="commit-strip__days" style={`--days: ${DAYS}`} aria-hidden="true">
+			<span class="commit-strip__days" aria-hidden="true">
 				{Array.from({ length: DAYS }, () => <span class="commit-strip__day" data-level="0" />)}
 			</span>
 			<span class="sr-only" data-commit-label>(my GitHub activity, opens in new tab)</span>
 			{/* aria-hidden: the sr-only label above already reads the same total. */}
 			<span class="commit-strip__tip type-annotation" aria-hidden="true" data-commit-tip></span>
 		</a>
-		<p class="intro__ships type-body">ships <em class="intro__accent">thoughtful</em></p>
+		<p class="intro__ships type-subtitle">ships <em class="intro__accent">thoughtful</em></p>
 	</div>
 
-	<p class="intro__results type-body">products that drive results</p>
+	<p class="intro__results type-subtitle">products that drive results</p>
 </header>
 
 <style>
@@ -43,34 +43,97 @@ const DAYS = 30;
 		gap: var(--spacing-xs);
 	}
 
+	/* 12px from the name's baseline to the role's capitals: both line
+	   boxes are trimmed to the ink (text-box), so the 4px row gap and the
+	   role's margin are the whole distance. */
 	.intro__name {
 		color: var(--text);
+		text-box: trim-end cap alphabetic;
 	}
 
-	/* The bars take whatever "ships thoughtful" leaves, so they run from the
-	   column's left edge to the tagline at any width — a phone's column
-	   included, so the row never wraps. */
+	/* The bars take whatever "ships thoughtful" leaves, from the column's
+	   left edge to 8px short of the tagline, which ends flush with the
+	   column like the line under it. Baseline-aligned: the strip has no
+	   text, so its baseline is its bottom edge, and the bars stand on the
+	   tagline's baseline. */
 	.intro__row {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) max-content;
+		align-items: last baseline;
+		column-gap: var(--spacing-md);
+		/* 16px from the role's baseline down to the top of the bars. The
+		   role is trimmed to its baseline and "ships" to its cap height, so
+		   the row starts at the tagline's cap line and the bars, standing on
+		   its baseline, sit (1cap − bar height) below that. This margin and
+		   the 4px row gap make up the rest. The row takes the tagline's
+		   font so `cap` measures the tagline's capitals. */
+		font-family: var(--font-sans);
+		font-size: var(--size-lead);
+		margin-block-start: calc(
+			var(--spacing-xl) - var(--spacing-xs) - (1cap - var(--spacing-lg))
+		);
 	}
 
 	/* --text-body, not --text-muted: the role sits inside the bands, and
 	   muted grey over their brightest point measured 3.0:1 — too low for
 	   small text. */
 	.intro__role {
+		margin-block-start: var(--spacing-md);
 		color: var(--text-body);
+		text-box: trim-both cap alphabetic;
 	}
 
+	/* 24px fixed rather than .type-subtitle's 18→20 clamp: the bars are
+	   measured against this text. */
 	.intro__ships,
 	.intro__results {
+		font-size: var(--size-lead);
 		color: var(--text);
 		white-space: nowrap;
 	}
 
+	/* 12px from the bars' bottom edge (the first line's baseline) to the
+	   top of "products". text-box trims the first line's box to its
+	   baseline and this line's to its cap height, so the 4px row gap plus
+	   --spacing-md is the whole distance. Where text-box isn't supported
+	   the lines keep their leading and sit further apart. */
+	.intro__ships {
+		text-box: trim-both cap alphabetic;
+	}
+
 	.intro__results {
+		margin-block-start: var(--spacing-md);
 		text-align: end;
+		text-box: trim-start cap alphabetic;
+	}
+
+	/* On a phone 30 bars beside the tagline would be 1–4px wide, so the
+	   bars take the full column and the tagline follows on its own two
+	   lines, still right-aligned. */
+	@media (max-width: 40rem) {
+		/* The bars lead the row here, so they start at its top: the 4px
+		   row gap and this make the 16px. Below them, the same 16px down to
+		   the tagline's capitals ("ships" is trimmed to its cap height). */
+		.intro__row {
+			grid-template-columns: minmax(0, 1fr);
+			row-gap: var(--spacing-xl);
+			margin-block-start: var(--spacing-lg);
+		}
+
+		.intro__ships {
+			justify-self: end;
+		}
+	}
+
+	/* "products that drive results" at 24px is 335px — exactly a 375px
+	   phone's column. Narrower than that it would run into the gutter, so
+	   the tagline steps down to the subtitle rung. */
+	@media (width < 23.4375rem) {
+		.intro__row,
+		.intro__ships,
+		.intro__results {
+			font-size: var(--size-subtitle);
+		}
 	}
 
 	/* The one word the sentence leans on, in the serif's drawn italic — the
@@ -86,7 +149,6 @@ const DAYS = 30;
 	.commit-strip {
 		position: relative;
 		display: flex;
-		flex: 1;
 		min-inline-size: 0;
 		border-radius: var(--radius-xxs);
 		color: inherit;
@@ -98,9 +160,12 @@ const DAYS = 30;
 		outline-offset: 2px;
 	}
 
+	/* The gaps flex: at least 4px, and whatever the whole-pixel bars leave
+	   over is shared between them, so the strip spans its column exactly. */
 	.commit-strip__days {
 		display: flex;
 		flex: 1;
+		justify-content: space-between;
 		gap: var(--spacing-xs);
 	}
 
@@ -111,9 +176,9 @@ const DAYS = 30;
 	   Each bar is its share of the strip rounded *down to a whole pixel*.
 	   An even `flex: 1` split leaves fractional widths (12.06px at 1440),
 	   and the screen snaps those edges inconsistently, so the 4px gaps read
-	   as uneven. The few pixels the rounding gives up sit after the last
-	   bar, before "ships". The plain calc() is the fallback where round()
-	   isn't supported. */
+	   as uneven. The few pixels the rounding gives up are spread across the
+	   gaps (above). The plain calc() is the fallback where round() isn't
+	   supported. */
 	.commit-strip__day {
 		flex: none;
 		inline-size: calc((100% - (var(--days) - 1) * var(--spacing-xs)) / var(--days));
