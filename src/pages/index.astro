@@ -133,6 +133,7 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 <script>
 	import { initHomeMotion } from '../components/home/home-motion';
 	import { initCommitStrip } from '../components/home/commit-strip';
+	import { initCodeMark } from '../components/home/code-mark';
 
 	/* Registered on `astro:page-load` rather than run inline: this is a
 	   bundled module script, so its body executes once, while `<ClientRouter />`
@@ -148,6 +149,8 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 		stop.push(initHomeMotion());
 		const strip = document.querySelector<HTMLElement>('[data-commit-strip]');
 		if (strip) stop.push(initCommitStrip(strip));
+		const codeMark = document.querySelector<HTMLElement>('[data-code-mark]');
+		if (codeMark) stop.push(initCodeMark(codeMark));
 	});
 </script>
 

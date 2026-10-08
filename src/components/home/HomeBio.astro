@@ -35,6 +35,7 @@ import philipsRaw from '../../assets/homepage/philips_shield.svg?raw';
 import jnjRaw from '../../assets/homepage/J&J_logo.svg?raw';
 import githubRaw from '../../assets/footer/Github.svg?raw';
 import linkedinRaw from '../../assets/footer/Linkedin.svg?raw';
+import codeMarkRaw from '../../assets/homepage/code-mark.svg?raw';
 
 /* The single-colour logo files are drawn in white; recoloured to
    currentColor so they take the tile's ink. NID and Philips carry their own
@@ -75,7 +76,8 @@ const rest = formatRest(span);
 				<span class="toggle__text"><span data-duration-unit>{unit}</span><span class="reveal"><span class="reveal__inner" data-duration-rest>{rest}</span></span></span>
 			</span>
 		</button>{' '}
-		of experience designing complex enterprise and B2B SaaS products, from problem to production.
+		of experience designing complex enterprise and B2B SaaS products, from problem to{' '}
+		<span class="mark">production<span class="code-mark" aria-hidden="true" data-code-mark set:html={codeMarkRaw} />.</span>
 	</p>
 
 	<p class="type-body">
@@ -140,6 +142,19 @@ const rest = formatRest(span);
 		display: grid;
 		gap: var(--spacing-3xl);
 		color: var(--text);
+	}
+
+	/* The bio's own reading rung: .type-body's 16px family and weight, on a
+	   looser 1.75 leading, stepping up to 17px from 48rem. */
+	.bio > p {
+		line-height: var(--lh-bio);
+		text-wrap: pretty;
+	}
+
+	@media (min-width: 48rem) {
+		.bio > p {
+			font-size: var(--size-bio);
+		}
 	}
 
 	/* A name and the tile before it — plus any punctuation that follows —
@@ -305,9 +320,9 @@ const rest = formatRest(span);
 	   (`overflow: hidden` would move the baseline to the box's bottom
 	   edge). The band then follows the corner radius on its own.
 
-	   About 25px against a 27px line, so `--spacing-xs` is pulled off each
-	   block margin: the line box only ever sees ~17px of the tile, and it
-	   can't push its line apart from the ones around it. */
+	   About 25px against a 28–30px line, so `--spacing-xs` is pulled off
+	   each block margin: the line box only ever sees ~17px of the tile, and
+	   it can't push its line apart from the ones around it. */
 	.calendar {
 		--calendar-size: calc(var(--size-fine) / 0.56);
 		display: inline-block;
@@ -331,6 +346,105 @@ const rest = formatRest(span);
 		font-size: var(--size-fine);
 		line-height: calc(var(--calendar-size) * 0.72);
 		font-variant-numeric: tabular-nums;
+	}
+
+	/* ---- Code mark -------------------------------------------------------
+	   "production" ends in a small </> with a cursor, in --primary — our
+	   own drawing (assets/homepage/code-mark.svg), sized in em so it
+	   tracks the copy. Decoration only: aria-hidden, the word says it.
+	   Inside the .mark run, so it never wraps away from its word.
+
+	   It idles as a cursor typing: it deletes the </> and types it again,
+	   on a loop (below), and pulses on its own 2s loop throughout. Paused
+	   until code-mark.ts sees it on screen (`data-playing`), so without JS
+	   it stands still. Reduced motion keeps the pulse and drops the
+	   typing. */
+	.code-mark {
+		display: inline-flex;
+		inline-size: 2em;
+		block-size: 1em;
+		margin-inline-start: 0.3em;
+		vertical-align: -0.15em;
+		color: var(--primary);
+	}
+
+	.code-mark > :global(svg) {
+		inline-size: 100%;
+		block-size: 100%;
+		overflow: visible;
+	}
+
+	.code-mark :global([data-part]) {
+		transform-box: fill-box;
+		transform-origin: 50% 50%;
+	}
+
+	.code-mark :global([data-part='block']) {
+		animation: code-mark-pulse 2s ease-in-out infinite;
+	}
+
+	/* The typing loop: one 5s cycle (1.25s in), every step instant, as a
+	   keyboard would make it. The cursor backspaces ">", "/" and "<" in
+	   turn, jumping one character cell (12 units of the 48-unit drawing)
+	   left each time, waits on the empty line, then types them back a
+	   little faster than it deleted them. */
+	@media (prefers-reduced-motion: no-preference) {
+		.code-mark :global([data-part='caret-right']) {
+			animation: code-mark-type-3 5s step-end 1.25s infinite;
+		}
+
+		.code-mark :global([data-part='slash']) {
+			animation: code-mark-type-2 5s step-end 1.25s infinite;
+		}
+
+		.code-mark :global([data-part='caret-left']) {
+			animation: code-mark-type-1 5s step-end 1.25s infinite;
+		}
+
+		.code-mark :global([data-part='block']) {
+			animation:
+				code-mark-cursor 5s step-end 1.25s infinite,
+				code-mark-pulse 2s ease-in-out infinite;
+		}
+	}
+
+	/* After the `animation` shorthands, which reset the play state. */
+	.code-mark:not([data-playing]) :global([data-part]) {
+		animation-play-state: paused;
+	}
+
+	/* Each character is gone from its backspace to its retyping. */
+	@keyframes code-mark-type-3 {
+		0% { opacity: 1; }
+		30% { opacity: 0; }
+		70% { opacity: 1; }
+	}
+
+	@keyframes code-mark-type-2 {
+		0% { opacity: 1; }
+		38% { opacity: 0; }
+		64% { opacity: 1; }
+	}
+
+	@keyframes code-mark-type-1 {
+		0% { opacity: 1; }
+		46% { opacity: 0; }
+		58% { opacity: 1; }
+	}
+
+	@keyframes code-mark-cursor {
+		0% { translate: 0; }
+		30% { translate: -12px 0; }
+		38% { translate: -24px 0; }
+		46% { translate: -36px 0; }
+		58% { translate: -24px 0; }
+		64% { translate: -12px 0; }
+		70% { translate: 0; }
+	}
+
+	@keyframes code-mark-pulse {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.65; }
 	}
 
 	/* ---- Links -----------------------------------------------------------

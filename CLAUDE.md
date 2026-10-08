@@ -447,6 +447,20 @@ and `work-spotlight.ts` were removed with this redesign.)
   name. Tile and name plus any punctuation are one nowrap `.mark` run.
   Links carry a quiet `--border` underline, since colour no longer sets
   them apart.
+  - **Type**: `.type-body`'s family and weight on its own rung — 16px on
+    `--lh-bio` (1.75, 28px lines), stepping up to `--size-bio` (17px,
+    29.75px lines) from 48rem, with `text-wrap: pretty`. No measure cap:
+    the 600px column already bounds it.
+  - **The `</>` mark** after "production" (`.code-mark`) is our own
+    drawing, `src/assets/homepage/code-mark.svg` (carets, slash and a
+    cursor block, each a `data-part` group), in `--primary`, em-sized and
+    inside the word's `.mark` run. Decoration only, `aria-hidden`. It idles
+    on CSS keyframes as a typing cursor — every 5s it backspaces `>`, `/`,
+    `<` (each step instant, `step-end`, the cursor jumping one 12-unit
+    character cell), waits, and types them back; it also pulses on 2s —
+    paused unless
+    `code-mark.ts`'s IntersectionObserver has stamped `data-playing`.
+    Reduced motion keeps only the pulse; the `</>` stays whole.
   - **"[6] years"** opens to "[6] years, 6 months and 7 days", counted from
     1 April 2020 (`career.ts`'s `CAREER_START`). Computed at build so no-JS
     reads right, then recomputed in the browser. The number is printed on a
@@ -461,8 +475,8 @@ and `work-spotlight.ts` were removed with this redesign.)
     so the tile must never become a clipping box (`overflow: hidden` moves
     the baseline to its bottom edge); the band is a background gradient,
     not a clipped child. `--spacing-xs` is pulled off each block margin so
-    the line box sees ~17px of it: lines stay 27.2px apart (measured at
-    1440, 375 and 320 wide).
+    the line box sees ~17px of it: lines stay 28px apart (29.75px at
+    17px; measured at 1440, 375 and 320 wide).
   - **Paragraphs three and four are tiles alone**; each name slides out to
     the right of its tile, so the logo stays put. NID and the companies are
     `<button data-toggle>`s. The profile links (LinkedIn, GitHub, résumé)

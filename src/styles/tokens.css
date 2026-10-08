@@ -124,6 +124,7 @@
 	--size-lead: 1.5rem; /* 24 — fixed; the homepage tagline, which a bar strip has to be measured against */
 	--size-tab: 1.25rem; /* 20 */
 	--size-body: 1rem; /* 16 — running copy */
+	--size-bio: 1.0625rem; /* 17 — the homepage bio, from 48rem up */
 	--size-ui: 1rem; /* 16 — controls; shares the rung with body, parts on weight and leading */
 	--size-wordmark: 0.9375rem; /* 15 */
 	--size-fine: 0.875rem; /* 14 */
@@ -136,6 +137,7 @@
 	--lh-heading: 1.2; /* 26/31.2 */
 	--lh-subtitle: 1.4; /* 20/28 */
 	--lh-body: 1.7; /* 16/27.2 */
+	--lh-bio: 1.75; /* 16/28, 17/29.75 — the homepage bio's reading leading */
 	--lh-ui: 1.5; /* 16/24 */
 	--lh-fine: 1.5; /* 14/21 */
 	--lh-micro: 1.5; /* 12/18 */
