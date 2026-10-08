@@ -77,6 +77,10 @@
 	   and the bio's aria-hidden </> mark. */
 	--paper: hsl(0 0% 95%);
 
+	/* The dark ground's near-black (--home-ground's value, below), as a
+	   primitive so it can be named whatever the theme. */
+	--night: #070709;
+
 	/* ---- AI spectrum -------------------------------------------------------
 	   The only hues in the system outside the amber ramp and the cool grey,
 	   and deliberately scoped to one thing: the "AI" chip's animated border on
@@ -277,6 +281,13 @@
    -------------------------------------------------------------------------- */
 :root {
 	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	/* The theme toggle's wave (SiteNav.astro), and nothing else. A
+	   page-wide circle's area grows with the square of its radius, so
+	   --ease-out — most of its travel in the first fifth — floods the page
+	   in a frame and reads as a cut. This is a gentler ease-out: the front
+	   leaves the character quickly and visibly slows on its way to the far
+	   corner, like a ripple running out of energy. */
+	--ease-ripple: cubic-bezier(0.25, 0.6, 0.3, 1);
 	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
@@ -317,6 +328,30 @@
 ::view-transition-group(*) {
 	animation-duration: 450ms;
 	animation-timing-function: var(--ease-in-out);
+}
+
+/* The theme toggle's wave (SiteNav.astro's switchTheme). While it runs the
+   whole page is one snapshot: named elements (the work cards' card-<slug>)
+   would otherwise be lifted out and cross-fade
+   on their own, outside the circle. Under `wave` the default cross-fade is
+   off too, so the new theme arrives only through the growing clip-path. */
+/* index.astro and about.astro put `transition:animate="none"` on <html>,
+   and Astro gives it a generated name for that; the wave clips
+   ::view-transition-new(root), so the root has to be `root` again for the
+   length of the switch, or the clip lands on nothing and the swap is
+   instant. */
+:root[data-theme-switch] {
+	view-transition-name: root !important;
+}
+
+:root[data-theme-switch] * {
+	view-transition-name: none !important;
+}
+
+:root[data-theme-switch='wave']::view-transition-old(root),
+:root[data-theme-switch='wave']::view-transition-new(root) {
+	animation: none;
+	mix-blend-mode: normal;
 }
 
 /* ---- 4 · Semantic colour · dark (default) ---------------------------------- */
@@ -392,7 +427,13 @@
 	   are hard-lit onto, and so it is shader material rather than interface
 	   colour. Light theme swaps it for --bg (--paper, below): the pages no
 	   longer pin dark now that the nav has a theme toggle. */
-	--home-ground: #070709;
+	--home-ground: var(--night);
+
+	/* The other theme's ground: the circle the theme toggle grows behind its
+	   character on hover, a preview of where a press goes. Light theme's is
+	   --gray-700 rather than --night: Vader is black, and on the true ground
+	   his helmet vanishes; gray-700 still reads as the dark side. */
+	--theme-preview: var(--paper);
 
 	/* The gradient blinds' stops, left to right across the screen —
 	   sampled from scratch/bg_color_inspo.jpg in the order it runs (pink,
@@ -494,6 +535,7 @@
 
 		--commit-empty: var(--gray-400);
 		--home-ground: var(--bg);
+		--theme-preview: var(--gray-700);
 	}
 }
 
@@ -521,6 +563,7 @@
 
 	--commit-empty: var(--gray-400);
 	--home-ground: var(--bg);
+	--theme-preview: var(--gray-700);
 }
 
 /* ---- 5 · Type styles -------------------------------------------------------

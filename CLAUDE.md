@@ -167,7 +167,10 @@ Lucide (`lucide-static`, one 24×24 grid, one 2px stroke weight) rather than
 hand-drawn per component. `Icon.astro` and `Icon.tsx` both read that same
 registry, so a `.astro` file and a React island render identical markup. Add
 an icon by importing its raw SVG (`?raw`) into `icons.ts` — never inline a new
-`<svg>` in a component.
+`<svg>` in a component. The theme toggle's `yoda` and `vader`
+(`src/assets/icons/`) are the exception to the line style: small flat
+illustrations with literal multi-colour fills that ignore `currentColor`,
+decoration like the footer mascot.
 
 Three conventions worth keeping:
 
@@ -342,8 +345,18 @@ own, so `SiteNav.astro` carries no `aria-current`.
 - **Below 400px (25rem) Work is hidden**, leaving the brand, Side projects
   and the toggle; Selected works is the next thing down the homepage anyway.
 - **The theme toggle** is a ghost `icon` button (`buttonVariants`), quieted to
-  `--text-muted`. Both the sun and moon glyphs are rendered and CSS shows one
-  off `[data-theme]`, so it's right on first paint. Its script flips
+  `--text-muted`. Its glyphs are Yoda (switches to light) and Vader (switches
+  to dark); both are rendered and CSS shows the one for the theme a press
+  goes to, off `[data-theme]`, so it's right on first paint.
+  Hover or focus grows a circle of the other theme's ground behind the
+  character (`--theme-preview`: `--paper` on dark, `--gray-700` on light,
+  since Vader vanishes on `--night`). A press ripples the new theme out of
+  that circle: a view transition whose new snapshot is revealed by a
+  growing `clip-path` circle (`--ease-ripple`, 450–700ms by distance),
+  reduced motion getting the plain cross-fade. `<html>` carries Astro's
+  generated transition name from `transition:animate="none"`, so tokens.css
+  renames it `root` for the length of the switch — without that the clip
+  lands on nothing and the swap is instant. Its script flips
   `data-theme`, writes `localStorage.theme`, and keeps the `aria-label` naming
   the action ("Switch to light theme"). It suspends transitions for the frame
   of the swap so the page doesn't change over in uneven patches.

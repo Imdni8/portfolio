@@ -30,10 +30,10 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 			<NavMenu client:idle />
 		</div>
 
-		{/* The theme toggle. Both glyphs are rendered and CSS shows the one for
-		    the theme a press switches *to*, keyed off [data-theme] — so the
-		    right one is up on first paint with no script, and ThemeInit.astro
-		    has already set the attribute by then. The label is the action, kept
+		{/* The theme toggle: Yoda for light, Vader for dark. Both glyphs are
+		    rendered and CSS shows the one for the theme a press switches *to*,
+		    keyed off [data-theme] — so the right one is up on first paint with
+		    no script, and ThemeInit.astro has already set the attribute by then. The label is the action, kept
 		    current by the script below; the server writes the default's. */}
 		<button
 			type="button"
@@ -41,8 +41,8 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 			aria-label="Switch to light theme"
 			data-theme-toggle
 		>
-			<Icon name="sun" class="nav__theme-icon nav__theme-icon--sun" />
-			<Icon name="moon" class="nav__theme-icon nav__theme-icon--moon" />
+			<Icon name="yoda" class="nav__theme-icon nav__theme-icon--light" />
+			<Icon name="vader" class="nav__theme-icon nav__theme-icon--dark" />
 		</button>
 	</div>
 </header>
@@ -504,26 +504,121 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	   beside them, not an accent. The radius goes round to sit in the pill's
 	   end cap; the hover fill stays the variant's. */
 	.nav__theme {
+		position: relative;
 		justify-self: end;
 		color: var(--text-muted);
 		border-radius: var(--radius-full);
 	}
 
+	/* Yoda and Vader are illustrations, not line glyphs, and lose their
+	   detail at the button's 22px icon size — so they match the brand mark's
+	   32px on the pill's other end instead. Unlayered, so it beats the
+	   variant's [&_.icon] utility. */
+	.nav__theme :global(.icon) {
+		width: var(--spacing-4xl);
+		height: var(--spacing-4xl);
+	}
+
+	/* Yoda's ears span the whole viewBox, leaving his head half its height;
+	   at the button's full 40px he stands as tall as Vader and the mark. */
+	.nav__theme :global(.nav__theme-icon--light) {
+		width: var(--spacing-5xl);
+		height: var(--spacing-5xl);
+	}
+
+	/* The glyphs carry their own fills, so this colour no longer reaches
+	   them; hover reads through the ghost variant's fill. */
 	@media (hover: hover) and (pointer: fine) {
 		.nav__theme:hover {
 			color: var(--text);
 		}
 	}
 
-	/* Dark is the default, so with no attribute — or `dark` — the sun shows
-	   (a press goes to light); under light, the moon. :global() because the
+	/* Each glyph is named for the theme a press switches to. Dark is the
+	   default, so with no attribute — or `dark` — Yoda (light) shows; under
+	   light, Vader (dark). :global() because the
 	   glyphs are Icon.astro's spans, which carry no scope attribute of ours. */
-	:global(.nav__theme-icon--moon),
-	:global(:root[data-theme='light'] .nav__theme-icon--sun) {
+	:global(.nav__theme-icon--dark),
+	:global(:root[data-theme='light'] .nav__theme-icon--light) {
 		display: none;
 	}
 
-	:global(:root[data-theme='light'] .nav__theme-icon--moon) {
+	/* The hover preview: a circle in the other theme's ground grows behind
+	   the character, so it stands for a moment on the theme a press goes
+	   to. A press then grows the wave from this same circle (switchTheme).
+	   The ghost variant's own hover fill is dropped for it. */
+	.nav__theme::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: var(--theme-preview);
+		scale: 0;
+		transition: scale 200ms var(--ease-out);
+	}
+
+	.nav__theme :global(.icon) {
+		position: relative;
+	}
+
+	.nav__theme:focus-visible::before {
+		scale: 1;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.nav__theme:hover {
+			background: transparent;
+		}
+
+		.nav__theme:hover::before {
+			scale: 1;
+		}
+	}
+
+	/* Gentler, not none: the circle fades in at full size. */
+	@media (prefers-reduced-motion: reduce) {
+		.nav__theme::before {
+			scale: 1;
+			opacity: 0;
+			transition: opacity 150ms ease;
+		}
+
+		.nav__theme:focus-visible::before {
+			opacity: 1;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+		.nav__theme:hover::before {
+			opacity: 1;
+		}
+	}
+
+	/* While the wave runs (switchTheme stamps data-settling into the new
+	   snapshot only): no preview circle behind the arriving character —
+	   it grows back once the switch is done, if the pointer is still on
+	   it — and the character itself pops in from 0.85, so the button
+	   answers the press before the wave carries it away. */
+	.nav__theme[data-settling]::before {
+		scale: 0;
+		opacity: 0;
+		transition: none;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.nav__theme[data-settling] :global(.nav__theme-icon) {
+			animation: nav-theme-arrive 200ms var(--ease-out);
+		}
+	}
+
+	@keyframes nav-theme-arrive {
+		from {
+			scale: 0.85;
+			opacity: 0.4;
+		}
+	}
+
+	:global(:root[data-theme='light'] .nav__theme-icon--dark) {
 		display: inline-flex;
 	}
 
@@ -586,6 +681,78 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		requestAnimationFrame(() => freeze.remove());
 	};
 
+	/* The click: the new theme washes out from the character as a circle,
+	   wide enough to reach the farthest corner of the viewport. A view
+	   transition snapshots the page in both themes and the new one is
+	   revealed through a growing clip-path, so every colour on the page
+	   changes in one front rather than per element. `data-theme-switch`
+	   scopes the CSS for it in tokens.css to this transition only, leaving
+	   the card→hero navigation transition alone. Reduced motion gets the
+	   view transition's own cross-fade instead of the wave; no API, the
+	   instant swap above. */
+	let switching = false;
+
+	const switchTheme = (theme: 'light' | 'dark') => {
+		/* A second press mid-wave would make the browser snap this wave to
+		   its end and start another; the first one finishes instead. */
+		if (switching) return;
+		if (!toggle || !document.startViewTransition) {
+			setTheme(theme);
+			return;
+		}
+
+		const wave = !reduceMotion.matches;
+		root.dataset.themeSwitch = wave ? 'wave' : 'fade';
+
+		/* Out of the character on show: Yoda going to light, Vader to dark.
+		   Both are drawn centred in their viewBox, so the glyph's own centre
+		   is the head. */
+		const glyph = toggle.querySelector(`.nav__theme-icon--${theme}`) ?? toggle;
+		const box = glyph.getBoundingClientRect();
+		const x = box.left + box.width / 2;
+		const y = box.top + box.height / 2;
+		const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+		/* From the hover preview's own circle, so the wave carries on from
+		   what the reader was just shown rather than starting from a point. */
+		const from = toggle.offsetWidth / 2;
+
+		switching = true;
+		const transition = document.startViewTransition(() => {
+			/* Set inside the update, so only the new snapshot sees it: the
+			   old one keeps the hover preview the wave grows out of, the new
+			   one shows the character arriving without the next preview
+			   circle behind it. */
+			toggle.dataset.settling = '';
+			setTheme(theme);
+		});
+
+		if (wave) {
+			transition.ready.then(() => {
+				root.animate(
+					{ clipPath: [`circle(${from}px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+					/* The duration follows the distance, so the front keeps
+					   much the same speed on a phone (~700px to the far
+					   corner) as on a wide screen (~1300px): 0.5ms a pixel,
+					   held between 450 and 700ms. */
+					{
+						duration: Math.min(700, Math.max(450, radius * 0.5)),
+						easing: getComputedStyle(root).getPropertyValue('--ease-ripple').trim() || 'ease-out',
+						pseudoElement: '::view-transition-new(root)',
+					},
+				);
+			})
+			/* Rejects only when the transition is skipped (a second click
+			   mid-wave); the theme has still been set. */
+			.catch(() => {});
+		}
+
+		transition.finished.finally(() => {
+			delete root.dataset.themeSwitch;
+			delete toggle.dataset.settling;
+			switching = false;
+		});
+	};
+
 	/* The pill's fill and edge: on as soon as the page leaves the top. A class
 	   toggle rather than a scrubbed value — it's a hairline, and the CSS
 	   transition is enough. Re-checked after a swap, since the persisted
@@ -629,7 +796,7 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 	if (toggle) {
 		label();
-		toggle.addEventListener('click', () => setTheme(current() === 'light' ? 'dark' : 'light'));
+		toggle.addEventListener('click', () => switchTheme(current() === 'light' ? 'dark' : 'light'));
 		/* The router rewrites <html>'s attributes on a swap; ThemeInit puts
 		   the stored theme back, and this keeps the label in step. */
 		document.addEventListener('astro:after-swap', label);
