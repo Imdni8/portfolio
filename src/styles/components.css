@@ -145,21 +145,27 @@
 	initial-value: 0deg;
 }
 
-.badge-ai {
-	/* The ring is 2px, taken out of the chip's own padding rather than added
-	   outside it. The chip sits in a row beside 1px-bordered ones, and a
-	   border that grew the box would stand taller than its neighbours; the
-	   calc below gives back exactly the 1px of extra border width (2px −
-	   the default 1px), so the outer box is unchanged at 26px and only the
-	   gap to the label moves. Whole pixels on both sides of that trade
-	   deliberately — a 1.5px border here previously left the calc handing
-	   back more padding than the border actually added, since some
-	   browsers round a fractional border-width down when rasterizing,
-	   quietly shipping a chip 1–2px shorter than its neighbours. */
+/* The work card's chips, AI and `light` alike, share one 2px edge. It comes
+   out of the chip's own padding, not added outside it: the calc gives back
+   exactly the 1px of extra border width (2px − the base 1px), so the outer
+   box stays 26px, the same as every other badge. Whole pixels on both
+   sides of that trade deliberately: a 1.5px border here once left the calc
+   handing back more padding than the border added, since some browsers
+   round a fractional border-width down when rasterizing, and the chip
+   shipped 1–2px shorter than its neighbours. The two chips sit side by
+   side, so they share this rule rather than each restating it. A painted
+   ring beside a 1px real border can snap to a different pixel row on a 1×
+   display when the card's top lands on a fractional y, so the chips read
+   as mismatched heights even though their boxes are equal. */
+.badge-ai,
+.badge-light {
 	border-width: 2px;
-	border-color: transparent;
 	padding: calc(var(--spacing-xs) - 1px);
 	padding-inline-end: calc(var(--spacing-sm) - 1px);
+}
+
+.badge-ai {
+	border-color: transparent;
 	background-image:
 		linear-gradient(var(--secondary), var(--secondary)),
 		conic-gradient(

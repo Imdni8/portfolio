@@ -489,7 +489,11 @@ and `work-spotlight.ts` were removed with this redesign.)
   - The chips are the `light` badge variant (`--secondary` fill,
     `--text-on-secondary`, 17.3:1), white over the Paper frame's dark chips.
     The AI chip keeps its ring and is filled the same white (`.badge-ai`
-    paints `--secondary`), so the row reads as one set.
+    paints `--secondary`), so the row reads as one set. Both chips share a
+    2px edge (`.badge-ai, .badge-light` in components.css; the white one is
+    `--gray-300`) so their geometry is identical. A 1px border beside the
+    painted ring looked like a height mismatch on 1× monitors. Labels are
+    DM Mono 500.
   - They are out of flow (`position: absolute` against `.card`, whose top is
     the cover's top) but first in the DOM, so the link's accessible name
     still reads them with the title ahead of the cover's alt text.
