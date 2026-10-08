@@ -9,9 +9,10 @@ import CompanyLogo from './CompanyLogo.astro';
    WorkCard on purpose — a cover and a full-size title promise a case study
    on this site, and a click that drops the reader into a Drive viewer
    breaks that promise. A row says what it is before the click: the title,
-   who and when — and, under a mouse, where it opens: the link cursor
-   (link-cursor.ts) reads "Drive ↗" or "Slides ↗" over the row, cloned
-   from the hidden `[data-cursor-content]` below. */
+   who and when, and where it opens — "Drive ↗" or "Slides ↗". Under a
+   mouse that label is the link cursor (link-cursor.ts clones the
+   `[data-cursor-content]` column below into its pill); everywhere else —
+   touch, or no JS — the column shows at the row's end. */
 interface Props {
 	title: string;
 	company: string;
@@ -31,9 +32,9 @@ const destination = href.includes('docs.google.com/presentation') ? 'Slides' : '
 
 ---
 
-<a class="work-row" href={href} target="_blank" rel="noopener noreferrer" data-external-work data-cursor={destination}>
+<a class="work-row" href={href} target="_blank" rel="noopener noreferrer" data-external-work data-cursor>
 	<span class="work-row__text">
-		<span class="work-row__title type-subtitle" data-work-title>{title}<span class="sr-only"> (opens in new tab)</span></span>
+		<span class="work-row__title type-subtitle type-subtitle--display" data-work-title>{title}<span class="sr-only"> (opens in new tab)</span></span>
 		<span class="work-row__meta type-label">
 			<span class="work-row__fact">
 				<CompanyLogo company={company} />
@@ -49,7 +50,10 @@ const destination = href.includes('docs.google.com/presentation') ? 'Slides' : '
 			</span>
 		</span>
 	</span>
-	<span hidden data-cursor-content>{destination}<Icon name="arrow-up-right" /></span>
+	<span class="work-row__destination type-label" aria-hidden="true" data-cursor-content>
+		{destination}
+		<Icon name="arrow-up-right" />
+	</span>
 	{/* `sizes` mirrors the preview's width, half of --measure-home (300px);
 	    `sizes` cannot read a custom property, so move them together. Lazy:
 	    nothing is fetched until the row nears the screen. */}
@@ -59,12 +63,15 @@ const destination = href.includes('docs.google.com/presentation') ? 'Slides' : '
 </a>
 
 <style>
-	/* Title and facts across the full width, on the list's hairlines
-	   (drawn by the list in index.astro). The row is the whole hit area —
-	   48px tall at the least, so a thumb can't miss it. */
+	/* Title and facts on the left, where it opens on the right. The row is
+	   the whole hit area — 48px tall at the least, so a thumb can't miss
+	   it. */
 	.work-row {
 		position: relative;
 		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: start;
+		column-gap: var(--spacing-3xl);
 		min-block-size: var(--spacing-6xl);
 		padding-block: var(--spacing-xl);
 		color: inherit;
@@ -79,19 +86,11 @@ const destination = href.includes('docs.google.com/presentation') ? 'Slides' : '
 		gap: var(--spacing-xs);
 	}
 
-	/* The subtitle rung's size and leading, in the serif every work title
-	   wears (tracked −1%, as every serif setting is), so a row's title is
-	   the same face as a card's, one step smaller. */
 	.work-row__title {
 		color: var(--text);
-		font-family: var(--font-display);
-		letter-spacing: var(--track-tight);
 		text-wrap: pretty;
 	}
 
-	/* The same facts as a card's, each an icon (or the company's logo) and
-	   a value, wrapping as whole facts. Closer together than a card's 40px,
-	   since a row is the lighter element. */
 	/* The same facts as a card's, each a 16px icon (or the company's logo
 	   tile) and its value, centred on one line and wrapping as whole facts.
 	   24px between facts rather than a card's 40px, since a row is the
@@ -117,6 +116,26 @@ const destination = href.includes('docs.google.com/presentation') ? 'Slides' : '
 		inline-size: var(--spacing-xl);
 		block-size: var(--spacing-xl);
 		font-size: var(--spacing-xl);
+	}
+
+	/* Sits on the title's first line: the subtitle rung's leading less the
+	   label's, halved. Where the link cursor runs, the pill says this
+	   instead, so the column steps aside and the title takes the width. */
+	.work-row__destination {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		margin-block-start: calc((var(--size-subtitle) * var(--lh-subtitle) - var(--size-micro) * var(--lh-micro)) / 2);
+		color: var(--text-body);
+	}
+
+	.work-row__destination > :global(.icon) {
+		inline-size: var(--spacing-xl);
+		block-size: var(--spacing-xl);
+	}
+
+	:global([data-link-cursor]) .work-row__destination {
+		display: none;
 	}
 
 	.work-row:active {

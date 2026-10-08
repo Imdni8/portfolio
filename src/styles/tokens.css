@@ -203,7 +203,7 @@
 	   wide monitor does not stretch the two-column sections past the point
 	   where the eye can track from one to the other. */
 	--measure-page: 91.875rem; /* 1470px */
-	--measure-content: 77.5rem; /* 1240px — about page and footer cap */
+	--measure-content: 77.5rem; /* 1240px — the page frame's reference cap (unused since the about page went) */
 	/* A case study's reading column. Narrower than --measure-page because the
 	   story is read top to bottom rather than scanned as a grid: at 1470px the
 	   two-column sections put the copy and the shot beside it too far apart to
@@ -224,11 +224,7 @@
 	   column. Kept as its own token rather than reused from --measure-prose
 	   even though the values happen to match right now, since the two are
 	   conceptually unrelated (one is the site's chrome width, the other a
-	   page's reading column) and have already diverged once before. On
-	   about.astro this runs narrower than the page's own --measure-content
-	   (1240px) body frame: a deliberate, accepted trade-off since that page
-	   is parked and unlinked (see "about" in CLAUDE.md), not an oversight to
-	   fix by widening this back out. */
+	   page's reading column) and have already diverged once before. */
 	--measure-chrome: 62.5rem; /* 1000px */
 	/* The homepage's single column — name, tagline, bio and Selected works,
 	   with the nav row capped to match. Figma's wireframe draws it 453px wide
@@ -300,10 +296,9 @@
 
    Both documents have to opt in for the browser to run a transition at all,
    which is why this lives here rather than in either page's own styles:
-   tokens.css is the one file index.astro, about.astro and
-   CaseStudyLayout.astro all import identically. It is inert wherever a
-   navigation's two documents don't share a `view-transition-name` — About,
-   or any hard nav that isn't card→hero — an unmatched name just gets the
+   tokens.css is the one file index.astro and CaseStudyLayout.astro both
+   import identically. It is inert wherever a navigation's two documents
+   don't share a `view-transition-name` — any hard nav that isn't card→hero — an unmatched name just gets the
    default cross-fade, never a broken one.
 
    Astro's own <ClientRouter/> soft nav (Home<->About) never reaches this: it
@@ -335,7 +330,7 @@
    would otherwise be lifted out and cross-fade
    on their own, outside the circle. Under `wave` the default cross-fade is
    off too, so the new theme arrives only through the growing clip-path. */
-/* index.astro and about.astro put `transition:animate="none"` on <html>,
+/* index.astro puts `transition:animate="none"` on <html>,
    and Astro gives it a generated name for that; the wave clips
    ::view-transition-new(root), so the root has to be `root` again for the
    length of the switch, or the clip lands on nothing and the swap is
@@ -354,9 +349,14 @@
 	mix-blend-mode: normal;
 }
 
-/* ---- 4 · Semantic colour · dark (default) ---------------------------------- */
+/* ---- 4 · Semantic colour · dark (default) ----------------------------------
+   Every page's ground is --night, the homepage frame's near-black, rather
+   than --gray-900. It sits below --bg-sunken's gray-950 (#090b0c) — by two or
+   three levels a channel, which doesn't read — so sunken is no longer
+   strictly darker than the page; nothing on the site depends on it being so.
+   -------------------------------------------------------------------------- */
 :root {
-	--bg: var(--gray-900);
+	--bg: var(--night);
 	--bg-raised: var(--gray-800);
 	--bg-sunken: var(--gray-950);
 
@@ -652,6 +652,15 @@
 	letter-spacing: var(--track-normal);
 }
 
+/* The subtitle rung's size and leading in the display serif (400, tracked
+   −1%, as every serif setting is) — a title one step below the card's,
+   such as an earlier-work row's. */
+.type-subtitle--display {
+	font-family: var(--font-display);
+	font-weight: var(--weight-regular);
+	letter-spacing: var(--track-tight);
+}
+
 /* A work card's meta rows — industry and year, each an icon and a value,
    stacked under the title's rule. Secondary copy: the fine rung at regular
    weight, the same values as .type-annotation, but named for what it labels. */
@@ -750,8 +759,9 @@
 
 /* ---- 6 · Surface — glass ----------------------------------------------------
    The backdrop-filter material `.glass` (components.css) is built from — one
-   set of values, for the about page's stats panel, the one surface still cut
-   from it. The work cards wore it until they became solid panels. The nav
+   set of values. Nothing wears it now: the deleted about page's stats panel
+   was the last surface cut from it, and the nav borrows its blur and
+   saturate for the scrolled pill. The work cards wore it until they became solid panels. The nav
    used to wear it too (and had a second, heavier tint it swapped in via a
    scroll listener as pale case-study covers scrolled underneath it —
    `--glass-tint-scroll`, `.glass--tinted`, `nav-tint.ts`) before the nav

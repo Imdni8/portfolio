@@ -154,10 +154,10 @@ applies it. The angle is a registered `@property` (`--badge-ai-angle`) because
 an unregistered custom property has no type and would jump rather than
 interpolate — the same reason `Solution.astro` registers its mask stop.
 
-**Glass** (`.glass` in `components.css`) is a material, not a component — the
-backdrop-filter pane the about page's stats panel is cut from. The nav and the
-work cards both used to wear it; neither does now (the cards are solid `--bg`
-panels), so `about.astro` is the only page that renders `<GlassDefs />`.
+**Glass** (`.glass` in `components.css`) is a material, not a component — a
+backdrop-filter pane. No page wears it now: the nav, the work cards and the
+deleted about page's stats panel all used to, and the nav still borrows its
+blur/saturate tokens. It stays in the library like liquid metal.
 Anything wearing it needs `<GlassDefs />` rendered once on the page (it defines
 the SVG refraction filter `.glass` references) and something painted behind it
 to bend.
@@ -339,9 +339,8 @@ scroll-driven scrim and its `data-nav-scrim` markers are gone. The dropdown is
 homepage bio. There is no About link; nothing in the nav is ever a page of its
 own, so `SiteNav.astro` carries no `aria-current`.
 
-- **The nav is the same on every page that renders it** — the homepage and
-  about (only its width differs, above). Case studies don't render it; they
-  have the breadcrumb and chapter rail.
+- **Only the homepage renders the nav.** Case studies don't; they have the
+  breadcrumb and chapter rail.
 - **Below 400px (25rem) Work is hidden**, leaving the brand, Side projects
   and the toggle; Selected works is the next thing down the homepage anyway.
 - **The theme toggle** is a ghost `icon` button (`buttonVariants`), quieted to
@@ -393,9 +392,9 @@ own, so `SiteNav.astro` carries no `aria-current`.
   - The viewport meta has no `viewport-fit=cover`, so that inset is 0 today.
     Add it (and pad the fixed nav's top) if the site ever goes edge-to-edge.
 
-**`/about` is deliberately unlinked.** The page still builds and still answers at
-`/about`, but nothing on the site points at it — not the nav, not the footer.
-It is parked, not retired; re-linking it is one anchor, wherever it belongs.
+**There is no about page.** `/about` was parked unlinked for a while, then
+deleted along with its portrait (October 2026). The water field and glass
+material it ran on stay in the library.
 
 ## The page frame
 
@@ -410,7 +409,7 @@ padding-inline: var(--gutter);
 ```
 
 or its equivalent — the gutter *outside* the cap, on a full-bleed parent, which
-is what `about.astro` does (and `.nav-shell`/`.nav-shell__inner`, though the
+is what `.nav-shell`/`.nav-shell__inner` do (though the
 nav now caps at `--measure-chrome` rather than `--measure-content` — see Site
 nav — and the homepage caps at `--measure-home`; see Homepage). The two are the
 same geometry; a bare `max-width: var(--measure-content)` with padding inside it
@@ -600,13 +599,17 @@ and `work-spotlight.ts` were removed with this redesign.)
 - **Earlier work** (`section[aria-labelledby="earlier-work"]`) follows,
   under the same divider: `status: external` entries (decks in Drive or
   Slides) as compact `ExternalWorkRow`s with no rules between them — title in
-  `.type-subtitle`'s size set in DM Serif Display (tracked −1%), then company (its logo tile, `CompanyLogo.astro`),
+  `.type-subtitle--display` (the subtitle rung in DM Serif Display, tracked
+  −1%), then company (its logo tile, `CompanyLogo.astro`),
   industry and year as three separate icon facts in `.type-label` (no AI
-  mark), running the column's full width. Where it opens ("Drive"/
-  "Slides", derived from the URL's host, with an up-right arrow) is no
-  longer a column in the row: under a mouse it is the link cursor's
-  label, cloned from a hidden `[data-cursor-content]` in the row (an
-  `Icon`, so the glyph stays in the registry). A cover promises a page
+  mark). Where it opens ("Drive"/"Slides", derived from the URL's host,
+  with an up-right arrow) is one `[data-cursor-content]` column at the
+  row's end. Under a mouse that column is hidden (`[data-link-cursor]`)
+  and the link cursor clones it into its pill instead; on touch, or
+  without JS, it stays visible — so the label exists once and every
+  reader gets it. (A keyboard user on a mouse device gets neither; the
+  title's sr-only "(opens in new tab)" is all that says it leaves.)
+  A cover promises a page
   here, and a click that dropped the reader into a Drive viewer broke
   that promise. Rows are ≥48px, don't underline on hover, and dip to 60%
   opacity on press. The section is skipped when
@@ -661,10 +664,10 @@ and `work-spotlight.ts` were removed with this redesign.)
 
 `src/components/footer/Footer.astro` is global chrome, not a `ui/` design-system
 component — zero-JS `.astro`, styled in its own scoped `<style>` block, same
-pattern as `SiteNav.astro`. There is no shared root layout (`index.astro`,
-`about.astro` and `CaseStudyLayout.astro` each own their own `<!doctype html>`
-shell — see Stack), so it's imported and rendered just before `</body>` in all
-three places independently; adding a fourth top-level page means wiring it in
+pattern as `SiteNav.astro`. There is no shared root layout (`index.astro` and
+`CaseStudyLayout.astro` each own their own `<!doctype html>` shell — see
+Stack), so it's imported and rendered just before `</body>` in both places
+independently; adding a third top-level page means wiring it in
 there too. `Analytics.astro` and `FontPreload.astro` are copied across the same
 three heads for the same reason — see Performance.
 
@@ -687,17 +690,15 @@ the footer holds no links at all, so the nav's mark is the only route home.
   specimen.)
   - It's `--text` at `opacity: var(--footer-name-opacity)` (0.5): the
     wordmark's own colour receding behind the tagline.
-  - Measured: ~5.1:1 on the homepage's `#070709` ground and 4.9:1 on a case study's
-    `--bg`, both clear of AA for 12px text. Don't take it lower.
-  - The about page's water field can brighten the ground past that. The page
-    is parked, so re-check it when re-linking.
+  - Measured: ~5.1:1 on the `#070709` ground every dark page now shares,
+    clear of AA for 12px text. Don't take it lower.
 
 - **`position: relative` on `.site-footer` is load-bearing, not decorative.**
-  On `about.astro` (`.site-field`, the water field) a fixed background (`position: fixed`,
-  `z-index: auto`) paints *after* static in-flow content per the CSS stacking
+  A fixed background layer (`position: fixed`, `z-index: auto` — the water
+  field and the gradient blinds both mounted that way) paints *after* static in-flow content per the CSS stacking
   spec, regardless of DOM order — so without this the footer lays out
-  correctly but is invisible, hidden under that layer. (The homepage used
-  to need it for the gradient blinds; it has no fixed layer now.)
+  correctly but is invisible, hidden under that layer. No page has one
+  now; keep it for when a background comes back.
 - **`margin-block-start: 75px` is a literal, not a token** — deliberate, per
   spec; it doesn't land on `--spacing-7xl` (64px) or `--spacing-8xl` (80px).
 - **The mascot mark** is sized with `aspect-ratio: 123 / 96` (the source
@@ -1048,8 +1049,9 @@ indented closing tags right after a list before looking anywhere else.
 
 ## Water field
 
-`src/components/ui/water-field.ts` is the background on `about.astro` (the
-homepage used to run it too, then gradient blinds, below; it now runs neither) — one WebGL pass drawing a domain-warped fBm fluid, a grid that
+**No page renders it any more** — it was the background of the homepage
+and then of the about page, which was deleted; it stays in the library and
+its Storybook story. `src/components/ui/water-field.ts` is one WebGL pass drawing a domain-warped fBm fluid, a grid that
 refracts through the same displacement, and pointer-driven wave packets. The
 palette is read out of `tokens.css` at run time, so it follows `[data-theme]`
 without restating a colour.
@@ -1141,16 +1143,11 @@ library and its Storybook story, but no page renders it.
 
 ## Case-study ground
 
-In dark theme a case study's `--bg` is `--home-ground` (`#070709`), not
-`--gray-900`, so the reading pages share the homepage's black.
-`CaseStudyLayout.astro` overrides `--bg` itself on `body`, under the same
-dark-only conditions tokens.css uses, rather than just painting the
-background. Everything that reads `--bg` follows: `ReadInDetail`'s curtain
-wash fades to the ground it sits on, the nav scrim matches, and so do
-`bg-background` badges and buttons in the content. `--bg-sunken` (`#090b0c`)
-is still a shade lighter than the new ground, not darker, but the difference
-is two or three levels per channel and doesn't read. Light theme and every
-other page keep the global `--bg`.
+Dark theme's `--bg` is `--night` (`#070709`) in tokens.css itself, so every
+page shares the homepage's black. (Case studies used to get it from a
+`--bg` override in `CaseStudyLayout.astro`; the token made that redundant.)
+`--bg-sunken` (`#090b0c`) is a shade lighter than that ground, not darker,
+but the difference is two or three levels per channel and doesn't read.
 
 ## Performance
 
@@ -1173,8 +1170,8 @@ Four things on the critical path are deliberate and easy to undo by accident.
   prop (`index.astro` passes it to the first card, the one cover near the
   first screen), and `CaseStudyHero`'s `heroShot` sets it directly.
 - **`FontPreload.astro` is global chrome, like `Footer` and `Analytics`.**
-  There is no shared root layout, so it is rendered in `index.astro`,
-  `about.astro` and `CaseStudyLayout.astro` independently — a fourth top-level
+  There is no shared root layout, so it is rendered in `index.astro` and
+  `CaseStudyLayout.astro` independently — a third top-level
   page needs it wired in there too, or that page's headline paints in a
   fallback serif and reflows. It preloads only the two `latin` faces that set
   visible text at the top of the page; the file explains why more would be
@@ -1197,13 +1194,13 @@ Two things that look like wins and are not, so they don't get "fixed" later:
 - **The water field's `IntersectionObserver` cannot report `false` on this
   site**, because `.water-field` sits inside a `position: fixed; inset: 0`
   parent and always covers the viewport. That is not a bug to repair — the
-  field is meant to be visible the whole way down (the about page's content
-  carries no background), so there is nothing to pause, and an IO cannot
+  field was meant to be visible the whole way down (the about page's
+  content carried no background), so there is nothing to pause, and an IO cannot
   detect occlusion anyway. It earns its place for the unpositioned uses (the
   Storybook stories), which is also why `onScroll` still re-reads the rect —
   rAF-batched, since scrolling genuinely cannot move it here.
-- **The about page's `.glass` panel repaints with the field behind it.** That
-  is what the material is; the cost is the design, not a defect.
+- **A `.glass` pane repaints with whatever moves behind it.** That is what
+  the material is; the cost is the design, not a defect.
 
 ## Stack
 

@@ -14,14 +14,14 @@
    ============================================================================ */
 
 /* ---- Glass -----------------------------------------------------------------
-   A material, not a component: the pane the about page's stats panel is cut
-   from. The work cards wore it until they became solid panels (WorkCard.astro),
+   A material, not a component — a backdrop-filter pane, worn by no page
+   since the about page's stats panel went with that page. The work cards wore it until they became solid panels (WorkCard.astro),
    and the nav wore it until it dropped the material entirely for a plain text
    treatment (SiteNav.astro) — along with the scroll-triggered heavier tint
    it used to swap in as pale covers scrolled underneath it
    (`--glass-tint-scroll`, `nav-tint.ts`, both now gone). Whatever wears
-   `.glass` needs something painted behind it to bend — on the about page
-   that is the fixed water field.
+   `.glass` needs something painted behind it to bend, such as the fixed
+   water field.
 
    It brings its own border and radius, since the edge is part of the material:
    a rim, not a line drawn round a fill. Every value below reads a token
@@ -239,8 +239,7 @@
 /* ---- Smoke ring ------------------------------------------------------------
    Not currently on the page. `<SmokeRing>` is built and kept (see
    smoke-ring.ts) but nothing mounts it. It was drawn for the water field,
-   which is now the about page's background only — the homepage runs liquid
-   metal (below) instead. Everything here describes what it does when it is
+   which no page renders now. Everything here describes what it does when it is
    put back, and the contrast note at the end is the condition of putting it
    back; the intro it measures against has since been replaced, so those
    numbers are history until they are re-taken.

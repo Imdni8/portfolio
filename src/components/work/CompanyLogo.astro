@@ -46,7 +46,8 @@ const mark = companyMarks[company];
 	}
 
 	/* A mark on a transparent ground (Philips' shield) stands bare, inset
-	   like a Lucide glyph (20 of its 24 units, so 2px of air at 16px). At the
+	   like a Lucide glyph: 2px of air each side, so the mark is a whole
+	   12px at the 16px tile and lands on pixels. At the
 	   tile's full size it rose above the icons beside it, and on a 1×
 	   display, where a card's fractional offset lands the tile between
 	   pixels, `overflow: clip` shaved its top and bottom rows. */
@@ -55,8 +56,8 @@ const mark = companyMarks[company];
 	}
 
 	.company-logo--bare > :global(svg) {
-		inline-size: calc(100% * 20 / 24);
-		block-size: calc(100% * 20 / 24);
+		inline-size: calc(100% - 2 * var(--spacing-xxs));
+		block-size: calc(100% - 2 * var(--spacing-xxs));
 	}
 
 	.company-logo--medable,

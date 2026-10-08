@@ -1,13 +1,9 @@
 ---
 /**
  * A big number + label, for a case study's stat callouts. Built in the
- * token-CSS idiom (own scoped style, `.type-heading`/`.type-body`)
- * mirroring about.astro's `.about__stat-value`/`.about__stat-label` — the
- * only other big-number pattern in the codebase — rather than a Tailwind
- * version, so the two stay close enough to extract into one shared
- * component later if that's ever worth doing.
+ * token-CSS idiom (own scoped style) rather than a Tailwind version.
  *
- * No `.glass`: case-study pages have no water field behind them for it to
+ * No `.glass`: case-study pages have nothing painted behind them for it to
  * bend, so this gets its own flat bordered surface instead of that
  * material.
  *
@@ -48,7 +44,7 @@ const { value, label, size = 'default' } = Astro.props;
 	}
 
 	/* A number being read, not a surface being filled — carries the contrast
-	   on both grounds, same reasoning about.astro's own stat value uses. */
+	   on both grounds. */
 	.stat-tile__value {
 		margin: 0;
 		color: var(--primary-text);

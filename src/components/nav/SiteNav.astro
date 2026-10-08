@@ -297,10 +297,9 @@ const ditherBox = DITHER_CORE + DITHER_REACH;
 	   the tailwind.css bridge), not `.glass`. min-width/box-sizing are the
 	   only overrides left. */
 	:global(.nav-dropdown__popup) {
-		/* Pinned explicitly: `min-width` is a content-box measurement, and
-		   about.astro (unlike this component's other host, index.astro)
-		   applies a page-scoped `box-sizing: border-box` reset. Without this,
-		   the same min-width nets 32px less room on the about page
+		/* Pinned explicitly: `min-width` is meant as a content-box
+		   measurement, and Tailwind's preflight makes every box border-box.
+		   Without this the same min-width nets 32px less room
 		   (padding-inline counted inward instead of added on) and wraps
 		   "Amplitude taxonomy exporter" onto a third line. */
 		box-sizing: content-box;

@@ -52,7 +52,7 @@ const UI_HOST = 'https://eu.posthog.com';
    the Bolt prototype island — each self-initialises so a `capture` can never
    be stranded ahead of its own init. Bundled Astro `<script>`s are ES modules, so
    the browser already refuses to re-execute one across a `<ClientRouter />`
-   soft navigation (index <-> about); these hold the line for the in-document
+   soft navigation; these hold the line for the in-document
    case that module caching does not.
 
    `posthog` is the loaded SDK once it is here and `null` until then — it is
@@ -124,8 +124,8 @@ function configure(posthog: PostHog, key: string): void {
 		   deliberately, never as part of a routine `npm update`. */
 		defaults: '2026-08-30',
 		/* Load-bearing here rather than incidental, so it is stated rather than
-		   inherited: index <-> about is a `<ClientRouter />` soft navigation, so
-		   the second page view is a pushState and never a document load, and
+		   inherited: the homepage mounts `<ClientRouter />`, so a soft
+		   navigation there is a pushState and never a document load, and
 		   'history_change' is what turns that into a `$pageview`. The `defaults`
 		   above already selects it — writing it out means a later `defaults`
 		   bump cannot quietly take it away. */
@@ -294,7 +294,7 @@ let mascotSeen = false;
    VideoPlayer.tsx all do `document.addEventListener('click', …)` plus a
    `closest()` test), and it survives a `<ClientRouter />` soft navigation for
    free — the body is swapped but the document is not, so nothing needs
-   rebinding on index <-> about. */
+   rebinding after one. */
 let interactionsBound = false;
 
 export function initInteractionTracking(): void {
@@ -368,8 +368,7 @@ export function initInteractionTracking(): void {
 	});
 
 	/* Once per page view, not once per document. A soft navigation keeps the
-	   document alive, so the flag has to be cleared by hand — and index/about
-	   are exactly the pages that soft-navigate, which is where this fires. */
+	   document alive, so the flag has to be cleared by hand. */
 	document.addEventListener('astro:page-load', () => {
 		mascotSeen = false;
 	});
@@ -380,15 +379,14 @@ let homepageBound = false;
 
 /* The homepage arrival, bound from Analytics.astro.
 
-   A listener rather than a one-shot call, because index and about share a
-   document under `<ClientRouter />`: arriving at `/` from `/about` is a
-   pushState, and a bundled module script does not re-execute for it — a
-   listener does. `astro:page-load` also fires on the initial load, and this
+   A listener rather than a one-shot call, because the homepage runs under
+   `<ClientRouter />`: a soft arrival at `/` is a pushState, and a bundled
+   module script does not re-execute for it — a listener does. `astro:page-load` also fires on the initial load, and this
    module runs from `<head>` before the router dispatches it, so the single
    binding covers both arrivals rather than needing a separate first-load call.
 
-   The path test is what keeps this to the homepage: /about shares the document,
-   so without it the event would fire there too. Case study pages never reach it
+   The path test keeps this to the homepage should another page ever share
+   its document under the router. Case study pages never reach it
    at all — they mount no `<ClientRouter />`, so nothing dispatches
    `astro:page-load` on them. */
 export function initHomepageTracking(): void {

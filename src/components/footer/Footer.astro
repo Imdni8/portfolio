@@ -4,14 +4,11 @@ import mascotHoverMark from '../../assets/footer/Tousif&clawd-hover.svg?raw';
 
 interface Props {
 	/* Which cap to use. The footer is chrome shared by hosts that do not
-	   agree on one: index and about run the nav's own --measure-chrome
-	   (1000px, same as the nav row), case studies run --measure-page — wide
-	   enough to line up with a case study's own content grid, which is why
-	   that host still gets its own variant rather than sharing the chrome
-	   measure too. On about.astro specifically, --measure-chrome is now
-	   narrower than the page's own --measure-content (1240px) body frame —
-	   a deliberate, accepted trade-off (see the token's own comment in
-	   tokens.css), not a mismatch to fix by widening this back out. */
+	   agree on one: the homepage runs the nav's own --measure-chrome
+	   (narrowed to --measure-home there), case studies run --measure-page —
+	   wide enough to line up with a case study's own content grid, which is
+	   why that host still gets its own variant rather than sharing the
+	   chrome measure too. */
 	measure?: 'chrome' | 'page';
 }
 
@@ -45,9 +42,9 @@ const { measure = 'chrome' } = Astro.props;
 	   tokens.css. */
 	.site-footer {
 		/* `position: relative` (not the default static) promotes this into
-		   the same paint step as `.home` on the homepage — the
-		   homepage and about page both have a `position: fixed` water-field
-		   background with z-index:auto, which paints *after* (on top of)
+		   the same paint step as `.home` on the homepage. A `position: fixed`
+		   background with z-index:auto (the water field and the gradient
+		   blinds both mounted that way; no page has one now) paints *after* (on top of)
 		   static in-flow content per the CSS stacking spec, regardless of
 		   DOM order. Without this the footer lays out correctly but is
 		   invisible, hidden under that fixed layer. */
@@ -196,11 +193,9 @@ const { measure = 'chrome' } = Astro.props;
 	   half strength. An opacity rather than a step down the ramp, because it
 	   is the line's own colour receding, not a different one.
 
-	   Half is still legible, and measured: over the homepage's ground it
-	   leaves the line at 5.2:1, over a case study's --bg at 4.9:1 — both
-	   clear of AA for 12px text. Don't take it lower. The about page's water
-	   field can brighten the ground behind it past that; the page is parked
-	   and unlinked, so this is a note for whoever re-links it. */
+	   Half is still legible, and measured: over the --night ground every
+	   dark page shares it leaves the line at 5.2:1, clear of AA for 12px
+	   text. Don't take it lower. */
 	.site-footer__name {
 		--footer-name-opacity: 0.5;
 		flex-shrink: 0;

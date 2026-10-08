@@ -1,10 +1,10 @@
 ---
 /* PostHog init, as one component rather than three copies of a script.
 
-   There is no shared root layout on this site — index.astro, about.astro and
+   There is no shared root layout on this site — index.astro and
    CaseStudyLayout.astro each own their own `<!doctype html>` shell (see Stack
-   in CLAUDE.md), the same reason Footer.astro is imported in three places.
-   Adding a fourth top-level page means rendering this in its `<head>` too, or
+   in CLAUDE.md), the same reason Footer.astro is imported in both.
+   Adding a third top-level page means rendering this in its `<head>` too, or
    that page goes unmeasured.
 
    No markup and no props: it exists purely to carry the script. */

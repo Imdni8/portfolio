@@ -253,7 +253,7 @@ const DAYS = 30;
 	.commit-strip__tip-text {
 		color: var(--text);
 		font-size: var(--size-tag);
-		line-height: var(--spacing-lg);
+		line-height: var(--lh-tag);
 		white-space: nowrap;
 		opacity: 0;
 		filter: blur(var(--spacing-xs));
@@ -303,14 +303,7 @@ const DAYS = 30;
 			scale: 1;
 		}
 
-		.commit-strip__tip-text,
-		.commit-strip:focus-visible .commit-strip__tip-text {
-			filter: none;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
-		.commit-strip:hover .commit-strip__tip-text {
+		.commit-strip__tip-text {
 			filter: none;
 		}
 	}

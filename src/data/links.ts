@@ -1,6 +1,6 @@
 /* Off-site destinations that more than one place links to.
    Declared once here rather than inline at each call site: the LinkedIn
-   profile was written out independently in Footer.astro and about.astro, so
+   profile was once written out independently on two pages, so
    changing the handle meant finding every copy and leaving a dead link on
    whichever page was missed. */
 export const links = {

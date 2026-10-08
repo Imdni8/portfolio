@@ -29,6 +29,25 @@ export const initLinkCursor = (root: HTMLElement): (() => void) => {
 	let y = 0;
 	let active: HTMLElement | null = null;
 
+	/* Each element's label is built once and kept: it never changes, and
+	   a cloned icon is worth not re-cloning on every row the pointer
+	   crosses. A fragment empties when appended, so hand out a copy. */
+	const labels = new WeakMap<HTMLElement, DocumentFragment>();
+	const labelFor = (target: HTMLElement): Node => {
+		let built = labels.get(target);
+		if (!built) {
+			/* A label with an icon in it ships as markup inside its element
+			   (an external work row's "Drive ↗" column), so the glyph comes
+			   from the icon registry rather than this script. */
+			const content = target.querySelector('[data-cursor-content]');
+			built = document.createDocumentFragment();
+			if (content) built.append(...content.cloneNode(true).childNodes);
+			else built.append(target.dataset.cursor ?? '');
+			labels.set(target, built);
+		}
+		return built.cloneNode(true);
+	};
+
 	const place = () => {
 		frame = 0;
 		cursor.style.translate = `${x}px ${y}px`;
@@ -44,12 +63,7 @@ export const initLinkCursor = (root: HTMLElement): (() => void) => {
 		if (target === active) return;
 		active = target;
 		if (target) {
-			/* A label with an icon in it ships as hidden markup inside its
-			   element (an external work row's "Drive ↗"), so the glyph comes
-			   from the icon registry rather than this script. */
-			const content = target.querySelector('[data-cursor-content]');
-			if (content) label.replaceChildren(...content.cloneNode(true).childNodes);
-			else label.textContent = target.dataset.cursor ?? '';
+			label.replaceChildren(labelFor(target));
 			place();
 			cursor.dataset.visible = '';
 		} else {
