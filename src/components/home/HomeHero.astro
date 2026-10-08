@@ -7,8 +7,8 @@
    The bars are the last 30 days of GitHub contributions (commit-strip.ts
    fills them), green on a day with any, grey on a day with none. Rendered
    here empty, so without JS — or if the fetch fails — the row stands as 30
-   grey bars and nothing is claimed. Hovering or focusing them shows the
-   total in a tooltip, once there is a total to show. */
+   grey bars and nothing is claimed. Hovering or focusing them prints the
+   total across the bars, once there is a total to show. */
 import { links } from '../../data/links';
 
 const DAYS = 30;
@@ -25,7 +25,9 @@ const DAYS = 30;
 			</span>
 			<span class="sr-only" data-commit-label>(my GitHub activity, opens in new tab)</span>
 			{/* aria-hidden: the sr-only label above already reads the same total. */}
-			<span class="commit-strip__tip type-annotation" aria-hidden="true" data-commit-tip></span>
+			<span class="commit-strip__tip" aria-hidden="true">
+				<span class="commit-strip__tip-text type-meta" data-commit-tip></span>
+			</span>
 		</a>
 		<p class="intro__ships type-subtitle">ships <em class="intro__accent">thoughtful</em></p>
 	</div>
@@ -191,51 +193,125 @@ const DAYS = 30;
 		background: var(--commit-active);
 	}
 
-	/* The total, in a small bubble above the bars, flush with their
-	   trailing edge — the most recent day, which the count ends on. It
-	   only exists once commit-strip.ts has a total and stamps `data-ready`
-	   — a failed fetch shows nothing, the same rule as the grey bars.
-	   Opens on a hovering mouse or keyboard focus: it fades in and rises
-	   4px, and under reduced motion only fades. */
+	/* The total, printed across the bars themselves rather than in a
+	   bubble above them (Paper, "Portfolio components" 2KR-0). The label
+	   sits on the strip's centre and the page ground pools behind it — a
+	   radial wash, opaque at the middle and gone by the strip's ends — so
+	   the bars under the words sink out and the ones at either end stay
+	   lit. The wash is --home-ground, so it is whatever the bars stand on in
+	   either theme, and the label is --text on it. It only exists once
+	   commit-strip.ts has a total and stamps `data-ready` — a failed fetch
+	   shows nothing, the same rule as the grey bars.
+
+	   The ellipse's tall radius (527%) makes the wash flat top to bottom, so
+	   it only fades across. --spacing-xxs either side of the 12px bars lets
+	   it cover their rounded ends. */
 	.commit-strip__tip {
 		position: absolute;
-		inset-block-end: calc(100% + var(--spacing-md));
-		inset-inline-end: 0;
+		inset-block: calc(-1 * var(--spacing-xxs));
+		inset-inline: 0;
 		z-index: 1;
-		padding: var(--spacing-xs) var(--spacing-md);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-xs);
-		background: var(--bg-raised);
-		color: var(--text);
-		white-space: nowrap;
+		display: grid;
+		place-items: center;
 		pointer-events: none;
-		opacity: 0;
-		translate: 0 var(--spacing-xs);
-		transition:
-			opacity 150ms var(--ease-out),
-			translate 150ms var(--ease-out);
 	}
 
 	.commit-strip:not([data-ready]) .commit-strip__tip {
 		display: none;
 	}
 
-	.commit-strip:focus-visible .commit-strip__tip {
+	/* Opening is two beats on a hovering mouse or keyboard focus: the wash
+	   spreads out from the centre to clear a space, then the words arrive
+	   in it. The wash grows from 40% of the strip, not from nothing, and
+	   fades as it grows over 200ms; the text holds for a beat after that
+	   (50ms more, so it starts at 250ms) and comes in on the bio's 4px
+	   blur. Closing runs the
+	   other way and quicker — the words go first, the wash follows 50ms
+	   behind — so the bars are never left showing a label with nothing
+	   under it. Transitions, not keyframes, so passing the pointer across
+	   the strip reverses from wherever it got to. */
+	.commit-strip__tip::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: radial-gradient(
+			ellipse 50% 527% at 50% 50% in oklab,
+			var(--home-ground) 0%,
+			73.7%,
+			transparent 100%
+		);
+		opacity: 0;
+		scale: 0.4 1;
+		transition:
+			opacity 150ms var(--ease-out) 50ms,
+			scale 150ms var(--ease-out) 50ms;
+	}
+
+	/* .type-meta's mono, on the tag rung and set solid to the bars' height
+	   so the line centres on them. */
+	.commit-strip__tip-text {
+		color: var(--text);
+		font-size: var(--size-tag);
+		line-height: var(--spacing-lg);
+		white-space: nowrap;
+		opacity: 0;
+		filter: blur(var(--spacing-xs));
+		transition:
+			opacity 100ms var(--ease-out),
+			filter 100ms var(--ease-out);
+	}
+
+	.commit-strip:focus-visible .commit-strip__tip::before {
 		opacity: 1;
-		translate: 0;
+		scale: 1;
+		transition:
+			opacity 200ms var(--ease-out),
+			scale 200ms var(--ease-out);
+	}
+
+	.commit-strip:focus-visible .commit-strip__tip-text {
+		opacity: 1;
+		filter: blur(0);
+		transition:
+			opacity 160ms var(--ease-out) 250ms,
+			filter 160ms var(--ease-out) 250ms;
 	}
 
 	@media (hover: hover) and (pointer: fine) {
-		.commit-strip:hover .commit-strip__tip {
+		.commit-strip:hover .commit-strip__tip::before {
 			opacity: 1;
-			translate: 0;
+			scale: 1;
+			transition:
+				opacity 200ms var(--ease-out),
+				scale 200ms var(--ease-out);
+		}
+
+		.commit-strip:hover .commit-strip__tip-text {
+			opacity: 1;
+			filter: blur(0);
+			transition:
+				opacity 160ms var(--ease-out) 250ms,
+				filter 160ms var(--ease-out) 250ms;
 		}
 	}
 
+	/* Reduced motion keeps the order but drops the spread and the blur:
+	   the wash fades in where it stands, then the words fade in on it. */
 	@media (prefers-reduced-motion: reduce) {
-		.commit-strip__tip {
-			translate: 0;
-			transition: opacity 150ms ease;
+		.commit-strip__tip::before {
+			scale: 1;
+		}
+
+		.commit-strip__tip-text,
+		.commit-strip:focus-visible .commit-strip__tip-text {
+			filter: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+		.commit-strip:hover .commit-strip__tip-text {
+			filter: none;
 		}
 	}
 </style>

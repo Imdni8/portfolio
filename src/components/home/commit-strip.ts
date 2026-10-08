@@ -1,7 +1,7 @@
 /* The homepage hero's GitHub bars — one per day for the last 30 days —
    stamped with each day's contribution level, fetched live from the
    browser. Any level above 0 shows green (HomeHero.astro); the total goes
-   in the strip's sr-only label and in its hover tooltip.
+   in the strip's sr-only label and, on hover, across the bars.
 
    GitHub's own contributions calendar has no CORS headers, so this reads it
    through github-contributions-api.jogruber.de, a public proxy over the same
@@ -73,7 +73,7 @@ export const initCommitStrip = (strip: HTMLElement): (() => void) => {
 			label.textContent = `(${contributions} on GitHub in the last ${squares.length} days, opens in new tab)`;
 		}
 		if (tip) {
-			tip.textContent = `${contributions} in last ${squares.length} days`;
+			tip.textContent = `${contributions} in ${squares.length} days`;
 			strip.dataset.ready = '';
 		}
 	};

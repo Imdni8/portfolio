@@ -465,10 +465,14 @@ and `work-spotlight.ts` were removed with this redesign.)
     (`--commit-empty`); any level above 0 turns `--commit-active` green,
     20ms apart. On failure or a 6s timeout they stay grey — an empty strip
     claims nothing. The strip is a link to GitHub whose sr-only text
-    carries the total. Hover (fine pointers) or keyboard focus shows it in
-    a CSS tooltip, "N contributions in last 30 days"
-    (`.commit-strip__tip`, aria-hidden since the sr-only text says the
-    same). It shows only once `commit-strip.ts` stamps `data-ready`, so a
+    carries the total. Hover (fine pointers) or keyboard focus prints it
+    across the bars themselves, "N contributions in 30 days"
+    (`.commit-strip__tip`, Paper `2KR-0`: 10px mono centred on the strip
+    over a radial `--home-ground` wash that sinks the middle bars and
+    leaves the ends lit; aria-hidden since the sr-only text says the
+    same). It opens in two beats: the wash spreads from the centre
+    (`scale` 0.4→1 + fade, 200ms), then, 50ms after it settles, the words
+    arrive on the 4px blur (250ms in); closing, the words leave first and the wash follows. It shows only once `commit-strip.ts` stamps `data-ready`, so a
     failed fetch shows no tooltip either.
 - **The bio** (`HomeBio.astro`), four `.type-body` paragraphs, from the
   Paper frame "Portfolio components", 24px (`--spacing-3xl`) apart. The copy
