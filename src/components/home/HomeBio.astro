@@ -72,8 +72,8 @@ const rest = formatRest(span);
 	<p class="type-body">
 		Most recently, I was the lead designer on{' '}
 		<span class="mark"><span class="tile tile--bare" aria-hidden="true" set:html={agentStudioRaw} />Agent Studio,</span> working
-		on AI governance features like <a class="link" href="/work/agent-versioning">versioning</a>,{' '}
-		<a class="link" href="/work/audit-logs">audit logs</a> and model management that made Agent Studio ready for large enterprises.
+		on AI governance features like <a class="link" href="/work/agent-versioning" data-cursor="open">versioning</a>,{' '}
+		<a class="link" href="/work/audit-logs" data-cursor="open">audit logs</a> and model management that made Agent Studio ready for large enterprises.
 	</p>
 
 	<p class="type-body">
@@ -105,10 +105,13 @@ const rest = formatRest(span);
 			))
 		}
 		{' '}download my{' '}
-		<span class="mark"><a class="icon-link" href={links.resume} target="_blank" rel="noopener noreferrer"><span class="tile tile--glyph" aria-hidden="true" set:html={icons['file-text']} /><span class="link">resume</span><span class="sr-only"> (opens in new tab)</span></a>,</span>{' '}
+		<span class="mark"><a class="icon-link" href={links.resume} target="_blank" rel="noopener noreferrer" data-cursor="open"><span class="tile tile--glyph" aria-hidden="true" set:html={icons['file-text']} /><span class="link">resume</span><span class="sr-only"> (opens in new tab)</span></a>,</span>{' '}
 		or say hi at{' '}
-		<span class="mark"><a class="icon-link" href={`mailto:${links.email}`}><span class="tile tile--glyph" aria-hidden="true" set:html={icons.mail} /><span class="link">{links.email}</span></a>.</span>
+		<span class="mark"><a class="icon-link" href={`mailto:${links.email}`} data-cursor="copy" data-copy={links.email}><span class="tile tile--glyph" aria-hidden="true" set:html={icons.mail} /><span class="link">{links.email}</span></a>.</span>
 	</p>
+
+	{/* Announces the email copy (link-cursor.ts). */}
+	<p class="sr-only" role="status" data-cursor-status></p>
 </div>
 
 <style>
@@ -406,9 +409,9 @@ const rest = formatRest(span);
 
 	   The wave is drawn rather than a `text-decoration: wavy`, because a
 	   text decoration's phase can't be animated: a strip in --primary, cut
-	   to a tiled wave by a mask, under the word. On hover it squiggles —
-	   the mask slides one wavelength along, on a loop — and keeps its
-	   colour. Each link is nowrap, so the strip is never split across
+	   to a tiled wave by a mask, under the word. On hover it squiggles
+	   once — the mask slides two wavelengths along and settles — and
+	   keeps its colour. Each link is nowrap, so the strip is never split across
 	   two lines. */
 	.link {
 		--wave-length: 8px;
@@ -429,7 +432,7 @@ const rest = formatRest(span);
 	}
 
 	@keyframes link-squiggle {
-		to { mask-position: var(--wave-length) 0; }
+		to { mask-position: calc(2 * var(--wave-length)) 0; }
 	}
 
 	.profile-link,
@@ -442,7 +445,7 @@ const rest = formatRest(span);
 	@media (hover: hover) and (pointer: fine) {
 		.link:hover::after,
 		.icon-link:hover .link::after {
-			animation: link-squiggle 400ms linear infinite;
+			animation: link-squiggle 600ms var(--ease-out);
 		}
 
 		.profile-link:hover {

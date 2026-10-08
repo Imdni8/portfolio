@@ -480,9 +480,24 @@ and `work-spotlight.ts` were removed with this redesign.)
   Links carry a wavy `--primary` (amber) underline, since colour no
   longer sets them apart. It's a masked `::after` strip, not
   `text-decoration: wavy` (whose phase can't animate), so on hover
-  (fine pointers) it squiggles — the mask slides one 8px wavelength on a
-  400ms loop — without changing colour. Each `.link` is nowrap so the
-  strip never splits across lines. Reduced motion: no squiggle.
+  (fine pointers) it squiggles once — the mask slides two 8px
+  wavelengths over 600ms and settles, so leaving can't jump — without
+  changing colour. Each `.link` is nowrap so the strip never splits
+  across lines. Reduced motion: no squiggle.
+  - **The link cursor** (`link-cursor.ts`, from Paper's "open" pill): over
+    a `[data-cursor]` element — the bio's underlined links and every
+    published `WorkCard` — a mouse pointer is replaced by an `--amber-100`
+    pill (`--gray-900` uppercase DM Mono 14/18, 15.6:1) centred on it, reading its
+    `data-cursor` — "open", or "copy" on the email. A coming-soon card
+    has no `href` and so no cursor. The email's mouse click
+    copies `data-copy` to the clipboard instead of following its `mailto:`
+    (label turns "copied", an sr-only status announces it); a keyboard
+    press, a touch, or a failed clipboard write still opens the mailto.
+    The pill lives on `<body>` (the entrance transforms would otherwise
+    be a fixed element's containing block), and its styles are in
+    components.css (Link cursor), since it spans HomeBio and WorkCard.
+    `cursor: none` applies only once the script stamps `data-link-cursor`
+    on `main.home`, so no-JS keeps the native pointer.
   - **Type**: `.type-body`'s family and weight on its own rung — 16px on
     `--lh-bio` (1.75, 28px lines), stepping up to `--size-bio` (17px,
     29.75px lines) from 48rem, with `text-wrap: pretty`. No measure cap:

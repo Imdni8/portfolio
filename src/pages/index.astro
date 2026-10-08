@@ -148,6 +148,7 @@ const earlier = entries.filter((entry) => entry.data.status === 'external');
 	import { initHomeMotion } from '../components/home/home-motion';
 	import { initCommitStrip } from '../components/home/commit-strip';
 	import { initCodeMark } from '../components/home/code-mark';
+	import { initLinkCursor } from '../components/home/link-cursor';
 
 	/* Registered on `astro:page-load` rather than run inline: this is a
 	   bundled module script, so its body executes once, while `<ClientRouter />`
@@ -165,6 +166,8 @@ const earlier = entries.filter((entry) => entry.data.status === 'external');
 		if (strip) stop.push(initCommitStrip(strip));
 		const codeMark = document.querySelector<HTMLElement>('[data-code-mark]');
 		if (codeMark) stop.push(initCodeMark(codeMark));
+		const home = document.querySelector<HTMLElement>('.home');
+		if (home) stop.push(initLinkCursor(home));
 	});
 </script>
 

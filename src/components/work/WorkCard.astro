@@ -53,6 +53,7 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 	href={href}
 	style={workSlug ? `view-transition-name: card-${workSlug};` : undefined}
 	{...(workSlug ? { 'data-astro-reload': '' } : {})}
+	data-cursor={href ? 'open' : undefined}
 >
 	<div class="card__inner">
 		{/* Text first in the DOM, whatever the layout puts first on screen: the
