@@ -26,7 +26,9 @@ The foundations, all settled with the user:
 
 - **Colour** — an unmodified Tailwind `amber` ramp plus a custom cool grey, 11
   steps each. No pure white, no pure black; `gray-50` is the lightest value in
-  the system. Dark is the default theme, light is fully specified. The two themes
+  the system. Dark is the default theme, light is fully specified. Light's page ground
+  is `--paper`, a neutral `hsl(0 0% 95%)` (#f2f2f2) outside the grey ramp,
+  not `--gray-100`; contrast against it is recorded at the token. The two themes
   use opposite ends of the amber ramp with no overlap, because `amber-500` is
   8.09:1 on the dark ground and 2.07:1 on the light one. The homepage's
   gradient blinds carry a second sanctioned exception, `--blinds-1…7`
@@ -311,31 +313,47 @@ that is ever wanted.
 
 ## Site nav
 
-Brand mark on the *left*; **Work** (`/#work`, the homepage's Selected works)
-and the **Side projects** dropdown together on the *right* — `space-between`
-across a `var(--nav-measure, var(--measure-chrome))` row: 1000px sitewide,
-narrowed to `--measure-home` on the homepage, which sets `--nav-measure` on
-`<body>` so the brand sits over the name (the footer's default variant reads
-the same override). The brand is 40px tall and sits 16px from the top
-(`--spacing-xl` of block padding), so the band is 72px (`--nav-height`).
-The dropdown is `align="end"` because its trigger is the row's last item.
-Resume moved out of the nav into the homepage bio. There is no About link;
-nothing in the nav is ever a page of its own, so `SiteNav.astro` carries no
-`aria-current` and no URL-reading frontmatter.
+A floating pill: brand mark on the *left*, **Work** (`/#work`, the
+homepage's Selected works) and the **Side projects** dropdown together in the
+*centre*, the **theme toggle** on the *right* — a `1fr auto 1fr` grid, so the
+middle group sits on the pill's true centre. The pill caps at
+`var(--nav-measure, var(--measure-chrome))` with the gutter outside it: 1000px
+sitewide, narrowed to `--measure-home` on the homepage, which sets
+`--nav-measure` on `<body>` (the footer's default variant reads the same
+override). It's 56px tall (the 40px theme toggle + `--spacing-md` either side; the brand is 32px), 16px from
+the top, so its bottom edge is 72px (`--nav-height`). It's filled with
+`var(--nav-band, var(--bg))` (the homepage sets `--nav-band` to its
+`--home-ground`) — but only once the page has scrolled (`data-scrolled` on
+`.nav-shell`, set when `scrollY > 0`). At the top it is fully transparent,
+with no edge or shadow, sitting straight on the page. Scrolled, it's
+glass: that ground at `--nav-glass-fill` (80%) behind the glass material's
+blur and saturate, lifted by `--glass-shadow-ambient` and edged with a
+`--glass-border` inset shadow. The 80% is what keeps the 12px labels at AA over
+the palest cover (worst case 4.73:1 dark, 4.75:1 light); re-measure if it
+drops — which is why the old
+scroll-driven scrim and its `data-nav-scrim` markers are gone. The dropdown is
+`align="center"` under its trigger. Resume moved out of the nav into the
+homepage bio. There is no About link; nothing in the nav is ever a page of its
+own, so `SiteNav.astro` carries no `aria-current`.
 
-- **The nav is the same on every page, homepage included** (only its width
-  differs, above).
-- **The scrim** ramps in as the page's `data-nav-scrim` element reaches the
-  band — the homepage's opening row (`HomeHero.astro`), about's frame. One
-  marker per page; the old reel-only `data-nav-scrim-narrow` branch is
-  gone.
-- **The scrim band paints `var(--nav-band, var(--bg))`.** The homepage sets
-  `--nav-band` to its `--home-ground` on `<body>`; everywhere else the band
-  is `--bg`.
-- **On the homepage the nav sits over the gradient blinds**, which are held
-  back to 30% strength behind its 72px band (`NAV_DAMP`, `navClearance` in
-  `gradient-blinds.ts`) so its 12px labels stay readable. If the nav's height
-  changes, move `navClearance` with it.
+- **The nav is the same on every page that renders it** — the homepage and
+  about (only its width differs, above). Case studies don't render it; they
+  have the breadcrumb and chapter rail.
+- **Below 400px (25rem) Work is hidden**, leaving the brand, Side projects
+  and the toggle; Selected works is the next thing down the homepage anyway.
+- **The theme toggle** is a ghost `icon` button (`buttonVariants`), quieted to
+  `--text-muted`. Both the sun and moon glyphs are rendered and CSS shows one
+  off `[data-theme]`, so it's right on first paint. Its script flips
+  `data-theme`, writes `localStorage.theme`, and keeps the `aria-label` naming
+  the action ("Switch to light theme"). It suspends transitions for the frame
+  of the swap so the page doesn't change over in uneven patches.
+- **`ThemeInit.astro`** (an `is:inline` script in all three heads, replacing
+  the dev-only `ThemePreview`/`?mode=`) applies the stored theme before
+  paint, and again on `astro:after-swap`, because `<ClientRouter />` copies
+  the incoming `<html data-theme="dark">` over on every soft navigation.
+  Pages still default to dark; a reader's OS preference is not consulted.
+- **`--home-ground` is theme-aware now** (`--bg` in light), so the homepage
+  follows the toggle.
 
 - **On phones (below 40rem) Side projects opens a bottom sheet**, not the
   dropdown.
@@ -405,7 +423,7 @@ and `work-spotlight.ts` were removed with this redesign.)
   Selected works each a further `--spacing-4xl` down (72px in all), so the
   hero→bio and bio→work steps match. The nav row and the footer narrow to the same
   column through `--nav-measure`.
-- **The opening row** (`HomeHero.astro`, `<header data-nav-scrim>`), from
+- **The opening row** (`HomeHero.astro`, `<header>`), from
   Paper's hero frame: four rows 4px apart — the name (`h1.type-heading`);
   the role ("Lead designer / Builder", `.type-body`, `--text-body` — muted
   grey measured 3.0:1 over the bands); the GitHub bars running from the
@@ -535,10 +553,9 @@ and `work-spotlight.ts` were removed with this redesign.)
   - Cards lift 2px on hover (gated to mouse and trackpad) and press to
     `scale: 0.98` on `:active` for every input.
 - **The footer** is a plain `<Footer />` after `<main>`.
-- **The ground is `--home-ground`** (`#070709`, the Figma frame's), and
-  `.home-ground` (fixed) holds the gradient blinds, held to
-  `--blinds-host-opacity` (0.4) because the copy now sits inside the bands.
-  See Gradient blinds.
+- **The ground is `--home-ground`** (`#070709`, the Figma frame's; `--bg` in
+  light), painted on `<body>`. Nothing is behind it: the gradient blinds
+  were removed from the page (see Gradient blinds).
 
 ## Footer
 
@@ -576,12 +593,11 @@ the footer holds no links at all, so the nav's mark is the only route home.
     is parked, so re-check it when re-linking.
 
 - **`position: relative` on `.site-footer` is load-bearing, not decorative.**
-  On `index.astro` (`.home-ground`, the gradient blinds) and `about.astro`
-  (`.site-field`, the water field) a fixed background (`position: fixed`,
+  On `about.astro` (`.site-field`, the water field) a fixed background (`position: fixed`,
   `z-index: auto`) paints *after* static in-flow content per the CSS stacking
   spec, regardless of DOM order — so without this the footer lays out
-  correctly but is invisible, hidden under that layer. Same fix `.home` uses
-  for the same reason.
+  correctly but is invisible, hidden under that layer. (The homepage used
+  to need it for the gradient blinds; it has no fixed layer now.)
 - **`margin-block-start: 75px` is a literal, not a token** — deliberate, per
   spec; it doesn't land on `--spacing-7xl` (64px) or `--spacing-8xl` (80px).
 - **The mascot mark** is sized with `aspect-ratio: 123 / 96` (the source
@@ -929,7 +945,7 @@ indented closing tags right after a list before looking anywhere else.
 ## Water field
 
 `src/components/ui/water-field.ts` is the background on `about.astro` (the
-homepage used to run it too; it now runs gradient blinds, below) — one WebGL pass drawing a domain-warped fBm fluid, a grid that
+homepage used to run it too, then gradient blinds, below; it now runs neither) — one WebGL pass drawing a domain-warped fBm fluid, a grid that
 refracts through the same displacement, and pointer-driven wave packets. The
 palette is read out of `tokens.css` at run time, so it follows `[data-theme]`
 without restating a colour.
@@ -956,7 +972,11 @@ dependency for exactly this kind of check).
 
 ## Gradient blinds
 
-`src/components/ui/gradient-blinds.ts` is the homepage background: bands of
+**No page renders it any more** — it was taken off the homepage, which now
+sits on plain `--home-ground`. Like liquid metal below, it stays in the
+library and its Storybook story; the notes are kept for if it comes back.
+
+`src/components/ui/gradient-blinds.ts` was the homepage background: bands of
 light across the top half of the screen, from Figma's `20205:22325`. It's a
 port of React Bits' `GradientBlinds`, written in raw WebGL (one triangle, one
 fragment shader, like `water-field.ts`) rather than taking on `ogl` or React.

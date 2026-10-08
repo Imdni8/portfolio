@@ -310,13 +310,18 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 		background: var(--overlay);
 	}
 
-	/* Matches the icon-lg button's box-to-icon ratio (48px box / 26px icon) rather
-	   than a bare fraction of the box, so it reads at the same visual weight
-	   as every other circular icon surface in the system. */
-	.card__external-badge .icon {
+	/* 16px (--spacing-xl), deliberately smaller than the icon-lg button's
+	   26px glyph in the same 48px circle: the badge is a quiet hint that the
+	   card leaves the site, not a control, so it stays out of the cover's way.
+	   :global() because the glyph is Icon.astro's span, which carries no
+	   scope attribute of this component's. Scoped, the rule never matched:
+	   the glyph inherited the card's text colour — light on dark, so it
+	   looked right, but near-black on this always-dark scrim in light — and
+	   sat at 1em. */
+	.card__external-badge :global(.icon) {
 		color: var(--secondary);
-		width: 1.625rem;
-		height: 1.625rem;
+		width: var(--spacing-xl);
+		height: var(--spacing-xl);
 	}
 
 	/* ui/button.tsx carries its own reduced-motion guard; the card's lift and

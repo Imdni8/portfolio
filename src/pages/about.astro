@@ -4,7 +4,7 @@ import { ClientRouter } from 'astro:transitions';
 import '../styles/tokens.css';
 import '../styles/tailwind.css';
 import '../styles/components.css';
-import ThemePreview from '../components/ThemePreview.astro';
+import ThemeInit from '../components/ThemeInit.astro';
 import DevOutline from '../components/DevOutline.astro';
 import WaterField from '../components/ui/WaterField.astro';
 import GlassDefs from '../components/ui/GlassDefs.astro';
@@ -53,7 +53,7 @@ const linkedInHref = links.linkedin;
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<ClientRouter />
 		<Analytics />
-		{import.meta.env.DEV && <ThemePreview />}
+		<ThemeInit />
 		{import.meta.env.DEV && <DevOutline />}
 		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
 		<title>About — Tousif's portfolio</title>
@@ -90,7 +90,7 @@ const linkedInHref = links.linkedin;
 		<SiteNav />
 
 		<main class="about">
-			<div class="about__frame" data-nav-scrim>
+			<div class="about__frame">
 				<div class="about__row">
 					<div class="about__content">
 						<div class="about__top">

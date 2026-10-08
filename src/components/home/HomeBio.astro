@@ -217,13 +217,14 @@ const rest = formatRest(span);
 	}
 
 	/* The profile marks are Lucide-style outline glyphs, set in line with no
-	   tile behind them: white strokes (--gray-50, the system's lightest
-	   value) on the page ground. */
+	   tile behind them, so they take the copy's own colour (--text) and
+	   follow the theme with it. They were --gray-50, a primitive that is
+	   white on both grounds, and vanished on light. */
 	.tile--glyph {
 		inline-size: var(--spacing-2xl);
 		block-size: var(--spacing-2xl);
 		background: none;
-		color: var(--gray-50);
+		color: var(--text);
 	}
 
 	/* 2px of air either side of the bare glyph, and the revealed name

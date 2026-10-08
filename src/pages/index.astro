@@ -4,9 +4,8 @@ import { ClientRouter } from 'astro:transitions';
 import '../styles/tokens.css';
 import '../styles/tailwind.css';
 import '../styles/components.css';
-import ThemePreview from '../components/ThemePreview.astro';
+import ThemeInit from '../components/ThemeInit.astro';
 import DevOutline from '../components/DevOutline.astro';
-import GradientBlinds from '../components/ui/GradientBlinds.astro';
 import SiteNav from '../components/nav/SiteNav.astro';
 import HomeHero from '../components/home/HomeHero.astro';
 import HomeBio from '../components/home/HomeBio.astro';
@@ -84,13 +83,10 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 		    are. */}
 		<ClientRouter />
 		<Analytics />
-		{import.meta.env.DEV && <ThemePreview />}
+		<ThemeInit />
 		{import.meta.env.DEV && <DevOutline />}
 	</head>
 	<body>
-		<div class="home-ground">
-			<GradientBlinds />
-		</div>
 		<SiteNav />
 		{/* One column: the name and tagline, the bio, then the work. The
 		    column is the nav's row too (`--nav-measure`, below), so the brand
@@ -155,7 +151,7 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 </script>
 
 <style>
-	/* `--nav-band` is the colour the nav's scrim fades in with — the page's
+	/* `--nav-band` is the ground the nav's pill is filled with — the page's
 	   ground, which on this page is not --bg. `--nav-measure` narrows the
 	   nav's row to this page's column. See SiteNav.astro. */
 	body {
@@ -168,35 +164,10 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 		-webkit-font-smoothing: antialiased;
 	}
 
-	/* Fixed behind everything and sized to the viewport, so the bands hold
-	   still while the page scrolls over it. It paints the ground itself, and
-	   isolates, so the blinds inside have exactly that ground to hard-light
-	   onto and nothing else — see .gradient-blinds in components.css. */
-	.home-ground {
-		position: fixed;
-		inset: 0;
-		isolation: isolate;
-		background: var(--home-ground);
-	}
-
-	/* The bands run behind the name and the bio, so they are held down
-	   enough for the copy over them to keep AA. */
-	.home-ground :global(.gradient-blinds) {
-		opacity: var(--blinds-host-opacity);
-	}
-
 	/* The page frame: the gutter outside a --measure-home cap (see "The page
 	   frame" in CLAUDE.md). The top padding clears the nav's 72px band and
-	   leaves the 56px Figma draws between it and the name.
-
-	   `position: relative` plus a `z-index` is load-bearing: `.home-ground`
-	   is `position: fixed` at `z-index: auto`, so it paints after static
-	   in-flow content regardless of DOM order, and without this the whole
-	   page would lay out correctly and be invisible underneath it.
-	   `.site-footer` carries the same fix for the same reason. */
+	   leaves the 56px Figma draws between it and the name. */
 	.home {
-		position: relative;
-		z-index: 1;
 		box-sizing: border-box;
 		display: grid;
 		gap: var(--spacing-5xl);
@@ -219,13 +190,17 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 		display: grid;
 		gap: var(--spacing-6xl);
 		margin-block-start: var(--spacing-4xl);
-		scroll-margin-block-start: calc(var(--nav-height) + var(--spacing-3xl));
 	}
 
 	/* A divider: the label centred on a hairline that runs to the column's
 	   edges, 48px above the first card. The rules are pseudo-elements, so
 	   the heading's text — and its accessible name — is the label alone. */
+	/* The nav's Work link (`/#work`) lands here, so the offset sits on the
+	   heading — the element carrying the id — not on the section around it,
+	   where it was ignored. The nav's 72px plus --spacing-3xl leaves the
+	   line 24px clear under the pill. */
 	.home__works-heading {
+		scroll-margin-block-start: calc(var(--nav-height) + var(--spacing-3xl));
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-2xl);

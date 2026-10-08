@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(node ./check-cursor.tmp.cjs)",
-      "ClaudeInChromeDomain(localhost:4321)"
+      "ClaudeInChromeDomain(localhost:4321)",
+      "Bash(node ./.shot.tmp.mjs /private/tmp/claude-501/-Users-tousifrahaman-Documents-portfolio/a03799cd-9656-4341-a5a1-8f40d35e4283/scratchpad/after.png)"
     ]
   }
 }

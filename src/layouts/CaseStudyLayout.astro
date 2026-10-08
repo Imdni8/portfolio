@@ -8,7 +8,7 @@ import { Lightbox } from '../components/case-study/Lightbox';
 import { Glossary } from '../components/case-study/Glossary';
 import { VideoPlayer } from '../components/case-study/VideoPlayer';
 import { Toast } from '../components/case-study/Toast';
-import ThemePreview from '../components/ThemePreview.astro';
+import ThemeInit from '../components/ThemeInit.astro';
 import DevOutline from '../components/DevOutline.astro';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
@@ -98,7 +98,7 @@ const metaDescription = subtitle ?? title;
 		    fetch ahead of the title, the preloads and the social meta only gives
 		    it a head start over the things that are. */}
 		<Analytics />
-		{import.meta.env.DEV && <ThemePreview />}
+		<ThemeInit />
 		{import.meta.env.DEV && <DevOutline />}
 	</head>
 	<body>

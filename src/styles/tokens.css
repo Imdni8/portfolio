@@ -66,6 +66,17 @@
 	--gray-900: #161b1d;
 	--gray-950: #090b0c;
 
+	/* The light theme's page ground: a neutral near-white, hsl(0 0% 95%)
+	   (#f2f2f2). Chosen over the cool --gray-100 it replaced so the light
+	   page reads as plain paper rather than tinted. Outside the grey ramp on
+	   purpose — it is a ground, not a step anything else should reach for —
+	   and still not pure white. Against it: --text 15.5:1, --text-body
+	   13.2:1, --text-muted 6.6:1, --primary-text 6.3:1, --border-strong
+	   4.1:1, --focus-ring 4.5:1 (all within 0.1 of gray-100's). --primary
+	   lands at 4.49:1, which is fine because it is never text here — a fill,
+	   and the bio's aria-hidden </> mark. */
+	--paper: hsl(0 0% 95%);
+
 	/* ---- AI spectrum -------------------------------------------------------
 	   The only hues in the system outside the amber ramp and the cool grey,
 	   and deliberately scoped to one thing: the "AI" chip's animated border on
@@ -379,7 +390,8 @@
 	   than --gray-950. A literal, and outside both ramps, for the same reason
 	   --brand-mark is: it is what the gradient blinds (gradient-blinds.ts)
 	   are hard-lit onto, and so it is shader material rather than interface
-	   colour. Not redefined per theme; the homepage pins dark. */
+	   colour. Light theme swaps it for --bg (--paper, below): the pages no
+	   longer pin dark now that the nav has a theme toggle. */
 	--home-ground: #070709;
 
 	/* The gradient blinds' stops, left to right across the screen —
@@ -459,7 +471,7 @@
    -------------------------------------------------------------------------- */
 @media (prefers-color-scheme: light) {
 	:root:not([data-theme='dark']) {
-		--bg: var(--gray-100);
+		--bg: var(--paper);
 		--bg-raised: var(--gray-50);
 		--bg-sunken: var(--gray-200);
 		--bg-media: var(--gray-200);
@@ -481,11 +493,12 @@
 		--focus-ring: var(--amber-700);
 
 		--commit-empty: var(--gray-400);
+		--home-ground: var(--bg);
 	}
 }
 
 :root[data-theme='light'] {
-	--bg: var(--gray-100);
+	--bg: var(--paper);
 	--bg-raised: var(--gray-50);
 	--bg-sunken: var(--gray-200);
 	--bg-media: var(--gray-200);
@@ -507,6 +520,7 @@
 	--focus-ring: var(--amber-700);
 
 	--commit-empty: var(--gray-400);
+	--home-ground: var(--bg);
 }
 
 /* ---- 5 · Type styles -------------------------------------------------------

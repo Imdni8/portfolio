@@ -34,10 +34,9 @@ const sideProjects = [
  * own default surface (bg-popover/ring-foreground via the tailwind.css
  * token bridge), which is why NavMenu no longer needs a popupClassName.
  *
- * `align="end"`: the trigger is the last item in the nav row and sits on
- * its right edge, so the panel hangs from the trigger's trailing edge and
- * opens back toward the middle of the page rather than out past the row's
- * end. (It was `start` while the whole row clustered on the left.) The default
+ * `align="center"`: the trigger sits in the middle of the floating nav
+ * pill, so the panel hangs centred under it. (It was `end` while the
+ * trigger closed the row on its right edge.) The default
  * `sideOffset` (8px, the same as `--spacing-md`) is unchanged, and Base
  * UI's collision handling still flips it at narrow widths.
  *
@@ -72,7 +71,7 @@ export const NavMenu = () => {
 };
 
 const SideProjectsDropdown = () => (
-	<NavigationMenu className="nav-dropdown" align="end" popupClassName="nav-dropdown__popup">
+	<NavigationMenu className="nav-dropdown" align="center" popupClassName="nav-dropdown__popup">
 		<NavigationMenuList className="nav-dropdown__list">
 			<NavigationMenuItem>
 				<NavigationMenuTrigger className="nav-dropdown__trigger type-nav-link">
