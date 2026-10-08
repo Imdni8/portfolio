@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node ./check-cursor.tmp.cjs)"
+      "Bash(node ./check-cursor.tmp.cjs)",
+      "ClaudeInChromeDomain(localhost:4321)"
     ]
   }
 }

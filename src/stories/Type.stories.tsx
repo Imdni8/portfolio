@@ -15,7 +15,7 @@ const STYLES: Spec[] = [
 	{ token: 'type-nav-link', role: 'Mono label — site nav, dropdown, chapter rail, Tabs', sample: 'Side projects' },
 	{ token: 'type-body', role: 'Running copy and hero facts', sample: "Agent Studio's canvas is where an AI builder assembles an agentic workflow, connects it to their organisation's data sources, and puts it to work without involving engineering." },
 	{ token: 'type-ui-label', role: 'Button and control labels', sample: 'View final design' },
-	{ token: 'type-card-meta', role: 'Homepage role line', sample: 'Lead designer (IC)' },
+	{ token: 'type-card-meta', role: 'Homepage role line', sample: 'Lead designer / Builder' },
 	{ token: 'type-label', role: 'Small sans label — work card facts, the Selected work divider', sample: 'Selected work' },
 	{ token: 'type-annotation', role: 'Figure captions, note and tooltip copy', sample: 'Because conducting user tests with end users can take significantly longer to set up, I validated these concepts with 5 internal users who use the product daily.' },
 	{ token: 'type-meta', role: 'Mono metadata — footer tagline, toast message', sample: 'Designed solo · Developed together' },

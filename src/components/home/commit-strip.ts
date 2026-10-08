@@ -1,22 +1,24 @@
-/* The homepage tagline's GitHub squares — "Ships ▢▢▢▢▢▢▢" — filled with the
-   last seven days of contributions, fetched live from the browser. The
-   total goes in the strip's sr-only label and in its hover tooltip.
+/* The homepage hero's GitHub bars — one per day for the last 30 days —
+   stamped with each day's contribution level, fetched live from the
+   browser. Any level above 0 shows green (HomeHero.astro); the total goes
+   in the strip's sr-only label and in its hover tooltip.
 
    GitHub's own contributions calendar has no CORS headers, so this reads it
    through github-contributions-api.jogruber.de, a public proxy over the same
    calendar that returns each day's count and GitHub's 0–4 level. Nothing
    is sent but the username.
 
-   The squares are server-rendered empty (level 0, an outline). If the
-   request fails, times out or comes back in a shape this doesn't expect,
-   they stay that way and nothing is thrown: an empty strip claims nothing,
-   where a guessed one would. */
+   The bars are server-rendered empty (level 0, grey). If the request
+   fails, times out or comes back in a shape this doesn't expect, they stay
+   that way and nothing is thrown: an empty strip claims nothing, where a
+   guessed one would. */
 
 const USER = 'Imdni8';
 const ENDPOINT = `https://github-contributions-api.jogruber.de/v4/${USER}?y=last`;
 const TIMEOUT = 6000;
-/** Between one square's fill and the next, so the row fills left to right. */
-const STAGGER = 40;
+/** Between one bar's fill and the next, so the row fills left to right —
+ *  30 bars at 20ms is ~0.6s. */
+const STAGGER = 20;
 
 interface Day {
 	date: string;

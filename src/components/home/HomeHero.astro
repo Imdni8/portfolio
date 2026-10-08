@@ -1,59 +1,44 @@
 ---
-/* The homepage's opening row, from Figma's 20302:1154: the name and role on
-   the left, the tagline on the right — "Ships ▢▢▢▢▢▢▢ / thoughtful products
-   / that drive results".
+/* The homepage's opening block, from Paper's hero frame ("HP shader exp"):
+   the name, the role under it, then a month of GitHub bars running from
+   the left edge into "ships thoughtful", and "products that drive results"
+   right-aligned under that.
 
-   The squares after "Ships" are the last seven days of GitHub
-   contributions (commit-strip.ts fills them). Rendered here empty, so
-   without JS — or if the fetch fails — the row stands as seven outlined
-   squares and nothing is claimed. Hovering or focusing them shows the
+   The bars are the last 30 days of GitHub contributions (commit-strip.ts
+   fills them), green on a day with any, grey on a day with none. Rendered
+   here empty, so without JS — or if the fetch fails — the row stands as 30
+   grey bars and nothing is claimed. Hovering or focusing them shows the
    total in a tooltip, once there is a total to show. */
 import { links } from '../../data/links';
 
-const DAYS = 7;
+const DAYS = 30;
 ---
 
 {/* data-nav-scrim: the first thing that scrolls up under the nav, so the
     nav's band fades in as it gets there — see SiteNav.astro. */}
 <header class="intro" data-nav-scrim>
-	<div class="intro__id">
-		<h1 class="intro__name type-heading">Tousif Rahaman</h1>
-		<p class="intro__role type-card-meta">Lead designer (IC)</p>
+	<h1 class="intro__name type-heading">Tousif Rahaman</h1>
+	<p class="intro__role type-body">Lead designer / Builder</p>
+
+	<div class="intro__row">
+		<a class="commit-strip" href={links.github} target="_blank" rel="noopener noreferrer" data-commit-strip>
+			<span class="commit-strip__days" style={`--days: ${DAYS}`} aria-hidden="true">
+				{Array.from({ length: DAYS }, () => <span class="commit-strip__day" data-level="0" />)}
+			</span>
+			<span class="sr-only" data-commit-label>(my GitHub activity, opens in new tab)</span>
+			{/* aria-hidden: the sr-only label above already reads the same total. */}
+			<span class="commit-strip__tip type-annotation" aria-hidden="true" data-commit-tip></span>
+		</a>
+		<p class="intro__ships type-body">ships <em class="intro__accent">thoughtful</em></p>
 	</div>
 
-	<p class="intro__tagline type-subtitle">
-		<span class="intro__line">
-			Ships
-			<a class="commit-strip" href={links.github} target="_blank" rel="noopener noreferrer" data-commit-strip>
-				<span class="commit-strip__days" aria-hidden="true">
-					{Array.from({ length: DAYS }, () => <span class="commit-strip__day" data-level="0" />)}
-				</span>
-				<span class="sr-only" data-commit-label>(my GitHub activity, opens in new tab)</span>
-				{/* aria-hidden: the sr-only label above already reads the same total. */}
-				<span class="commit-strip__tip type-annotation" aria-hidden="true" data-commit-tip></span>
-			</a>
-		</span>
-		<span class="intro__line"><em class="intro__accent">thoughtful</em> products</span>
-		<span class="intro__line">
-			that drive results
-		</span>
-	</p>
+	<p class="intro__results type-body">products that drive results</p>
 </header>
 
 <style>
-	/* Name on one side, tagline on the other, top-aligned — the tagline's
-	   first line sits level with the role, as drawn. Below 40rem the two
-	   stack, tagline under the name and set to the left like everything else
-	   in the column. */
+	/* Four rows, 4px apart: the name, the role, the bars/tagline row, and
+	   the tagline's second line set against the column's right edge. */
 	.intro {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: var(--spacing-3xl);
-	}
-
-	.intro__id {
 		display: grid;
 		gap: var(--spacing-xs);
 	}
@@ -62,29 +47,30 @@ const DAYS = 7;
 		color: var(--text);
 	}
 
+	/* The bars take whatever "ships thoughtful" leaves, so they run from the
+	   column's left edge to the tagline at any width — a phone's column
+	   included, so the row never wraps. */
+	.intro__row {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+	}
+
 	/* --text-body, not --text-muted: the role sits inside the bands, and
 	   muted grey over their brightest point measured 3.0:1 — too low for
-	   12px text. */
+	   small text. */
 	.intro__role {
 		color: var(--text-body);
 	}
 
-	/* Three right-aligned lines. `padding-block-start` drops the first one
-	   below the role, where the Paper frame puts it (34px; the nearest rung
-	   is 32). */
-	.intro__tagline {
-		display: grid;
-		justify-items: end;
-		padding-block-start: var(--spacing-4xl);
+	.intro__ships,
+	.intro__results {
 		color: var(--text);
-		text-align: end;
+		white-space: nowrap;
 	}
 
-	.intro__line {
-		display: inline-flex;
-		align-items: baseline;
-		gap: var(--spacing-sm);
-		white-space: nowrap;
+	.intro__results {
+		text-align: end;
 	}
 
 	/* The one word the sentence leans on, in the serif's drawn italic — the
@@ -96,20 +82,13 @@ const DAYS = 7;
 		letter-spacing: var(--track-tight);
 	}
 
-	@media (max-width: 40rem) {
-		.intro__tagline {
-			justify-items: start;
-			padding-block-start: 0;
-			text-align: start;
-		}
-	}
-
 	/* ---- Commit strip ---------------------------------------------------- */
 	.commit-strip {
 		position: relative;
-		display: inline-flex;
-		align-self: center;
-		border-radius: var(--radius-xs);
+		display: flex;
+		flex: 1;
+		min-inline-size: 0;
+		border-radius: var(--radius-xxs);
 		color: inherit;
 		-webkit-tap-highlight-color: transparent;
 	}
@@ -120,50 +99,39 @@ const DAYS = 7;
 	}
 
 	.commit-strip__days {
-		display: inline-flex;
+		display: flex;
+		flex: 1;
 		gap: var(--spacing-xs);
 	}
 
-	/* An empty day is an outline; a day with work is filled in its level's
-	   amber. The fill eases in, so the strip fills left to right as
-	   commit-strip.ts stamps each square's level in turn. */
+	/* One thin pill per day, grey until commit-strip.ts stamps a level; any
+	   level above 0 turns it green. The fill eases in, so the strip fills
+	   left to right as each bar is stamped in turn.
+
+	   Each bar is its share of the strip rounded *down to a whole pixel*.
+	   An even `flex: 1` split leaves fractional widths (12.06px at 1440),
+	   and the screen snaps those edges inconsistently, so the 4px gaps read
+	   as uneven. The few pixels the rounding gives up sit after the last
+	   bar, before "ships". The plain calc() is the fallback where round()
+	   isn't supported. */
 	.commit-strip__day {
-		box-sizing: border-box;
-		inline-size: var(--spacing-xl);
-		block-size: var(--spacing-xl);
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-xs);
-		background: transparent;
-		transition:
-			background-color 240ms var(--ease-out),
-			border-color 240ms var(--ease-out);
+		flex: none;
+		inline-size: calc((100% - (var(--days) - 1) * var(--spacing-xs)) / var(--days));
+		inline-size: round(down, (100% - (var(--days) - 1) * var(--spacing-xs)) / var(--days), 1px);
+		block-size: var(--spacing-lg);
+		border-radius: var(--radius-xxs);
+		background: var(--commit-empty);
+		transition: background-color 240ms var(--ease-out);
 	}
 
-	.commit-strip__day[data-level='1'] {
-		background: var(--commit-1);
-		border-color: var(--commit-1);
+	.commit-strip__day:not([data-level='0']) {
+		background: var(--commit-active);
 	}
 
-	.commit-strip__day[data-level='2'] {
-		background: var(--commit-2);
-		border-color: var(--commit-2);
-	}
-
-	.commit-strip__day[data-level='3'] {
-		background: var(--commit-3);
-		border-color: var(--commit-3);
-	}
-
-	.commit-strip__day[data-level='4'] {
-		background: var(--commit-4);
-		border-color: var(--commit-4);
-	}
-
-	/* The total, in a small bubble above the squares, flush with their
-	   trailing edge — the strip ends the right-aligned row, so a centred
-	   bubble would hang past the column. It
+	/* The total, in a small bubble above the bars, flush with their
+	   trailing edge — the most recent day, which the count ends on. It
 	   only exists once commit-strip.ts has a total and stamps `data-ready`
-	   — a failed fetch shows nothing, the same rule as the empty squares.
+	   — a failed fetch shows nothing, the same rule as the grey bars.
 	   Opens on a hovering mouse or keyboard focus: it fades in and rises
 	   4px, and under reduced motion only fades. */
 	.commit-strip__tip {
@@ -183,13 +151,6 @@ const DAYS = 7;
 		transition:
 			opacity 150ms var(--ease-out),
 			translate 150ms var(--ease-out);
-	}
-
-	/* Stacked, the row is left-aligned, so the bubble follows it. */
-	@media (max-width: 40rem) {
-		.commit-strip__tip {
-			inset-inline: 0 auto;
-		}
 	}
 
 	.commit-strip:not([data-ready]) .commit-strip__tip {

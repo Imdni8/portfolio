@@ -31,8 +31,9 @@ The foundations, all settled with the user:
   8.09:1 on the dark ground and 2.07:1 on the light one. The homepage's
   gradient blinds carry a second sanctioned exception, `--blinds-1…7`
   (sampled from `scratch/bg_color_inspo.jpg`) — decoration only, the same
-  terms as `--ai-spectrum-*`; see Gradient blinds. The homepage tagline's
-  GitHub squares, `--commit-1…4`, are amber rungs on the same
+  terms as `--ai-spectrum-*`; see Gradient blinds. The homepage hero's
+  GitHub bars carry a third, `--commit-active` (a literal green, `#008043`,
+  from the Paper frame) beside `--commit-empty` (grey) — on the same
   decoration-only terms (what they say is in sr-only text).
 - **Type** — ported from carlthomasiv.com
   (`scratch/carlthomasiv-typography-notes.md`). DM Serif Display is what a
@@ -403,21 +404,24 @@ and `work-spotlight.ts` were removed with this redesign.)
   blocks `--spacing-5xl` apart (the Paper frame's 40px), with Selected works
   a further `--spacing-4xl` down (72px in all). The nav row and the footer narrow to the same
   column through `--nav-measure`.
-- **The opening row** (`HomeHero.astro`, `<header data-nav-scrim>`): the
-  name (`h1.type-heading`) and role (`.type-meta`, `--text-body` — muted
-  grey measured 3.0:1 over the bands) on the left; the tagline
-  (`.type-subtitle`, right-aligned, dropped `--spacing-4xl`) on the right:
-  "Ships ▢▢▢▢▢▢▢ / *thoughtful* products / that drive results". Stacks
-  below 40rem.
+- **The opening row** (`HomeHero.astro`, `<header data-nav-scrim>`), from
+  Paper's hero frame: four rows 4px apart — the name (`h1.type-heading`);
+  the role ("Lead designer / Builder", `.type-body`, `--text-body` — muted
+  grey measured 3.0:1 over the bands); the GitHub bars running from the
+  left edge into "ships *thoughtful*"; then "products that drive results",
+  right-aligned. The copy is all `.type-body`. The bars flex into whatever
+  the tagline leaves, so the row holds on a phone without wrapping.
   - "thoughtful" is DM Serif Display 400 italic.
-  - **The squares** are the last seven days of GitHub contributions for
+  - **The bars** are the last 30 days of GitHub contributions for
     `Imdni8`, fetched live in the browser by `commit-strip.ts` from
     `github-contributions-api.jogruber.de` (GitHub's own calendar has no
-    CORS). Server-rendered empty (outlined); each fills to its
-    `--commit-1…4` level, 40ms apart. On failure or a 6s timeout they stay
-    empty — an empty strip claims nothing. The strip is a link to GitHub
-    whose sr-only text carries the total. Hover (fine pointers) or keyboard
-    focus shows it in a CSS tooltip, "N contributions in last 7 days"
+    CORS). Thin 12px pills, `flex: 1` each, so the strip fills whatever the
+    tagline leaves. Binary: server-rendered grey
+    (`--commit-empty`); any level above 0 turns `--commit-active` green,
+    20ms apart. On failure or a 6s timeout they stay grey — an empty strip
+    claims nothing. The strip is a link to GitHub whose sr-only text
+    carries the total. Hover (fine pointers) or keyboard focus shows it in
+    a CSS tooltip, "N contributions in last 30 days"
     (`.commit-strip__tip`, aria-hidden since the sr-only text says the
     same). It shows only once `commit-strip.ts` stamps `data-ready`, so a
     failed fetch shows no tooltip either.

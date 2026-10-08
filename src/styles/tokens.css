@@ -405,17 +405,18 @@
 	   for the contrast it buys. */
 	--blinds-host-opacity: 0.4;
 
-	/* The homepage tagline's GitHub squares (commit-strip.ts) — one per day,
-	   shaded by GitHub's own contribution level, 1 (a little) to 4 (a lot);
-	   level 0 is an empty outlined square. Amber rungs climbing toward the
-	   page's own --primary, so the busiest day reads as the brand hue.
-	   Decoration on the same terms as --ai-spectrum-*: what the squares
-	   say is in the strip's sr-only text, so they carry no contrast
-	   measurement. Light theme takes the opposite end of the ramp. */
-	--commit-1: var(--amber-950);
-	--commit-2: var(--amber-800);
-	--commit-3: var(--amber-600);
-	--commit-4: var(--amber-400);
+	/* The homepage hero's GitHub bars (commit-strip.ts) — one per day for
+	   the last 30 days, from Paper's hero frame: green on a day with any
+	   contributions, grey on a day with none. Binary on purpose; GitHub's
+	   0–4 level is read but not shaded. Green is a third hue, sanctioned on
+	   the same decoration-only terms as --ai-spectrum-* and --blinds-*:
+	   what the bars say is in the strip's sr-only text, so they carry no
+	   contrast measurement. It is a literal rather than a ramp, the same
+	   reasoning as --secondary's white — a green ramp would invite use
+	   elsewhere. Light theme darkens the empty bar so it still reads on
+	   the pale ground. */
+	--commit-empty: var(--gray-300);
+	--commit-active: #008043;
 
 	/* The homepage bio's company tiles (HomeBio.astro) — Medable's and
 	   J&J's own grounds, sampled from their app icons, each carrying its
@@ -476,10 +477,7 @@
 		--primary-text: var(--amber-800);
 		--focus-ring: var(--amber-700);
 
-		--commit-1: var(--amber-100);
-		--commit-2: var(--amber-300);
-		--commit-3: var(--amber-500);
-		--commit-4: var(--amber-700);
+		--commit-empty: var(--gray-400);
 	}
 }
 
@@ -505,10 +503,7 @@
 	--primary-text: var(--amber-800);
 	--focus-ring: var(--amber-700);
 
-	--commit-1: var(--amber-100);
-	--commit-2: var(--amber-300);
-	--commit-3: var(--amber-500);
-	--commit-4: var(--amber-700);
+	--commit-empty: var(--gray-400);
 }
 
 /* ---- 5 · Type styles -------------------------------------------------------
