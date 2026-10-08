@@ -10,6 +10,7 @@ import SiteNav from '../components/nav/SiteNav.astro';
 import HomeHero from '../components/home/HomeHero.astro';
 import HomeBio from '../components/home/HomeBio.astro';
 import WorkCard from '../components/work/WorkCard.astro';
+import ExternalWorkRow from '../components/work/ExternalWorkRow.astro';
 import Footer from '../components/footer/Footer.astro';
 import Analytics from '../components/analytics/Analytics.astro';
 import FontPreload from '../components/FontPreload.astro';
@@ -22,19 +23,18 @@ import FontPreload from '../components/FontPreload.astro';
 // `order` — so they shouldn't crowd real work out of the list's early slots.
 // `order` still decides their place within that trailing group, and everyone
 // else's place among themselves.
-const studies = (await getCollection('work', ({ data }) => data.status !== 'unlisted')).sort((a, b) => {
+const entries = (await getCollection('work', ({ data }) => data.status !== 'unlisted')).sort((a, b) => {
 	const aComingSoon = a.data.status === 'coming-soon';
 	const bComingSoon = b.data.status === 'coming-soon';
 	if (aComingSoon !== bComingSoon) return aComingSoon ? 1 : -1;
 	return a.data.order - b.data.order;
 });
 
-const hrefOf = (entry: (typeof studies)[number]) =>
-	entry.data.status === 'coming-soon'
-		? undefined
-		: entry.data.status === 'external'
-			? entry.data.externalUrl
-			: `/work/${entry.id}`;
+// Case studies on this site are cards; work that lives off-site (`external`,
+// a deck in Drive or Slides) is a compact row under them, so a click on a
+// cover always means a page here. Both keep the collection's order.
+const studies = entries.filter((entry) => entry.data.status !== 'external');
+const earlier = entries.filter((entry) => entry.data.status === 'external');
 ---
 
 <!doctype html>
@@ -103,17 +103,14 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 							<li>
 								<WorkCard
 									title={entry.data.title}
+									company={entry.data.company}
 									industry={entry.data.industry}
 									year={entry.data.year}
 									roles={entry.data.roles}
 									aiFeature={entry.data.aiFeature}
 									thumbnail={entry.data.thumbnail}
-									href={hrefOf(entry)}
-									status={
-										entry.data.status === 'coming-soon' || entry.data.status === 'external'
-											? entry.data.status
-											: undefined
-									}
+									href={entry.data.status === 'coming-soon' ? undefined : `/work/${entry.id}`}
+									status={entry.data.status === 'coming-soon' ? 'coming-soon' : undefined}
 									priority={i === 0}
 								/>
 							</li>
@@ -121,6 +118,27 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 					}
 				</ol>
 			</section>
+			{
+				earlier.length > 0 && (
+					<section class="home__works" aria-labelledby="earlier-work">
+						<h2 id="earlier-work" class="home__works-heading type-label">Earlier work</h2>
+						<ul class="earlier-list">
+							{earlier.map((entry) => (
+								<li>
+									<ExternalWorkRow
+										title={entry.data.title}
+										company={entry.data.company}
+										industry={entry.data.industry}
+										year={entry.data.year}
+										href={entry.data.externalUrl!}
+										thumbnail={entry.data.thumbnail}
+									/>
+								</li>
+							))}
+						</ul>
+					</section>
+				)
+			}
 		</main>
 		<Footer />
 	</body>
@@ -215,6 +233,20 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 		background: var(--border);
 	}
 
+	/* Off-site work: hairlines between the rows only — the divider above
+	   already closes the list off from the cards, so a rule on its outer
+	   edges would just double it. The heading's 48px gap is tightened to
+	   24px because a row is far lighter than a cover. */
+	.earlier-list {
+		margin: calc(var(--spacing-3xl) - var(--spacing-6xl)) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.earlier-list > li + li {
+		border-block-start: 1px solid var(--border);
+	}
+
 	.work-list {
 		display: grid;
 		gap: var(--spacing-7xl);
@@ -244,6 +276,10 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 
 		.home > :global(:nth-child(3)) {
 			animation-delay: 280ms;
+		}
+
+		.home > :global(:nth-child(4)) {
+			animation-delay: 360ms;
 		}
 	}
 

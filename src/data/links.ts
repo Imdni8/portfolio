@@ -7,5 +7,6 @@ export const links = {
 	instagram: 'https://www.instagram.com/oxytousif/',
 	github: 'https://github.com/Imdni8',
 	linkedin: 'https://www.linkedin.com/in/tousif-rahaman/',
+	email: 'tousif.rahaman@gmail.com',
 	resume: 'https://drive.google.com/file/d/15AhrPiZ9VO-Q4cH8hQqKA49DYBKDYPa5/view?usp=sharing',
 } as const;

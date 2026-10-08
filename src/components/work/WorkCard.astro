@@ -3,12 +3,14 @@ import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../ui/Icon.astro';
 import Badge from '../ui/Badge.astro';
+import CompanyLogo from './CompanyLogo.astro';
 import { ROLE_ICONS, type WorkRole } from './roles';
 
 export type { WorkRole };
 
 interface Props {
 	title: string;
+	company: string;
 	industry: string;
 	year: number;
 	/** What kind of work this was — icon chips at the top of the text panel. */
@@ -18,7 +20,8 @@ interface Props {
 	aiFeature?: boolean;
 	thumbnail: { src: ImageMetadata; alt: string };
 	href?: string;
-	status?: 'coming-soon' | 'external';
+	/** External work isn't a card — index.astro lists it as ExternalWorkRow. */
+	status?: 'coming-soon';
 	/** True for the cards that sit in the initial viewport. Astro's image
 	 *  service defaults every `<Image>` to `loading="lazy"`, which puts the
 	 *  first covers behind an intersection check instead of starting
@@ -27,13 +30,11 @@ interface Props {
 	priority?: boolean;
 }
 
-const { title, industry, year, roles = [], aiFeature = false, thumbnail, href, status, priority = false } = Astro.props;
+const { title, company, industry, year, roles = [], aiFeature = false, thumbnail, href, status, priority = false } = Astro.props;
 
 // A link when there's somewhere to go, otherwise a plain container — no
 // dead affordance for a case study that isn't published yet.
 const Wrapper = href ? 'a' : 'div';
-
-const isExternal = status === 'external';
 
 // Only an internal case-study link gets a shared view-transition name — its
 // pairing lives in CaseStudyHero.astro's `.hero`, matched by the same slug,
@@ -48,18 +49,33 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
     happen immediately, in time for the view-transition-name below to be
     caught by the browser's own cross-document transition (tokens.css). */}
 <Wrapper
-	class:list={['card', { 'card--external': isExternal }]}
+	class="card"
 	href={href}
-	target={isExternal ? '_blank' : undefined}
-	rel={isExternal ? 'noopener noreferrer' : undefined}
 	style={workSlug ? `view-transition-name: card-${workSlug};` : undefined}
 	{...(workSlug ? { 'data-astro-reload': '' } : {})}
 >
 	<div class="card__inner">
 		{/* Text first in the DOM, whatever the layout puts first on screen: the
-		    link's accessible name is read in this order, and the title should
-		    come before the cover's alt text in it. */}
+		    link's accessible name is read in this order — title, facts, then
+		    the role chips — so a screen reader hears what the work was before
+		    the labels describing it, and all of it before the cover's alt
+		    text. The chips are out of flow, so DOM order doesn't move them. */}
 		<div class="card__body">
+			<h3 class="card__title type-card-title" data-work-title>{title}</h3>
+			<p class="card__meta type-label">
+				<span class="card__meta-item">
+					<CompanyLogo company={company} />
+					{company}
+				</span>
+				<span class="card__meta-item">
+					<Icon name="building-2" />
+					{industry}
+				</span>
+				<span class="card__meta-item">
+					<Icon name="calendar" />
+					{year}
+				</span>
+			</p>
 			{
 				(aiFeature || roles.length > 0) && (
 					<ul class="card__roles">
@@ -82,20 +98,6 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 					</ul>
 				)
 			}
-			<p class="card__title type-card-title">
-				{title}
-				{isExternal && <span class="sr-only"> (opens in new tab)</span>}
-			</p>
-			<p class="card__meta type-label">
-				<span class="card__meta-item">
-					<Icon name="building-2" />
-					{industry}
-				</span>
-				<span class="card__meta-item">
-					<Icon name="calendar" />
-					{year}
-				</span>
-			</p>
 		</div>
 		{/* `sizes` follows the host, which sets the card's width: the
 		    homepage's column (index.astro's `.home__works`), the frame
@@ -116,13 +118,6 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 					<div class="card__overlay">
 						<p class="card__overlay-label">Coming soon</p>
 					</div>
-				)
-			}
-			{
-				isExternal && (
-					<span class="card__external-badge">
-						<Icon name="external-link" />
-					</span>
 				)
 			}
 		</div>
@@ -171,14 +166,6 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 		scale: 0.98;
 	}
 
-	/* `alias` rather than the browser's default pointer — the nearest native
-	   cursor semantic to "this is a shortcut to somewhere else," which is what
-	   distinguishes this card from every other one in the list: it doesn't
-	   navigate within the site, it leaves it. */
-	a.card--external {
-		cursor: alias;
-	}
-
 	a.card:focus-visible {
 		outline: 2px solid var(--focus-ring);
 		outline-offset: 2px;
@@ -192,9 +179,9 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 		gap: var(--spacing-md);
 	}
 
-	/* Title, then the facts, flush with the cover's edge. The role chips are
-	   first in the DOM (so the link's name reads them with the title) but
-	   leave the flow: they sit on the cover's top edge, below. */
+	/* Title, then the facts, flush with the cover's edge. The role chips
+	   follow them in the DOM but leave the flow: they sit on the cover's
+	   top edge, below. */
 	.card__body {
 		display: flex;
 		flex-direction: column;
@@ -219,11 +206,15 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 		list-style: none;
 	}
 
+	/* An h3 under the section's "Selected work" h2, so heading navigation
+	   steps from study to study. Preflight already zeroes its margin and
+	   resets its size and weight; the type class sets them. */
 	.card__title {
 		color: var(--text);
 	}
 
-	/* Industry and year side by side, 40px apart. */
+	/* Company (on its own logo), industry and year side by side, 40px
+	   apart; they wrap as whole facts on a narrow column. */
 	.card__meta {
 		display: flex;
 		flex-wrap: wrap;
@@ -246,8 +237,8 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 	}
 
 	/* The design's frame for the cover (500×316). Rounded and clipped
-	   here, so the image, the coming-soon scrim and the external badge all
-	   sit inside the same corners. --bg-media marks the box while the image
+	   here, so the image and the coming-soon scrim sit inside the same
+	   corners. --bg-media marks the box while the image
 	   loads. */
 	.card__media {
 		position: relative;
@@ -292,36 +283,6 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 		line-height: 1.25;
 		color: var(--secondary);
 		margin: 0;
-	}
-
-	/* Sits in the cover's corner rather than replacing it like the coming-soon
-	   scrim does — the work is real and viewable, so nothing should hide the
-	   thumbnail. Same theme-invariant scrim colour as .card__overlay, since it
-	   rides on the cover image rather than the page ground. */
-	.card__external-badge {
-		position: absolute;
-		inset-block-start: var(--spacing-xl);
-		inset-inline-end: var(--spacing-xl);
-		display: grid;
-		place-items: center;
-		width: var(--spacing-6xl);
-		height: var(--spacing-6xl);
-		border-radius: var(--radius-full);
-		background: var(--overlay);
-	}
-
-	/* 16px (--spacing-xl), deliberately smaller than the icon-lg button's
-	   26px glyph in the same 48px circle: the badge is a quiet hint that the
-	   card leaves the site, not a control, so it stays out of the cover's way.
-	   :global() because the glyph is Icon.astro's span, which carries no
-	   scope attribute of this component's. Scoped, the rule never matched:
-	   the glyph inherited the card's text colour — light on dark, so it
-	   looked right, but near-black on this always-dark scrim in light — and
-	   sat at 1em. */
-	.card__external-badge :global(.icon) {
-		color: var(--secondary);
-		width: var(--spacing-xl);
-		height: var(--spacing-xl);
 	}
 
 	/* ui/button.tsx carries its own reduced-motion guard; the card's lift and

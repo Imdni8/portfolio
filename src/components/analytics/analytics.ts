@@ -222,9 +222,9 @@ function trackOnIdle(event: string, props?: Record<string, unknown>): void {
 	whenIdle(() => trackNow(event, props));
 }
 
-/* The card's title, without the assistive-tech text that shares its element.
+/* The work's title, without the assistive-tech text that shares its element.
 
-   `.card__title` renders `{title}` followed by a visually-hidden
+   `[data-work-title]` renders `{title}` followed by a visually-hidden
    `<span class="sr-only"> (opens in new tab)</span>` on external entries — and
    `textContent` folds the two together, so the naive read appends " (opens in
    new tab)" to exactly the titles this event records. That would stop an
@@ -232,7 +232,7 @@ function trackOnIdle(event: string, props?: Record<string, unknown>): void {
    the whole point of recording it. Taking only the element's own text nodes
    skips the span without needing to know its class. */
 function cardTitle(card: HTMLElement): string | undefined {
-	const el = card.querySelector('.card__title');
+	const el = card.querySelector('[data-work-title]');
 	if (!el) return undefined;
 	return Array.from(el.childNodes)
 		.filter((node) => node.nodeType === Node.TEXT_NODE)
@@ -307,18 +307,18 @@ export function initInteractionTracking(): void {
 		if (!target) return;
 
 		/* The other half of `Opened Case Study` — see trackCaseStudyOpened().
-		   Scoped to `card--external` because those are exactly the entries with
-		   no page of their own to fire the event at load; a card that has a page
-		   is deliberately left alone, which is what keeps the two triggers
-		   mutually exclusive. A `coming-soon` entry cannot match either way:
-		   WorkCard renders it as a `<div>`, so there is no `a.card` at all.
+		   Scoped to `[data-external-work]` (ExternalWorkRow) because those are
+		   exactly the entries with no page of their own to fire the event at
+		   load; a card that has a page is deliberately left alone, which is
+		   what keeps the two triggers mutually exclusive. A `coming-soon` entry
+		   cannot match either way: it is a WorkCard rendered as a `<div>`.
 
-		   The title comes off `.card__title` via cardTitle() rather than a
+		   The title comes off `[data-work-title]` via cardTitle() rather than a
 		   `data-` attribute, which is why this half needs no markup of its own.
 		   There is no slug to record — the href points at someone else's domain
 		   — so that property is simply absent here, and `is_external` is what to
 		   filter on. */
-		const external = target.closest<HTMLAnchorElement>('a.card--external');
+		const external = target.closest<HTMLAnchorElement>('a[data-external-work]');
 		if (external) {
 			trackNow('Opened Case Study', {
 				case_study_title: cardTitle(external),

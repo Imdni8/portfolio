@@ -477,8 +477,8 @@ and `work-spotlight.ts` were removed with this redesign.)
   centred on the x-height by `vertical-align: middle` (by the box, so a
   mark's intrinsic SVG height can't shift it), like an app icon beside its
   name. Tile and name plus any punctuation are one nowrap `.mark` run.
-  Links carry a quiet `--border` underline, since colour no longer sets
-  them apart.
+  Links carry a wavy `--primary` (amber) underline, since colour no
+  longer sets them apart.
   - **Type**: `.type-body`'s family and weight on its own rung — 16px on
     `--lh-bio` (1.75, 28px lines), stepping up to `--size-bio` (17px,
     29.75px lines) from 48rem, with `text-wrap: pretty`. No measure cap:
@@ -509,39 +509,67 @@ and `work-spotlight.ts` were removed with this redesign.)
     not a clipped child. `--spacing-xs` is pulled off each block margin so
     the line box sees ~17px of it: lines stay 28px apart (29.75px at
     17px; measured at 1440, 375 and 320 wide).
-  - **Paragraphs three and four are tiles alone**; each name slides out to
-    the right of its tile, so the logo stays put. NID and the companies are
-    `<button data-toggle>`s. The profile links (LinkedIn, GitHub, résumé)
-    open on hover or keyboard focus only, because a tap just follows the
-    link, and their underline is on the revealed name. The 8px gap belongs
-    to `.reveal__name`, an inner span: padding on the clipped
-    `.reveal__inner` would keep its width at 0fr.
-  - All the toggles work the same way. A mouse opens them by hover (CSS,
-    gated to fine pointers) and its click does nothing; a tap or Enter
-    toggles `data-open`; leaving with the mouse closes. The width animates
-    with `grid-template-columns: 0fr ↔ 1fr` (nothing measured), text
-    arriving with the site's 4px blur. Screen readers always get the whole
-    name from an sr-only copy, with the commas and "and" the visual drops;
-    the moving parts are `aria-hidden`. Reduced motion: no width animation,
-    a 120ms fade.
+  - **Every name is visible.** NID and the companies
+    are tile + name, like Agent Studio — plain `.mark` runs with visible
+    commas and "and". They used to be tiles alone whose names slid out on
+    hover, which hid the names a skimming recruiter looks for, never
+    revealed on touch, and shoved the rest of the line sideways. NID's
+    visible "NID" is `aria-hidden` beside an sr-only "the National
+    Institute of Design (NID)". The exception is the profile links
+    (LinkedIn, GitHub): glyph only, their names sr-only, by request —
+    the logos are recognisable on their own.
+  - **The calendar is the one toggle left**, because it adds detail
+    rather than hiding a fact. A mouse opens it by hover (CSS, gated to
+    fine pointers) and its click does nothing; a tap or Enter toggles
+    `data-open`; leaving with the mouse closes. The width animates with
+    `grid-template-columns: 0fr ↔ 1fr` (nothing measured), text arriving
+    with the site's 4px blur. Screen readers get the whole duration from an
+    sr-only copy; the moving parts are `aria-hidden`. Reduced motion: no
+    width animation, a 120ms fade.
+  - **The email is the page's only contact path** — paragraph four ends
+    "or say hi at <email>", a `mailto:` written out in full (`links.email`
+    in `src/data/links.ts`). The footer holds no links, so don't remove it
+    without putting a contact somewhere else.
   - Astro trims whitespace at a line break before a component, so every
     word that runs into an inline element ends in an explicit `{' '}`.
   - **Marks** are the real files in `src/assets/homepage/`. Agent Studio
-    is its gradient mark, bare. NID and Philips' shield carry their own
-    white ground and fill a white tile. Medable (its square mark, the
+    is its gradient mark, bare, and so is Philips' shield (transparent
+    file, `tone: 'bare'`). NID carries its own white ground and fills a
+    white tile. Medable (its square mark, the
     viewBox narrowed to 0 0 22 22) and J&J sit white on their brand grounds,
     `--brand-medable` and `--brand-jnj`: decoration only, like the footer
     mascot. The single-colour files are recoloured from white to
     `currentColor` at build.
   - Links: versioning and audit logs go to their case studies; LinkedIn,
-    GitHub (the footer's SVGs) and the résumé are off-site.
+    GitHub (the footer's SVGs) and the résumé are off-site; the email is a
+    `mailto:`.
 - **Selected works** (`section#work`) opens with a divider: the heading
   "Selected work" in `.type-label` (`--text-body`), centred on a `--border`
   hairline drawn by `::before`/`::after` (so the heading's name is the
   label alone), 48px (`--spacing-6xl`) above the first card. Then the
   stacked `WorkCard` list, `priority` on the first card. `WorkCard`'s
   `sizes` is a hand-resolved mirror of `--measure-home`; move them
-  together.
+  together. Only case studies on this site are cards.
+- **Earlier work** (`section[aria-labelledby="earlier-work"]`) follows,
+  under the same divider: `status: external` entries (decks in Drive or
+  Slides) as compact `ExternalWorkRow`s with `--border` hairlines between rows (none above the first or below the last) — title in
+  `.type-subtitle`, then company (its logo tile, `CompanyLogo.astro`),
+  industry and year as three separate icon facts in `.type-label` (no AI
+  mark), and where it opens ("Drive"/"Slides", derived from the
+  URL's host) with an up-right arrow. A cover promises a page here, and a
+  click that dropped the reader into a Drive viewer broke that promise.
+  Rows are ≥48px, underline the title and lean the arrow on hover (fine
+  pointers), and dip to 60% opacity on press. The section is skipped when
+  there is no external work.
+  - **Hover preview**: on a hovered or keyboard-focused row, the entry's
+    `thumbnail` floats beside the column, 32px to the right, centred on the
+    row, half `--measure-home` wide (its `sizes="300px"` mirrors that).
+    Gated to `(hover: hover) and (pointer: fine) and (min-width: 80rem)`,
+    the width at which the column, preview and gap fit inside the viewport,
+    so it never overlaps text or scrolls the page; below that it isn't
+    displayed. Arrives scaled up from 0.96 with a 4px blur (240ms), leaves in
+    150ms, never takes the pointer, `aria-hidden` with empty alt. Reduced
+    motion: fade only.
 - **The entrance** is CSS: the opening row rises and fades, the bio and the
   work rise only (80ms apart) — the bio's copy and the first cover are the
   LCP candidates, and opacity 0 would delay them.
@@ -558,9 +586,17 @@ and `work-spotlight.ts` were removed with this redesign.)
     painted ring looked like a height mismatch on 1× monitors. Labels are
     DM Mono 500.
   - They are out of flow (`position: absolute` against `.card`, whose top is
-    the cover's top) but first in the DOM, so the link's accessible name
-    still reads them with the title ahead of the cover's alt text.
-  - The facts row is industry and year (with their icons), 40px apart, set in
+    the cover's top) and *after* the title and facts in the DOM, so the
+    link's accessible name reads the title first, then the facts, then the
+    chips, then the cover's alt text.
+  - The title is an `h3` (under the section's `h2`), so heading
+    navigation steps from study to study. It and the external rows' titles
+    carry `data-work-title`, which `analytics.ts` reads; external clicks
+    are keyed on `a[data-external-work]`.
+  - The facts row is company (on its logo tile — `CompanyLogo.astro`, marks
+    shared with the bio via `src/data/companies.ts`), industry and year
+    (with their icons),
+    40px apart, set in
     `.type-label` (12px sans medium, `--text-body`). `.type-card-meta` is
     still the fine rung and now belongs to the homepage role line alone.
   - The card has no width of its own; the column sets it.
@@ -666,9 +702,12 @@ of a fully published entry.
 
 **Schema** (`src/content.config.ts`) splits into two groups:
 
-- **Card metadata — required on every entry, whatever its `status`:** `title`,
-  `industry`, `technology` (one primary tool/stack label), `year` — the card
-  shows `industry` and `year` as two icon rows under its title; `technology`
+- **Card metadata — required on every entry, whatever its `status`:** `title`
+  (written as an outcome, past tense — "Cut the time to…", "Increased daily
+  measurements by 64%…"),
+  `company`, `industry`, `technology` (one primary tool/stack label), `year` —
+  the card shows company (its logo), industry and `year` as three facts under its
+  title; `technology`
   is still required and recorded, but is not currently rendered anywhere.
   `thumbnail` (`{ src, alt }`, the card's
   cover image), `order` (sort key — leave gaps of 10, e.g. 10/20/30, so a new
@@ -705,8 +744,9 @@ machine:
 | `published` (default) | yes                      | yes, linked   |
 | `coming-soon`          | no                       | yes, unclickable, cover scrimmed with "Coming soon" |
 | `unlisted`             | yes                      | no            |
+| `external`             | no                       | no card — a row under "Earlier work", linking to `externalUrl` in a new tab |
 
-A `coming-soon` entry is otherwise minimal: `title`/`industry`/`technology`/
+A `coming-soon` entry is otherwise minimal: `title`/`company`/`industry`/`technology`/
 `year`/`thumbnail`/`order`/`status` plus a `roles` entry (a `design-type` role
 is mandatory on every status — see above), no body. When the case study is
 written, flip `status` to `published` (or delete the line — it's the

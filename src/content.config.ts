@@ -26,8 +26,10 @@ const work = defineCollection({
 				/** Homepage card metadata — the fields the list needs, independent
 				 *  of whether a page has been written yet. Required even for a
 				 *  `coming-soon` entry, since the card still has to render. The card
-				 *  shows `industry` and `year` as its two meta rows; `technology` is
-				 *  still recorded but no longer rendered anywhere. */
+				 *  shows `company` and `industry` as one fact and `year` as the
+				 *  other; `technology` is still recorded but no longer rendered
+				 *  anywhere. */
+				company: z.string(),
 				industry: z.string(),
 				technology: z.string(),
 				year: z.number().int(),
@@ -69,10 +71,13 @@ const work = defineCollection({
 				 *  everything below `order` is unused and can be omitted, `roles`
 				 *  excepted (still required — see above).
 				 *  `unlisted` builds the page but keeps it off the homepage.
-				 *  `external` lists the card linking straight to `externalUrl`
+				 *  `external` lists the work linking straight to `externalUrl`
 				 *  instead of a local page — no page is built, same as
-				 *  `coming-soon`, but the card is clickable, since this is real,
-				 *  viewable work rather than something nobody can look at yet. */
+				 *  `coming-soon`, but it is clickable, since this is real,
+				 *  viewable work rather than something nobody can look at yet.
+				 *  It is not a card: the homepage lists external work as compact
+				 *  rows under the cards ("Earlier work"), so a deck in Drive never
+				 *  wears the same weight as a case study on the site. */
 				status: z.enum(['published', 'coming-soon', 'unlisted', 'external']).default('published'),
 
 				/** Where an `external` card sends the visitor. Required only for
