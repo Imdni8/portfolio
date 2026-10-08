@@ -1,27 +1,16 @@
 ---
 /* The homepage's opening row, from Figma's 20302:1154: the name and role on
-   the left, the tagline on the right — "Ships ▢▢▢▢▢▢▢▢ / thoughtful products
+   the left, the tagline on the right — "Ships ▢▢▢▢▢▢▢ / thoughtful products
    / that drive results".
 
-   Two pieces of the tagline move, and both are scripted in home-motion.ts:
-
-   - The squares after "Ships" are the last seven days of GitHub
-     contributions (commit-strip.ts fills them). Rendered here empty, so
-     without JS — or if the fetch fails — the row stands as seven outlined
-     squares and nothing is claimed. Hovering or focusing them shows the
-     total in a tooltip, once there is a total to show.
-   - The u, l and t of "results" grow like the bars of a chart, one after
-     the next. Their resting (grown) height is set here in CSS, so without
-     JS or under reduced motion the word is drawn at its end state; the
-     script only plays the growth on top. */
+   The squares after "Ships" are the last seven days of GitHub
+   contributions (commit-strip.ts fills them). Rendered here empty, so
+   without JS — or if the fetch fails — the row stands as seven outlined
+   squares and nothing is claimed. Hovering or focusing them shows the
+   total in a tooltip, once there is a total to show. */
 import { links } from '../../data/links';
 
 const DAYS = 7;
-
-/* How far each bar letter stands above its own height — read off the Figma
-   frame's "results" (20305:1200): u rises past the x-height to about an
-   ascender, l a little past its ascender, t well past both. */
-const BARS: Record<string, number> = { u: 1.6, l: 1.35, t: 2 };
 ---
 
 {/* data-nav-scrim: the first thing that scrolls up under the nav, so the
@@ -29,10 +18,10 @@ const BARS: Record<string, number> = { u: 1.6, l: 1.35, t: 2 };
 <header class="intro" data-nav-scrim>
 	<div class="intro__id">
 		<h1 class="intro__name type-heading">Tousif Rahaman</h1>
-		<p class="intro__role type-meta">Lead designer (IC)</p>
+		<p class="intro__role type-card-meta">Lead designer (IC)</p>
 	</div>
 
-	<p class="intro__tagline type-subtitle" data-tagline>
+	<p class="intro__tagline type-subtitle">
 		<span class="intro__line">
 			Ships
 			<a class="commit-strip" href={links.github} target="_blank" rel="noopener noreferrer" data-commit-strip>
@@ -46,24 +35,7 @@ const BARS: Record<string, number> = { u: 1.6, l: 1.35, t: 2 };
 		</span>
 		<span class="intro__line"><em class="intro__accent">thoughtful</em> products</span>
 		<span class="intro__line">
-			that drive
-			{/* One word to assistive tech; seven letters on screen. */}
-			<span class="bars">
-				<span class="sr-only">results</span>
-				<span class="bars__word" aria-hidden="true">
-					{
-						[...'results'].map((letter) =>
-							BARS[letter] ? (
-								<span class="bars__bar" style={`--bar: ${BARS[letter]}`} data-bar>
-									{letter}
-								</span>
-							) : (
-								<span class="bars__letter">{letter}</span>
-							),
-						)
-					}
-				</span>
-			</span>
+			that drive results
 		</span>
 	</p>
 </header>
@@ -241,26 +213,5 @@ const BARS: Record<string, number> = { u: 1.6, l: 1.35, t: 2 };
 			translate: 0;
 			transition: opacity 150ms ease;
 		}
-	}
-
-	/* ---- Bars ------------------------------------------------------------
-	   The bar letters stand at their grown height at rest; home-motion.ts
-	   plays the growth from 1 on load and on hover. `scale` grows each one
-	   up from its own baseline, so the word keeps its spacing and only the
-	   three bars rise above it. */
-	.bars__word {
-		display: inline-flex;
-		align-items: baseline;
-	}
-
-	/* The origin is the baseline, not the box's bottom edge — growing from
-	   the bottom of the descender space would lift each bar off the line.
-	   At `line-height: 1`, DM Sans's baseline sits 0.84em from the box's
-	   top (ascent 0.992 + half of the 1 − 1.302 leading). */
-	.bars__bar {
-		display: inline-block;
-		line-height: 1;
-		transform-origin: 50% 0.84em;
-		scale: 1 var(--bar);
 	}
 </style>

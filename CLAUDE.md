@@ -421,12 +421,6 @@ and `work-spotlight.ts` were removed with this redesign.)
     (`.commit-strip__tip`, aria-hidden since the sr-only text says the
     same). It shows only once `commit-strip.ts` stamps `data-ready`, so a
     failed fetch shows no tooltip either.
-  - **"results"**: u, l and t are bars. Their grown height is the CSS
-    resting state (`--bar`: 1.6, 1.35, 2, read off the Figma frame
-    `20305:1200`), scaled from the baseline (`transform-origin: 50% 0.84em`
-    at `line-height: 1`). `home-motion.ts` plays the growth from 1 with Web
-    Animations, 120ms apart, once on arrival and again on mouse-enter of the
-    tagline. Without JS or under reduced motion the word stands grown.
 - **The bio** (`HomeBio.astro`), four `.type-body` paragraphs, from the
   Paper frame "Portfolio components", 24px (`--spacing-3xl`) apart. The copy
   is one colour, `--text`. Every named thing has a **tile** in front of it —
