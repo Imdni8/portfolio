@@ -518,6 +518,8 @@ and `work-spotlight.ts` were removed with this redesign.)
     Institute of Design (NID)". The exception is the profile links
     (LinkedIn, GitHub): glyph only, their names sr-only, by request —
     the logos are recognisable on their own.
+    The résumé and email links lead with Lucide glyphs (`file-text`,
+    `mail`) the same size, underline on the word only (`.icon-link`).
   - **The calendar is the one toggle left**, because it adds detail
     rather than hiding a fact. A mouse opens it by hover (CSS, gated to
     fine pointers) and its click does nothing; a tap or Enter toggles
