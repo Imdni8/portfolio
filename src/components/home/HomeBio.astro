@@ -399,19 +399,37 @@ const rest = formatRest(span);
 
 	/* ---- Links -----------------------------------------------------------
 	   The copy is all one colour, so a link is told apart by a wavy
-	   underline under its word, in the brand amber (--primary). It comes up
-	   to the text's own colour on hover. A profile link is its glyph
-	   alone, with nothing to underline; the résumé and email links lead
-	   with a glyph and underline only their word (.link inside
-	   .icon-link). */
+	   underline under its word, in the brand amber (--primary). A profile
+	   link is its glyph alone, with nothing to underline; the résumé and
+	   email links lead with a glyph and underline only their word (.link
+	   inside .icon-link).
+
+	   The wave is drawn rather than a `text-decoration: wavy`, because a
+	   text decoration's phase can't be animated: a strip in --primary, cut
+	   to a tiled wave by a mask, under the word. On hover it squiggles —
+	   the mask slides one wavelength along, on a loop — and keeps its
+	   colour. Each link is nowrap, so the strip is never split across
+	   two lines. */
 	.link {
-		text-decoration-line: underline;
-		text-decoration-style: wavy;
-		text-decoration-color: var(--primary);
-		text-decoration-thickness: 1.5px;
-		text-underline-offset: 0.25em;
-		text-decoration-skip-ink: none;
-		transition: text-decoration-color 150ms ease;
+		--wave-length: 8px;
+		position: relative;
+		white-space: nowrap;
+		text-decoration: none;
+	}
+
+	.link::after {
+		content: '';
+		position: absolute;
+		inset-inline: 0;
+		inset-block-start: calc(100% - 2px);
+		block-size: 4px;
+		background: var(--primary);
+		mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4'%3E%3Cpath d='M0 2Q2 0 4 2T8 2' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") 0 0 / var(--wave-length) 100% repeat-x;
+		pointer-events: none;
+	}
+
+	@keyframes link-squiggle {
+		to { mask-position: var(--wave-length) 0; }
 	}
 
 	.profile-link,
@@ -422,9 +440,9 @@ const rest = formatRest(span);
 	}
 
 	@media (hover: hover) and (pointer: fine) {
-		.link:hover,
-		.icon-link:hover .link {
-			text-decoration-color: var(--text);
+		.link:hover::after,
+		.icon-link:hover .link::after {
+			animation: link-squiggle 400ms linear infinite;
 		}
 
 		.profile-link:hover {
@@ -509,6 +527,10 @@ const rest = formatRest(span);
 	/* Reduced motion keeps the change and drops the movement: the width
 	   steps, the text fades. */
 	@media (prefers-reduced-motion: reduce) {
+		.link::after {
+			animation: none !important;
+		}
+
 		.reveal {
 			transition: none;
 		}

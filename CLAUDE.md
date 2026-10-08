@@ -478,7 +478,11 @@ and `work-spotlight.ts` were removed with this redesign.)
   mark's intrinsic SVG height can't shift it), like an app icon beside its
   name. Tile and name plus any punctuation are one nowrap `.mark` run.
   Links carry a wavy `--primary` (amber) underline, since colour no
-  longer sets them apart.
+  longer sets them apart. It's a masked `::after` strip, not
+  `text-decoration: wavy` (whose phase can't animate), so on hover
+  (fine pointers) it squiggles — the mask slides one 8px wavelength on a
+  400ms loop — without changing colour. Each `.link` is nowrap so the
+  strip never splits across lines. Reduced motion: no squiggle.
   - **Type**: `.type-body`'s family and weight on its own rung — 16px on
     `--lh-bio` (1.75, 28px lines), stepping up to `--size-bio` (17px,
     29.75px lines) from 48rem, with `text-wrap: pretty`. No measure cap:
