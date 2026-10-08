@@ -95,6 +95,14 @@ const NAV_DAMP = 0.3;
 /** The ramp from NAV_DAMP back to full strength below the nav, in CSS px. */
 const NAV_RAMP = 64;
 
+/** How much of the bands' strength is left behind the text column — the
+ *  host's `--blinds-column` width, centred. The copy sits there, so the
+ *  bands dim under it and keep their full strength out to either side. */
+const COLUMN_DAMP = 0.5;
+/** The ramp from COLUMN_DAMP back to full strength outside the column, in
+ *  CSS px. It starts at the column's edge, so the copy is all dimmed. */
+const COLUMN_RAMP = 160;
+
 /** Where the spotlight rests when nothing is steering it: centred across,
  *  near the top — fractions of the canvas, y measured from the top. */
 const REST = [0.5, 0.15] as const;
@@ -145,7 +153,9 @@ uniform float uMaskEnd;
 uniform float uMaskJitter;
 uniform vec2  uNav;     /* where the nav clearance ends and the ramp ends, px from the top */
 uniform float uNavDamp;
-uniform vec3  uColor[${MAX_STOPS}];
+uniform vec2  uColumn;  /* the text column's half-width and the ramp past it, px */
+uniform float uColumnDamp;
+uniform vec3 uColor[${MAX_STOPS}];
 uniform int   uColorCount;
 
 float rand(vec2 co) {
@@ -195,6 +205,10 @@ void main() {
 	/* Held back behind the nav, and ramped back up just below it. */
 	float fromTopPx = uRes.y - gl_FragCoord.y;
 	col = mix(vec3(0.5), col, mix(uNavDamp, 1.0, smoothstep(uNav.x, uNav.y, fromTopPx)));
+
+	/* Held back behind the text column, and ramped back up either side. */
+	float fromCentrePx = abs(gl_FragCoord.x - uRes.x * 0.5);
+	col = mix(vec3(0.5), col, mix(uColumnDamp, 1.0, smoothstep(uColumn.x, uColumn.x + uColumn.y, fromCentrePx)));
 
 	gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
@@ -265,6 +279,14 @@ export function createGradientBlinds(host: HTMLElement, options: GradientBlindsO
 	}
 	host.append(canvas);
 
+	/* The text column's width comes from the host's `--blinds-column`, which
+	   can be any CSS length (`--measure-home` is in rem); an empty box sized
+	   by it lets the browser resolve it to px. */
+	const columnProbe = document.createElement('div');
+	columnProbe.style.cssText =
+		'position:absolute;visibility:hidden;pointer-events:none;block-size:0;inline-size:var(--blinds-column, 0px)';
+	host.append(columnProbe);
+
 	let program: WebGLProgram | null = null;
 	let u: Record<string, WebGLUniformLocation | null> = {};
 	let stopCount = 0;
@@ -304,6 +326,8 @@ export function createGradientBlinds(host: HTMLElement, options: GradientBlindsO
 				'uMaskJitter',
 				'uNav',
 				'uNavDamp',
+				'uColumn',
+				'uColumnDamp',
 				'uColor',
 				'uColorCount',
 			].map((name) => [name, gl.getUniformLocation(program!, name)]),
@@ -380,6 +404,10 @@ export function createGradientBlinds(host: HTMLElement, options: GradientBlindsO
 		if (!program) return;
 		gl.uniform2f(u.uRes, canvas.width, canvas.height);
 		gl.uniform2f(u.uNav, o.navClearance * dpr, (o.navClearance + NAV_RAMP) * dpr);
+		/* No `--blinds-column` (the Storybook stories): nothing is dimmed. */
+		const column = columnProbe.getBoundingClientRect().width;
+		gl.uniform2f(u.uColumn, (column / 2) * dpr, COLUMN_RAMP * dpr);
+		gl.uniform1f(u.uColumnDamp, column > 0 ? COLUMN_DAMP : 1);
 		const byWidth = Math.max(1, Math.floor(width / o.blindMinWidth));
 		gl.uniform1f(u.uBlindCount, Math.max(1, Math.min(o.blindCount, byWidth)));
 		draw();
@@ -435,6 +463,7 @@ export function createGradientBlinds(host: HTMLElement, options: GradientBlindsO
 	} catch (error) {
 		console.error(error);
 		canvas.remove();
+		columnProbe.remove();
 		host.dataset.gradientBlinds = 'unsupported';
 		return { destroy: () => {} };
 	}
@@ -463,6 +492,7 @@ export function createGradientBlinds(host: HTMLElement, options: GradientBlindsO
 			canvas.removeEventListener('webglcontextrestored', onContextRestored);
 			gl.getExtension('WEBGL_lose_context')?.loseContext();
 			canvas.remove();
+			columnProbe.remove();
 			host.dataset.gradientBlinds = '';
 		},
 	};

@@ -29,28 +29,14 @@
  * request is discarded and fetched a second time — the exact opposite of the
  * point. `as="font"` is what sets that mode.
  *
- * The homepage is the exception (`home`): the only text at its top is the
- * headline, set in Montserrat and Playfair Display (HomeHero.astro), so it
- * claims those three files instead — the 300 and 600 cuts and the one italic
- * — and nothing else. The DM faces are below the fold there.
- *
  * The URLs come through Vite (`?url`) rather than being written out, because
  * the built filenames are content-hashed — a hand-written path would go stale
  * on the next font upgrade and preload a 404.
  */
 import sansLatin from '@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2?url';
 import serifLatin from '@fontsource/dm-serif-display/files/dm-serif-display-latin-400-normal.woff2?url';
-import headlineLight from '@fontsource/montserrat/files/montserrat-latin-300-normal.woff2?url';
-import headlineName from '@fontsource/montserrat/files/montserrat-latin-600-normal.woff2?url';
-import headlineAccent from '@fontsource/playfair-display/files/playfair-display-latin-700-italic.woff2?url';
 
-interface Props {
-	/** The homepage, whose first screen is set in the headline faces. */
-	home?: boolean;
-}
-
-const { home = false } = Astro.props;
-const files = home ? [headlineLight, headlineName, headlineAccent] : [serifLatin, sansLatin];
+const files = [serifLatin, sansLatin];
 ---
 
 {files.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}

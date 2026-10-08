@@ -1,0 +1,41 @@
+---
+/**
+ * Applies the reader's saved theme before anything paints. The toggle that
+ * saves it is in SiteNav.astro; this is the half that has to run first.
+ *
+ * Every page's <html> is written with `data-theme="dark"` — dark is the
+ * default, and a reader who never touches the toggle gets it whatever their
+ * OS says. A stored choice overrides that attribute here.
+ *
+ * Three things make it work on a static site:
+ *
+ * - `is:inline` keeps Astro from bundling it, so it stays a plain blocking
+ *   script rather than a module that defers.
+ * - It must sit in <head>, before any markup paints. A script that ran after
+ *   the body would show a flash of the default theme first.
+ * - `<ClientRouter />` copies the incoming page's <html> attributes over on
+ *   every soft navigation, which would put `data-theme="dark"` back, so the
+ *   choice is re-applied on `astro:after-swap`. The listener is bound once:
+ *   the router may re-run this script.
+ *
+ * localStorage can throw (blocked site data, some private windows), so every
+ * read is guarded and a failure just leaves the default.
+ */
+---
+
+<script is:inline>
+	(() => {
+		const apply = () => {
+			let theme = null;
+			try {
+				theme = localStorage.getItem('theme');
+			} catch {}
+			if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+		};
+
+		apply();
+		if (window.__themeSwapBound) return;
+		window.__themeSwapBound = true;
+		document.addEventListener('astro:after-swap', apply);
+	})();
+</script>

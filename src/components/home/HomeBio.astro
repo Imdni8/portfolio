@@ -1,0 +1,546 @@
+---
+/* The homepage bio — four short paragraphs, from the Paper frame
+   "Portfolio components".
+
+   The look: the copy is one lit colour (--text), and every named thing — a
+   product, a school, a company, a profile — has its mark on a small tile in
+   front of it, the way an app icon sits beside its name. The tile and the
+   name are one nowrap run, punctuation included, so a tile never wraps away
+   from its word.
+
+   Every name is visible. The school, the companies and the profiles used
+   to be tiles alone, their names sliding out on hover — but those are the
+   names a skimming reader is looking for, a tap never revealed them on
+   touch, and opening one shoved the rest of the line sideways. Now each
+   reads as tile and name, like Agent Studio in paragraph two.
+
+   One opening is left, and it adds detail rather than hiding a fact:
+   "[6] years" slides open to "[6] years, 6 months and 7 days". The number
+   is printed on a calendar tile, Google Calendar's app icon as a white
+   tile with an amber band: the tile is the number, so the words start at
+   "years". A mouse opens it by hover (CSS, gated to fine pointers); a tap
+   or Enter toggles `data-open` (home-motion.ts). Once opened it is pure
+   CSS: a `grid-template-columns` of 0fr ↔ 1fr animates the width without
+   measuring anything, and the text arrives with the site's 4px blur.
+   Screen readers get the whole duration from an sr-only copy; the moving
+   parts are aria-hidden.
+
+   The paragraph-four email is the page's one way to get in touch, so it is
+   written out in full rather than hidden behind a "contact" label. */
+import { links } from '../../data/links';
+import { icons } from '../ui/icons';
+import { companyMarks } from '../../data/companies';
+import { CAREER_START, since, formatYears, formatUnit, formatRest } from './career';
+import agentStudioRaw from '../../assets/homepage/agent_studio.svg?raw';
+import nidRaw from '../../assets/homepage/nid-logo.svg?raw';
+import githubRaw from '../../assets/footer/Github.svg?raw';
+import linkedinRaw from '../../assets/footer/Linkedin.svg?raw';
+import codeMarkRaw from '../../assets/homepage/code-mark.svg?raw';
+
+/* Paragraph three's companies, in reading order. Their marks and tile
+   grounds come from src/data/companies.ts, which the work list's metadata
+   shares. NID carries its own white ground and Agent Studio its own
+   gradient, so those stay as drawn here. */
+const companies = ['Medable', 'Philips', 'J&J'].map((name) => ({ name, ...companyMarks[name] }));
+
+/* Paragraph four's links. */
+const profiles = [
+	{ name: 'LinkedIn', href: links.linkedin, svg: linkedinRaw },
+	{ name: 'GitHub', href: links.github, svg: githubRaw },
+];
+
+const span = since(CAREER_START);
+const years = formatYears(span);
+const unit = formatUnit(span);
+const rest = formatRest(span);
+---
+
+<div class="bio">
+	<p class="type-body">
+		I have{' '}
+		<button class="toggle" type="button" data-toggle>
+			<span class="sr-only" data-duration-full>{years}{rest}</span>
+			<span class="toggle__visual" aria-hidden="true">
+				<span class="calendar"><span class="calendar__day" data-duration-number>{span.years}</span></span>
+				<span class="toggle__text"><span data-duration-unit>{unit}</span><span class="reveal"><span class="reveal__inner" data-duration-rest>{rest}</span></span></span>
+			</span>
+		</button>{' '}
+		of experience designing complex enterprise and B2B SaaS products, from problem to{' '}
+		<span class="mark">production<span class="code-mark" aria-hidden="true" data-code-mark set:html={codeMarkRaw} />.</span>
+	</p>
+
+	<p class="type-body">
+		Most recently, I was the lead designer on{' '}
+		<span class="mark"><span class="tile tile--bare" aria-hidden="true" set:html={agentStudioRaw} />Agent Studio,</span> working
+		on AI governance features like <a class="link" href="/work/agent-versioning" data-cursor="open">versioning</a>,{' '}
+		<a class="link" href="/work/audit-logs" data-cursor="open">audit logs</a> and model management that made Agent Studio ready for large enterprises.
+	</p>
+
+	<p class="type-body">
+		I graduated from{' '}
+		<span class="mark"><span class="tile tile--fill" aria-hidden="true" set:html={nidRaw} /><span aria-hidden="true">NID</span><span class="sr-only">the National Institute of Design (NID)</span></span>{' '}
+		and previously worked at{' '}
+		{
+			companies.map((company, i) => (
+				<>
+					<span class="mark"><span class={`tile tile--${company.tone}`} aria-hidden="true" set:html={company.svg} />{company.name}{i < companies.length - 2 && ','}{i === companies.length - 1 && '.'}</span>
+					{i < companies.length - 2 && ' '}
+					{i === companies.length - 2 && ' and '}
+				</>
+			))
+		}
+	</p>
+
+	<p class="type-body">
+		See more on{' '}
+		{
+			profiles.map((profile, i) => (
+				<>
+					{/* The link and the punctuation after it are one run. */}
+					<span class="mark"><a class="profile-link" href={profile.href} target="_blank" rel="noopener noreferrer">
+						<span class="tile tile--glyph" aria-hidden="true" set:html={profile.svg} /><span class="sr-only">{profile.name} (opens in new tab)</span>
+					</a>{i === 1 && ','}</span>
+					{i === 0 && ' and '}
+				</>
+			))
+		}
+		{' '}download my{' '}
+		<span class="mark"><a class="icon-link" href={links.resume} target="_blank" rel="noopener noreferrer" data-cursor="open"><span class="tile tile--glyph" aria-hidden="true" set:html={icons['file-text']} /><span class="link">resume</span><span class="sr-only"> (opens in new tab)</span></a>,</span>{' '}
+		or say hi at{' '}
+		<span class="mark"><a class="icon-link" href={`mailto:${links.email}`} data-cursor="copy" data-copy={links.email}><span class="tile tile--glyph" aria-hidden="true" set:html={icons.mail} /><span class="link">{links.email}</span></a>.</span>
+	</p>
+
+	{/* Announces the email copy (link-cursor.ts). */}
+	<p class="sr-only" role="status" data-cursor-status></p>
+</div>
+
+<style>
+	.bio {
+		display: grid;
+		gap: var(--spacing-3xl);
+		color: var(--text);
+	}
+
+	/* The bio's own reading rung: .type-body's 16px family and weight, on a
+	   looser 1.75 leading, stepping up to 17px from 48rem. */
+	.bio > p {
+		line-height: var(--lh-bio);
+		text-wrap: pretty;
+	}
+
+	@media (min-width: 48rem) {
+		.bio > p {
+			font-size: var(--size-bio);
+		}
+	}
+
+	/* A name and the tile before it — plus any punctuation that follows —
+	   are one unbreakable run. */
+	.mark {
+		white-space: nowrap;
+	}
+
+	/* ---- Tiles -----------------------------------------------------------
+	   An app-icon chip: a 24px square at the 2px radius, with the mark
+	   inside it. The default ground is white (--secondary) with the mark
+	   inked --text-on-secondary (17.3:1), so the tile reads the same on
+	   either theme; the modifiers below swap the ground for the mark's own.
+	   It leads its word by 8px, and is centred on the x-height
+	   (`vertical-align: middle`) rather than standing on the baseline — by
+	   the box, not by its contents, so a mark's own intrinsic height can't
+	   move it. Not interactive on its own and never read out: the name is. */
+	.tile {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+		inline-size: var(--spacing-3xl);
+		block-size: var(--spacing-3xl);
+		margin-inline-end: var(--spacing-md);
+		border-radius: var(--radius-xxs);
+		overflow: clip;
+		background: var(--secondary);
+		color: var(--text-on-secondary);
+		vertical-align: middle;
+	}
+
+	/* The glyph fills most of the tile: a Lucide icon through its own 1em
+	   box, a raw mark sized directly. */
+	.tile :global(.icon) {
+		font-size: 1em;
+	}
+
+	.tile > :global(svg) {
+		inline-size: 75%;
+		block-size: 75%;
+	}
+
+	/* NID's mark is drawn on its own white ground and fills the tile edge
+	   to edge, less a 1px inset. */
+	.tile--fill > :global(svg) {
+		inline-size: calc(100% - 2px);
+		block-size: calc(100% - 2px);
+	}
+
+	/* Agent Studio's gradient and Philips' shield are drawn on no ground
+	   of their own, so they stand bare. */
+	.tile--bare {
+		background: none;
+		margin-inline-end: var(--spacing-xs);
+	}
+
+	.tile--bare > :global(svg) {
+		inline-size: 100%;
+		block-size: 100%;
+	}
+
+	/* The profile marks are Lucide-style outline glyphs, set in line with no
+	   tile behind them, so they take the copy's own colour (--text) and
+	   follow the theme with it. They were --gray-50, a primitive that is
+	   white on both grounds, and vanished on light. */
+	.tile--glyph {
+		inline-size: var(--spacing-2xl);
+		block-size: var(--spacing-2xl);
+		background: none;
+		color: var(--text);
+	}
+
+	/* The glyph stands alone — its name is sr-only — so it takes no gap
+	   after it, just a little air before. */
+	.profile-link .tile--glyph {
+		margin-inline: 2px 0;
+	}
+
+	/* The résumé's and the email's Lucide glyphs lead their underlined
+	   word, like a tile its name. */
+	.icon-link .tile--glyph {
+		margin-inline: 2px var(--spacing-xs);
+	}
+
+	/* Text and glyph are centred by the box, which leaves the copy reading
+	   1px high against the outline glyphs; lifting the glyphs 1px sets the
+	   text 1px lower relative to them, without moving the line itself. */
+	.profile-link .tile--glyph,
+	.icon-link .tile--glyph {
+		translate: 0 -3px;
+	}
+
+	.tile--glyph > :global(svg) {
+		inline-size: 100%;
+		block-size: 100%;
+	}
+
+	/* Brand grounds (--brand-* in tokens.css), the mark in white on them. */
+	.tile--medable,
+	.tile--jnj {
+		color: var(--gray-50);
+	}
+
+	.tile--medable {
+		background: var(--brand-medable);
+	}
+
+	.tile--medable > :global(svg) {
+		inline-size: 62%;
+		block-size: 62%;
+	}
+
+	.tile--jnj {
+		background: var(--brand-jnj);
+	}
+
+	.tile--jnj > :global(svg) {
+		inline-size: 80%;
+		block-size: auto;
+	}
+
+	/* ---- Calendar --------------------------------------------------------
+	   The "years" number, printed on a calendar: a white tile (--secondary)
+	   with an amber binding band across the top (--primary) and the number
+	   in --text-on-secondary, the same ink as every other tile's mark
+	   (17.3:1). It leads its word, so the 8px gap is on its trailing side.
+
+	   Sized from its number: the number is 14px (--size-fine) so it reads
+	   at a glance, and the tile is that over 0.56 — the number-to-tile
+	   proportion it was drawn at — so about 25px. The band is the top 28%,
+	   the number centred in the 72% below it.
+
+	   Aligned by the number, not the box: the "6" sits on the sentence's
+	   baseline, so it reads as part of the line and the tile hangs round it.
+	   An inline-block's baseline is its last line of text — the number —
+	   as long as nothing makes it a clipping box, which is why the band is
+	   a background gradient rather than a child clipped by `overflow`
+	   (`overflow: hidden` would move the baseline to the box's bottom
+	   edge). The band then follows the corner radius on its own.
+
+	   About 25px against a 28–30px line, so `--spacing-xs` is pulled off
+	   each block margin: the line box only ever sees ~17px of the tile, and
+	   it can't push its line apart from the ones around it. */
+	.calendar {
+		--calendar-size: calc(var(--size-fine) / 0.56);
+		display: inline-block;
+		box-sizing: border-box;
+		inline-size: var(--calendar-size);
+		block-size: var(--calendar-size);
+		/* The band's height, keeping the number below it. */
+		padding-block-start: calc(var(--calendar-size) * 0.28);
+		margin-block: calc(-1 * var(--spacing-xs));
+		margin-inline-end: var(--spacing-md);
+		border-radius: var(--radius-sm);
+		background: linear-gradient(var(--primary) 0 28%, var(--secondary) 28%);
+		color: var(--text-on-secondary);
+		text-align: center;
+	}
+
+	.calendar__day {
+		display: block;
+		font-family: var(--font-sans);
+		font-weight: var(--weight-medium);
+		font-size: var(--size-fine);
+		line-height: calc(var(--calendar-size) * 0.72);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ---- Code mark -------------------------------------------------------
+	   "production" ends in a small </> with a cursor, in --primary — our
+	   own drawing (assets/homepage/code-mark.svg), sized in em so it
+	   tracks the copy. Decoration only: aria-hidden, the word says it.
+	   Inside the .mark run, so it never wraps away from its word.
+
+	   It idles as a cursor typing: it deletes the </> and types it again,
+	   on a loop (below), and pulses on its own 2s loop throughout. Paused
+	   until code-mark.ts sees it on screen (`data-playing`), so without JS
+	   it stands still. Reduced motion keeps the pulse and drops the
+	   typing. */
+	.code-mark {
+		display: inline-flex;
+		inline-size: 2em;
+		block-size: 1em;
+		margin-inline-start: 0.3em;
+		vertical-align: -0.15em;
+		color: var(--primary);
+	}
+
+	.code-mark > :global(svg) {
+		inline-size: 100%;
+		block-size: 100%;
+		overflow: visible;
+	}
+
+	.code-mark :global([data-part]) {
+		transform-box: fill-box;
+		transform-origin: 50% 50%;
+	}
+
+	.code-mark :global([data-part='block']) {
+		animation: code-mark-pulse 2s ease-in-out infinite;
+	}
+
+	/* The typing loop: one 5s cycle (1.25s in), every step instant, as a
+	   keyboard would make it. The cursor backspaces ">", "/" and "<" in
+	   turn, jumping one character cell (12 units of the 48-unit drawing)
+	   left each time, waits on the empty line, then types them back a
+	   little faster than it deleted them. */
+	@media (prefers-reduced-motion: no-preference) {
+		.code-mark :global([data-part='caret-right']) {
+			animation: code-mark-type-3 5s step-end 1.25s infinite;
+		}
+
+		.code-mark :global([data-part='slash']) {
+			animation: code-mark-type-2 5s step-end 1.25s infinite;
+		}
+
+		.code-mark :global([data-part='caret-left']) {
+			animation: code-mark-type-1 5s step-end 1.25s infinite;
+		}
+
+		.code-mark :global([data-part='block']) {
+			animation:
+				code-mark-cursor 5s step-end 1.25s infinite,
+				code-mark-pulse 2s ease-in-out infinite;
+		}
+	}
+
+	/* After the `animation` shorthands, which reset the play state. */
+	.code-mark:not([data-playing]) :global([data-part]) {
+		animation-play-state: paused;
+	}
+
+	/* Each character is gone from its backspace to its retyping. */
+	@keyframes code-mark-type-3 {
+		0% { opacity: 1; }
+		30% { opacity: 0; }
+		70% { opacity: 1; }
+	}
+
+	@keyframes code-mark-type-2 {
+		0% { opacity: 1; }
+		38% { opacity: 0; }
+		64% { opacity: 1; }
+	}
+
+	@keyframes code-mark-type-1 {
+		0% { opacity: 1; }
+		46% { opacity: 0; }
+		58% { opacity: 1; }
+	}
+
+	@keyframes code-mark-cursor {
+		0% { translate: 0; }
+		30% { translate: -12px 0; }
+		38% { translate: -24px 0; }
+		46% { translate: -36px 0; }
+		58% { translate: -24px 0; }
+		64% { translate: -12px 0; }
+		70% { translate: 0; }
+	}
+
+	@keyframes code-mark-pulse {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.65; }
+	}
+
+	/* ---- Links -----------------------------------------------------------
+	   The copy is all one colour, so a link is told apart by a wavy
+	   underline under its word, in the brand amber (--primary). A profile
+	   link is its glyph alone, with nothing to underline; the résumé and
+	   email links lead with a glyph and underline only their word (.link
+	   inside .icon-link).
+
+	   The wave is drawn rather than a `text-decoration: wavy`, because a
+	   text decoration's phase can't be animated: a strip in --primary, cut
+	   to a tiled wave by a mask, under the word. On hover it squiggles
+	   once — the mask slides two wavelengths along and settles — and
+	   keeps its colour. Each link is nowrap, so the strip is never split across
+	   two lines. */
+	.link {
+		--wave-length: 8px;
+		position: relative;
+		white-space: nowrap;
+		text-decoration: none;
+	}
+
+	.link::after {
+		content: '';
+		position: absolute;
+		inset-inline: 0;
+		inset-block-start: calc(100% - 2px);
+		block-size: 4px;
+		background: var(--primary);
+		mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4'%3E%3Cpath d='M0 2Q2 0 4 2T8 2' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") 0 0 / var(--wave-length) 100% repeat-x;
+		pointer-events: none;
+	}
+
+	@keyframes link-squiggle {
+		to { mask-position: calc(2 * var(--wave-length)) 0; }
+	}
+
+	.profile-link,
+	.icon-link {
+		color: inherit;
+		text-decoration: none;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.link:hover::after,
+		.icon-link:hover .link::after {
+			animation: link-squiggle 600ms var(--ease-out);
+		}
+
+		.profile-link:hover {
+			opacity: 0.7;
+		}
+	}
+
+	.link:focus-visible,
+	.profile-link:focus-visible,
+	.icon-link:focus-visible,
+	.toggle:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-xs);
+	}
+
+	/* ---- Toggles ---------------------------------------------------------
+	   Read as part of the sentence, not as a control: the copy's own type
+	   and colour. */
+	.toggle {
+		display: inline;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		cursor: default;
+		-webkit-tap-highlight-color: transparent;
+		touch-action: manipulation;
+	}
+
+	.toggle__visual {
+		white-space: nowrap;
+	}
+
+	/* The opening. The moving part is a one-column grid whose track goes
+	   between 0fr (no width) and 1fr (its content's width); the text inside
+	   can't wrap, and is clipped while the track is narrower than it.
+	   240ms on --ease-out. */
+	.reveal {
+		display: inline-grid;
+		grid-template-columns: 0fr;
+		transition: grid-template-columns 240ms var(--ease-out);
+	}
+
+	/* `overflow: clip` with a little block margin, so descenders and the
+	   link underline aren't clipped along with the text's width. */
+	.reveal__inner {
+		min-inline-size: 0;
+		overflow: clip;
+		overflow-clip-margin: var(--spacing-xs);
+		white-space: nowrap;
+		opacity: 0;
+		filter: blur(var(--spacing-xs));
+		transition:
+			opacity 240ms var(--ease-out),
+			filter 240ms var(--ease-out);
+	}
+
+	/* Open — by `data-open` (tap, Enter) or by a hovering mouse. */
+	.toggle[data-open] .reveal {
+		grid-template-columns: 1fr;
+	}
+
+	.toggle[data-open] .reveal__inner {
+		opacity: 1;
+		filter: blur(0);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.toggle:hover .reveal {
+			grid-template-columns: 1fr;
+		}
+
+		.toggle:hover .reveal__inner {
+			opacity: 1;
+			filter: blur(0);
+		}
+	}
+
+	/* Reduced motion keeps the change and drops the movement: the width
+	   steps, the text fades. */
+	@media (prefers-reduced-motion: reduce) {
+		.link::after {
+			animation: none !important;
+		}
+
+		.reveal {
+			transition: none;
+		}
+
+		.reveal__inner {
+			filter: none !important;
+			transition: opacity 120ms ease;
+		}
+	}
+</style>

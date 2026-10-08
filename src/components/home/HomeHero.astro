@@ -1,127 +1,310 @@
 ---
-/* The homepage headline: "Tousif Rahaman / Designs thoughtful products that
-   drive results", from Figma's 20205:22325. Its entrance is CSS alone — see
-   the keyframes below — and its exit is home-reel.ts, which fades it out as
-   the cards rise.
-   The two never touch the same element: the entrance animates `.hero__name`
-   and `.hero__line` (`.hero__title` under reduced motion, where the reel
-   never runs); the exit writes to `[data-reel-fade]` on `.hero__title`'s
-   wrapper, because a running CSS animation outranks an inline style and
-   would pin whatever the script tried to set.
-   "thoughtful" additionally gets a one-shot decrypt/scramble reveal —
-   `decrypted-text.ts`, wired up in index.astro's `<script>` alongside
-   `home-reel.ts`. It starts scrambling immediately on load, running
-   underneath this entrance rather than after it, and only ever rewrites
-   `[data-decrypt-visual]`'s children, so it can't fight the fade/rise
-   above. Skipped outright under reduced motion, where the plain word
-   stands. */
+/* The homepage's opening block, from Paper's hero frame ("HP shader exp"):
+   the name, the role under it, then a month of GitHub bars running from
+   the left edge into "ships thoughtful", and "products that drive results"
+   right-aligned under that.
+
+   The bars are the last 30 days of GitHub contributions (commit-strip.ts
+   fills them), green on a day with any, grey on a day with none. Rendered
+   here empty, so without JS — or if the fetch fails — the row stands as 30
+   grey bars and nothing is claimed. Hovering or focusing them prints the
+   total across the bars, once there is a total to show. */
+import { links } from '../../data/links';
+
+const DAYS = 30;
 ---
 
-<div class="hero" data-reel-hero>
-	{/* data-nav-scrim-narrow: the stacked layout's nav-scrim target — see
-	    SiteNav.astro. Below the reel's breakpoint the page is a plain scroll,
-	    so the headline itself is what the nav watches. */}
-	<div class="hero__frame" data-reel-fade>
-		<h1 class="hero__title" data-nav-scrim-narrow>
-			<span class="hero__name type-hero-name">Tousif Rahaman</span>
-			{/* Broken where Figma breaks it. The frame is wide enough at 80px to
-			    pull "products" up onto the first line, which would leave the
-			    accent in the middle of a line rather than closing one. */}
-			<span class="hero__line type-hero">Designs <em class="type-hero-accent" aria-label="thoughtful"><span data-decrypt-visual aria-hidden="true">thoughtful</span></em><br /> products that drive results</span>
-		</h1>
+<header class="intro">
+	<h1 class="intro__name type-heading">Tousif Rahaman</h1>
+	<p class="intro__role type-body">Lead designer / Builder</p>
+
+	<div class="intro__row" style={`--days: ${DAYS}`}>
+		<a class="commit-strip" href={links.github} target="_blank" rel="noopener noreferrer" data-commit-strip>
+			<span class="commit-strip__days" aria-hidden="true">
+				{Array.from({ length: DAYS }, () => <span class="commit-strip__day" data-level="0" />)}
+			</span>
+			<span class="sr-only" data-commit-label>(my GitHub activity, opens in new tab)</span>
+			{/* aria-hidden: the sr-only label above already reads the same total. */}
+			<span class="commit-strip__tip" aria-hidden="true">
+				<span class="commit-strip__tip-text type-meta" data-commit-tip></span>
+			</span>
+		</a>
+		<p class="intro__ships type-subtitle">ships <em class="intro__accent">thoughtful</em></p>
 	</div>
-</div>
+
+	<p class="intro__results type-subtitle">products that drive results</p>
+</header>
 
 <style>
-	/* Centred top to bottom in whatever box hosts it — the reel's pinned
-	   viewport, or the stacked layout's first screen — and starting on the
-	   nav's own left edge (SiteNav.astro's `.nav-shell`: gutter outside, a
-	   --measure-chrome row centred inside), so the name sits on the same
-	   line as the brand mark above it, as Figma draws them (both at x = 197
-	   on a 1440 frame). */
-	.hero {
+	/* Four rows, 4px apart: the name, the role, the bars/tagline row, and
+	   the tagline's second line set against the column's right edge. */
+	.intro {
 		display: grid;
-		align-content: center;
-		padding-inline: var(--gutter);
+		gap: var(--spacing-xs);
+	}
+
+	/* 12px from the name's baseline to the role's capitals: both line
+	   boxes are trimmed to the ink (text-box), so the 4px row gap and the
+	   role's margin are the whole distance. */
+	.intro__name {
 		color: var(--text);
+		text-box: trim-end cap alphabetic;
 	}
 
-	/* Only the left edge is the nav's. The right is left open to the
-	   gutter: Montserrat at 80px sets "products that drive results" wider
-	   than the nav's 1000px row (Figma's block is 1087 wide on a 1440
-	   frame), and capping it there wraps "results" onto a line of its own.
-	   The inset is the nav row's own centring margin, restated as padding
-	   so the box itself still runs to the gutter. */
-	.hero__frame {
-		box-sizing: border-box;
-		inline-size: 100%;
-		padding-inline-start: max(0px, calc((100% - var(--measure-chrome)) / 2));
+	/* The bars take whatever "ships thoughtful" leaves, from the column's
+	   left edge to 8px short of the tagline, which ends flush with the
+	   column like the line under it. Baseline-aligned: the strip has no
+	   text, so its baseline is its bottom edge, and the bars stand on the
+	   tagline's baseline. */
+	.intro__row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) max-content;
+		align-items: last baseline;
+		column-gap: var(--spacing-md);
+		/* 16px from the role's baseline down to the top of the bars. The
+		   role is trimmed to its baseline and "ships" to its cap height, so
+		   the row starts at the tagline's cap line and the bars, standing on
+		   its baseline, sit (1cap − bar height) below that. This margin and
+		   the 4px row gap make up the rest. The row takes the tagline's
+		   font so `cap` measures the tagline's capitals. */
+		font-family: var(--font-sans);
+		font-size: var(--size-lead);
+		margin-block-start: calc(
+			var(--spacing-xl) - var(--spacing-xs) - (1cap - var(--spacing-lg))
+		);
 	}
 
-	/* No measure cap: nothing sits beside the headline, and the frame above
-	   already bounds it. The two lines are 16px apart, as drawn. */
-	.hero__title {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xl);
-		margin: 0;
-		font: inherit;
+	/* --text-body, not --text-muted: the role sits inside the bands, and
+	   muted grey over their brightest point measured 3.0:1 — too low for
+	   small text. */
+	.intro__role {
+		margin-block-start: var(--spacing-md);
+		color: var(--text-body);
+		text-box: trim-both cap alphabetic;
 	}
 
-	.hero__name,
-	.hero__line {
-		display: block;
+	/* 24px fixed rather than .type-subtitle's 18→20 clamp: the bars are
+	   measured against this text. */
+	.intro__ships,
+	.intro__results {
+		font-size: var(--size-lead);
 		color: var(--text);
+		white-space: nowrap;
 	}
 
-	/* `<em>` for the one word the sentence leans on; the class carries its
-	   face. `font-style` is restated only so a browser default can't be read
-	   as the reason it slants. */
-	.hero__line em {
+	/* 12px from the bars' bottom edge (the first line's baseline) to the
+	   top of "products". text-box trims the first line's box to its
+	   baseline and this line's to its cap height, so the 4px row gap plus
+	   --spacing-md is the whole distance. Where text-box isn't supported
+	   the lines keep their leading and sit further apart. */
+	.intro__ships {
+		text-box: trim-both cap alphabetic;
+	}
+
+	.intro__results {
+		margin-block-start: var(--spacing-md);
+		text-align: end;
+		text-box: trim-start cap alphabetic;
+	}
+
+	/* On a phone 30 bars beside the tagline would be 1–4px wide, so the
+	   bars take the full column and the tagline follows on its own two
+	   lines, still right-aligned. */
+	@media (max-width: 40rem) {
+		/* The bars lead the row here, so they start at its top: the 4px
+		   row gap and this make the 16px. Below them, the same 16px down to
+		   the tagline's capitals ("ships" is trimmed to its cap height). */
+		.intro__row {
+			grid-template-columns: minmax(0, 1fr);
+			row-gap: var(--spacing-xl);
+			margin-block-start: var(--spacing-lg);
+		}
+
+		.intro__ships {
+			justify-self: end;
+		}
+	}
+
+	/* "products that drive results" at 24px is 335px — exactly a 375px
+	   phone's column. Narrower than that it would run into the gutter, so
+	   the tagline steps down to the subtitle rung. */
+	@media (width < 23.4375rem) {
+		.intro__row,
+		.intro__ships,
+		.intro__results {
+			font-size: var(--size-subtitle);
+		}
+	}
+
+	/* The one word the sentence leans on, in the serif's drawn italic — the
+	   same face .type-heading--claim uses, so no new family and no
+	   synthesised slant. */
+	.intro__accent {
+		font-family: var(--font-display);
 		font-style: italic;
+		letter-spacing: var(--track-tight);
 	}
 
-	/* The entrance — the name, then the sentence 80ms behind it, both rising
-	   a little on --ease-out. Every keyframe ends on the element's own
-	   resting style, so filling `backwards` is all that is needed, and once
-	   each animation ends it leaves nothing behind. */
-	@media (prefers-reduced-motion: no-preference) {
-		.hero__name {
-			animation: hero-arrive 600ms var(--ease-out) 200ms backwards;
+	/* ---- Commit strip ---------------------------------------------------- */
+	.commit-strip {
+		position: relative;
+		display: flex;
+		min-inline-size: 0;
+		border-radius: var(--radius-xxs);
+		color: inherit;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.commit-strip:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	/* The gaps flex: at least 4px, and whatever the whole-pixel bars leave
+	   over is shared between them, so the strip spans its column exactly. */
+	.commit-strip__days {
+		display: flex;
+		flex: 1;
+		justify-content: space-between;
+		gap: var(--spacing-xs);
+	}
+
+	/* One thin pill per day, grey until commit-strip.ts stamps a level; any
+	   level above 0 turns it green. The fill eases in, so the strip fills
+	   left to right as each bar is stamped in turn.
+
+	   Each bar is its share of the strip rounded *down to a whole pixel*.
+	   An even `flex: 1` split leaves fractional widths (12.06px at 1440),
+	   and the screen snaps those edges inconsistently, so the 4px gaps read
+	   as uneven. The few pixels the rounding gives up are spread across the
+	   gaps (above). The plain calc() is the fallback where round() isn't
+	   supported. */
+	.commit-strip__day {
+		flex: none;
+		inline-size: calc((100% - (var(--days) - 1) * var(--spacing-xs)) / var(--days));
+		inline-size: round(down, (100% - (var(--days) - 1) * var(--spacing-xs)) / var(--days), 1px);
+		block-size: var(--spacing-lg);
+		border-radius: var(--radius-xxs);
+		background: var(--commit-empty);
+		transition: background-color 240ms var(--ease-out);
+	}
+
+	.commit-strip__day:not([data-level='0']) {
+		background: var(--commit-active);
+	}
+
+	/* The total, printed across the bars themselves rather than in a
+	   bubble above them (Paper, "Portfolio components" 2KR-0). The label
+	   sits on the strip's centre and the page ground pools behind it — a
+	   radial wash, opaque at the middle and gone by the strip's ends — so
+	   the bars under the words sink out and the ones at either end stay
+	   lit. The wash is --home-ground, so it is whatever the bars stand on in
+	   either theme, and the label is --text on it. It only exists once
+	   commit-strip.ts has a total and stamps `data-ready` — a failed fetch
+	   shows nothing, the same rule as the grey bars.
+
+	   The ellipse's tall radius (527%) makes the wash flat top to bottom, so
+	   it only fades across. --spacing-xxs either side of the 12px bars lets
+	   it cover their rounded ends. */
+	.commit-strip__tip {
+		position: absolute;
+		inset-block: calc(-1 * var(--spacing-xxs));
+		inset-inline: 0;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		pointer-events: none;
+	}
+
+	.commit-strip:not([data-ready]) .commit-strip__tip {
+		display: none;
+	}
+
+	/* Opening is two beats on a hovering mouse or keyboard focus: the wash
+	   spreads out from the centre to clear a space, then the words arrive
+	   in it. The wash grows from 40% of the strip, not from nothing, and
+	   fades as it grows over 200ms; the text holds for a beat after that
+	   (50ms more, so it starts at 250ms) and comes in on the bio's 4px
+	   blur. Closing runs the
+	   other way and quicker — the words go first, the wash follows 50ms
+	   behind — so the bars are never left showing a label with nothing
+	   under it. Transitions, not keyframes, so passing the pointer across
+	   the strip reverses from wherever it got to. */
+	.commit-strip__tip::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: radial-gradient(
+			ellipse 50% 527% at 50% 50% in oklab,
+			var(--home-ground) 0%,
+			73.7%,
+			transparent 100%
+		);
+		opacity: 0;
+		scale: 0.4 1;
+		transition:
+			opacity 150ms var(--ease-out) 50ms,
+			scale 150ms var(--ease-out) 50ms;
+	}
+
+	/* .type-meta's mono, on the tag rung and set solid to the bars' height
+	   so the line centres on them. */
+	.commit-strip__tip-text {
+		color: var(--text);
+		font-size: var(--size-tag);
+		line-height: var(--lh-tag);
+		white-space: nowrap;
+		opacity: 0;
+		filter: blur(var(--spacing-xs));
+		transition:
+			opacity 100ms var(--ease-out),
+			filter 100ms var(--ease-out);
+	}
+
+	.commit-strip:focus-visible .commit-strip__tip::before {
+		opacity: 1;
+		scale: 1;
+		transition:
+			opacity 200ms var(--ease-out),
+			scale 200ms var(--ease-out);
+	}
+
+	.commit-strip:focus-visible .commit-strip__tip-text {
+		opacity: 1;
+		filter: blur(0);
+		transition:
+			opacity 160ms var(--ease-out) 250ms,
+			filter 160ms var(--ease-out) 250ms;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.commit-strip:hover .commit-strip__tip::before {
+			opacity: 1;
+			scale: 1;
+			transition:
+				opacity 200ms var(--ease-out),
+				scale 200ms var(--ease-out);
 		}
 
-		.hero__line {
-			animation: hero-arrive 600ms var(--ease-out) 280ms backwards;
+		.commit-strip:hover .commit-strip__tip-text {
+			opacity: 1;
+			filter: blur(0);
+			transition:
+				opacity 160ms var(--ease-out) 250ms,
+				filter 160ms var(--ease-out) 250ms;
 		}
 	}
 
-	/* Reduced motion keeps the arrival and drops the movement: one short
-	   fade of the finished headline. */
+	/* Reduced motion keeps the order but drops the spread and the blur:
+	   the wash fades in where it stands, then the words fade in on it. */
 	@media (prefers-reduced-motion: reduce) {
-		.hero__title {
-			animation: hero-fade 200ms ease backwards;
-		}
-	}
-
-	@keyframes hero-arrive {
-		from {
-			opacity: 0;
-			translate: 0 var(--spacing-md);
+		.commit-strip__tip::before {
+			scale: 1;
 		}
 
-		to {
-			opacity: 1;
-			translate: 0 0;
-		}
-	}
-
-	@keyframes hero-fade {
-		from {
-			opacity: 0;
-		}
-
-		to {
-			opacity: 1;
+		.commit-strip__tip-text {
+			filter: none;
 		}
 	}
 </style>

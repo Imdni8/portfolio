@@ -23,9 +23,8 @@
    .type-heading--claim and .type-display set. DM Sans is variable, and its
    italic is what MDX *emphasis* renders in. DM Mono: 300 is the wordmark, 400
    every label, 400 italic the footer tagline's <em>, 500 the chapter rail's
-   active entry.
-   Montserrat (300, 600) and Playfair Display (700 italic) set the homepage
-   headline and nothing else — see --font-headline-sans. */
+   active entry. The serif's 400 italic is the homepage tagline's
+   "thoughtful" and .type-heading--claim. */
 @import '@fontsource/dm-serif-display/400.css';
 @import '@fontsource/dm-serif-display/400-italic.css';
 @import '@fontsource-variable/dm-sans';
@@ -34,9 +33,6 @@
 @import '@fontsource/dm-mono/400.css';
 @import '@fontsource/dm-mono/400-italic.css';
 @import '@fontsource/dm-mono/500.css';
-@import '@fontsource/montserrat/300.css';
-@import '@fontsource/montserrat/600.css';
-@import '@fontsource/playfair-display/700-italic.css';
 
 /* ---- 1 · Colour primitives -------------------------------------------------
    Amber is Tailwind's ramp, unmodified. Grey is custom — a cool cast that
@@ -69,6 +65,21 @@
 	--gray-800: #22292b;
 	--gray-900: #161b1d;
 	--gray-950: #090b0c;
+
+	/* The light theme's page ground: a neutral near-white, hsl(0 0% 95%)
+	   (#f2f2f2). Chosen over the cool --gray-100 it replaced so the light
+	   page reads as plain paper rather than tinted. Outside the grey ramp on
+	   purpose — it is a ground, not a step anything else should reach for —
+	   and still not pure white. Against it: --text 15.5:1, --text-body
+	   13.2:1, --text-muted 6.6:1, --primary-text 6.3:1, --border-strong
+	   4.1:1, --focus-ring 4.5:1 (all within 0.1 of gray-100's). --primary
+	   lands at 4.49:1, which is fine because it is never text here — a fill,
+	   and the bio's aria-hidden </> mark. */
+	--paper: hsl(0 0% 95%);
+
+	/* The dark ground's near-black (--home-ground's value, below), as a
+	   primitive so it can be named whatever the theme. */
+	--night: #070709;
 
 	/* ---- AI spectrum -------------------------------------------------------
 	   The only hues in the system outside the amber ramp and the cool grey,
@@ -113,33 +124,22 @@
    inline `<strong>` emphasis inside case-study prose (story-type.ts's
    storyProse), which needs to read as heavier than the surrounding copy at a
    glance — --weight-semibold below, not reached for anywhere else.
-
-   Two more families are not two more jobs. Montserrat and Playfair Display
-   set the homepage headline — "Tousif Rahaman / Designs thoughtful products
-   that drive results" — and nothing else, because that is the one line on
-   the site drawn in its own voice (the Figma frame it comes from sets it
-   that way). Montserrat runs at 300 for the sentence and 600 for the name;
-   Playfair is drawn only as 700 italic, for "thoughtful". The name's 600 and
-   the accent's 700 are this line's alone — the rest of the site keeps its
-   no-bold rule. Do not reach for either family anywhere else.
    -------------------------------------------------------------------------- */
 :root {
 	--font-display: 'DM Serif Display', Georgia, serif;
 	--font-sans: 'DM Sans Variable', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
 	--font-mono: 'DM Mono', ui-monospace, SFMono-Regular, monospace;
-	--font-headline-sans: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
-	--font-headline-serif: 'Playfair Display', Georgia, serif;
 
 	/* Sizes. The top three rungs clamp; 18px and below are fixed, because
 	   below that the fluid range is narrower than the rounding error. */
 	--size-stat: clamp(3.5rem, 6.5vw, 5rem); /* 56 → 80 — the biggest rung, for a case study's Outcome numerals (StatTile's large variant only) */
-	--size-hero: clamp(2.5rem, 4vw, 5rem); /* 44 → 80 — the homepage headline */
-	--size-hero-name: clamp(1.5rem, 2vw, 1.875rem); /* 22 → 30 — the name above it */
 	--size-title: clamp(2rem, 4.2vw, 2.625rem); /* 32 → 42 */
 	--size-heading: clamp(1.375rem, 2.6vw, 1.625rem); /* 22 → 26 */
 	--size-subtitle: clamp(1.125rem, 2vw, 1.25rem); /* 18 → 20 */
+	--size-lead: 1.5rem; /* 24 — fixed; the homepage tagline, which a bar strip has to be measured against */
 	--size-tab: 1.25rem; /* 20 */
 	--size-body: 1rem; /* 16 — running copy */
+	--size-bio: 1.0625rem; /* 17 — the homepage bio, from 48rem up */
 	--size-ui: 1rem; /* 16 — controls; shares the rung with body, parts on weight and leading */
 	--size-wordmark: 0.9375rem; /* 15 */
 	--size-fine: 0.875rem; /* 14 */
@@ -148,23 +148,21 @@
 
 	/* Leading, unitless so it survives the clamps. */
 	--lh-stat: 1.1; /* tighter than --lh-display — a numeral being read at a glance, not a line of running text */
-	--lh-hero: 1.25; /* 80/100 */
-	--lh-hero-name: 1.2; /* 30/36 */
 	--lh-title: 1.2; /* 42/50.4 */
 	--lh-heading: 1.2; /* 26/31.2 */
 	--lh-subtitle: 1.4; /* 20/28 */
 	--lh-body: 1.7; /* 16/27.2 */
+	--lh-bio: 1.75; /* 16/28, 17/29.75 — the homepage bio's reading leading */
 	--lh-ui: 1.5; /* 16/24 */
 	--lh-fine: 1.5; /* 14/21 */
 	--lh-micro: 1.5; /* 12/18 */
 	--lh-tag: 1.6; /* 10/16 */
 	--lh-wordmark: 1; /* 15/15 */
 
-	--weight-light: 300; /* the footer's mono wordmark, and the homepage headline's sentence */
+	--weight-light: 300; /* the footer's mono wordmark */
 	--weight-regular: 400;
 	--weight-medium: 500;
-	--weight-semibold: 600; /* case-study prose's <strong>, and the homepage headline's name — see the comment above */
-	--weight-bold: 700; /* the homepage headline's "thoughtful" (Playfair's only cut) and nothing else */
+	--weight-semibold: 600; /* case-study prose's <strong> — see the comment above */
 
 	/* Tracking. The serif tightens; uppercase mono opens up — without it the
 	   labels set as a solid block — and opens less as it gets smaller, since a
@@ -205,7 +203,7 @@
 	   wide monitor does not stretch the two-column sections past the point
 	   where the eye can track from one to the other. */
 	--measure-page: 91.875rem; /* 1470px */
-	--measure-content: 77.5rem; /* 1240px — about page and footer cap */
+	--measure-content: 77.5rem; /* 1240px — the page frame's reference cap (unused since the about page went) */
 	/* A case study's reading column. Narrower than --measure-page because the
 	   story is read top to bottom rather than scanned as a grid: at 1470px the
 	   two-column sections put the copy and the shot beside it too far apart to
@@ -226,12 +224,15 @@
 	   column. Kept as its own token rather than reused from --measure-prose
 	   even though the values happen to match right now, since the two are
 	   conceptually unrelated (one is the site's chrome width, the other a
-	   page's reading column) and have already diverged once before. On
-	   about.astro this runs narrower than the page's own --measure-content
-	   (1240px) body frame: a deliberate, accepted trade-off since that page
-	   is parked and unlinked (see "about" in CLAUDE.md), not an oversight to
-	   fix by widening this back out. */
+	   page's reading column) and have already diverged once before. */
 	--measure-chrome: 62.5rem; /* 1000px */
+	/* The homepage's single column — name, tagline, bio and Selected works,
+	   with the nav row capped to match. Figma's wireframe draws it 453px wide
+	   at 12px copy; at the system's 16px body that is this. */
+	--measure-home: 37.5rem; /* 600px */
+	/* The fixed nav's band: a 40px brand row with --spacing-xl above and
+	   below (SiteNav.astro). What a page's first content clears. */
+	--nav-height: 4.5rem; /* 72px */
 	--gutter: clamp(1.25rem, 4vw, 4rem);
 
 	--spacing-none: 0rem; /* 0px */
@@ -276,6 +277,13 @@
    -------------------------------------------------------------------------- */
 :root {
 	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	/* The theme toggle's wave (SiteNav.astro), and nothing else. A
+	   page-wide circle's area grows with the square of its radius, so
+	   --ease-out — most of its travel in the first fifth — floods the page
+	   in a frame and reads as a cut. This is a gentler ease-out: the front
+	   leaves the character quickly and visibly slows on its way to the far
+	   corner, like a ripple running out of energy. */
+	--ease-ripple: cubic-bezier(0.25, 0.6, 0.3, 1);
 	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
@@ -288,10 +296,9 @@
 
    Both documents have to opt in for the browser to run a transition at all,
    which is why this lives here rather than in either page's own styles:
-   tokens.css is the one file index.astro, about.astro and
-   CaseStudyLayout.astro all import identically. It is inert wherever a
-   navigation's two documents don't share a `view-transition-name` — About,
-   or any hard nav that isn't card→hero — an unmatched name just gets the
+   tokens.css is the one file index.astro and CaseStudyLayout.astro both
+   import identically. It is inert wherever a navigation's two documents
+   don't share a `view-transition-name` — any hard nav that isn't card→hero — an unmatched name just gets the
    default cross-fade, never a broken one.
 
    Astro's own <ClientRouter/> soft nav (Home<->About) never reaches this: it
@@ -318,55 +325,38 @@
 	animation-timing-function: var(--ease-in-out);
 }
 
-/* A homepage ring card (work-ring.ts, "Opening a card") hands over a screen
-   already filled by its cover, still growing, as the snapshot named
-   `ring-open`. That snapshot keeps growing as it fades out, revealing the
-   study, which holds still underneath instead of cross-fading in.
-   CaseStudyLayout's inline pagereveal script marks the arrival with
-   `data-ring-open`.
-   - The scale is linear because it continues a motion already under way
-     rather than starting one. Its end is never seen: the fade is on
-     --ease-out, so the snapshot is almost gone by then.
-   - Both pages are dense with text, and mid-fade they read as a double
-     exposure. The same 4px blur the homepage's caption swap uses blends
-     them into one change.
-   - The hero's `card-<slug>` name is dropped for this one transition.
-     Otherwise it would be a new-only element that fades in on its own
-     layer, above the snapshot, before the rest of the page. */
-:root[data-ring-open] .hero {
-	view-transition-name: none !important; /* over CaseStudyHero's inline style */
+/* The theme toggle's wave (SiteNav.astro's switchTheme). While it runs the
+   whole page is one snapshot: named elements (the work cards' card-<slug>)
+   would otherwise be lifted out and cross-fade
+   on their own, outside the circle. Under `wave` the default cross-fade is
+   off too, so the new theme arrives only through the growing clip-path. */
+/* index.astro puts `transition:animate="none"` on <html>,
+   and Astro gives it a generated name for that; the wave clips
+   ::view-transition-new(root), so the root has to be `root` again for the
+   length of the switch, or the clip lands on nothing and the swap is
+   instant. */
+:root[data-theme-switch] {
+	view-transition-name: root !important;
 }
 
-::view-transition-group(ring-open) {
-	z-index: 1;
+:root[data-theme-switch] * {
+	view-transition-name: none !important;
 }
 
-::view-transition-old(ring-open) {
-	animation:
-		ring-open-grow 400ms linear both,
-		ring-open-fade 400ms var(--ease-out) both;
-}
-
-:root[data-ring-open]::view-transition-new(root) {
+:root[data-theme-switch='wave']::view-transition-old(root),
+:root[data-theme-switch='wave']::view-transition-new(root) {
 	animation: none;
+	mix-blend-mode: normal;
 }
 
-@keyframes ring-open-grow {
-	to {
-		scale: 1.12;
-	}
-}
-
-@keyframes ring-open-fade {
-	to {
-		opacity: 0;
-		filter: blur(4px);
-	}
-}
-
-/* ---- 4 · Semantic colour · dark (default) ---------------------------------- */
+/* ---- 4 · Semantic colour · dark (default) ----------------------------------
+   Every page's ground is --night, the homepage frame's near-black, rather
+   than --gray-900. It sits below --bg-sunken's gray-950 (#090b0c) — by two or
+   three levels a channel, which doesn't read — so sunken is no longer
+   strictly darker than the page; nothing on the site depends on it being so.
+   -------------------------------------------------------------------------- */
 :root {
-	--bg: var(--gray-900);
+	--bg: var(--night);
 	--bg-raised: var(--gray-800);
 	--bg-sunken: var(--gray-950);
 
@@ -435,8 +425,15 @@
 	   than --gray-950. A literal, and outside both ramps, for the same reason
 	   --brand-mark is: it is what the gradient blinds (gradient-blinds.ts)
 	   are hard-lit onto, and so it is shader material rather than interface
-	   colour. Not redefined per theme; the homepage pins dark. */
-	--home-ground: #070709;
+	   colour. Light theme swaps it for --bg (--paper, below): the pages no
+	   longer pin dark now that the nav has a theme toggle. */
+	--home-ground: var(--night);
+
+	/* The other theme's ground: the circle the theme toggle grows behind its
+	   character on hover, a preview of where a press goes. Light theme's is
+	   --gray-700 rather than --night: Vader is black, and on the true ground
+	   his helmet vanishes; gray-700 still reads as the dark side. */
+	--theme-preview: var(--paper);
 
 	/* The gradient blinds' stops, left to right across the screen —
 	   sampled from scratch/bg_color_inspo.jpg in the order it runs (pink,
@@ -458,6 +455,33 @@
 	/* How strongly the blinds are hard-lit onto the ground — the Figma
 	   frame's layer opacity. */
 	--blinds-opacity: 0.8;
+	/* And how much of that the homepage lets through behind its copy — the
+	   host's opacity (index.astro). The bio and the name sit inside the
+	   bands, so they are held to this; see "Gradient blinds" in CLAUDE.md
+	   for the contrast it buys. */
+	--blinds-host-opacity: 0.4;
+
+	/* The homepage hero's GitHub bars (commit-strip.ts) — one per day for
+	   the last 30 days, from Paper's hero frame: green on a day with any
+	   contributions, grey on a day with none. Binary on purpose; GitHub's
+	   0–4 level is read but not shaded. Green is a third hue, sanctioned on
+	   the same decoration-only terms as --ai-spectrum-* and --blinds-*:
+	   what the bars say is in the strip's sr-only text, so they carry no
+	   contrast measurement. It is a literal rather than a ramp, the same
+	   reasoning as --secondary's white — a green ramp would invite use
+	   elsewhere. Light theme darkens the empty bar so it still reads on
+	   the pale ground. */
+	--commit-empty: var(--gray-300);
+	--commit-active: #008043;
+
+	/* The homepage bio's company tiles (HomeBio.astro) — Medable's and
+	   J&J's own grounds, sampled from their app icons, each carrying its
+	   mark in white. Brand marks, not palette, on the same terms as the
+	   footer's multicolour mascot: decoration only, never a text colour or
+	   a surface copy is read against — the company's name is in the tile's
+	   sr-only text and in the label it slides out. Not theme-aware. */
+	--brand-medable: #6345d7;
+	--brand-jnj: #eb1700;
 
 	/* The liquid-metal layer's two grounds (.liquid-metal in
 	   components.css) — no page renders it any more; it stays in the
@@ -488,7 +512,7 @@
    -------------------------------------------------------------------------- */
 @media (prefers-color-scheme: light) {
 	:root:not([data-theme='dark']) {
-		--bg: var(--gray-100);
+		--bg: var(--paper);
 		--bg-raised: var(--gray-50);
 		--bg-sunken: var(--gray-200);
 		--bg-media: var(--gray-200);
@@ -508,11 +532,15 @@
 		--text-on-primary: var(--gray-50);
 		--primary-text: var(--amber-800);
 		--focus-ring: var(--amber-700);
+
+		--commit-empty: var(--gray-400);
+		--home-ground: var(--bg);
+		--theme-preview: var(--gray-700);
 	}
 }
 
 :root[data-theme='light'] {
-	--bg: var(--gray-100);
+	--bg: var(--paper);
 	--bg-raised: var(--gray-50);
 	--bg-sunken: var(--gray-200);
 	--bg-media: var(--gray-200);
@@ -532,6 +560,10 @@
 	--text-on-primary: var(--gray-50);
 	--primary-text: var(--amber-800);
 	--focus-ring: var(--amber-700);
+
+	--commit-empty: var(--gray-400);
+	--home-ground: var(--bg);
+	--theme-preview: var(--gray-700);
 }
 
 /* ---- 5 · Type styles -------------------------------------------------------
@@ -541,15 +573,13 @@
    same; the names stay separate because they say what the text is for.
    -------------------------------------------------------------------------- */
 .type-stat,
-.type-hero,
-.type-hero-name,
-.type-hero-accent,
 .type-title,
 .type-heading,
 .type-reflection,
 .type-subtitle,
 .type-card-title,
 .type-card-meta,
+.type-label,
 .type-nav-link,
 .type-body,
 .type-ui-label,
@@ -622,6 +652,15 @@
 	letter-spacing: var(--track-normal);
 }
 
+/* The subtitle rung's size and leading in the display serif (400, tracked
+   −1%, as every serif setting is) — a title one step below the card's,
+   such as an earlier-work row's. */
+.type-subtitle--display {
+	font-family: var(--font-display);
+	font-weight: var(--weight-regular);
+	letter-spacing: var(--track-tight);
+}
+
 /* A work card's meta rows — industry and year, each an icon and a value,
    stacked under the title's rule. Secondary copy: the fine rung at regular
    weight, the same values as .type-annotation, but named for what it labels. */
@@ -630,6 +669,17 @@
 	font-weight: var(--weight-regular);
 	font-size: var(--size-fine);
 	line-height: var(--lh-fine);
+}
+
+/* Small sans label: a work card's industry and year, and the homepage's
+   "Selected work" divider. The micro rung, medium weight so 12px holds up
+   beside the serif. Not .type-card-meta: that is the fine rung, regular,
+   and the homepage's role line shares it. */
+.type-label {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-medium);
+	font-size: var(--size-micro);
+	line-height: var(--lh-micro);
 }
 
 /* Small uppercase mono, under two names:
@@ -707,43 +757,11 @@
 	letter-spacing: var(--track-wordmark);
 }
 
-/* The homepage headline — "Tousif Rahaman / Designs thoughtful products
-   that drive results" — is the one line on the site set above the title
-   rung, in its own two families (see the type primitives above), and it is
-   three styles:
-
-   - .type-hero-name is the name, Montserrat 600, sitting over the sentence.
-   - .type-hero is the sentence, Montserrat 300.
-   - .type-hero-accent is "thoughtful", Playfair Display 700 italic, the one
-     word the sentence leans on. It sits inside a .type-hero line and takes
-     its size and leading from it, so the two share one rhythm. */
-.type-hero-name {
-	font-family: var(--font-headline-sans);
-	font-weight: var(--weight-semibold);
-	font-size: var(--size-hero-name);
-	line-height: var(--lh-hero-name);
-	letter-spacing: var(--track-normal);
-}
-
-.type-hero {
-	font-family: var(--font-headline-sans);
-	font-weight: var(--weight-light);
-	font-size: var(--size-hero);
-	line-height: var(--lh-hero);
-	letter-spacing: var(--track-normal);
-}
-
-.type-hero-accent {
-	font-family: var(--font-headline-serif);
-	font-style: italic;
-	font-weight: var(--weight-bold);
-	letter-spacing: var(--track-normal);
-}
-
 /* ---- 6 · Surface — glass ----------------------------------------------------
    The backdrop-filter material `.glass` (components.css) is built from — one
-   set of values, for the about page's stats panel, the one surface still cut
-   from it. The work cards wore it until they became solid panels. The nav
+   set of values. Nothing wears it now: the deleted about page's stats panel
+   was the last surface cut from it, and the nav borrows its blur and
+   saturate for the scrolled pill. The work cards wore it until they became solid panels. The nav
    used to wear it too (and had a second, heavier tint it swapped in via a
    scroll listener as pale case-study covers scrolled underneath it —
    `--glass-tint-scroll`, `.glass--tinted`, `nav-tint.ts`) before the nav

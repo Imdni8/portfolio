@@ -1,12 +1,33 @@
 ---
 import { NavMenu } from './NavMenu';
 import Icon from '../ui/Icon.astro';
-import { links } from '../../data/links';
+import { buttonVariants } from '../ui/button';
 import logoMark from '../../assets/nav/logo.svg?raw';
 
-/* No `aria-current` anywhere in here any more: the nav holds one off-site
-   link and one dropdown, and neither can ever be the current page. The brand
-   mark is the only route back to `/`, which is also what it was before. */
+/* No `aria-current`: the nav holds an in-page link to the homepage's work
+   and one dropdown, and neither is ever a page of its own. */
+
+/* The theme toggle's hover preview, a halftone disc. Dots on a 45° lattice
+   (every other point of a 2.2px grid, so neighbours sit 3.1px apart), full
+   size out to 10px from the centre — behind the character — then shrinking
+   to nothing by 36px. The dot's size carries the falloff, as in print
+   halftone, rather than its opacity. Computed here, so the disc is static
+   markup and costs no script. */
+const DITHER_CORE = 10;
+const DITHER_REACH = 26;
+const ditherDots: { x: number; y: number; r: number }[] = [];
+for (let i = -17; i <= 17; i++) {
+	for (let j = -17; j <= 17; j++) {
+		if ((i + j) % 2 !== 0) continue;
+		const x = i * 2.2;
+		const y = j * 2.2;
+		const t = Math.min(1, Math.max(0, (Math.hypot(x, y) - DITHER_CORE) / DITHER_REACH));
+		const r = 1.25 * (1 - t) ** 1.3;
+		if (r < 0.15) continue;
+		ditherDots.push({ x: +x.toFixed(2), y: +y.toFixed(2), r: +r.toFixed(2) });
+	}
+}
+const ditherBox = DITHER_CORE + DITHER_REACH;
 ---
 
 <header class="nav-shell" transition:persist>
@@ -15,24 +36,10 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 		<div class="nav__group">
 			<nav class="nav__links" aria-label="Primary">
-				{/* Off-site (Drive), so it takes the same arrow the Side-projects rows
-				    use — one glyph from icons.ts, not a second copy of it. `links` is
-				    the shared declaration in src/data/links.ts, so the footer and this
-				    cannot drift onto different résumé URLs. */}
-				<a
-					class="nav__link nav__link--external type-nav-link"
-					href={links.resume}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Resume<span class="sr-only"> (opens in new tab)</span>
-					{/* The span is what moves; the link's own `overflow: hidden` is what
-					    hides it at rest. Same arrangement as a Side-projects row, and the
-					    same code drives both — see nav-dropdown.ts. .icon inside is
-					    already 1em square (components.css), so the glyph tracks the link's
-					    12px label rung and inherits its muted -> full hover colour. */}
-					<span class="nav__link-arrow"><Icon name="arrow-up-right" /></span>
-				</a>
+				{/* The homepage's Selected works list. A plain anchor: on the
+				    homepage it scrolls, anywhere else it navigates there. The
+				    résumé moved into the homepage bio. */}
+				<a class="nav__link type-nav-link" href="/#work" data-work-link>Work</a>
 			</nav>
 
 			{/* `client:idle`, not `client:load`. The trigger renders correctly as
@@ -44,71 +51,114 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 			    visits never open. */}
 			<NavMenu client:idle />
 		</div>
+
+		{/* The theme toggle: Yoda for light, Vader for dark. Both glyphs are
+		    rendered and CSS shows the one for the theme a press switches *to*,
+		    keyed off [data-theme] — so the right one is up on first paint with
+		    no script, and ThemeInit.astro has already set the attribute by then. The label is the action, kept
+		    current by the script below; the server writes the default's. */}
+		<button
+			type="button"
+			class:list={['nav__theme', buttonVariants({ variant: 'ghost', size: 'icon' })]}
+			aria-label="Switch to light theme"
+			data-theme-toggle
+		>
+			<svg
+				class="nav__theme-dither"
+				viewBox={`${-ditherBox} ${-ditherBox} ${ditherBox * 2} ${ditherBox * 2}`}
+				aria-hidden="true"
+			>
+				{ditherDots.map((dot) => <circle cx={dot.x} cy={dot.y} r={dot.r} />)}
+			</svg>
+			<Icon name="yoda" class="nav__theme-icon nav__theme-icon--light" />
+			<Icon name="vader" class="nav__theme-icon nav__theme-icon--dark" />
+		</button>
 	</div>
 </header>
 
 <style>
-	/* Floats over the page on every route, so it's fixed rather than scoped
-	   to any one section. No pane, no glass, no card — brand mark on the
-	   left, the links on the right, all sitting directly on the page.
+	/* A floating pill: the brand on the left, Work and Side projects in the
+	   middle, the theme toggle on the right. Fixed over the page on every
+	   route.
 
-	   Full-bleed, unlike the row it holds: the band that fades in behind it
-	   (::before) has to reach both viewport edges, so the shell spans the
-	   viewport and `.nav-shell__inner` carries the gutter and the cap.
-	   --spacing-xl above and below a 40px row puts the brand 16px from the top
-	   of the viewport, where the reference draws it, and the band's bottom
-	   edge at 72px — still inside `--nav-footprint` (78px, about.astro), and
-	   above the 96px a case study's hero and chapter rail start at. */
+	   The shell spans the viewport and carries the gutter, and the pill is
+	   capped inside it — the page frame's "gutter outside the cap" form, so
+	   the pill's edges are the content column's edges. --spacing-xl above a
+	   56px pill (the 40px toggle + --spacing-md either side) puts its bottom edge
+	   at 72px, `--nav-height`, which every page's top padding clears. */
 	.nav-shell {
 		position: fixed;
 		inset-block-start: 0;
 		inset-inline: 0;
 		z-index: 20;
-		padding-block: var(--spacing-xl);
+		padding-block-start: var(--spacing-xl);
 		padding-inline: var(--gutter);
+		pointer-events: none;
+		--nav-glass-fill: 80%;
 	}
 
-	/* Brand on one edge, Resume and Side projects on the other, across a
-	   1000px row — narrower than the 1240px the page frames used to share,
-	   which is what keeps the pair from looking stranded at the far end of
-	   it. `--measure-chrome` rather than a page content measure: the nav's
-	   width is its own standalone decision, not meant to track any page's
-	   body column. `gap` only matters once the viewport is too narrow for
-	   `space-between` to leave any room. */
+	/* The pill is the page's own ground, edged in --border, so it reads as a
+	   piece of the page lifted over the content rather than a second colour.
+	   That is --bg on every page but the homepage, which sets `--nav-band`
+	   to its own ground (index.astro). Opaque once scrolled, so links never
+	   sit on a card scrolling underneath — the job the old scroll-driven
+	   scrim did. Fill and edge are both held back until then (below).
+
+	   1fr / auto / 1fr keeps the middle group on the pill's true centre
+	   whatever the two ends measure. `pointer-events` is handed back here:
+	   the shell is a full-width strip, and only the pill should catch clicks. */
 	.nav-shell__inner {
-		max-width: var(--measure-chrome);
+		box-sizing: border-box;
+		max-width: var(--nav-measure, var(--measure-chrome));
 		margin-inline: auto;
-		display: flex;
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
 		align-items: center;
-		justify-content: space-between;
-		gap: var(--spacing-3xl);
+		gap: var(--spacing-md);
+		padding-block: var(--spacing-md);
+		padding-inline: var(--spacing-xl) var(--spacing-md);
+		background-color: transparent;
+		border-radius: var(--radius-full);
+		pointer-events: auto;
+		/* The rest state's blur is written out at 0 rather than left as
+		   `none`, so the transition has two values to interpolate between. */
+		backdrop-filter: blur(0) saturate(100%);
+		-webkit-backdrop-filter: blur(0) saturate(100%);
+		transition:
+			background-color 200ms var(--ease-out),
+			backdrop-filter 200ms var(--ease-out),
+			-webkit-backdrop-filter 200ms var(--ease-out),
+			box-shadow 200ms var(--ease-out);
 	}
 
-	/* The band. A pseudo-element rather than a background on `.nav-shell`
-	   itself, because the ramp is an opacity and painting it on the shell
-	   would take the brand and the links down with it. `z-index: -1` puts it
-	   behind them without leaving the shell's own stacking context, so the
-	   whole nav still sits above the page at 20.
+	/* Glass and lift only arrive once the page has scrolled and content can
+	   pass under the pill. At the top there is nothing to separate it from,
+	   so it stays clear and sits straight on the page.
+	   `data-scrolled` is set by the script below.
 
-	   `--nav-scrim` is written every scroll frame by the script below. Unset
-	   — no JS, or a page with nothing marked `data-nav-scrim` — it falls back
-	   to 0 and the nav stays exactly as transparent as it is today.
+	   The fill is the page's ground at --nav-glass-fill, blurred and
+	   saturated with the glass material's own values, so what passes under
+	   reads as colour and movement, not as shapes. The fill is that high
+	   because the 12px labels have to hold AA over the palest cover —
+	   measured at 80%, both themes, over a full scroll of the homepage:
+	   worst case 4.73:1 dark, 4.75:1 light. Lower it and re-measure.
 
-	   The band is the page's own ground, so it reads as the page continuing
-	   behind the links rather than as a bar laid over it. That is --bg on
-	   every page but one: the homepage sits on a warm ground of its own, and
-	   says so through `--nav-band` on its body (index.astro). */
-	.nav-shell::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		z-index: -1;
-		background: var(--nav-band, var(--bg));
-		border-bottom: 1px solid var(--border);
-		opacity: var(--nav-scrim, 0);
+	   The lift is the glass material's ambient shadow, plus its faint
+	   --glass-border edge so the pill doesn't dissolve into a dark ground
+	   the shadow can't show against. The edge is an inset shadow, not a
+	   `border`, for the reason `.glass` gives: a border's curve drifts from
+	   the one backdrop-filter clips to and leaves an unblurred hairline. */
+	.nav-shell[data-scrolled] .nav-shell__inner {
+		background-color: color-mix(in srgb, var(--nav-band, var(--bg)) var(--nav-glass-fill), transparent);
+		backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+		-webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+		box-shadow:
+			inset 0 0 0 1px var(--glass-border),
+			0 16px 40px -16px var(--glass-shadow-ambient);
 	}
 
 	.nav__brand {
+		justify-self: start;
 		display: inline-flex;
 		align-items: center;
 		/* The mark's fill is currentColor, so the colour is named in the
@@ -120,20 +170,22 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 
 	/* :global() on both of these: the <svg> arrives via set:html, so it has
 	   no scope attribute for an unqualified `svg` to match. */
-	/* 2.5rem is the reference's 40px — and the size the homepage headline's
-	   mark shrinks to on its way up here (home-reel.ts measures this box). */
+	/* 32px, down from the reference's 40px, so the mark clears the pill's
+	   rounded ends instead of filling its height. The pill stays 56px — the
+	   40px theme toggle sets its row — so --nav-height doesn't move. */
 	.nav__brand :global(svg) {
 		display: block;
-		height: 2.5rem;
+		height: var(--spacing-4xl);
 		width: auto;
 	}
 
-	/* Resume and the Side-projects trigger cluster together on the right as
+	/* Work and the Side-projects trigger cluster together in the middle as
 	   one visual group, 24px apart — .nav__links and NavMenu stay two
 	   separate elements underneath (Base UI's NavigationMenu owns only the
-	   dropdown; Resume has nowhere to open and stays a plain anchor), but this
+	   dropdown; Work has nowhere to open and stays a plain anchor), but this
 	   wrapper is what makes them read as one group instead of two. */
 	.nav__group {
+		justify-self: center;
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-3xl);
@@ -143,6 +195,15 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-3xl);
+	}
+
+	/* Below 400px the pill can't hold the brand, both links and the toggle
+	   without crowding, so Work goes: Selected works is the next thing down
+	   the homepage anyway, and Side projects has nowhere else to live. */
+	@media (max-width: 25rem) {
+		.nav__links {
+			display: none;
+		}
 	}
 
 	/* Type comes from `.type-nav-link` in the markup — the same uppercase mono
@@ -167,29 +228,6 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		.nav__link:hover {
 			color: var(--text);
 		}
-	}
-
-	/* The arrow flies in diagonally on hover and back out on leave, exactly as
-	   a Side-projects row's does — nav-dropdown.ts drives both off one pair of
-	   selectors. Two things make it work, and both mirror
-	   `.nav-dropdown__item`/`.nav-dropdown__item-arrow`:
-
-	   `overflow: hidden` is the clip. The arrow is parked well outside the
-	   link's padding box at rest, and this is what stops it being drawn there.
-
-	   The rest transform lives here in CSS rather than being set by the script,
-	   for the reason nav-dropdown.ts's header gives: the element has to already
-	   look right before any JS has touched it. 6rem is the same generous
-	   overshoot the dropdown rows use — the script tweens from the row's own
-	   measured height, so this value only has to clear the box, not match. */
-	.nav__link--external {
-		overflow: hidden;
-	}
-
-	.nav__link-arrow {
-		display: inline-flex;
-		flex-shrink: 0;
-		transform: translate(-6rem, 6rem);
 	}
 
 	/* .nav-dropdown is NavMenu.tsx's <NavigationMenu> root — a React island,
@@ -259,10 +297,9 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 	   the tailwind.css bridge), not `.glass`. min-width/box-sizing are the
 	   only overrides left. */
 	:global(.nav-dropdown__popup) {
-		/* Pinned explicitly: `min-width` is a content-box measurement, and
-		   about.astro (unlike this component's other host, index.astro)
-		   applies a page-scoped `box-sizing: border-box` reset. Without this,
-		   the same min-width nets 32px less room on the about page
+		/* Pinned explicitly: `min-width` is meant as a content-box
+		   measurement, and Tailwind's preflight makes every box border-box.
+		   Without this the same min-width nets 32px less room
 		   (padding-inline counted inward instead of added on) and wraps
 		   "Amplitude taxonomy exporter" onto a third line. */
 		box-sizing: content-box;
@@ -491,6 +528,153 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 		color: var(--primary-text);
 	}
 
+	/* The ghost icon button, quieted to the links' own colour: it is chrome
+	   beside them, not an accent. The radius goes round to sit in the pill's
+	   end cap; the hover fill stays the variant's. */
+	.nav__theme {
+		position: relative;
+		justify-self: end;
+		color: var(--text-muted);
+		border-radius: var(--radius-full);
+	}
+
+	/* Yoda and Vader are illustrations, not line glyphs, and lose their
+	   detail at the button's 22px icon size — so they match the brand mark's
+	   32px on the pill's other end instead. Unlayered, so it beats the
+	   variant's [&_.icon] utility. */
+	.nav__theme :global(.icon) {
+		width: var(--spacing-4xl);
+		height: var(--spacing-4xl);
+	}
+
+	/* Yoda's ears span the whole viewBox, leaving his head half its height;
+	   at the button's full 40px he stands as tall as Vader and the mark. */
+	.nav__theme :global(.nav__theme-icon--light) {
+		width: var(--spacing-5xl);
+		height: var(--spacing-5xl);
+	}
+
+	/* The glyphs carry their own fills, so this colour no longer reaches
+	   them; hover reads through the ghost variant's fill. */
+	@media (hover: hover) and (pointer: fine) {
+		.nav__theme:hover {
+			color: var(--text);
+		}
+	}
+
+	/* Each glyph is named for the theme a press switches to. Dark is the
+	   default, so with no attribute — or `dark` — Yoda (light) shows; under
+	   light, Vader (dark). :global() because the
+	   glyphs are Icon.astro's spans, which carry no scope attribute of ours. */
+	:global(.nav__theme-icon--dark),
+	:global(:root[data-theme='light'] .nav__theme-icon--light) {
+		display: none;
+	}
+
+	/* The hover preview: a halftone disc in the other theme's ground
+	   (--theme-preview) behind the character, so it stands for a moment on
+	   the theme a press goes to. A press then grows the wave from it
+	   (switchTheme). The ghost variant's own hover fill is dropped for it.
+
+	   The disc is centred on the button and spills past it (72px against
+	   the 40px button). It arrives in 200ms, then breathes — in and out
+	   over 3.2s, its dots dimming as it draws in — for as long as the
+	   pointer stays. Transform and opacity only. */
+	.nav__theme-dither {
+		position: absolute;
+		inset-block-start: 50%;
+		inset-inline-start: 50%;
+		width: calc(var(--spacing-5xl) * 1.8);
+		height: calc(var(--spacing-5xl) * 1.8);
+		translate: -50% -50%;
+		fill: var(--theme-preview);
+		pointer-events: none;
+		opacity: 0;
+		scale: 0.6;
+		transition:
+			opacity 200ms var(--ease-out),
+			scale 200ms var(--ease-out);
+	}
+
+	.nav__theme :global(.icon) {
+		position: relative;
+	}
+
+	.nav__theme:focus-visible .nav__theme-dither {
+		opacity: 1;
+		scale: 1;
+		animation: nav-theme-dither 3.2s var(--ease-in-out) 200ms infinite;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.nav__theme:hover {
+			background: transparent;
+		}
+
+		.nav__theme:hover .nav__theme-dither {
+			opacity: 1;
+			scale: 1;
+			animation: nav-theme-dither 3.2s var(--ease-in-out) 200ms infinite;
+		}
+	}
+
+	@keyframes nav-theme-dither {
+		0%,
+		100% {
+			scale: 1;
+			opacity: 1;
+		}
+		50% {
+			scale: 0.86;
+			opacity: 0.55;
+		}
+	}
+
+	/* Gentler, not none: the disc fades in at full size and holds still. */
+	@media (prefers-reduced-motion: reduce) {
+		.nav__theme-dither,
+		.nav__theme:focus-visible .nav__theme-dither {
+			scale: 1;
+			animation: none;
+			transition: opacity 150ms ease;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+		.nav__theme:hover .nav__theme-dither {
+			animation: none;
+		}
+	}
+
+	/* While the wave runs (switchTheme stamps data-settling into the new
+	   snapshot only): no preview behind the arriving character — it comes
+	   back once the switch is done, if the pointer is still on it — and the
+	   character itself pops in from 0.85, so the button answers the press
+	   before the wave carries it away. */
+	.nav__theme[data-settling] .nav__theme-dither {
+		scale: 0;
+		opacity: 0;
+		transition: none;
+		animation: none;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.nav__theme[data-settling] :global(.nav__theme-icon) {
+			animation: nav-theme-arrive 200ms var(--ease-out);
+		}
+	}
+
+	@keyframes nav-theme-arrive {
+		from {
+			scale: 0.85;
+			opacity: 0.4;
+		}
+	}
+
+	:global(:root[data-theme='light'] .nav__theme-icon--dark) {
+		display: inline-flex;
+	}
+
 	.nav__brand:focus-visible,
 	.nav__link:focus-visible {
 		outline: 2px solid var(--focus-ring);
@@ -508,114 +692,166 @@ import logoMark from '../../assets/nav/logo.svg?raw';
 <script>
 	/* The "Side projects" panel's own hover choreography (nav-dropdown.ts)
 	   is wired up from inside NavMenu.tsx itself, via useEffect — not here.
-	   That panel lives inside a client:load React island, and a plain
+	   That panel lives inside a client:idle React island, and a plain
 	   Astro <script> has no reliable way to know whether it's running
 	   before, during or after that island's hydration; see NavMenu.tsx for
 	   why that ordering actually matters (a hydration-mismatch bug, not
 	   just tidiness). */
 
-	/* The nav sits directly on the page with no pane of its own, which works
-	   for as long as the only thing behind it is the water field and stops
-	   working the moment real content scrolls up underneath it. `--nav-scrim`
-	   ramps a solid `--bg` band in behind the row over the last stretch of
-	   scroll before that happens, so the links are never read against a card.
+	/* The theme toggle. ThemeInit.astro applies a stored choice before
+	   paint; this flips it and stores the new one. Bound once: the nav is
+	   `transition:persist`ed, so this button survives every soft navigation.
 
-	   Opt-in per page, via `data-nav-scrim` on the first thing that scrolls up
-	   under the nav — each page's own content column, so the ramp starts at the
-	   top of the content rather than at the top of the padding above it
-	   (about.astro's `.about__frame`; on the homepage's reel layout, a marker
-	   at the end of the reel, since nothing inside the pinned reel ever
-	   passes under the nav and the footer is the first thing that does). The
-	   nav can't know that on its own, and a page with nothing marked just
-	   never paints a band.
-
-	   The homepage carries a second, `data-nav-scrim-narrow` marker too — the
-	   headline itself (HomeHero.astro) — for below the reel's breakpoint,
-	   where the page is a plain scroll and the headline (not the end of a
-	   pinned sequence) is the first thing that passes under the nav. Which of
-	   a page's marker(s) is live is resolved by the same query the reel
-	   itself runs under (REEL_QUERY, home-reel.ts) — keep the two in step. A
-	   page with only `data-nav-scrim` (about.astro, a case study) ignores the
-	   breakpoint entirely and always uses it. Otherwise, one target per page
-	   is enough: progress clamps at 1, so once that column has passed under
-	   the nav the band stays on for everything below it.
-
-	   Scrubbed 1:1 to scroll position rather than transitioned on a class
-	   toggle, same reasoning as index.astro's own hero fade: the band should
-	   track the scroll gesture and reverse cleanly on the way back up, not
-	   play a fixed-length animation that happens to start when a threshold is
-	   crossed. The ease-out lives in the curve applied to that progress
-	   instead of in a `transition-timing-function`.
-
-	   The ramp's length is the band's own height, measured — so there is no
-	   magic number here to keep in sync with the nav's size, and the fade
-	   always takes exactly one band-height of scroll. Cubed ease-out
-	   front-loads it inside that: the band is ~88% in when the content is
-	   still half a band below, so it has visibly arrived *before* the overlap
-	   rather than racing it. */
-	const shell = document.querySelector<HTMLElement>('.nav-shell');
+	   The swap is instant, with every transition on the page suspended for
+	   the frame it happens in — otherwise each element's own colour
+	   transition plays at its own duration and the page changes over in
+	   uneven patches. */
+	const toggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
 	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+	const root = document.documentElement;
 
-	/* Mirrors home-reel.ts's REEL_QUERY — move the two together. Decides,
-	   only for a page carrying both markers (the homepage), which one is
-	   live: the reel's own end-of-sequence line while the reel runs, the
-	   headline itself once the page is a plain scroll instead. */
-	const reelQuery = window.matchMedia(
-		'(min-width: 64rem) and (prefers-reduced-motion: no-preference) and (scripting: enabled)',
-	);
+	const current = () => (root.dataset.theme === 'light' ? 'light' : 'dark');
 
-	let reelTarget: HTMLElement | null = null;
-	let narrowTarget: HTMLElement | null = null;
-	let scrimTicking = false;
+	const label = () => {
+		if (!toggle) return;
+		toggle.setAttribute('aria-label', `Switch to ${current() === 'light' ? 'dark' : 'light'} theme`);
+	};
 
-	const activeScrimTarget = () => (narrowTarget && !reelQuery.matches ? narrowTarget : reelTarget);
+	const setTheme = (theme: 'light' | 'dark') => {
+		const freeze = document.createElement('style');
+		freeze.textContent = '*,*::before,*::after{transition:none!important}';
+		document.head.append(freeze);
 
-	const updateScrim = () => {
-		scrimTicking = false;
-		if (!shell) return;
+		root.dataset.theme = theme;
+		try {
+			localStorage.setItem('theme', theme);
+		} catch {}
+		label();
 
-		const scrimTarget = activeScrimTarget();
-		if (!scrimTarget) {
-			shell.style.setProperty('--nav-scrim', '0');
+		/* Reading a computed style forces the restyle with transitions off;
+		   the next frame lets them back in. */
+		getComputedStyle(root).color;
+		requestAnimationFrame(() => freeze.remove());
+	};
+
+	/* The click: the new theme washes out from the character as a circle,
+	   wide enough to reach the farthest corner of the viewport. A view
+	   transition snapshots the page in both themes and the new one is
+	   revealed through a growing clip-path, so every colour on the page
+	   changes in one front rather than per element. `data-theme-switch`
+	   scopes the CSS for it in tokens.css to this transition only, leaving
+	   the card→hero navigation transition alone. Reduced motion gets the
+	   view transition's own cross-fade instead of the wave; no API, the
+	   instant swap above. */
+	let switching = false;
+
+	const switchTheme = (theme: 'light' | 'dark') => {
+		/* A second press mid-wave would make the browser snap this wave to
+		   its end and start another; the first one finishes instead. */
+		if (switching) return;
+		if (!toggle || !document.startViewTransition) {
+			setTheme(theme);
 			return;
 		}
 
-		/* The shell is pinned to the top of the viewport, so its height and
-		   the y of its bottom edge are the same number. `gap` is the distance
-		   from that edge down to the top of the section coming up to meet it:
-		   0 is the moment they touch and the fade begins, -band is when it completes. */
-		const band = shell.getBoundingClientRect().height;
-		const gap = scrimTarget.getBoundingClientRect().top - band;
-		const progress = band > 0 ? Math.min(Math.max(-gap / band, 0), 1) : 0;
+		const wave = !reduceMotion.matches;
+		root.dataset.themeSwitch = wave ? 'wave' : 'fade';
 
-		/* Under reduced motion the band still appears — it is legibility, not
-		   decoration — but it snaps on at the overlap itself instead of
-		   tracking the scroll. */
-		const scrim = reduceMotion.matches ? (progress >= 1 ? 1 : 0) : 1 - (1 - progress) ** 3;
+		/* Out of the character on show: Yoda going to light, Vader to dark.
+		   Both are drawn centred in their viewBox, so the glyph's own centre
+		   is the head. */
+		const glyph = toggle.querySelector(`.nav__theme-icon--${theme}`) ?? toggle;
+		const box = glyph.getBoundingClientRect();
+		const x = box.left + box.width / 2;
+		const y = box.top + box.height / 2;
+		const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+		/* From about the hover preview's solid core, so the wave carries on
+		   from what the reader was just shown rather than from a point. */
+		const from = toggle.offsetWidth / 4;
 
-		shell.style.setProperty('--nav-scrim', String(scrim));
+		switching = true;
+		const transition = document.startViewTransition(() => {
+			/* Set inside the update, so only the new snapshot sees it: the
+			   old one keeps the hover preview the wave grows out of, the new
+			   one shows the character arriving without the next preview
+			   behind it. */
+			toggle.dataset.settling = '';
+			setTheme(theme);
+		});
+
+		if (wave) {
+			transition.ready.then(() => {
+				root.animate(
+					{ clipPath: [`circle(${from}px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+					/* The duration follows the distance, so the front keeps
+					   much the same speed on a phone (~700px to the far
+					   corner) as on a wide screen (~1300px): 0.5ms a pixel,
+					   held between 450 and 700ms. */
+					{
+						duration: Math.min(700, Math.max(450, radius * 0.5)),
+						easing: getComputedStyle(root).getPropertyValue('--ease-ripple').trim() || 'ease-out',
+						pseudoElement: '::view-transition-new(root)',
+					},
+				);
+			})
+			/* Rejects only when the transition is skipped (a second click
+			   mid-wave); the theme has still been set. */
+			.catch(() => {});
+		}
+
+		transition.finished.finally(() => {
+			delete root.dataset.themeSwitch;
+			delete toggle.dataset.settling;
+			switching = false;
+		});
 	};
 
-	const onScrimScroll = () => {
-		if (scrimTicking) return;
-		scrimTicking = true;
-		requestAnimationFrame(updateScrim);
-	};
+	/* The pill's fill and edge: on as soon as the page leaves the top. A class
+	   toggle rather than a scrubbed value — it's a hairline, and the CSS
+	   transition is enough. Re-checked after a swap, since the persisted
+	   nav outlives the page that set it. */
+	const shell = document.querySelector<HTMLElement>('.nav-shell');
+	let scrollTicking = false;
 
-	/* Re-resolved rather than captured once: the nav is `transition:persist`ed
-	   across Work<->About, so this script body runs on the first load only,
-	   while the elements it watches are replaced on every swap. */
-	const resolveScrimTargets = () => {
-		reelTarget = document.querySelector<HTMLElement>('[data-nav-scrim]');
-		narrowTarget = document.querySelector<HTMLElement>('[data-nav-scrim-narrow]');
-		updateScrim();
+	const updateScrolled = () => {
+		scrollTicking = false;
+		shell?.toggleAttribute('data-scrolled', window.scrollY > 0);
 	};
 
 	if (shell) {
-		window.addEventListener('scroll', onScrimScroll, { passive: true });
-		window.addEventListener('resize', onScrimScroll, { passive: true });
-		reelQuery.addEventListener('change', updateScrim);
-		document.addEventListener('astro:after-swap', resolveScrimTargets);
-		resolveScrimTargets();
+		window.addEventListener(
+			'scroll',
+			() => {
+				if (scrollTicking) return;
+				scrollTicking = true;
+				requestAnimationFrame(updateScrolled);
+			},
+			{ passive: true },
+		);
+		document.addEventListener('astro:after-swap', updateScrolled);
+		updateScrolled();
+	}
+
+	/* Work, clicked on the homepage itself: glide to the Selected work line
+	   rather than jump. The landing point is the heading's own
+	   scroll-margin (index.astro), which scrollIntoView honours. Anywhere
+	   else the link navigates as normal and the browser applies the same
+	   margin on arrival. Not `scroll-behavior: smooth` on <html>: that would
+	   also animate the router's scroll restoration on every back/forward.
+	   Reduced motion jumps. */
+	document.querySelector<HTMLAnchorElement>('[data-work-link]')?.addEventListener('click', (event) => {
+		const target = document.getElementById('work');
+		if (!target || location.pathname !== '/') return;
+		event.preventDefault();
+		target.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+		history.replaceState(history.state, '', '#work');
+	});
+
+	if (toggle) {
+		label();
+		toggle.addEventListener('click', () => switchTheme(current() === 'light' ? 'dark' : 'light'));
+		/* The router rewrites <html>'s attributes on a swap; ThemeInit puts
+		   the stored theme back, and this keeps the label in step. */
+		document.addEventListener('astro:after-swap', label);
 	}
 </script>

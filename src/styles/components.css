@@ -14,14 +14,14 @@
    ============================================================================ */
 
 /* ---- Glass -----------------------------------------------------------------
-   A material, not a component: the pane the about page's stats panel is cut
-   from. The work cards wore it until they became solid panels (WorkCard.astro),
+   A material, not a component — a backdrop-filter pane, worn by no page
+   since the about page's stats panel went with that page. The work cards wore it until they became solid panels (WorkCard.astro),
    and the nav wore it until it dropped the material entirely for a plain text
    treatment (SiteNav.astro) — along with the scroll-triggered heavier tint
    it used to swap in as pale covers scrolled underneath it
    (`--glass-tint-scroll`, `nav-tint.ts`, both now gone). Whatever wears
-   `.glass` needs something painted behind it to bend — on the about page
-   that is the fixed water field.
+   `.glass` needs something painted behind it to bend, such as the fixed
+   water field.
 
    It brings its own border and radius, since the edge is part of the material:
    a rim, not a line drawn round a fill. Every value below reads a token
@@ -145,21 +145,27 @@
 	initial-value: 0deg;
 }
 
-.badge-ai {
-	/* The ring is 2px, taken out of the chip's own padding rather than added
-	   outside it. The chip sits in a row beside 1px-bordered ones, and a
-	   border that grew the box would stand taller than its neighbours; the
-	   calc below gives back exactly the 1px of extra border width (2px −
-	   the default 1px), so the outer box is unchanged at 26px and only the
-	   gap to the label moves. Whole pixels on both sides of that trade
-	   deliberately — a 1.5px border here previously left the calc handing
-	   back more padding than the border actually added, since some
-	   browsers round a fractional border-width down when rasterizing,
-	   quietly shipping a chip 1–2px shorter than its neighbours. */
+/* The work card's chips, AI and `light` alike, share one 2px edge. It comes
+   out of the chip's own padding, not added outside it: the calc gives back
+   exactly the 1px of extra border width (2px − the base 1px), so the outer
+   box stays 26px, the same as every other badge. Whole pixels on both
+   sides of that trade deliberately: a 1.5px border here once left the calc
+   handing back more padding than the border added, since some browsers
+   round a fractional border-width down when rasterizing, and the chip
+   shipped 1–2px shorter than its neighbours. The two chips sit side by
+   side, so they share this rule rather than each restating it. A painted
+   ring beside a 1px real border can snap to a different pixel row on a 1×
+   display when the card's top lands on a fractional y, so the chips read
+   as mismatched heights even though their boxes are equal. */
+.badge-ai,
+.badge-light {
 	border-width: 2px;
-	border-color: transparent;
 	padding: calc(var(--spacing-xs) - 1px);
 	padding-inline-end: calc(var(--spacing-sm) - 1px);
+}
+
+.badge-ai {
+	border-color: transparent;
 	background-image:
 		linear-gradient(var(--secondary), var(--secondary)),
 		conic-gradient(
@@ -233,8 +239,7 @@
 /* ---- Smoke ring ------------------------------------------------------------
    Not currently on the page. `<SmokeRing>` is built and kept (see
    smoke-ring.ts) but nothing mounts it. It was drawn for the water field,
-   which is now the about page's background only — the homepage runs liquid
-   metal (below) instead. Everything here describes what it does when it is
+   which no page renders now. Everything here describes what it does when it is
    put back, and the contrast note at the end is the condition of putting it
    back; the intro it measures against has since been replaced, so those
    numbers are history until they are re-taken.
@@ -368,7 +373,8 @@
    the ground.
 
    Two opacities, on two elements, and they must stay apart:
-   - the host's is home-reel.ts's, dimming the bands as the cards rise;
+   - the host's is the page's, holding the bands down behind its copy
+     (--blinds-host-opacity, index.astro);
    - the canvas's is the arrival: nothing until gradient-blinds.ts marks the
      host `ready`, then up to --blinds-opacity on plain `ease` over 1.4s, the
      same curve and length the liquid-metal glow came up on — it is light
@@ -703,3 +709,64 @@
 	}
 }
 
+
+/* ---- Link cursor -----------------------------------------------------------
+   The homepage's pointer label (src/components/home/link-cursor.ts): over a
+   `[data-cursor]` element — the bio's underlined links, a published work
+   card, an earlier-work row — a mouse pointer becomes a pill saying what a click does, "open",
+   "copy" on the email, or "Drive ↗"/"Slides ↗" on an external row (its
+   glyph a 1em .icon). Here rather than in a component because it spans
+   three (HomeBio, WorkCard, ExternalWorkRow), and the pill itself is appended to <body>.
+
+   From the Paper frame: an --amber-100 pill, uppercase DM Mono 14/18 in
+   --gray-900, 2px × 8px padding. No type style is 14/18 — the 18px is the
+   micro rung's line box, borrowed. Bound to primitives like the
+   coming-soon badge, since its ground is fixed: --gray-900 on --amber-100
+   is 15.6:1 on either theme. Centred on the pointer, which it replaces —
+   the native cursor is hidden only once the script has stamped
+   `data-link-cursor` on the page's root, so without JS it stays. */
+[data-link-cursor] [data-cursor],
+[data-link-cursor] [data-cursor] * {
+	cursor: none;
+}
+
+.link-cursor {
+	position: fixed;
+	inset: 0 auto auto 0;
+	z-index: 100;
+	pointer-events: none;
+}
+
+.link-cursor__label {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-xxs);
+	padding: var(--spacing-xxs) var(--spacing-md);
+	border-radius: var(--radius-full);
+	background: var(--amber-100);
+	color: var(--gray-900);
+	font-family: var(--font-mono);
+	font-weight: var(--weight-regular);
+	font-size: var(--size-fine);
+	line-height: calc(var(--size-micro) * var(--lh-micro));
+	text-transform: uppercase;
+	white-space: nowrap;
+	translate: -50% -50%;
+	opacity: 0;
+	scale: 0.8;
+	transition:
+		opacity 150ms var(--ease-out),
+		scale 150ms var(--ease-out);
+}
+
+.link-cursor[data-visible] .link-cursor__label {
+	opacity: 1;
+	scale: 1;
+}
+
+/* Gentler, not none: the pill still fades in, without the scale. */
+@media (prefers-reduced-motion: reduce) {
+	.link-cursor__label {
+		scale: 1;
+	}
+}

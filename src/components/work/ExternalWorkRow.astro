@@ -1,0 +1,217 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Icon from '../ui/Icon.astro';
+import CompanyLogo from './CompanyLogo.astro';
+
+/* One line of the homepage's "Earlier work" list: work that lives off the
+   site (a deck in Google Drive or Slides), linked straight out. Not a
+   WorkCard on purpose — a cover and a full-size title promise a case study
+   on this site, and a click that drops the reader into a Drive viewer
+   breaks that promise. A row says what it is before the click: the title,
+   who and when, and where it opens — "Drive ↗" or "Slides ↗". Under a
+   mouse that label is the link cursor (link-cursor.ts clones the
+   `[data-cursor-content]` column below into its pill); everywhere else —
+   touch, or no JS — the column shows at the row's end. */
+interface Props {
+	title: string;
+	company: string;
+	industry: string;
+	year: number;
+	href: string;
+	/** The work's cover, previewed beside the column while the row is
+	 *  hovered or focused. Decoration: the row's text already names it. */
+	thumbnail: { src: ImageMetadata; alt: string };
+}
+
+const { title, company, industry, year, href, thumbnail } = Astro.props;
+
+/* Where the link lands, named by its host so the reader knows before they
+   tap whether a slide deck or a Drive file is coming. */
+const destination = href.includes('docs.google.com/presentation') ? 'Slides' : 'Drive';
+
+---
+
+<a class="work-row" href={href} target="_blank" rel="noopener noreferrer" data-external-work data-cursor>
+	<span class="work-row__text">
+		<span class="work-row__title type-subtitle type-subtitle--display" data-work-title>{title}<span class="sr-only"> (opens in new tab)</span></span>
+		<span class="work-row__meta type-label">
+			<span class="work-row__fact">
+				<CompanyLogo company={company} />
+				{company}
+			</span>
+			<span class="work-row__fact">
+				<Icon name="building-2" />
+				{industry}
+			</span>
+			<span class="work-row__fact">
+				<Icon name="calendar" />
+				{year}
+			</span>
+		</span>
+	</span>
+	<span class="work-row__destination type-label" aria-hidden="true" data-cursor-content>
+		{destination}
+		<Icon name="arrow-up-right" />
+	</span>
+	{/* `sizes` mirrors the preview's width, half of --measure-home (300px);
+	    `sizes` cannot read a custom property, so move them together. Lazy:
+	    nothing is fetched until the row nears the screen. */}
+	<span class="work-row__preview" aria-hidden="true">
+		<Image src={thumbnail.src} alt="" widths={[320, 640]} sizes="300px" loading="lazy" />
+	</span>
+</a>
+
+<style>
+	/* Title and facts on the left, where it opens on the right. The row is
+	   the whole hit area — 48px tall at the least, so a thumb can't miss
+	   it. */
+	.work-row {
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: start;
+		column-gap: var(--spacing-3xl);
+		min-block-size: var(--spacing-6xl);
+		padding-block: var(--spacing-xl);
+		color: inherit;
+		text-decoration: none;
+		-webkit-tap-highlight-color: transparent;
+		touch-action: manipulation;
+		transition: opacity 160ms var(--ease-out);
+	}
+
+	.work-row__text {
+		display: grid;
+		gap: var(--spacing-xs);
+	}
+
+	.work-row__title {
+		color: var(--text);
+		text-wrap: pretty;
+	}
+
+	/* The same facts as a card's, each a 16px icon (or the company's logo
+	   tile) and its value, centred on one line and wrapping as whole facts.
+	   24px between facts rather than a card's 40px, since a row is the
+	   lighter element; 8px between a glyph and its value, as on the card. */
+	.work-row__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--spacing-md) var(--spacing-3xl);
+		margin-block-start: var(--spacing-xs);
+		color: var(--text-body);
+	}
+
+	.work-row__fact {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		white-space: nowrap;
+	}
+
+	.work-row__fact > :global(.icon) {
+		flex: none;
+		inline-size: var(--spacing-xl);
+		block-size: var(--spacing-xl);
+		font-size: var(--spacing-xl);
+	}
+
+	/* Sits on the title's first line: the subtitle rung's leading less the
+	   label's, halved. Where the link cursor runs, the pill says this
+	   instead, so the column steps aside and the title takes the width. */
+	.work-row__destination {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		margin-block-start: calc((var(--size-subtitle) * var(--lh-subtitle) - var(--size-micro) * var(--lh-micro)) / 2);
+		color: var(--text-body);
+	}
+
+	.work-row__destination > :global(.icon) {
+		inline-size: var(--spacing-xl);
+		block-size: var(--spacing-xl);
+	}
+
+	:global([data-link-cursor]) .work-row__destination {
+		display: none;
+	}
+
+	.work-row:active {
+		opacity: 0.6;
+	}
+
+	.work-row:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-xs);
+	}
+
+	/* ---- Preview -------------------------------------------------------
+	   The cover the card used to show, floated beside the column next to
+	   the hovered row: off to the right, its middle level with the row's.
+	   Only where it fits — a mouse that can hover, and a viewport wide
+	   enough for the 600px column plus a 300px preview and its 32px gap on
+	   each side (80rem) — so it never covers the text or makes the page
+	   scroll sideways. Everywhere else it doesn't render at all.
+
+	   It arrives from slightly smaller, nudged toward the row and blurred,
+	   on --ease-out, and leaves faster than it came, so moving down the
+	   list hands off from one cover to the next without a pile-up. It
+	   never takes the pointer: the row stays the only hit area. */
+	.work-row__preview {
+		display: none;
+	}
+
+	@media (hover: hover) and (pointer: fine) and (min-width: 80rem) {
+		.work-row__preview {
+			position: absolute;
+			inset-block-start: 50%;
+			inset-inline-start: calc(100% + var(--spacing-4xl));
+			z-index: 1;
+			display: block;
+			inline-size: calc(var(--measure-home) / 2);
+			aspect-ratio: 500 / 316;
+			overflow: clip;
+			border-radius: var(--radius-md);
+			background: var(--bg-media);
+			box-shadow: 0 0 0 1px var(--border);
+			pointer-events: none;
+			opacity: 0;
+			transform: translate(calc(-1 * var(--spacing-md)), -50%) scale(0.96);
+			filter: blur(var(--spacing-xs));
+			transition:
+				opacity 150ms var(--ease-out),
+				transform 150ms var(--ease-out),
+				filter 150ms var(--ease-out);
+		}
+
+		.work-row:hover .work-row__preview,
+		.work-row:focus-visible .work-row__preview {
+			opacity: 1;
+			transform: translate(0, -50%) scale(1);
+			filter: blur(0);
+			transition-duration: 240ms;
+		}
+	}
+
+	/* Anchored to the top, as on the card, where the screenshots keep their
+	   headers. */
+	.work-row__preview :global(img) {
+		display: block;
+		inline-size: 100%;
+		block-size: 100%;
+		max-inline-size: none;
+		object-fit: cover;
+		object-position: center top;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		/* Gentler, not none: the cover still fades in, without moving. */
+		.work-row__preview {
+			transform: translate(0, -50%) !important;
+			filter: none !important;
+		}
+	}
+</style>

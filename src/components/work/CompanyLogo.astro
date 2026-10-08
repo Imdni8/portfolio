@@ -1,0 +1,85 @@
+---
+/* A company's mark on a small tile — the work list's metadata version of
+   the bio's app-icon tiles, sized to stand in for a 16px Lucide icon beside
+   the other facts. Decoration only: the company's name is written next to
+   it. A company with no mark in src/data/companies.ts falls back to the
+   building icon, so a new entry never renders an empty box. */
+import Icon from '../ui/Icon.astro';
+import { companyMarks } from '../../data/companies';
+
+interface Props {
+	company: string;
+}
+
+const { company } = Astro.props;
+const mark = companyMarks[company];
+---
+
+{
+	mark ? (
+		<span class={`company-logo company-logo--${mark.tone}`} aria-hidden="true" set:html={mark.svg} />
+	) : (
+		<Icon name="building-2" />
+	)
+}
+
+<style>
+	/* The tile ground is white (--secondary) unless the brand's own colour
+	   replaces it below, so it reads the same on either theme. */
+	.company-logo {
+		display: inline-flex;
+		flex: none;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+		inline-size: var(--spacing-xl);
+		block-size: var(--spacing-xl);
+		border-radius: var(--radius-xxs);
+		overflow: clip;
+		background: var(--secondary);
+		color: var(--text-on-secondary);
+	}
+
+	.company-logo > :global(svg) {
+		inline-size: 75%;
+		block-size: 75%;
+	}
+
+	/* A mark on a transparent ground (Philips' shield) stands bare, inset
+	   like a Lucide glyph: 2px of air each side, so the mark is a whole
+	   12px at the 16px tile and lands on pixels. At the
+	   tile's full size it rose above the icons beside it, and on a 1×
+	   display, where a card's fractional offset lands the tile between
+	   pixels, `overflow: clip` shaved its top and bottom rows. */
+	.company-logo--bare {
+		background: none;
+	}
+
+	.company-logo--bare > :global(svg) {
+		inline-size: calc(100% - 2 * var(--spacing-xxs));
+		block-size: calc(100% - 2 * var(--spacing-xxs));
+	}
+
+	.company-logo--medable,
+	.company-logo--jnj {
+		color: var(--gray-50);
+	}
+
+	.company-logo--medable {
+		background: var(--brand-medable);
+	}
+
+	.company-logo--medable > :global(svg) {
+		inline-size: 62%;
+		block-size: 62%;
+	}
+
+	.company-logo--jnj {
+		background: var(--brand-jnj);
+	}
+
+	.company-logo--jnj > :global(svg) {
+		inline-size: 80%;
+		block-size: auto;
+	}
+</style>

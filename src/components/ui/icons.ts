@@ -6,7 +6,9 @@
    from the package: Lucide retired its brand set, so the Figma mark is
    drawn by hand; the breadcrumb's home glyph and slash divider are one-off
    marks from the Paper design that don't match anything in Lucide's stock
-   set. */
+   set. The theme toggle's Yoda and Vader are small flat illustrations, and
+   the only entries with literal multi-colour fills: they ignore
+   currentColor, like the footer mascot. */
 import close from 'lucide-static/icons/x.svg?raw';
 import arrowDown from 'lucide-static/icons/arrow-down.svg?raw';
 import arrowLeft from 'lucide-static/icons/arrow-left.svg?raw';
@@ -28,9 +30,13 @@ import search from 'lucide-static/icons/search.svg?raw';
 import trendingUp from 'lucide-static/icons/trending-up.svg?raw';
 import maximize from 'lucide-static/icons/maximize.svg?raw';
 import minimize from 'lucide-static/icons/minimize.svg?raw';
+import fileText from 'lucide-static/icons/file-text.svg?raw';
+import mail from 'lucide-static/icons/mail.svg?raw';
 import figma from '../../assets/icons/figma.svg?raw';
 import home from '../../assets/icons/home.svg?raw';
 import slashDivider from '../../assets/icons/slash-divider.svg?raw';
+import yoda from '../../assets/icons/yoda.svg?raw';
+import vader from '../../assets/icons/vader.svg?raw';
 
 export const icons = {
 	close,
@@ -54,9 +60,13 @@ export const icons = {
 	'trending-up': trendingUp,
 	maximize,
 	minimize,
+	'file-text': fileText,
+	mail,
 	figma,
 	home,
 	'slash-divider': slashDivider,
+	yoda,
+	vader,
 } as const;
 
 export type IconName = keyof typeof icons;

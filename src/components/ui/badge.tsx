@@ -6,8 +6,9 @@
 //   - The variants are Tag's, not shadcn's: `default`, `coming-soon` and
 //     `ai`, plus `light` (the work card's white chips). shadcn's set (a primary-filled chip, destructive, link…) has no
 //     use here, and the palette has no destructive token.
-//   - Type is the 10px tag rung in DM Mono: uppercase, tracked open. No
-//     `.type-*` class carries that rung, so it's set from the tokens directly.
+//   - Type is the 10px tag rung in DM Mono 500 (the family's heaviest loaded
+//     cut): uppercase, tracked open. No `.type-*` class carries that rung, so
+//     it's set from the tokens directly.
 //   - No focus or hover styles. A badge labels its container; it is never the
 //     thing you act on, so it's never focusable or interactive.
 //   - Icons are the project's `.icon` spans, not bare SVGs. They're pinned
@@ -27,7 +28,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "group/badge inline-flex w-fit shrink-0 items-center gap-(--spacing-xs) rounded-(--radius-sm) border py-(--spacing-xs) ps-(--spacing-xs) pe-(--spacing-sm) font-(family-name:--font-mono) text-(length:--size-tag) leading-(--lh-tag) font-(--weight-regular) tracking-(--track-tag) whitespace-nowrap uppercase [&_.icon]:size-(--size-micro)",
+  "group/badge inline-flex w-fit shrink-0 items-center gap-(--spacing-xs) rounded-(--radius-sm) border py-(--spacing-xs) ps-(--spacing-xs) pe-(--spacing-sm) font-(family-name:--font-mono) text-(length:--size-tag) leading-(--lh-tag) font-(--weight-medium) tracking-(--track-tag) whitespace-nowrap uppercase [&_.icon]:size-(--size-micro)",
   {
     variants: {
       variant: {
@@ -54,8 +55,12 @@ const badgeVariants = cva(
         // A white chip, for the work card's role labels, which sit on the
         // bare page ground rather than a panel. The control-surface tokens,
         // not a literal: --secondary is the one sanctioned white, and
-        // --text-on-secondary (gray-900) on it is 17.3:1.
-        light: "border-(--secondary-border) bg-(--secondary) text-(--text-on-secondary)",
+        // --text-on-secondary (gray-900) on it is 17.3:1. The edge is 2px
+        // (`.badge-light` in components.css, shared with `.badge-ai` so the
+        // two chips beside each other share one geometry) in --gray-300:
+        // --secondary-border (gray-200) was invisible against the white
+        // fill. Bound to the primitive so the buttons' border doesn't move.
+        light: "badge-light border-(--gray-300) bg-(--secondary) text-(--text-on-secondary)",
       },
     },
     defaultVariants: {
