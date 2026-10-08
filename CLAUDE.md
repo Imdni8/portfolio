@@ -348,10 +348,11 @@ own, so `SiteNav.astro` carries no `aria-current`.
   `--text-muted`. Its glyphs are Yoda (switches to light) and Vader (switches
   to dark); both are rendered and CSS shows the one for the theme a press
   goes to, off `[data-theme]`, so it's right on first paint.
-  Hover or focus grows a circle of the other theme's ground behind the
-  character (`--theme-preview`: `--paper` on dark, `--gray-700` on light,
-  since Vader vanishes on `--night`). A press ripples the new theme out of
-  that circle: a view transition whose new snapshot is revealed by a
+  Hover or focus shows a halftone disc of the other theme's ground behind
+  the character (`--theme-preview`: `--paper` on dark, `--gray-700` on
+  light, since Vader vanishes on `--night`) — build-time SVG dots, full
+  size at the centre and shrinking outward, breathing on a slow 3.2s loop.
+  A press ripples the new theme out of it: a view transition whose new snapshot is revealed by a
   growing `clip-path` circle (`--ease-ripple`, 450–700ms by distance),
   reduced motion getting the plain cross-fade. `<html>` carries Astro's
   generated transition name from `transition:animate="none"`, so tokens.css
