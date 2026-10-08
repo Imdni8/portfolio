@@ -100,7 +100,7 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 			<HomeHero />
 			<HomeBio />
 			<section class="home__works" aria-labelledby="work">
-				<h2 id="work" class="home__works-heading type-overline">Selected works</h2>
+				<h2 id="work" class="home__works-heading type-label">Selected work</h2>
 				<ol class="work-list">
 					{
 						studies.map((entry, i) => (
@@ -207,9 +207,27 @@ const hrefOf = (entry: (typeof studies)[number]) =>
 	   72px in all, the 40px row gap plus this. */
 	.home__works {
 		display: grid;
-		gap: var(--spacing-xl);
+		gap: var(--spacing-6xl);
 		margin-block-start: var(--spacing-4xl);
 		scroll-margin-block-start: calc(var(--nav-height) + var(--spacing-3xl));
+	}
+
+	/* A divider: the label centred on a hairline that runs to the column's
+	   edges, 48px above the first card. The rules are pseudo-elements, so
+	   the heading's text — and its accessible name — is the label alone. */
+	.home__works-heading {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-2xl);
+		color: var(--text-body);
+	}
+
+	.home__works-heading::before,
+	.home__works-heading::after {
+		content: '';
+		flex: 1;
+		block-size: 1px;
+		background: var(--border);
 	}
 
 	.work-list {

@@ -86,7 +86,7 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 				{title}
 				{isExternal && <span class="sr-only"> (opens in new tab)</span>}
 			</p>
-			<p class="card__meta type-card-meta">
+			<p class="card__meta type-label">
 				<span class="card__meta-item">
 					<Icon name="building-2" />
 					{industry}
@@ -130,9 +130,10 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 </Wrapper>
 
 <style>
-	/* No panel: a rounded cover, and the card's text straight on the page
-	   ground beneath it. The card has no width of its own — whatever hosts it
-	   decides that (the homepage's Selected works column) — and takes its height from its content. */
+	/* No panel: a rounded cover with the role chips on its top edge, and the
+	   card's text straight on the page ground beneath it. The card has no
+	   width of its own — whatever hosts it decides that (the homepage's
+	   Selected works column) — and takes its height from its content. */
 	.card {
 		position: relative;
 		display: block;
@@ -183,52 +184,52 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 		outline-offset: 2px;
 	}
 
-	/* The cover, then the text 24px under it. The cover is second in the DOM
-	   and first on screen — see the markup. */
+	/* The cover, then the title and facts 8px apart under it. The cover is
+	   second in the DOM and first on screen — see the markup. */
 	.card__inner {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-3xl);
+		gap: var(--spacing-md);
 	}
 
-	/* One row of tags on the left and the facts on the right, then the title
-	   32px below, all inset 16px from the cover's edges. A grid rather than
-	   DOM order, so the title can stay first in the link's accessible name
-	   while the tags and facts sit above it on screen. */
+	/* Title, then the facts, flush with the cover's edge. The role chips are
+	   first in the DOM (so the link's name reads them with the title) but
+	   leave the flow: they sit on the cover's top edge, below. */
 	.card__body {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		grid-template-areas:
-			'roles meta'
-			'title title';
-		align-items: center;
-		column-gap: var(--spacing-3xl);
-		row-gap: var(--spacing-4xl);
-		padding-inline: var(--spacing-xl);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 	}
 
+	/* Centred on the cover's top edge, 16px in from its left: half the chip
+	   rides on the cover, half above it. Out of flow, so it positions against
+	   `.card`, whose top is the cover's top. */
 	.card__roles {
-		grid-area: roles;
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: var(--spacing-xl);
+		z-index: 1;
+		translate: 0 -50%;
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--spacing-md);
+		gap: var(--spacing-xs);
+		max-inline-size: calc(100% - 2 * var(--spacing-xl));
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
 	.card__title {
-		grid-area: title;
 		color: var(--text);
 	}
 
-	/* Domain and year side by side, the space between them the reference's. */
+	/* Industry and year side by side, 40px apart. */
 	.card__meta {
-		grid-area: meta;
 		display: flex;
-		column-gap: var(--spacing-6xl);
+		flex-wrap: wrap;
+		column-gap: var(--spacing-5xl);
 		margin: 0;
-		color: var(--text);
+		color: var(--text-body);
 	}
 
 	/* Icon and label as one unit, so the pair wraps together rather than the
@@ -239,16 +240,21 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 		gap: var(--spacing-md);
 	}
 
-	/* The reference's frame for the cover (1303×770). Rounded and clipped
+	.card__meta-item :global(.icon) {
+		inline-size: var(--spacing-xl);
+		block-size: var(--spacing-xl);
+	}
+
+	/* The design's frame for the cover (500×316). Rounded and clipped
 	   here, so the image, the coming-soon scrim and the external badge all
 	   sit inside the same corners. --bg-media marks the box while the image
 	   loads. */
 	.card__media {
 		position: relative;
 		order: -1;
-		aspect-ratio: 1303 / 770;
+		aspect-ratio: 500 / 316;
 		overflow: clip;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-md);
 		background: var(--bg-media);
 	}
 
@@ -311,19 +317,6 @@ const workSlug = href?.startsWith('/work/') ? href.slice('/work/'.length) : unde
 		color: var(--secondary);
 		width: 1.625rem;
 		height: 1.625rem;
-	}
-
-	/* On a narrow card the facts can't share a row with the tags, so they
-	   drop under them, left-aligned, above the title. */
-	@container (max-width: 30rem) {
-		.card__body {
-			grid-template-columns: minmax(0, 1fr);
-			grid-template-areas:
-				'roles'
-				'meta'
-				'title';
-			row-gap: var(--spacing-xl);
-		}
 	}
 
 	/* ui/button.tsx carries its own reduced-motion guard; the card's lift and

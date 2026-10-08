@@ -472,25 +472,30 @@ and `work-spotlight.ts` were removed with this redesign.)
     `currentColor` at build.
   - Links: versioning and audit logs go to their case studies; LinkedIn,
     GitHub (the footer's SVGs) and the résumé are off-site.
-- **Selected works** (`section#work`, `.type-overline` heading) is the
+- **Selected works** (`section#work`) opens with a divider: the heading
+  "Selected work" in `.type-label` (`--text-body`), centred on a `--border`
+  hairline drawn by `::before`/`::after` (so the heading's name is the
+  label alone), 48px (`--spacing-6xl`) above the first card. Then the
   stacked `WorkCard` list, `priority` on the first card. `WorkCard`'s
   `sizes` is a hand-resolved mirror of `--measure-home`; move them
   together.
 - **The entrance** is CSS: the opening row rises and fades, the bio and the
   work rise only (80ms apart) — the bio's copy and the first cover are the
   LCP candidates, and opacity 0 would delay them.
-- **`WorkCard`** has no panel: a rounded cover (`--radius-lg`, the
-  reference's 1303×770 frame, anchored to the top), and 24px under it the
-  text straight on the page ground. The text is one row with the role chips
-  on the left and industry and year (with their icons) on the right, then
-  `.type-card-title` 32px below, all inset 16px.
+- **`WorkCard`** has no panel: a rounded cover (`--radius-md`, the Paper
+  frame's 500×316, anchored to the top), with the role chips centred on its
+  top edge, 16px in from the left, and under it the title and one facts row,
+  8px apart, flush with the cover.
   - The chips are the `light` badge variant (`--secondary` fill,
-    `--text-on-secondary`, 17.3:1). The AI chip keeps its ring and is filled
-    the same white (`.badge-ai` paints `--secondary`), so the row reads as
-    one set.
-  - `.card__body` is a grid with named areas, so the title stays first in
-    the link's accessible name while the chips and facts sit above it on
-    screen. Under 30rem of card width the facts drop under the chips.
+    `--text-on-secondary`, 17.3:1), white over the Paper frame's dark chips.
+    The AI chip keeps its ring and is filled the same white (`.badge-ai`
+    paints `--secondary`), so the row reads as one set.
+  - They are out of flow (`position: absolute` against `.card`, whose top is
+    the cover's top) but first in the DOM, so the link's accessible name
+    still reads them with the title ahead of the cover's alt text.
+  - The facts row is industry and year (with their icons), 40px apart, set in
+    `.type-label` (12px sans medium, `--text-body`). `.type-card-meta` is
+    still the fine rung and now belongs to the homepage role line alone.
   - The card has no width of its own; the column sets it.
   - Cards lift 2px on hover (gated to mouse and trackpad) and press to
     `scale: 0.98` on `:active` for every input.

@@ -524,6 +524,7 @@
 .type-subtitle,
 .type-card-title,
 .type-card-meta,
+.type-label,
 .type-nav-link,
 .type-body,
 .type-ui-label,
@@ -604,6 +605,17 @@
 	font-weight: var(--weight-regular);
 	font-size: var(--size-fine);
 	line-height: var(--lh-fine);
+}
+
+/* Small sans label: a work card's industry and year, and the homepage's
+   "Selected work" divider. The micro rung, medium weight so 12px holds up
+   beside the serif. Not .type-card-meta: that is the fine rung, regular,
+   and the homepage's role line shares it. */
+.type-label {
+	font-family: var(--font-sans);
+	font-weight: var(--weight-medium);
+	font-size: var(--size-micro);
+	line-height: var(--lh-micro);
 }
 
 /* Small uppercase mono, under two names:
