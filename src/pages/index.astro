@@ -236,18 +236,13 @@ const earlier = entries.filter((entry) => entry.data.status === 'external');
 		background: var(--border);
 	}
 
-	/* Off-site work: hairlines between the rows only — the divider above
-	   already closes the list off from the cards, so a rule on its outer
-	   edges would just double it. The heading's 48px gap is tightened to
-	   24px because a row is far lighter than a cover. */
+	/* Off-site work: no rules between the rows — the rows' own padding
+	   separates them. The heading's 48px gap is tightened to 24px because
+	   a row is far lighter than a cover. */
 	.earlier-list {
 		margin: calc(var(--spacing-3xl) - var(--spacing-6xl)) 0 0;
 		padding: 0;
 		list-style: none;
-	}
-
-	.earlier-list > li + li {
-		border-block-start: 1px solid var(--border);
 	}
 
 	.work-list {

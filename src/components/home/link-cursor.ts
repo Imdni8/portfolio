@@ -1,5 +1,5 @@
 /* The homepage's link cursor — over a `[data-cursor]` element (the bio's
-   underlined words, a published work card) the pointer becomes a small
+   underlined words, a published work card, an earlier-work row) the pointer becomes a small
    amber pill naming what a click does: "open", or "copy" on the email, whose click copies the address instead of opening a mail app
    (and the pill reads "copied" until the pointer leaves).
 
@@ -44,7 +44,12 @@ export const initLinkCursor = (root: HTMLElement): (() => void) => {
 		if (target === active) return;
 		active = target;
 		if (target) {
-			label.textContent = target.dataset.cursor ?? '';
+			/* A label with an icon in it ships as hidden markup inside its
+			   element (an external work row's "Drive ↗"), so the glyph comes
+			   from the icon registry rather than this script. */
+			const content = target.querySelector('[data-cursor-content]');
+			if (content) label.replaceChildren(...content.cloneNode(true).childNodes);
+			else label.textContent = target.dataset.cursor ?? '';
 			place();
 			cursor.dataset.visible = '';
 		} else {

@@ -485,8 +485,8 @@ and `work-spotlight.ts` were removed with this redesign.)
   changing colour. Each `.link` is nowrap so the strip never splits
   across lines. Reduced motion: no squiggle.
   - **The link cursor** (`link-cursor.ts`, from Paper's "open" pill): over
-    a `[data-cursor]` element — the bio's underlined links and every
-    published `WorkCard` — a mouse pointer is replaced by an `--amber-100`
+    a `[data-cursor]` element — the bio's underlined links, every
+    published `WorkCard` and every `ExternalWorkRow` — a mouse pointer is replaced by an `--amber-100`
     pill (`--gray-900` uppercase DM Mono 14/18, 15.6:1) centred on it, reading its
     `data-cursor` — "open", or "copy" on the email. A coming-soon card
     has no `href` and so no cursor. The email's mouse click
@@ -495,7 +495,8 @@ and `work-spotlight.ts` were removed with this redesign.)
     press, a touch, or a failed clipboard write still opens the mailto.
     The pill lives on `<body>` (the entrance transforms would otherwise
     be a fixed element's containing block), and its styles are in
-    components.css (Link cursor), since it spans HomeBio and WorkCard.
+    components.css (Link cursor), since it spans HomeBio, WorkCard and
+    ExternalWorkRow.
     `cursor: none` applies only once the script stamps `data-link-cursor`
     on `main.home`, so no-JS keeps the native pointer.
   - **Type**: `.type-body`'s family and weight on its own rung — 16px on
@@ -573,14 +574,17 @@ and `work-spotlight.ts` were removed with this redesign.)
   together. Only case studies on this site are cards.
 - **Earlier work** (`section[aria-labelledby="earlier-work"]`) follows,
   under the same divider: `status: external` entries (decks in Drive or
-  Slides) as compact `ExternalWorkRow`s with `--border` hairlines between rows (none above the first or below the last) — title in
-  `.type-subtitle`, then company (its logo tile, `CompanyLogo.astro`),
+  Slides) as compact `ExternalWorkRow`s with no rules between them — title in
+  `.type-subtitle`'s size set in DM Serif Display (tracked −1%), then company (its logo tile, `CompanyLogo.astro`),
   industry and year as three separate icon facts in `.type-label` (no AI
-  mark), and where it opens ("Drive"/"Slides", derived from the
-  URL's host) with an up-right arrow. A cover promises a page here, and a
-  click that dropped the reader into a Drive viewer broke that promise.
-  Rows are ≥48px, underline the title and lean the arrow on hover (fine
-  pointers), and dip to 60% opacity on press. The section is skipped when
+  mark), running the column's full width. Where it opens ("Drive"/
+  "Slides", derived from the URL's host, with an up-right arrow) is no
+  longer a column in the row: under a mouse it is the link cursor's
+  label, cloned from a hidden `[data-cursor-content]` in the row (an
+  `Icon`, so the glyph stays in the registry). A cover promises a page
+  here, and a click that dropped the reader into a Drive viewer broke
+  that promise. Rows are ≥48px, don't underline on hover, and dip to 60%
+  opacity on press. The section is skipped when
   there is no external work.
   - **Hover preview**: on a hovered or keyboard-focused row, the entry's
     `thumbnail` floats beside the column, 32px to the right, centred on the
