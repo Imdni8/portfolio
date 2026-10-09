@@ -9,8 +9,6 @@
    here empty, so without JS — or if the fetch fails — the row stands as 30
    grey bars and nothing is claimed. Hovering or focusing them prints the
    total across the bars, once there is a total to show. */
-import { links } from '../../data/links';
-
 const DAYS = 30;
 ---
 
@@ -19,16 +17,20 @@ const DAYS = 30;
 	<p class="intro__role type-body">Lead designer / Builder</p>
 
 	<div class="intro__row" style={`--days: ${DAYS}`}>
-		<a class="commit-strip" href={links.github} target="_blank" rel="noopener noreferrer" data-commit-strip>
+		<div
+			class="commit-strip"
+			tabindex="0"
+			role="img"
+			aria-label={`GitHub contributions in the last ${DAYS} days`}
+			data-commit-strip
+		>
 			<span class="commit-strip__days" aria-hidden="true">
 				{Array.from({ length: DAYS }, () => <span class="commit-strip__day" data-level="0" />)}
 			</span>
-			<span class="sr-only" data-commit-label>(my GitHub activity, opens in new tab)</span>
-			{/* aria-hidden: the sr-only label above already reads the same total. */}
 			<span class="commit-strip__tip" aria-hidden="true">
 				<span class="commit-strip__tip-text type-meta" data-commit-tip></span>
 			</span>
-		</a>
+		</div>
 		<p class="intro__ships type-subtitle">ships <em class="intro__accent">thoughtful</em></p>
 	</div>
 
@@ -248,12 +250,13 @@ const DAYS = 30;
 			scale 150ms var(--ease-out) 50ms;
 	}
 
-	/* .type-meta's mono, on the tag rung and set solid to the bars' height
-	   so the line centres on them. */
+	/* .type-meta's mono, on the 12px rung; medium keeps the total legible
+	   over the bars. */
 	.commit-strip__tip-text {
 		color: var(--text);
-		font-size: var(--size-tag);
-		line-height: var(--lh-tag);
+		font-size: var(--size-micro);
+		font-weight: var(--weight-medium);
+		line-height: var(--lh-micro);
 		white-space: nowrap;
 		opacity: 0;
 		filter: blur(var(--spacing-xs));

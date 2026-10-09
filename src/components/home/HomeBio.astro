@@ -15,7 +15,9 @@
    reads as tile and name, like Agent Studio in paragraph two.
 
    One opening is left, and it adds detail rather than hiding a fact:
-   "[6] years" slides open to "[6] years, 6 months and 7 days". The number
+   "[6] years" slides open to "[6] years and 2 months" — the months actually
+   worked, summed from the stints in src/data/career.ts; on a whole number
+   of years there's nothing to open and it renders as plain text. The number
    is printed on a calendar tile, Google Calendar's app icon as a white
    tile with an amber band: the tile is the number, so the words start at
    "years". A mouse opens it by hover (CSS, gated to fine pointers); a tap
@@ -30,7 +32,7 @@
 import { links } from '../../data/links';
 import { icons } from '../ui/icons';
 import { companyMarks } from '../../data/companies';
-import { CAREER_START, since, formatYears, formatUnit, formatRest } from './career';
+import { experience, formatYears, formatUnit, formatRest } from './career';
 import agentStudioRaw from '../../assets/homepage/agent_studio.svg?raw';
 import nidRaw from '../../assets/homepage/nid-logo.svg?raw';
 import githubRaw from '../../assets/footer/Github.svg?raw';
@@ -49,22 +51,26 @@ const profiles = [
 	{ name: 'GitHub', href: links.github, svg: githubRaw },
 ];
 
-const span = since(CAREER_START);
+const span = experience();
 const years = formatYears(span);
 const unit = formatUnit(span);
 const rest = formatRest(span);
+/* On a whole number of years there is nothing to open, so the duration is
+   plain text rather than a control that does nothing. */
+const Duration = rest ? 'button' : 'span';
+const durationProps = rest ? { type: 'button', 'data-toggle': true } : {};
 ---
 
 <div class="bio">
 	<p class="type-body">
 		I have{' '}
-		<button class="toggle" type="button" data-toggle>
+		<Duration class="toggle" {...durationProps}>
 			<span class="sr-only" data-duration-full>{years}{rest}</span>
 			<span class="toggle__visual" aria-hidden="true">
 				<span class="calendar"><span class="calendar__day" data-duration-number>{span.years}</span></span>
 				<span class="toggle__text"><span data-duration-unit>{unit}</span><span class="reveal"><span class="reveal__inner" data-duration-rest>{rest}</span></span></span>
 			</span>
-		</button>{' '}
+		</Duration>{' '}
 		of experience designing complex enterprise and B2B SaaS products, from problem to{' '}
 		<span class="mark">production<span class="code-mark" aria-hidden="true" data-code-mark set:html={codeMarkRaw} />.</span>
 	</p>
@@ -166,6 +172,16 @@ const rest = formatRest(span);
 
 	/* The glyph fills most of the tile: a Lucide icon through its own 1em
 	   box, a raw mark sized directly. */
+	/* `middle` lands the tile's centre half the x-height above the baseline,
+	   which reads 1px low against DM Sans' names beside it. Lifting the tile
+	   (not dropping the name) keeps the name on the sentence's baseline;
+	   `position: relative` moves it without touching the line box. The
+	   profile glyphs have no name beside them, so they're left alone. */
+	.mark > .tile {
+		position: relative;
+		inset-block-start: -1px;
+	}
+
 	.tile :global(.icon) {
 		font-size: 1em;
 	}

@@ -537,8 +537,13 @@ and `work-spotlight.ts` were removed with this redesign.)
     paused unless
     `code-mark.ts`'s IntersectionObserver has stamped `data-playing`.
     Reduced motion keeps only the pulse; the `</>` stays whole.
-  - **"[6] years"** opens to "[6] years, 6 months and 7 days", counted from
-    1 April 2020 (`career.ts`'s `CAREER_START`). Computed at build so no-JS
+  - **"[6] years"** opens to "[6] years and N months" — the months
+    actually worked, not a span from the first start date. Each stint is in
+    `src/data/career.ts` (month precision, both ends inclusive, as the
+    résumé dates them; gaps skipped, a shared handover month counted once;
+    an open-ended stint omits `end`). On a whole number of years — 72
+    months today — there's nothing to open, so it renders as a plain
+    `<span>` rather than a `<button>`. Computed at build so no-JS
     reads right, then recomputed in the browser. The number is printed on a
     `.calendar` tile (Google Calendar's app icon): the white tile
     (`--secondary`) with a `--primary` amber binding band, the number in
@@ -564,7 +569,8 @@ and `work-spotlight.ts` were removed with this redesign.)
     the logos are recognisable on their own.
     The résumé and email links lead with Lucide glyphs (`file-text`,
     `mail`) the same size, underline on the word only (`.icon-link`).
-  - **The calendar is the one toggle left**, because it adds detail
+  - **The calendar is the one toggle left** (when there are months to
+    show), because it adds detail
     rather than hiding a fact. A mouse opens it by hover (CSS, gated to
     fine pointers) and its click does nothing; a tap or Enter toggles
     `data-open`; leaving with the mouse closes. The width animates with

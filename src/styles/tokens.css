@@ -122,8 +122,8 @@
    by a heavier cut: sans runs at 400 and 500 nearly everywhere, serif stays
    at 400, and mono at 400/500 plus 300 for the wordmark. The one exception is
    inline `<strong>` emphasis inside case-study prose (story-type.ts's
-   storyProse), which needs to read as heavier than the surrounding copy at a
-   glance — --weight-semibold below, not reached for anywhere else.
+   storyProse) and the homepage contribution total, both of which need to read
+   as heavier at a glance — --weight-semibold below.
    -------------------------------------------------------------------------- */
 :root {
 	--font-display: 'DM Serif Display', Georgia, serif;
@@ -162,7 +162,7 @@
 	--weight-light: 300; /* the footer's mono wordmark */
 	--weight-regular: 400;
 	--weight-medium: 500;
-	--weight-semibold: 600; /* case-study prose's <strong> — see the comment above */
+	--weight-semibold: 600; /* case-study prose emphasis and the homepage contribution total */
 
 	/* Tracking. The serif tightens; uppercase mono opens up — without it the
 	   labels set as a solid block — and opens less as it gets smaller, since a
@@ -375,6 +375,9 @@
 
 	--border: var(--gray-700);
 	--border-strong: var(--gray-500);
+	/* The scrolled nav pill's edge. Quieter than --glass-border on the
+	   dark ground, where the shadow already does the lifting. */
+	--nav-edge: var(--gray-800);
 
 	--primary: var(--amber-500);
 	--primary-hover: var(--amber-400);
@@ -524,6 +527,7 @@
 
 		--border: var(--gray-300);
 		--border-strong: var(--gray-500);
+		--nav-edge: var(--glass-border);
 
 		--primary: var(--amber-700);
 		--primary-hover: var(--amber-800);
@@ -552,6 +556,7 @@
 
 	--border: var(--gray-300);
 	--border-strong: var(--gray-500);
+	--nav-edge: var(--glass-border);
 
 	--primary: var(--amber-700);
 	--primary-hover: var(--amber-800);

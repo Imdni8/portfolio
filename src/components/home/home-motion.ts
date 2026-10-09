@@ -5,13 +5,13 @@
 
    Returns a teardown, called by index.astro before the next page's setup:
    the module outlives the page under <ClientRouter />. */
-import { CAREER_START, since, formatYears, formatUnit, formatRest } from './career';
+import { experience, formatYears, formatUnit, formatRest } from './career';
 
 export const initHomeMotion = (root: ParentNode = document): (() => void) => {
 	const cleanups: (() => void)[] = [];
 
 	/* ---- The duration, on the day it is read ---------------------------- */
-	const span = since(CAREER_START);
+	const span = experience();
 	const full = `${formatYears(span)}${formatRest(span)}`;
 	root.querySelector('[data-duration-full]')?.replaceChildren(full);
 	root.querySelector('[data-duration-number]')?.replaceChildren(String(span.years));
