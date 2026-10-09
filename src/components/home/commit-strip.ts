@@ -40,7 +40,6 @@ const isDay = (value: unknown): value is Day =>
 
 export const initCommitStrip = (strip: HTMLElement): (() => void) => {
 	const squares = [...strip.querySelectorAll<HTMLElement>('.commit-strip__day')];
-	const label = strip.querySelector<HTMLElement>('[data-commit-label]');
 	const tip = strip.querySelector<HTMLElement>('[data-commit-tip]');
 	const controller = new AbortController();
 	const timeout = window.setTimeout(() => controller.abort(), TIMEOUT);
@@ -69,9 +68,7 @@ export const initCommitStrip = (strip: HTMLElement): (() => void) => {
 
 		const total = days.reduce((sum, day) => sum + day.count, 0);
 		const contributions = `${total} contribution${total === 1 ? '' : 's'}`;
-		if (label) {
-			label.textContent = `(${contributions} on GitHub in the last ${squares.length} days, opens in new tab)`;
-		}
+		strip.setAttribute('aria-label', `${contributions} on GitHub in the last ${squares.length} days`);
 		if (tip) {
 			tip.textContent = `${contributions} in ${squares.length} days`;
 			strip.dataset.ready = '';
