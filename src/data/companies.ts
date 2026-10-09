@@ -28,5 +28,5 @@ const medableMark = ink(medableRaw).replace('width="92" height="22" viewBox="0 0
 export const companyMarks: Record<string, CompanyMark> = {
 	Medable: { svg: medableMark, tone: 'medable' },
 	Philips: { svg: philipsRaw, tone: 'bare' },
-	'J&J': { svg: ink(jnjRaw), tone: 'jnj' },
+	'Johnson & Johnson': { svg: ink(jnjRaw), tone: 'jnj' },
 };

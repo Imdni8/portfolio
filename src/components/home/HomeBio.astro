@@ -43,7 +43,7 @@ import codeMarkRaw from '../../assets/homepage/code-mark.svg?raw';
    grounds come from src/data/companies.ts, which the work list's metadata
    shares. NID carries its own white ground and Agent Studio its own
    gradient, so those stay as drawn here. */
-const companies = ['Medable', 'Philips', 'J&J'].map((name) => ({ name, ...companyMarks[name] }));
+const companies = ['Medable', 'Philips', 'Johnson & Johnson'].map((name) => ({ name, ...companyMarks[name] }));
 
 /* Paragraph four's links. */
 const profiles = [
@@ -151,7 +151,7 @@ const durationProps = rest ? { type: 'button', 'data-toggle': true } : {};
 	   inside it. The default ground is white (--secondary) with the mark
 	   inked --text-on-secondary (17.3:1), so the tile reads the same on
 	   either theme; the modifiers below swap the ground for the mark's own.
-	   It leads its word by 8px, and is centred on the x-height
+	   It leads its word by 4px, and is centred on the x-height
 	   (`vertical-align: middle`) rather than standing on the baseline — by
 	   the box, not by its contents, so a mark's own intrinsic height can't
 	   move it. Not interactive on its own and never read out: the name is. */
@@ -162,7 +162,7 @@ const durationProps = rest ? { type: 'button', 'data-toggle': true } : {};
 		box-sizing: border-box;
 		inline-size: var(--spacing-3xl);
 		block-size: var(--spacing-3xl);
-		margin-inline-end: var(--spacing-md);
+		margin-inline-end: var(--spacing-xs);
 		border-radius: var(--radius-xxs);
 		overflow: clip;
 		background: var(--secondary);
@@ -180,6 +180,14 @@ const durationProps = rest ? { type: 'button', 'data-toggle': true } : {};
 	.mark > .tile {
 		position: relative;
 		inset-block-start: -1px;
+	}
+
+	/* The tile belongs to the name after it, so the gap before it is
+	   wider than the 4px after: the ~4px word space plus --spacing-xs,
+	   about 8px. Bare marks carry their own air inside the box, so they
+	   don't need it. */
+	.mark > .tile:not(.tile--bare) {
+		margin-inline-start: var(--spacing-xs);
 	}
 
 	.tile :global(.icon) {
@@ -202,7 +210,6 @@ const durationProps = rest ? { type: 'button', 'data-toggle': true } : {};
 	   of their own, so they stand bare. */
 	.tile--bare {
 		background: none;
-		margin-inline-end: var(--spacing-xs);
 	}
 
 	.tile--bare > :global(svg) {
@@ -274,7 +281,7 @@ const durationProps = rest ? { type: 'button', 'data-toggle': true } : {};
 	   The "years" number, printed on a calendar: a white tile (--secondary)
 	   with an amber binding band across the top (--primary) and the number
 	   in --text-on-secondary, the same ink as every other tile's mark
-	   (17.3:1). It leads its word, so the 8px gap is on its trailing side.
+	   (17.3:1). It leads its word, so the tighter 4px gap is on its trailing side.
 
 	   Sized from its number: the number is 14px (--size-fine) so it reads
 	   at a glance, and the tile is that over 0.56 — the number-to-tile
@@ -301,11 +308,17 @@ const durationProps = rest ? { type: 'button', 'data-toggle': true } : {};
 		/* The band's height, keeping the number below it. */
 		padding-block-start: calc(var(--calendar-size) * 0.28);
 		margin-block: calc(-1 * var(--spacing-xs));
-		margin-inline-end: var(--spacing-md);
+		/* ~8px before (word space + 4px), 4px after, like the tiles: it
+		   reads as one unit with "years". */
+		margin-inline: var(--spacing-xs);
 		border-radius: var(--radius-sm);
 		background: linear-gradient(var(--primary) 0 28%, var(--secondary) 28%);
 		color: var(--text-on-secondary);
 		text-align: center;
+		/* Hung from the baseline, the tile sits 1px high against the
+		   words' x-height; dropping it 1px centres the line on it.
+		   `translate` leaves the line box alone. */
+		translate: 0 1px;
 	}
 
 	.calendar__day {

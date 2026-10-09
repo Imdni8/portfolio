@@ -23,5 +23,5 @@ export interface Stint {
 export const stints: Stint[] = [
 	{ company: 'Medable', role: 'Lead Product Designer', start: { year: 2025, month: 12 }, end: { year: 2026, month: 8 } },
 	{ company: 'Philips', role: 'Senior UX Designer', start: { year: 2022, month: 4 }, end: { year: 2025, month: 12 } },
-	{ company: 'J&J', role: 'UX Designer', start: { year: 2020, month: 4 }, end: { year: 2021, month: 10 } },
+	{ company: 'Johnson & Johnson', role: 'UX Designer', start: { year: 2020, month: 4 }, end: { year: 2021, month: 10 } },
 ];

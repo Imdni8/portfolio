@@ -497,7 +497,7 @@ and `work-spotlight.ts` were removed with this redesign.)
 - **The bio** (`HomeBio.astro`), four `.type-body` paragraphs, from the
   Paper frame "Portfolio components", 24px (`--spacing-3xl`) apart. The copy
   is one colour, `--text`. Every named thing has a **tile** in front of it —
-  a 24px (`--spacing-3xl`) square at `--radius-xxs`, 8px before the word,
+  a 24px (`--spacing-3xl`) square at `--radius-xxs`, 4px before the word (~8px after the one before it),
   centred on the x-height by `vertical-align: middle` (by the box, so a
   mark's intrinsic SVG height can't shift it), like an app icon beside its
   name. Tile and name plus any punctuation are one nowrap `.mark` run.
@@ -555,7 +555,9 @@ and `work-spotlight.ts` were removed with this redesign.)
     works because an `inline-block`'s baseline is its last line of text —
     so the tile must never become a clipping box (`overflow: hidden` moves
     the baseline to its bottom edge); the band is a background gradient,
-    not a clipped child. `--spacing-xs` is pulled off each block margin so
+    not a clipped child. Then `translate: 0 1px` drops it 1px (layout
+    untouched), because hung from the baseline it sat 1px high against the
+    words' x-height. `--spacing-xs` is pulled off each block margin so
     the line box sees ~17px of it: lines stay 28px apart (29.75px at
     17px; measured at 1440, 375 and 320 wide).
   - **Every name is visible.** NID and the companies
@@ -588,7 +590,7 @@ and `work-spotlight.ts` were removed with this redesign.)
     is its gradient mark, bare, and so is Philips' shield (transparent
     file, `tone: 'bare'`). NID carries its own white ground and fills a
     white tile. Medable (its square mark, the
-    viewBox narrowed to 0 0 22 22) and J&J sit white on their brand grounds,
+    viewBox narrowed to 0 0 22 22) and Johnson & Johnson sit white on their brand grounds,
     `--brand-medable` and `--brand-jnj`: decoration only, like the footer
     mascot. The single-colour files are recoloured from white to
     `currentColor` at build.
