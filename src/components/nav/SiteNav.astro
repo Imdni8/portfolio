@@ -143,17 +143,18 @@ const ditherBox = DITHER_CORE + DITHER_REACH;
 	   measured at 80%, both themes, over a full scroll of the homepage:
 	   worst case 4.73:1 dark, 4.75:1 light. Lower it and re-measure.
 
-	   The lift is the glass material's ambient shadow, plus its faint
-	   --glass-border edge so the pill doesn't dissolve into a dark ground
-	   the shadow can't show against. The edge is an inset shadow, not a
-	   `border`, for the reason `.glass` gives: a border's curve drifts from
-	   the one backdrop-filter clips to and leaves an unblurred hairline. */
+	   The lift is the glass material's ambient shadow, plus a faint
+	   --nav-edge (--gray-800 dark, --glass-border light) so the pill
+	   doesn't dissolve into a dark ground the shadow can't show against.
+	   The edge is an inset shadow, not a `border`, for the reason `.glass`
+	   gives: a border's curve drifts from the one backdrop-filter clips to
+	   and leaves an unblurred hairline. */
 	.nav-shell[data-scrolled] .nav-shell__inner {
 		background-color: color-mix(in srgb, var(--nav-band, var(--bg)) var(--nav-glass-fill), transparent);
 		backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 		-webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 		box-shadow:
-			inset 0 0 0 1px var(--glass-border),
+			inset 0 0 0 1px var(--nav-edge),
 			0 16px 40px -16px var(--glass-shadow-ambient);
 	}
 

@@ -375,6 +375,9 @@
 
 	--border: var(--gray-700);
 	--border-strong: var(--gray-500);
+	/* The scrolled nav pill's edge. Quieter than --glass-border on the
+	   dark ground, where the shadow already does the lifting. */
+	--nav-edge: var(--gray-800);
 
 	--primary: var(--amber-500);
 	--primary-hover: var(--amber-400);
@@ -524,6 +527,7 @@
 
 		--border: var(--gray-300);
 		--border-strong: var(--gray-500);
+		--nav-edge: var(--glass-border);
 
 		--primary: var(--amber-700);
 		--primary-hover: var(--amber-800);
@@ -552,6 +556,7 @@
 
 	--border: var(--gray-300);
 	--border-strong: var(--gray-500);
+	--nav-edge: var(--glass-border);
 
 	--primary: var(--amber-700);
 	--primary-hover: var(--amber-800);
